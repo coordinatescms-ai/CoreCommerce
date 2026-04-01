@@ -29,3 +29,7 @@ The project is a basic online store built on its own minimalist PHP framework. T
 1. Download the project
 2. Install dependencies: composer install
 3. Configure the configuration (config/database.php)
+
+## License
+
+This project is distributed under the MIT License. See the [`LICENSE`](LICENSE) file for details.
