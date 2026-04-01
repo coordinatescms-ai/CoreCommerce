@@ -1,4 +1,8 @@
 # CoreCommerce
+
+Project Status: In Development
+The goal is to create a fast alternative to bulky CMS that provides maximum security and flexibility out of the box.
+
 # Online Store Development Plan
 
 ## 1. Introduction
