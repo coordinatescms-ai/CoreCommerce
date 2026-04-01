@@ -1,0 +1,1 @@
+<?php return ['dsn'=>'mysql:host=MySQL-8.0;dbname=ec;charset=utf8mb4','user'=>'root','pass'=>'your_password'];

@@ -1,0 +1,1 @@
+<?php namespace App\Controllers; use App\Core\View\View; class HomeController{function index(){return View::render('home.index');}}

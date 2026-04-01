@@ -1,0 +1,1 @@
+<h1>Cart</h1><?= $total ?><br><a href='/checkout'>Checkout</a>

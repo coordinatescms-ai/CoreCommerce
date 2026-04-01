@@ -1,0 +1,1 @@
+<h1><?= $product['name'] ?></h1><a href='/cart/add/<?= $product['id'] ?>'>Add</a>

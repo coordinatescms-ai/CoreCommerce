@@ -1,0 +1,21 @@
+{
+  "id": "modern",
+  "name": "Modern Theme",
+  "description": "A modern and sleek design with a clean interface",
+  "version": "1.0.0",
+  "author": "MySite Team",
+  "colors": {
+    "primary": "#2563eb",
+    "secondary": "#64748b",
+    "success": "#10b981",
+    "danger": "#ef4444",
+    "warning": "#f59e0b",
+    "info": "#3b82f6",
+    "light": "#f8fafc",
+    "dark": "#1e293b"
+  },
+  "fonts": {
+    "primary": "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+    "heading": "'Poppins', sans-serif"
+  }
+}
