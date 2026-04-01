@@ -29,10 +29,6 @@ Inventory Sync: Auto-sync stock levels with external marketplaces (Amazon, eBay,
 AI-Powered Search: Smart product recommendations and predictive search queries.
 Marketing Tools: Built-in SEO analyzer, discount coupons, and email newsletter system.
 
-Legend:
-Completed
-In Progress / Planned
-
 * ## Requirements
 * PHP >= 8.3
 * Composer
