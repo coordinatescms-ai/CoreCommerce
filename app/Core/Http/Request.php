@@ -1,0 +1,1 @@
+<?php namespace App\Core\Http; class Request{static function capture(){return new static;} function method(){return $_SERVER['REQUEST_METHOD'];} function uri(){return strtok($_SERVER['REQUEST_URI'],'?');}}
