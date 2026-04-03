@@ -4,9 +4,17 @@ namespace App\Controllers;
 
 use App\Core\View\View;
 use App\Models\User;
+use App\Core\Mail\MailService;
 
 class AuthController
 {
+    private $mailService;
+
+    public function __construct()
+    {
+        $this->mailService = new MailService();
+    }
+
     /**
      * Показати форму входу
      */
@@ -130,12 +138,16 @@ class AuthController
             exit;
         }
 
-        // Створити користувача
+        // Створити користувача (деактивованим до підтвердження email)
+        $token = bin2hex(random_bytes(32));
         $result = User::create([
             'email' => $email,
             'password' => $password,
             'first_name' => $first_name,
             'last_name' => $last_name,
+            'is_active' => 0,
+            'email_verified' => 0,
+            'password_reset_token' => $token, // Використовуємо це поле тимчасово для верифікації
         ]);
 
         if (!$result) {
@@ -144,7 +156,37 @@ class AuthController
             exit;
         }
 
-        $_SESSION['success'] = __('registration_successful_please_login');
+        // Відправити лист підтвердження
+        $confirmation_link = "http://" . $_SERVER['HTTP_HOST'] . "/verify-email/" . $token;
+        $body = $this->mailService->renderTemplate('registration_confirmation', [
+            'first_name' => $first_name,
+            'confirmation_link' => $confirmation_link
+        ]);
+        
+        $this->mailService->send($email, 'Підтвердження реєстрації - MySite', $body);
+
+        $_SESSION['success'] = __('registration_successful_check_email');
+        header('Location: /login');
+        exit;
+    }
+
+    /**
+     * Верифікація email
+     */
+    public function verifyEmail($token)
+    {
+        $user = User::query("SELECT * FROM users WHERE password_reset_token = ? AND email_verified = 0", [$token]);
+        
+        if (empty($user)) {
+            $_SESSION['error'] = __('invalid_verification_token');
+            header('Location: /login');
+            exit;
+        }
+
+        $user = $user[0];
+        User::execute("UPDATE users SET is_active = 1, email_verified = 1, email_verified_at = NOW(), password_reset_token = NULL WHERE id = ?", [$user['id']]);
+
+        $_SESSION['success'] = __('email_verified_successfully');
         header('Location: /login');
         exit;
     }
@@ -213,14 +255,16 @@ class AuthController
         // Зберегти токен
         User::setPasswordResetToken($user['id'], $token, 3600); // 1 година
 
-        // Відправити email (для тестування просто показуємо посилання)
-        $_SESSION['reset_token'] = $token;
-        $_SESSION['reset_user_id'] = $user['id'];
-        $_SESSION['success'] = __('password_reset_link_sent_to_email');
+        // Відправити email
+        $reset_link = "http://" . $_SERVER['HTTP_HOST'] . "/reset-password/" . $token;
+        $body = $this->mailService->renderTemplate('password_reset', [
+            'first_name' => $user['first_name'] ?? 'Користувач',
+            'reset_link' => $reset_link
+        ]);
         
-        // У реальному додатку тут було б відправлення email
-        // sendResetEmail($user['email'], $token);
+        $this->mailService->send($user['email'], 'Відновлення пароля - MySite', $body);
 
+        $_SESSION['success'] = __('password_reset_link_sent_to_email');
         header('Location: /login');
         exit;
     }
