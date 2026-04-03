@@ -37,7 +37,9 @@ Marketing Tools: Built-in SEO analyzer, discount coupons, and email newsletter s
 * ## Installation
 1. Download the project
 2. Install dependencies: composer install
-3. Configure the configuration (config/database.php)
+3. Run the command in the terminal: composer require phpmailer/phpmailer
+4. Open the `config/mail.php` file and enter your mail server details
+5. Configure the configuration (config/database.php)
 
 ## License
 
