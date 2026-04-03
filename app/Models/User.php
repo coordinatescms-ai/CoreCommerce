@@ -303,15 +303,17 @@ class User extends Model
      * 
      * @param int $id
      * @param string $token
-     * @return bool
+     * @return array|null
      */
     public static function verifyRememberToken($id, $token)
     {
         $result = self::query(
-            "SELECT * FROM users WHERE id = ? AND remember_token = ?",
+            "SELECT u.*, r.slug as role FROM users u 
+             LEFT JOIN user_roles r ON u.role_id = r.id 
+             WHERE u.id = ? AND u.remember_token = ?",
             [$id, $token]
         );
-        return !empty($result);
+        return !empty($result) ? $result[0] : null;
     }
 
     /**
