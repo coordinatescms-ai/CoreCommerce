@@ -7,7 +7,7 @@
 
 <form action="/admin/products/update/<?php echo $product['id']; ?>" method="POST" enctype="multipart/form-data">
     <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf']); ?>">
-    
+
     <div class="card">
         <div class="card-header">
             <i class="fas fa-info-circle"></i> Основна інформація
@@ -24,15 +24,15 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                 <div class="form-group">
                     <label for="price">Ціна (грн)</label>
-                    <input type="number" step="0.01" name="price" id="price" class="form-control" required value="<?php echo (float)$product['price']; ?>">
+                    <input type="number" min="0" step="0.01" inputmode="decimal" name="price" id="price" class="form-control" required value="<?php echo number_format((float)$product['price'], 2, '.', ''); ?>">
                 </div>
                 <div class="form-group">
                     <label for="category_id">Категорія</label>
                     <select name="category_id" id="category_id" class="form-control">
                         <option value="">-- Без категорії --</option>
                         <?php foreach ($categories as $cat): ?>
-                            <option value="<?php echo $cat['id']; ?>" <?php echo $cat['id'] == $product['category_id'] ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($cat['name']); ?>
+                            <option value="<?php echo $cat['id']; ?>" <?php echo ((int)$cat['id'] === (int)$product['category_id']) ? 'selected' : ''; ?>>
+                                <?php echo str_repeat('— ', $cat['level'] ?? 0) . htmlspecialchars($cat['name']); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
@@ -79,7 +79,10 @@
         </div>
     </div>
 
-    <div style="margin-bottom: 2rem; display: flex; justify-content: flex-end;">
+    <div style="margin-bottom: 2rem; display: flex; justify-content: flex-end; gap: 0.75rem;">
+        <a href="/admin/products/show/<?php echo $product['id']; ?>" class="btn btn-outline" style="border: 1px solid #ddd; color: #0f766e;">
+            <i class="fas fa-eye"></i> Перегляд
+        </a>
         <button type="submit" class="btn btn-primary btn-lg" style="padding: 0.75rem 2rem; font-size: 1rem;">
             <i class="fas fa-save"></i> Зберегти зміни
         </button>

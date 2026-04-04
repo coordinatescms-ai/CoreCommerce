@@ -63,6 +63,7 @@ $router->get('/admin/products', [AdminProductController::class, 'index']);
 $router->get('/admin/products/create', [AdminProductController::class, 'create']);
 $router->post('/admin/products/store', [AdminProductController::class, 'store']);
 $router->get('/admin/products/edit/{id}', [AdminProductController::class, 'edit']);
+$router->get('/admin/products/show/{id}', [AdminProductController::class, 'show']);
 $router->post('/admin/products/update/{id}', [AdminProductController::class, 'update']);
 $router->get('/admin/products/delete/{id}', [AdminProductController::class, 'delete']);
 
