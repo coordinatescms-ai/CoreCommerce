@@ -10,6 +10,48 @@
         nav { background: #f4f4f4; padding: 1rem; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
         nav a { margin-right: 1rem; text-decoration: none; color: #333; }
         nav a:hover { color: #007bff; }
+        .nav-links { display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem; }
+        .nav-links > a { margin-right: 0; }
+        .nav-separator { color: #999; margin: 0 0.2rem; }
+        .nav-dropdown { position: relative; }
+        .nav-dropdown-toggle {
+            border: 0;
+            background: transparent;
+            color: #333;
+            cursor: pointer;
+            font: inherit;
+            padding: 0;
+        }
+        .nav-dropdown-toggle:hover,
+        .nav-dropdown-toggle:focus-visible { color: #007bff; outline: none; }
+        .nav-dropdown-menu {
+            list-style: none;
+            margin: 0;
+            padding: 0.6rem 0;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-width: 220px;
+            max-height: 320px;
+            overflow-y: auto;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+            display: none;
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            left: 0;
+            z-index: 30;
+        }
+        .nav-dropdown:hover > .nav-dropdown-menu,
+        .nav-dropdown:focus-within > .nav-dropdown-menu { display: block; }
+        .nav-dropdown-menu li { margin: 0; }
+        .nav-dropdown-menu a {
+            display: block;
+            padding: 0.4rem 0.9rem;
+            margin-right: 0;
+            color: #333;
+        }
+        .nav-dropdown-menu a:hover { background: #f4f8ff; }
+        .nav-dropdown-submenu { padding-left: 1rem; }
         .language-selector { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
         .language-selector a { margin-left: 0.5rem; margin-right: 0; }
         .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; }
@@ -20,16 +62,65 @@
         a:hover { text-decoration: underline; }
         @media (max-width: 768px) {
             nav { flex-direction: column; gap: 1rem; }
+            .nav-links { justify-content: center; width: 100%; }
+            .nav-dropdown { width: 100%; text-align: center; }
+            .nav-dropdown-menu {
+                position: static;
+                width: 100%;
+                max-height: none;
+                margin-top: 0.5rem;
+            }
+            .nav-dropdown.is-open > .nav-dropdown-menu { display: block; }
+            .nav-dropdown:hover > .nav-dropdown-menu { display: none; }
             .language-selector { justify-content: center; }
         }
     </style>
 </head>
 <body>
+    <?php
+    if (!function_exists('renderDefaultThemeHeaderCategories')) {
+        function renderDefaultThemeHeaderCategories(array $categories, int $depth = 0, int $maxDepth = 3, string $rootId = ''): void
+        {
+            if (empty($categories) || $depth > $maxDepth) {
+                return;
+            }
+
+            $submenuClass = $depth === 0 ? 'nav-dropdown-menu' : 'nav-dropdown-submenu';
+            $idAttribute = $depth === 0 && $rootId !== '' ? ' id="' . htmlspecialchars($rootId) . '"' : '';
+            echo '<ul class="' . $submenuClass . '"' . $idAttribute . '>';
+
+            foreach ($categories as $category) {
+                echo '<li>';
+                echo '<a href="/category/' . htmlspecialchars($category['slug']) . '">' . htmlspecialchars($category['name']) . '</a>';
+
+                if (!empty($category['children']) && $depth < $maxDepth) {
+                    renderDefaultThemeHeaderCategories($category['children'], $depth + 1, $maxDepth, $rootId);
+                }
+
+                echo '</li>';
+            }
+
+            echo '</ul>';
+        }
+    }
+    ?>
     <nav>
-        <div>
+        <div class="nav-links">
             <a href="/"><?= __('home') ?></a> | 
             <a href="/products"><?= __('products') ?></a> | 
             <a href="/cart"><?= __('cart') ?></a> |
+            <div class="nav-dropdown" data-nav-dropdown>
+                <button class="nav-dropdown-toggle" type="button" aria-expanded="false" aria-controls="default-nav-categories">
+                    <?= __('categories') ?>
+                </button>
+                <?php
+                $headerCategories = $headerCategories ?? [];
+                if (!empty($headerCategories)) {
+                    renderDefaultThemeHeaderCategories($headerCategories, 0, 3, 'default-nav-categories');
+                }
+                ?>
+            </div>
+            <span class="nav-separator">|</span>
             <?php if (!empty($_SESSION['user'])): ?>
                 <a href="/profile"><?= $_SESSION['user']['first_name'] ?? $_SESSION['user']['email'] ?></a> |
                 <a href="/logout"><?= __('logout') ?></a>
@@ -57,5 +148,24 @@
     <footer>
         <p>&copy; 2024 MySite. <?= __('all_rights_reserved') ?? 'All rights reserved.' ?></p>
     </footer>
+    <script>
+        (() => {
+            if (window.matchMedia('(max-width: 768px)').matches === false) {
+                return;
+            }
+
+            document.querySelectorAll('[data-nav-dropdown]').forEach((dropdown) => {
+                const button = dropdown.querySelector('.nav-dropdown-toggle');
+                if (!button) {
+                    return;
+                }
+
+                button.addEventListener('click', () => {
+                    const isOpen = dropdown.classList.toggle('is-open');
+                    button.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                });
+            });
+        })();
+    </script>
 </body>
 </html>
