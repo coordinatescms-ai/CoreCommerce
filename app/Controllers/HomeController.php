@@ -10,23 +10,28 @@ class HomeController
 {
     public function index()
     {
-        $topCategories = Category::query(
+        $heroCta = [
+            'url' => '/products',
+            'label' => __('shop_now'),
+        ];
+
+        $popularCategories = Category::query(
             "SELECT c.*, COUNT(p.id) AS products_count
              FROM categories c
              LEFT JOIN products p ON p.category_id = c.id
              GROUP BY c.id
              ORDER BY products_count DESC, c.name ASC
-             LIMIT 6"
+             LIMIT 8"
         ) ?? [];
 
         $newArrivals = Product::query(
             "SELECT *
              FROM products
              ORDER BY id DESC
-             LIMIT 8"
+             LIMIT 12"
         ) ?? [];
 
-        $popularProducts = Product::query(
+        $recommendedProducts = Product::query(
             "SELECT p.*, COUNT(oi.id) AS orders_count
              FROM products p
              LEFT JOIN order_items oi ON oi.product_id = p.id
@@ -35,8 +40,8 @@ class HomeController
              LIMIT 8"
         ) ?? [];
 
-        if (empty($popularProducts)) {
-            $popularProducts = Product::query(
+        if (empty($recommendedProducts)) {
+            $recommendedProducts = Product::query(
                 "SELECT *
                  FROM products
                  ORDER BY id DESC
@@ -45,9 +50,10 @@ class HomeController
         }
 
         return View::render('home.index', [
-            'topCategories' => $topCategories,
+            'heroCta' => $heroCta,
+            'popularCategories' => $popularCategories,
             'newArrivals' => $newArrivals,
-            'popularProducts' => $popularProducts,
+            'recommendedProducts' => $recommendedProducts,
         ]);
     }
 }
