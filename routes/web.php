@@ -2,6 +2,7 @@
 
 use App\Core\Routing\Router;
 use App\Controllers\ProductController;
+use App\Controllers\HomeController;
 use App\Controllers\CartController;
 use App\Controllers\OrderController;
 use App\Controllers\AdminProductController;
@@ -15,7 +16,7 @@ use App\Controllers\AdminController;
 
 $router = new Router();
 
-$router->get('/',[ProductController::class,'index']);
+$router->get('/',[HomeController::class,'index']);
 $router->get('/products',[ProductController::class,'index']);
 $router->get('/product/{slug}',[ProductController::class,'show']);
 $router->get('/category/{slug}',[ProductController::class,'showCategory']);
