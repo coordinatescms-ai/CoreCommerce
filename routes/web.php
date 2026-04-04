@@ -5,6 +5,7 @@ use App\Controllers\ProductController;
 use App\Controllers\CartController;
 use App\Controllers\OrderController;
 use App\Controllers\AdminProductController;
+use App\Controllers\AdminCategoryController;
 use App\Controllers\LanguageController;
 use App\Controllers\ThemeController;
 use App\Controllers\AdminThemeController;
@@ -61,6 +62,17 @@ $router->post('/admin/settings/save', [AdminController::class, 'saveSettings']);
 $router->get('/admin/products', [AdminProductController::class, 'index']);
 $router->get('/admin/products/create', [AdminProductController::class, 'create']);
 $router->post('/admin/products/store', [AdminProductController::class, 'store']);
+$router->get('/admin/products/edit/{id}', [AdminProductController::class, 'edit']);
+$router->post('/admin/products/update/{id}', [AdminProductController::class, 'update']);
+$router->get('/admin/products/delete/{id}', [AdminProductController::class, 'delete']);
+
+// Управління категоріями в адмінці
+$router->get('/admin/categories', [AdminCategoryController::class, 'index']);
+$router->get('/admin/categories/create', [AdminCategoryController::class, 'create']);
+$router->post('/admin/categories/store', [AdminCategoryController::class, 'store']);
+$router->get('/admin/categories/edit/{id}', [AdminCategoryController::class, 'edit']);
+$router->post('/admin/categories/update/{id}', [AdminCategoryController::class, 'update']);
+$router->get('/admin/categories/delete/{id}', [AdminCategoryController::class, 'delete']);
 
 // Управління темами в адмінці
 $router->get('/admin/themes', [AdminThemeController::class, 'index']);
