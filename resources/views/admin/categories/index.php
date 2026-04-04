@@ -38,10 +38,12 @@
                         </td>
                         <td style="padding: 1rem; text-align: right;">
                             <a href="/admin/categories/edit/<?php echo $category['id']; ?>" class="btn btn-outline" style="border: 1px solid #ddd; color: #2563eb;">
-                                <i class="fas fa-edit"></i>
+                                <i class="fas fa-edit" aria-hidden="true"></i>
+                                <span>Редагувати</span>
                             </a>
                             <a href="/admin/categories/delete/<?php echo $category['id']; ?>" class="btn btn-outline" style="border: 1px solid #ddd; color: #ef4444;" onclick="return confirm('Ви впевнені, що хочете видалити цю категорію?')">
-                                <i class="fas fa-trash"></i>
+                                <i class="fas fa-trash" aria-hidden="true"></i>
+                                <span>Видалити</span>
                             </a>
                         </td>
                     </tr>
