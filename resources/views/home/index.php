@@ -4,23 +4,26 @@
         <?= __('homepage_hero_subtitle') ?>
     </p>
 
-    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 2rem;">
-        <a href="/products" style="background: #2563eb; color: #fff; text-decoration: none; padding: 0.7rem 1.1rem; border-radius: 0.5rem;">
-            <?= __('shop_now') ?>
-        </a>
-        <a href="#new-arrivals" style="background: #f3f4f6; color: #111827; text-decoration: none; padding: 0.7rem 1.1rem; border-radius: 0.5rem;">
-            <?= __('new_arrivals') ?>
+    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem;">
+        <a href="<?= htmlspecialchars($heroCta['url']) ?>" style="background: #2563eb; color: #fff; text-decoration: none; padding: 0.7rem 1.1rem; border-radius: 0.5rem;">
+            <?= htmlspecialchars($heroCta['label']) ?>
         </a>
     </div>
 </section>
 
 <section style="margin-bottom: 2rem;">
-    <h2 style="margin-bottom: 1rem;"><?= __('featured_categories') ?></h2>
-    <?php if (empty($topCategories)): ?>
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
+        <h2 style="margin: 0;">Популярні категорії</h2>
+        <a href="/products" style="display: inline-block; padding: 0.5rem 0.9rem; border: 1px solid #d1d5db; border-radius: 0.45rem; color: #111827; text-decoration: none;">
+            Переглянути всі
+        </a>
+    </div>
+
+    <?php if (empty($popularCategories)): ?>
         <p>Категорії ще не додано.</p>
     <?php else: ?>
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem;">
-            <?php foreach ($topCategories as $category): ?>
+            <?php foreach ($popularCategories as $category): ?>
                 <a
                     href="/category/<?= htmlspecialchars($category['slug']) ?>"
                     style="display: block; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1rem; text-decoration: none; color: #111827; background: #fff;"
@@ -34,7 +37,13 @@
 </section>
 
 <section id="new-arrivals" style="margin-bottom: 2rem;">
-    <h2 style="margin-bottom: 1rem;"><?= __('new_arrivals') ?></h2>
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
+        <h2 style="margin: 0;">Новинки</h2>
+        <a href="/products" style="display: inline-block; padding: 0.5rem 0.9rem; border: 1px solid #d1d5db; border-radius: 0.45rem; color: #111827; text-decoration: none;">
+            Переглянути всі
+        </a>
+    </div>
+
     <?php if (empty($newArrivals)): ?>
         <p>Новинки з'являться найближчим часом.</p>
     <?php else: ?>
@@ -58,12 +67,18 @@
 </section>
 
 <section style="margin-bottom: 2rem;">
-    <h2 style="margin-bottom: 1rem;"><?= __('popular_products') ?></h2>
-    <?php if (empty($popularProducts)): ?>
-        <p>Популярні товари ще формуються.</p>
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
+        <h2 style="margin: 0;">Рекомендовані товари</h2>
+        <a href="/products" style="display: inline-block; padding: 0.5rem 0.9rem; border: 1px solid #d1d5db; border-radius: 0.45rem; color: #111827; text-decoration: none;">
+            Переглянути всі
+        </a>
+    </div>
+
+    <?php if (empty($recommendedProducts)): ?>
+        <p>Рекомендовані товари ще формуються.</p>
     <?php else: ?>
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem;">
-            <?php foreach ($popularProducts as $product): ?>
+            <?php foreach ($recommendedProducts as $product): ?>
                 <article style="border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1rem; background: #fff;">
                     <h3 style="margin: 0 0 0.5rem;">
                         <a href="/product/<?= htmlspecialchars($product['slug']) ?>" style="text-decoration: none; color: #111827;"><?= htmlspecialchars($product['name']) ?></a>
@@ -76,10 +91,4 @@
             <?php endforeach; ?>
         </div>
     <?php endif; ?>
-</section>
-
-<section>
-    <a href="/products" style="display: inline-block; padding: 0.65rem 1.1rem; border: 1px solid #d1d5db; border-radius: 0.5rem; color: #111827; text-decoration: none;">
-        <?= __('view_all_products') ?>
-    </a>
 </section>
