@@ -2,6 +2,13 @@
 
 return [
     'welcome' => 'Ласкаво просимо до MySite!',
+    'homepage_hero_title' => 'Ласкаво просимо до MySite!',
+    'homepage_hero_subtitle' => 'Обирайте найкращі товари для дому, роботи та відпочинку в одному каталозі.',
+    'shop_now' => 'Купити зараз',
+    'featured_categories' => 'Популярні категорії',
+    'new_arrivals' => 'Новинки',
+    'popular_products' => 'Популярні товари',
+    'view_all_products' => 'Переглянути всі товари',
     'products' => 'Товари',
     'cart' => 'Кошик',
     'checkout' => 'Оформлення замовлення',

@@ -2,6 +2,13 @@
 
 return [
     'welcome' => 'Welcome to MySite!',
+    'homepage_hero_title' => 'Welcome to MySite!',
+    'homepage_hero_subtitle' => 'Choose the best products for home, work, and leisure in one catalog.',
+    'shop_now' => 'Shop Now',
+    'featured_categories' => 'Featured Categories',
+    'new_arrivals' => 'New Arrivals',
+    'popular_products' => 'Popular Products',
+    'view_all_products' => 'View All Products',
     'products' => 'Products',
     'cart' => 'Cart',
     'checkout' => 'Checkout',

@@ -1,21 +1,21 @@
 <section style="padding: 2rem 0;">
-    <h1 style="margin-bottom: 0.5rem;"><?= __('welcome') ?></h1>
+    <h1 style="margin-bottom: 0.5rem;"><?= __('homepage_hero_title') ?></h1>
     <p style="font-size: 1.1rem; color: #555; margin-bottom: 1.5rem;">
-        Обирайте найкращі товари для дому, роботи та відпочинку в одному каталозі.
+        <?= __('homepage_hero_subtitle') ?>
     </p>
 
     <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 2rem;">
         <a href="/products" style="background: #2563eb; color: #fff; text-decoration: none; padding: 0.7rem 1.1rem; border-radius: 0.5rem;">
-            Перейти до каталогу
+            <?= __('shop_now') ?>
         </a>
         <a href="#new-arrivals" style="background: #f3f4f6; color: #111827; text-decoration: none; padding: 0.7rem 1.1rem; border-radius: 0.5rem;">
-            Дивитись новинки
+            <?= __('new_arrivals') ?>
         </a>
     </div>
 </section>
 
 <section style="margin-bottom: 2rem;">
-    <h2 style="margin-bottom: 1rem;">Топ-категорії</h2>
+    <h2 style="margin-bottom: 1rem;"><?= __('featured_categories') ?></h2>
     <?php if (empty($topCategories)): ?>
         <p>Категорії ще не додано.</p>
     <?php else: ?>
@@ -34,7 +34,7 @@
 </section>
 
 <section id="new-arrivals" style="margin-bottom: 2rem;">
-    <h2 style="margin-bottom: 1rem;">Новинки</h2>
+    <h2 style="margin-bottom: 1rem;"><?= __('new_arrivals') ?></h2>
     <?php if (empty($newArrivals)): ?>
         <p>Новинки з'являться найближчим часом.</p>
     <?php else: ?>
@@ -58,7 +58,7 @@
 </section>
 
 <section style="margin-bottom: 2rem;">
-    <h2 style="margin-bottom: 1rem;">Популярні товари</h2>
+    <h2 style="margin-bottom: 1rem;"><?= __('popular_products') ?></h2>
     <?php if (empty($popularProducts)): ?>
         <p>Популярні товари ще формуються.</p>
     <?php else: ?>
@@ -76,4 +76,10 @@
             <?php endforeach; ?>
         </div>
     <?php endif; ?>
+</section>
+
+<section>
+    <a href="/products" style="display: inline-block; padding: 0.65rem 1.1rem; border: 1px solid #d1d5db; border-radius: 0.5rem; color: #111827; text-decoration: none;">
+        <?= __('view_all_products') ?>
+    </a>
 </section>
