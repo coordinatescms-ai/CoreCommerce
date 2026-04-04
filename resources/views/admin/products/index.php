@@ -54,10 +54,12 @@
                         </td>
                         <td style="padding: 1rem; text-align: right; white-space: nowrap;">
                             <a href="/admin/products/show/<?php echo $product['id']; ?>" class="btn btn-outline" style="border: 1px solid #ddd; color: #0f766e;" title="Перегляд">
-                                <i class="fas fa-eye"></i>
+                                <i class="fas fa-eye" aria-hidden="true"></i>
+                                <span>Перегляд</span>
                             </a>
                             <a href="/admin/products/edit/<?php echo $product['id']; ?>" class="btn btn-outline" style="border: 1px solid #ddd; color: #2563eb;" title="Редагувати">
-                                <i class="fas fa-edit"></i>
+                                <i class="fas fa-edit" aria-hidden="true"></i>
+                                <span>Редагувати</span>
                             </a>
                             <a
                                 href="/admin/products/delete/<?php echo $product['id']; ?>?csrf=<?php echo urlencode($_SESSION['csrf']); ?>"
@@ -66,7 +68,8 @@
                                 title="Видалити"
                                 onclick="return confirm('Ви впевнені, що хочете видалити цей товар?')"
                             >
-                                <i class="fas fa-trash"></i>
+                                <i class="fas fa-trash" aria-hidden="true"></i>
+                                <span>Видалити</span>
                             </a>
                         </td>
                     </tr>
