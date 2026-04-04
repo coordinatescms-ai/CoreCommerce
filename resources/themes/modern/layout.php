@@ -545,7 +545,7 @@
                 <a href="/cart"><?php echo function_exists('__') ? __('cart') : 'Cart'; ?></a>
                 <div class="nav-dropdown" data-nav-dropdown>
                     <button class="nav-dropdown-toggle" type="button" aria-expanded="false" aria-controls="modern-nav-categories">
-                        <?php echo function_exists('__') ? __('categories') : 'Categories'; ?>
+                        <?= __('categories') ?>
                     </button>
                     <?php
                     $headerCategories = $headerCategories ?? [];
