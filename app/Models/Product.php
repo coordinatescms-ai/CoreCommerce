@@ -42,6 +42,40 @@ class Product extends Model
         return self::query("SELECT * FROM " . static::$table) ?? [];
     }
 
+
+    /**
+     * Отримати всі товари разом з назвою категорії
+     *
+     * @return array
+     */
+    public static function allWithCategory()
+    {
+        return self::query(
+            "SELECT p.*, c.name as category_name
+             FROM " . static::$table . " p
+             LEFT JOIN categories c ON c.id = p.category_id
+             ORDER BY p.id DESC"
+        ) ?? [];
+    }
+
+    /**
+     * Отримати товар за ID разом з назвою категорії
+     *
+     * @param int $id
+     * @return array|null
+     */
+    public static function findWithCategoryById($id)
+    {
+        $result = self::query(
+            "SELECT p.*, c.name as category_name
+             FROM " . static::$table . " p
+             LEFT JOIN categories c ON c.id = p.category_id
+             WHERE p.id = ?",
+            [$id]
+        );
+
+        return !empty($result) ? $result[0] : null;
+    }
     /**
      * Отримати товари за категорією
      * 
