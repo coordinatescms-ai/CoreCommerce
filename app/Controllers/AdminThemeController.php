@@ -23,6 +23,6 @@ class AdminThemeController
         View::render('admin.themes.index', [
             'themes' => $themes,
             'active_theme' => $active_theme,
-        ]);
+        ], 'admin');
     }
 }
