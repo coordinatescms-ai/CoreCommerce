@@ -2,6 +2,7 @@
 
 namespace App\Core\View;
 
+use App\Models\Category;
 use App\Core\Theme\ThemeManager;
 
 class View
@@ -15,6 +16,10 @@ class View
      */
     public static function render($view, $data = [])
     {
+        if (!array_key_exists('headerCategories', $data)) {
+            $data['headerCategories'] = Category::getTree();
+        }
+
         // Екстрактуємо дані для доступу як змінні
         extract($data);
         

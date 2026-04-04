@@ -69,6 +69,7 @@
             flex: 1;
             justify-content: center;
             flex-wrap: wrap;
+            align-items: center;
         }
 
         .nav-links a {
@@ -83,6 +84,74 @@
         .nav-links a:hover {
             background-color: rgba(255, 255, 255, 0.2);
             transform: translateY(-2px);
+        }
+
+        .nav-dropdown {
+            position: relative;
+        }
+
+        .nav-dropdown-toggle {
+            color: white;
+            border: 0;
+            background: transparent;
+            cursor: pointer;
+            font: inherit;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+        }
+
+        .nav-dropdown-toggle:hover,
+        .nav-dropdown-toggle:focus-visible {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            outline: none;
+        }
+
+        .nav-dropdown-menu,
+        .nav-dropdown-submenu {
+            list-style: none;
+            margin: 0;
+            padding: 0.4rem 0;
+        }
+
+        .nav-dropdown-menu {
+            min-width: 250px;
+            max-height: 360px;
+            overflow-y: auto;
+            background: #fff;
+            border-radius: var(--border-radius);
+            box-shadow: 0 12px 24px rgba(2, 6, 23, 0.2);
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            left: 0;
+            display: none;
+            z-index: 40;
+        }
+
+        .nav-dropdown:hover > .nav-dropdown-menu,
+        .nav-dropdown:focus-within > .nav-dropdown-menu {
+            display: block;
+        }
+
+        .nav-dropdown-menu a,
+        .nav-dropdown-submenu a {
+            color: #0f172a;
+            display: block;
+            padding: 0.4rem 0.9rem;
+            margin: 0;
+            border-radius: 0;
+        }
+
+        .nav-dropdown-menu a:hover,
+        .nav-dropdown-submenu a:hover {
+            background: #eff6ff;
+            transform: none;
+        }
+
+        .nav-dropdown-submenu {
+            padding-left: 0.9rem;
         }
 
         .language-selector {
@@ -369,6 +438,25 @@
                 gap: 1rem;
             }
 
+            .nav-dropdown {
+                width: 100%;
+                text-align: center;
+            }
+
+            .nav-dropdown-menu {
+                position: static;
+                max-height: none;
+                margin-top: 0.5rem;
+            }
+
+            .nav-dropdown.is-open > .nav-dropdown-menu {
+                display: block;
+            }
+
+            .nav-dropdown:hover > .nav-dropdown-menu {
+                display: none;
+            }
+
             .language-selector {
                 order: 2;
                 justify-content: center;
@@ -421,6 +509,33 @@
     </style>
 </head>
 <body>
+    <?php
+    if (!function_exists('renderModernThemeHeaderCategories')) {
+        function renderModernThemeHeaderCategories(array $categories, int $depth = 0, int $maxDepth = 3, string $rootId = ''): void
+        {
+            if (empty($categories) || $depth > $maxDepth) {
+                return;
+            }
+
+            $submenuClass = $depth === 0 ? 'nav-dropdown-menu' : 'nav-dropdown-submenu';
+            $idAttribute = $depth === 0 && $rootId !== '' ? ' id="' . htmlspecialchars($rootId) . '"' : '';
+            echo '<ul class="' . $submenuClass . '"' . $idAttribute . '>';
+
+            foreach ($categories as $category) {
+                echo '<li>';
+                echo '<a href="/category/' . htmlspecialchars($category['slug']) . '">' . htmlspecialchars($category['name']) . '</a>';
+
+                if (!empty($category['children']) && $depth < $maxDepth) {
+                    renderModernThemeHeaderCategories($category['children'], $depth + 1, $maxDepth, $rootId);
+                }
+
+                echo '</li>';
+            }
+
+            echo '</ul>';
+        }
+    }
+    ?>
     <header>
         <nav>
             <a href="/" class="nav-brand">MySite</a>
@@ -428,6 +543,17 @@
                 <a href="/"><?php echo function_exists('__') ? __('home') : 'Home'; ?></a>
                 <a href="/products"><?php echo function_exists('__') ? __('products') : 'Products'; ?></a>
                 <a href="/cart"><?php echo function_exists('__') ? __('cart') : 'Cart'; ?></a>
+                <div class="nav-dropdown" data-nav-dropdown>
+                    <button class="nav-dropdown-toggle" type="button" aria-expanded="false" aria-controls="modern-nav-categories">
+                        <?php echo function_exists('__') ? __('categories') : 'Categories'; ?>
+                    </button>
+                    <?php
+                    $headerCategories = $headerCategories ?? [];
+                    if (!empty($headerCategories)) {
+                        renderModernThemeHeaderCategories($headerCategories, 0, 3, 'modern-nav-categories');
+                    }
+                    ?>
+                </div>
                 <?php if (!empty($_SESSION['user'])): ?>
                     <a href="/profile"><?php echo function_exists('__') ? __('profile') : 'Profile'; ?> (<?php echo htmlspecialchars($_SESSION['user']['first_name'] ?? $_SESSION['user']['email']); ?>)</a>
                     <a href="/logout"><?php echo function_exists('__') ? __('logout') : 'Logout'; ?></a>
@@ -460,5 +586,24 @@
     <footer>
         <p>&copy; 2024 MySite. <?php echo function_exists('__') ? (__('all_rights_reserved') ?? 'All rights reserved.') : 'All rights reserved.'; ?></p>
     </footer>
+    <script>
+        (() => {
+            if (window.matchMedia('(max-width: 768px)').matches === false) {
+                return;
+            }
+
+            document.querySelectorAll('[data-nav-dropdown]').forEach((dropdown) => {
+                const button = dropdown.querySelector('.nav-dropdown-toggle');
+                if (!button) {
+                    return;
+                }
+
+                button.addEventListener('click', () => {
+                    const isOpen = dropdown.classList.toggle('is-open');
+                    button.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                });
+            });
+        })();
+    </script>
 </body>
 </html>
