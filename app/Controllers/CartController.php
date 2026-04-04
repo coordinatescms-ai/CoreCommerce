@@ -16,7 +16,12 @@ function add($id){
         if (!isset($_POST['csrf']) || $_POST['csrf'] !== $_SESSION['csrf']) {
             die('CSRF token mismatch');
         }
-$_SESSION['cart'][$id]=($_SESSION['cart'][$id]??0)+1; header('Location:/cart'); exit;}
+	$_SESSION['cart'][$id]=($_SESSION['cart'][$id]??0)+1; header('Location:/cart'); exit;}
+function addByGet($id){
+    $_SESSION['cart'][$id]=($_SESSION['cart'][$id]??0)+1;
+    header('Location:/cart');
+    exit;
+}
 function remove($id){
         // 🔐 CSRF CHECK
         if (!isset($_POST['csrf']) || $_POST['csrf'] !== $_SESSION['csrf']) {
