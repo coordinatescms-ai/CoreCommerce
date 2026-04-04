@@ -73,7 +73,7 @@ class RedirectController
 
         View::render('admin/redirects/index', [
             'redirects' => $redirects ?? []
-        ]);
+        ], 'admin');
     }
 
     /**
