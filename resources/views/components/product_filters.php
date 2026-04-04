@@ -51,38 +51,67 @@ $categorySlug = $categorySlug ?? '';
             <div class="filter-group filter-attribute">
                 <h4 class="filter-group-title"><?php echo htmlspecialchars($attribute['name']); ?></h4>
                 
-                <div class="filter-options">
-                    <?php foreach ($attribute['options'] as $option): ?>
-                        <?php 
-                            $inputName = "attr_{$attributeId}[]";
-                            $isChecked = false;
-                            
-                            if (!empty($currentFilters['attributes'][$attributeId])) {
-                                if (is_array($currentFilters['attributes'][$attributeId])) {
-                                    $isChecked = in_array($option['value'], $currentFilters['attributes'][$attributeId]);
-                                } else {
-                                    $isChecked = $currentFilters['attributes'][$attributeId] === $option['value'];
+                <?php if ($attribute['type'] === 'range'): ?>
+                    <?php
+                        $currentRange = $currentFilters['attributes'][$attributeId] ?? [];
+                        $rangeMin = $attribute['range']['min'] ?? 0;
+                        $rangeMax = $attribute['range']['max'] ?? 0;
+                    ?>
+                    <div class="price-range-inputs">
+                        <input type="number"
+                               step="0.01"
+                               name="attr_<?php echo $attributeId; ?>_min"
+                               class="price-input"
+                               placeholder="<?php echo __('min'); ?>"
+                               value="<?php echo htmlspecialchars($currentRange['min'] ?? ''); ?>"
+                               min="<?php echo $rangeMin; ?>"
+                               max="<?php echo $rangeMax; ?>">
+
+                        <span class="price-separator">-</span>
+
+                        <input type="number"
+                               step="0.01"
+                               name="attr_<?php echo $attributeId; ?>_max"
+                               class="price-input"
+                               placeholder="<?php echo __('max'); ?>"
+                               value="<?php echo htmlspecialchars($currentRange['max'] ?? ''); ?>"
+                               min="<?php echo $rangeMin; ?>"
+                               max="<?php echo $rangeMax; ?>">
+                    </div>
+                <?php else: ?>
+                    <div class="filter-options">
+                        <?php foreach ($attribute['options'] as $option): ?>
+                            <?php 
+                                $inputName = "attr_{$attributeId}[]";
+                                $isChecked = false;
+                                
+                                if (!empty($currentFilters['attributes'][$attributeId])) {
+                                    if (is_array($currentFilters['attributes'][$attributeId])) {
+                                        $isChecked = in_array($option['value'], $currentFilters['attributes'][$attributeId]);
+                                    } else {
+                                        $isChecked = $currentFilters['attributes'][$attributeId] === $option['value'];
+                                    }
                                 }
-                            }
-                        ?>
-                        
-                        <label class="filter-option">
-                            <input type="checkbox" 
-                                   name="<?php echo $inputName; ?>" 
-                                   value="<?php echo htmlspecialchars($option['value']); ?>"
-                                   <?php echo $isChecked ? 'checked' : ''; ?>>
+                            ?>
                             
-                            <?php if ($attribute['type'] === 'color' && $option['color']): ?>
-                                <span class="color-swatch" style="background-color: <?php echo htmlspecialchars($option['color']); ?>;"></span>
-                            <?php endif; ?>
-                            
-                            <span class="option-label">
-                                <?php echo htmlspecialchars($option['label']); ?>
-                                <span class="option-count">(<?php echo $option['count']; ?>)</span>
-                            </span>
-                        </label>
-                    <?php endforeach; ?>
-                </div>
+                            <label class="filter-option">
+                                <input type="checkbox" 
+                                       name="<?php echo $inputName; ?>" 
+                                       value="<?php echo htmlspecialchars($option['value']); ?>"
+                                       <?php echo $isChecked ? 'checked' : ''; ?>>
+                                
+                                <?php if ($attribute['type'] === 'color' && $option['color']): ?>
+                                    <span class="color-swatch" style="background-color: <?php echo htmlspecialchars($option['color']); ?>;"></span>
+                                <?php endif; ?>
+                                
+                                <span class="option-label">
+                                    <?php echo htmlspecialchars($option['label']); ?>
+                                    <span class="option-count">(<?php echo $option['count']; ?>)</span>
+                                </span>
+                            </label>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
             </div>
         <?php endforeach; ?>
 

@@ -10,6 +10,81 @@ use App\Models\ProductAttribute;
 class ProductFilterService
 {
     /**
+     * Отримати id категорії та всіх дочірніх.
+     *
+     * @param int $categoryId
+     * @return array
+     */
+    private static function getCategoryWithChildrenIds($categoryId)
+    {
+        $allCategories = [(int) $categoryId];
+        $children = Category::getAllChildren($categoryId);
+
+        foreach ($children as $child) {
+            $allCategories[] = (int) $child['id'];
+        }
+
+        return array_values(array_unique($allCategories));
+    }
+
+    /**
+     * Застосувати фільтри атрибутів до SQL-запиту.
+     *
+     * @param array $filters
+     * @param array $joins
+     * @param array $conditions
+     * @param array $params
+     * @return void
+     */
+    private static function applyAttributeFilters($filters, &$joins, &$conditions, &$params)
+    {
+        if (empty($filters['attributes']) || !is_array($filters['attributes'])) {
+            return;
+        }
+
+        $attributeIndex = 0;
+
+        foreach ($filters['attributes'] as $attributeId => $attributeFilter) {
+            if ($attributeFilter === '' || $attributeFilter === null || $attributeFilter === []) {
+                continue;
+            }
+
+            $attributeIndex++;
+            $tableAlias = "pa{$attributeIndex}";
+            $joins[] = "INNER JOIN product_attributes {$tableAlias} ON p.id = {$tableAlias}.product_id 
+                        AND {$tableAlias}.attribute_id = ?";
+            $params[] = (int) $attributeId;
+
+            if (is_array($attributeFilter) && (isset($attributeFilter['min']) || isset($attributeFilter['max']))) {
+                if ($attributeFilter['min'] !== '' && $attributeFilter['min'] !== null) {
+                    $conditions[] = "CAST({$tableAlias}.value AS DECIMAL(12,2)) >= ?";
+                    $params[] = (float) $attributeFilter['min'];
+                }
+
+                if ($attributeFilter['max'] !== '' && $attributeFilter['max'] !== null) {
+                    $conditions[] = "CAST({$tableAlias}.value AS DECIMAL(12,2)) <= ?";
+                    $params[] = (float) $attributeFilter['max'];
+                }
+
+                continue;
+            }
+
+            $values = is_array($attributeFilter) ? $attributeFilter : [$attributeFilter];
+            $values = array_values(array_filter($values, function ($value) {
+                return $value !== '' && $value !== null;
+            }));
+
+            if (empty($values)) {
+                continue;
+            }
+
+            $valuePlaceholders = implode(',', array_fill(0, count($values), '?'));
+            $conditions[] = "{$tableAlias}.value IN ($valuePlaceholders)";
+            $params = array_merge($params, $values);
+        }
+    }
+
+    /**
      * Отримати відфільтровані товари
      * 
      * @param array $filters
@@ -26,17 +101,10 @@ class ProductFilterService
 
         // Фільтр за категорією
         if (!empty($filters['category_id'])) {
-            // Отримати категорію та всі дочірні категорії
             $category = Category::findById($filters['category_id']);
-            
+
             if ($category) {
-                $allCategories = [$filters['category_id']];
-                $children = Category::getAllChildren($filters['category_id']);
-                
-                foreach ($children as $child) {
-                    $allCategories[] = $child['id'];
-                }
-                
+                $allCategories = self::getCategoryWithChildrenIds($filters['category_id']);
                 $placeholders = implode(',', array_fill(0, count($allCategories), '?'));
                 $conditions[] = "p.category_id IN ($placeholders)";
                 $params = array_merge($params, $allCategories);
@@ -55,33 +123,7 @@ class ProductFilterService
         }
 
         // Фільтр за атрибутами
-        if (!empty($filters['attributes']) && is_array($filters['attributes'])) {
-            $attributeIndex = 0;
-            
-            foreach ($filters['attributes'] as $attributeId => $values) {
-                if (empty($values)) {
-                    continue;
-                }
-                
-                $attributeIndex++;
-                $tableAlias = "pa{$attributeIndex}";
-                
-                // Додати JOIN для кожного атрибута
-                $joins[] = "INNER JOIN product_attributes {$tableAlias} ON p.id = {$tableAlias}.product_id 
-                           AND {$tableAlias}.attribute_id = ?";
-                $params[] = $attributeId;
-                
-                // Додати умову для значень атрибута
-                if (is_array($values)) {
-                    $valuePlaceholders = implode(',', array_fill(0, count($values), '?'));
-                    $conditions[] = "{$tableAlias}.value IN ($valuePlaceholders)";
-                    $params = array_merge($params, $values);
-                } else {
-                    $conditions[] = "{$tableAlias}.value = ?";
-                    $params[] = $values;
-                }
-            }
-        }
+        self::applyAttributeFilters($filters, $joins, $conditions, $params);
 
         // Побудувати запит
         if (!empty($joins)) {
@@ -136,15 +178,9 @@ class ProductFilterService
         // Фільтр за категорією
         if (!empty($filters['category_id'])) {
             $category = Category::findById($filters['category_id']);
-            
+
             if ($category) {
-                $allCategories = [$filters['category_id']];
-                $children = Category::getAllChildren($filters['category_id']);
-                
-                foreach ($children as $child) {
-                    $allCategories[] = $child['id'];
-                }
-                
+                $allCategories = self::getCategoryWithChildrenIds($filters['category_id']);
                 $placeholders = implode(',', array_fill(0, count($allCategories), '?'));
                 $conditions[] = "p.category_id IN ($placeholders)";
                 $params = array_merge($params, $allCategories);
@@ -163,31 +199,7 @@ class ProductFilterService
         }
 
         // Фільтр за атрибутами
-        if (!empty($filters['attributes']) && is_array($filters['attributes'])) {
-            $attributeIndex = 0;
-            
-            foreach ($filters['attributes'] as $attributeId => $values) {
-                if (empty($values)) {
-                    continue;
-                }
-                
-                $attributeIndex++;
-                $tableAlias = "pa{$attributeIndex}";
-                
-                $joins[] = "INNER JOIN product_attributes {$tableAlias} ON p.id = {$tableAlias}.product_id 
-                           AND {$tableAlias}.attribute_id = ?";
-                $params[] = $attributeId;
-                
-                if (is_array($values)) {
-                    $valuePlaceholders = implode(',', array_fill(0, count($values), '?'));
-                    $conditions[] = "{$tableAlias}.value IN ($valuePlaceholders)";
-                    $params = array_merge($params, $values);
-                } else {
-                    $conditions[] = "{$tableAlias}.value = ?";
-                    $params[] = $values;
-                }
-            }
-        }
+        self::applyAttributeFilters($filters, $joins, $conditions, $params);
 
         if (!empty($joins)) {
             $query .= " " . implode(" ", $joins);
@@ -221,6 +233,8 @@ class ProductFilterService
         $attributes = Category::getAttributes($categoryId);
         $filterOptions = [];
 
+        $categoryIds = self::getCategoryWithChildrenIds($categoryId);
+
         foreach ($attributes as $attribute) {
             if (!$attribute['is_filterable']) {
                 continue;
@@ -235,11 +249,17 @@ class ProductFilterService
             ];
 
             // Отримати доступні значення атрибута для товарів у категорії
-            $values = ProductAttribute::getUniqueValuesForCategory($categoryId, $attribute['id']);
-            
+            if ($attribute['type'] === 'range') {
+                $range = ProductAttribute::getNumericRangeForCategory($categoryIds, $attribute['id']);
+                $filterOptions[$attribute['id']]['range'] = $range;
+                continue;
+            }
+
+            $values = ProductAttribute::getUniqueValuesForCategory($categoryIds, $attribute['id']);
+
             foreach ($values as $value) {
-                $count = ProductAttribute::getCountInCategory($categoryId, $attribute['id'], $value['value']);
-                
+                $count = ProductAttribute::getCountInCategory($categoryIds, $attribute['id'], $value['value']);
+
                 $filterOptions[$attribute['id']]['options'][] = [
                     'value' => $value['value'],
                     'label' => $value['option_name'] ?? $value['value'],
@@ -354,6 +374,18 @@ class ProductFilterService
         if (!empty($filters['attributes']) && is_array($filters['attributes'])) {
             foreach ($filters['attributes'] as $attributeId => $values) {
                 if (!empty($values)) {
+                    if (is_array($values) && (isset($values['min']) || isset($values['max']))) {
+                        if ($values['min'] !== '' && $values['min'] !== null) {
+                            $queryParams["attr_{$attributeId}_min"] = $values['min'];
+                        }
+
+                        if ($values['max'] !== '' && $values['max'] !== null) {
+                            $queryParams["attr_{$attributeId}_max"] = $values['max'];
+                        }
+
+                        continue;
+                    }
+
                     if (is_array($values)) {
                         $queryParams["attr_{$attributeId}"] = implode(',', $values);
                     } else {
@@ -394,8 +426,21 @@ class ProductFilterService
         foreach ($queryParams as $key => $value) {
             if (strpos($key, 'attr_') === 0) {
                 $attributeId = (int) substr($key, 5);
-                $values = explode(',', $value);
-                $filters['attributes'][$attributeId] = $values;
+                if (substr($key, -4) === '_min' || substr($key, -4) === '_max') {
+                    $bound = substr($key, -3) === 'min' ? 'min' : 'max';
+                    $attributeId = (int) substr($key, 5, -4);
+                    $filters['attributes'][$attributeId][$bound] = is_numeric($value) ? (float) $value : $value;
+                    continue;
+                }
+
+                if (is_array($value)) {
+                    $filters['attributes'][$attributeId] = array_values(array_filter($value, function ($item) {
+                        return $item !== '' && $item !== null;
+                    }));
+                    continue;
+                }
+
+                $filters['attributes'][$attributeId] = explode(',', $value);
             }
         }
 

@@ -9,6 +9,27 @@ class ProductAttribute extends Model
     protected static $table = 'product_attributes';
 
     /**
+     * Нормалізувати список категорій до масиву id.
+     *
+     * @param int|array $categoryIds
+     * @return array
+     */
+    private static function normalizeCategoryIds($categoryIds)
+    {
+        if (is_array($categoryIds)) {
+            $ids = array_map('intval', $categoryIds);
+        } else {
+            $ids = [(int) $categoryIds];
+        }
+
+        $ids = array_values(array_unique(array_filter($ids, function ($id) {
+            return $id > 0;
+        })));
+
+        return $ids;
+    }
+
+    /**
      * Отримати атрибути товару
      * 
      * @param int $productId
@@ -149,14 +170,23 @@ class ProductAttribute extends Model
      */
     public static function getUniqueValuesForCategory($categoryId, $attributeId)
     {
+        $categoryIds = self::normalizeCategoryIds($categoryId);
+
+        if (empty($categoryIds)) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($categoryIds), '?'));
+        $params = array_merge($categoryIds, [$attributeId]);
+
         $result = self::query(
             "SELECT DISTINCT pa.value, pa.attribute_option_id, ao.name as option_name, ao.color_code
              FROM " . static::$table . " pa
              INNER JOIN products p ON pa.product_id = p.id
              LEFT JOIN attribute_options ao ON pa.attribute_option_id = ao.id
-             WHERE p.category_id = ? AND pa.attribute_id = ?
+             WHERE p.category_id IN ($placeholders) AND pa.attribute_id = ?
              ORDER BY pa.value",
-            [$categoryId, $attributeId]
+            $params
         );
         
         return $result ?? [];
@@ -172,14 +202,62 @@ class ProductAttribute extends Model
      */
     public static function getCountInCategory($categoryId, $attributeId, $value)
     {
+        $categoryIds = self::normalizeCategoryIds($categoryId);
+
+        if (empty($categoryIds)) {
+            return 0;
+        }
+
+        $placeholders = implode(',', array_fill(0, count($categoryIds), '?'));
+        $params = array_merge($categoryIds, [$attributeId, $value]);
+
         $result = self::query(
             "SELECT COUNT(DISTINCT p.id) as count
              FROM products p
              INNER JOIN " . static::$table . " pa ON p.id = pa.product_id
-             WHERE p.category_id = ? AND pa.attribute_id = ? AND pa.value = ?",
-            [$categoryId, $attributeId, $value]
+             WHERE p.category_id IN ($placeholders) AND pa.attribute_id = ? AND pa.value = ?",
+            $params
         );
         
         return !empty($result) ? $result[0]['count'] : 0;
+    }
+
+    /**
+     * Отримати числовий діапазон значень атрибута в категорії.
+     *
+     * @param int|array $categoryId
+     * @param int $attributeId
+     * @return array{min: float, max: float}
+     */
+    public static function getNumericRangeForCategory($categoryId, $attributeId)
+    {
+        $categoryIds = self::normalizeCategoryIds($categoryId);
+
+        if (empty($categoryIds)) {
+            return ['min' => 0.0, 'max' => 0.0];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($categoryIds), '?'));
+        $params = array_merge($categoryIds, [$attributeId]);
+
+        $result = self::query(
+            "SELECT MIN(CAST(pa.value AS DECIMAL(12,2))) as min_value,
+                    MAX(CAST(pa.value AS DECIMAL(12,2))) as max_value
+             FROM " . static::$table . " pa
+             INNER JOIN products p ON p.id = pa.product_id
+             WHERE p.category_id IN ($placeholders)
+               AND pa.attribute_id = ?
+               AND pa.value REGEXP '^-?[0-9]+(\\\\.[0-9]+)?$'",
+            $params
+        );
+
+        if (empty($result) || $result[0]['min_value'] === null || $result[0]['max_value'] === null) {
+            return ['min' => 0.0, 'max' => 0.0];
+        }
+
+        return [
+            'min' => (float) $result[0]['min_value'],
+            'max' => (float) $result[0]['max_value']
+        ];
     }
 }
