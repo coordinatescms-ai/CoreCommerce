@@ -105,6 +105,9 @@
             <a href="/admin/plugins" class="menu-item">
                 <i class="fas fa-plug"></i> Плагіни
             </a>
+            <a href="/admin/themes" class="menu-item">
+                <i class="fas fa-adjust"></i> Теми
+            </a>
             <a href="/admin/settings" class="menu-item <?php echo $request_uri === '/admin/settings' ? 'active' : ''; ?>">
                 <i class="fas fa-cog"></i> Налаштування
             </a>
