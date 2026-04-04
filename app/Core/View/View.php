@@ -8,13 +8,14 @@ use App\Core\Theme\ThemeManager;
 class View
 {
     /**
-     * Рендерити шаблон з макетом теми
+     * Рендерити шаблон з відповідним макетом
      * 
      * @param string $view Назва шаблону (наприклад, 'products.index')
      * @param array $data Дані для передачі у шаблон
+     * @param string $layout Тип макета: 'theme' (frontend) або 'admin'
      * @return void
      */
-    public static function render($view, $data = [])
+    public static function render($view, $data = [], $layout = 'theme')
     {
         if (!array_key_exists('headerCategories', $data)) {
             $data['headerCategories'] = Category::getTree();
@@ -36,16 +37,20 @@ class View
         include $view_path;
         $content = ob_get_clean();
         
-        // Отримуємо активну тему
-        $active_theme = ThemeManager::getActiveTheme();
-        $layout_path = ThemeManager::getLayoutPath($active_theme);
+        if ($layout === 'admin') {
+            $layout_path = __DIR__ . '/../../../resources/views/layouts/admin.php';
+        } else {
+            // Для frontend залишаємо поточний шлях через активну тему
+            $active_theme = ThemeManager::getActiveTheme();
+            $layout_path = ThemeManager::getLayoutPath($active_theme);
+        }
         
         // Перевіряємо, чи існує файл макета
         if (!file_exists($layout_path)) {
             throw new \Exception("Layout file not found: {$layout_path}");
         }
         
-        // Включаємо макет теми
+        // Включаємо вибраний макет
         include $layout_path;
     }
     
