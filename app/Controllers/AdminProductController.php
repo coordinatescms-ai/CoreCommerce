@@ -20,15 +20,28 @@ class AdminProductController
     public function index()
     {
         $this->checkAdmin();
-        $products = Product::all();
+        $products = Product::allWithCategory();
         View::render('admin/products/index', ['products' => $products], 'admin');
     }
 
     public function create()
     {
         $this->checkAdmin();
-        $categories = Category::all();
+        $categories = Category::getFlatTree();
         View::render('admin/products/create', ['categories' => $categories], 'admin');
+    }
+
+    public function show($id)
+    {
+        $this->checkAdmin();
+
+        $product = Product::findWithCategoryById($id);
+        if (!$product) {
+            header('Location: /admin/products');
+            exit;
+        }
+
+        View::render('admin/products/show', ['product' => $product], 'admin');
     }
 
     private function handleImageUpload()
@@ -53,13 +66,14 @@ class AdminProductController
                 return '/uploads/products/' . $filename;
             }
         }
+
         return null;
     }
 
     public function store()
     {
         $this->checkAdmin();
-        
+
         if (empty($_POST['csrf']) || $_POST['csrf'] !== $_SESSION['csrf']) {
             die('CSRF validation failed');
         }
@@ -67,9 +81,9 @@ class AdminProductController
         $image = $this->handleImageUpload();
 
         $data = [
-            'name' => $_POST['name'],
-            'slug' => !empty($_POST['slug']) ? $_POST['slug'] : SlugHelper::getUnique($_POST['name'], 'product'),
-            'price' => (float)$_POST['price'],
+            'name' => trim($_POST['name'] ?? ''),
+            'slug' => !empty($_POST['slug']) ? trim($_POST['slug']) : SlugHelper::getUnique($_POST['name'], 'product'),
+            'price' => (float)($_POST['price'] ?? 0),
             'category_id' => !empty($_POST['category_id']) ? (int)$_POST['category_id'] : null,
             'description' => $_POST['description'] ?? '',
             'image' => $image,
@@ -78,42 +92,46 @@ class AdminProductController
         ];
 
         if (Product::create($data)) {
-            $_SESSION['success'] = "Товар успішно додано!";
+            $_SESSION['success'] = 'Товар успішно додано!';
             header('Location: /admin/products');
         } else {
-            $_SESSION['error'] = "Помилка при додаванні товару.";
+            $_SESSION['error'] = 'Помилка при додаванні товару. Перевірте унікальність slug.';
             header('Location: /admin/products/create');
         }
+
         exit;
     }
 
     public function edit($id)
     {
         $this->checkAdmin();
+
         $product = Product::findById($id);
         if (!$product) {
             header('Location: /admin/products');
             exit;
         }
-        $categories = Category::all();
+
+        $categories = Category::getFlatTree();
+
         View::render('admin/products/edit', [
             'product' => $product,
-            'categories' => $categories
+            'categories' => $categories,
         ], 'admin');
     }
 
     public function update($id)
     {
         $this->checkAdmin();
-        
+
         if (empty($_POST['csrf']) || $_POST['csrf'] !== $_SESSION['csrf']) {
             die('CSRF validation failed');
         }
 
         $data = [
-            'name' => $_POST['name'],
-            'slug' => $_POST['slug'],
-            'price' => (float)$_POST['price'],
+            'name' => trim($_POST['name'] ?? ''),
+            'slug' => trim($_POST['slug'] ?? ''),
+            'price' => (float)($_POST['price'] ?? 0),
             'category_id' => !empty($_POST['category_id']) ? (int)$_POST['category_id'] : null,
             'description' => $_POST['description'] ?? '',
             'meta_title' => $_POST['meta_title'] ?? '',
@@ -126,29 +144,30 @@ class AdminProductController
         }
 
         if (Product::update($id, $data)) {
-            $_SESSION['success'] = "Товар успішно оновлено!";
+            $_SESSION['success'] = 'Товар успішно оновлено!';
             header('Location: /admin/products');
         } else {
-            $_SESSION['error'] = "Помилка при оновленні товару.";
+            $_SESSION['error'] = 'Помилка при оновленні товару. Перевірте унікальність slug.';
             header('Location: /admin/products/edit/' . $id);
         }
+
         exit;
     }
 
     public function delete($id)
     {
         $this->checkAdmin();
-        
-        // CSRF check via GET
+
         if (empty($_GET['csrf']) || $_GET['csrf'] !== $_SESSION['csrf']) {
             die('CSRF validation failed');
         }
 
         if (Product::delete($id)) {
-            $_SESSION['success'] = "Товар видалено!";
+            $_SESSION['success'] = 'Товар видалено!';
         } else {
-            $_SESSION['error'] = "Помилка при видаленні.";
+            $_SESSION['error'] = 'Помилка при видаленні.';
         }
+
         header('Location: /admin/products');
         exit;
     }
