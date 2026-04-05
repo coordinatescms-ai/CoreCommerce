@@ -47,6 +47,46 @@
 
     <div class="card">
         <div class="card-header">
+            <i class="fas fa-list"></i> Характеристики товару
+        </div>
+        <div class="card-body">
+            <p style="margin-top: 0; color: #64748b;">Редагуйте характеристики або додавайте нові прямо на цій сторінці.</p>
+
+            <datalist id="attribute-name-suggestions">
+                <?php foreach (($attributeNameSuggestions ?? []) as $attributeName): ?>
+                    <option value="<?php echo htmlspecialchars($attributeName); ?>"></option>
+                <?php endforeach; ?>
+            </datalist>
+
+            <div id="attribute-rows" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <?php $rows = $existingAttributes ?? []; ?>
+                <?php if (empty($rows)): ?>
+                    <div class="attribute-row" style="display:grid; grid-template-columns: 1fr 1fr auto; gap: 0.75rem;">
+                        <input type="text" name="attribute_name[]" class="form-control" list="attribute-name-suggestions" placeholder="Назва атрибута (напр. Колір)">
+                        <input type="text" name="attribute_value[]" class="form-control" placeholder="Значення (напр. Чорний)">
+                        <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;">Видалити</button>
+                    </div>
+                <?php else: ?>
+                    <?php foreach ($rows as $row): ?>
+                        <div class="attribute-row" style="display:grid; grid-template-columns: 1fr 1fr auto; gap: 0.75rem;">
+                            <input type="text" name="attribute_name[]" class="form-control" list="attribute-name-suggestions" value="<?php echo htmlspecialchars($row['attribute_name'] ?? ''); ?>" placeholder="Назва атрибута (напр. Колір)">
+                            <input type="text" name="attribute_value[]" class="form-control" value="<?php echo htmlspecialchars($row['value'] ?? ''); ?>" placeholder="Значення (напр. Чорний)">
+                            <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;">Видалити</button>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+
+            <div style="margin-top: 1rem;">
+                <button type="button" id="add-attribute-row" class="btn btn-outline" style="border: 1px solid #ddd; color: #2563eb;">
+                    <i class="fas fa-plus"></i> Додати характеристику
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
             <i class="fas fa-image"></i> Зображення товару
         </div>
         <div class="card-body">
@@ -88,3 +128,49 @@
         </button>
     </div>
 </form>
+
+<script>
+    (function () {
+        const rowsContainer = document.getElementById('attribute-rows');
+        const addRowButton = document.getElementById('add-attribute-row');
+
+        function bindRemoveButton(button) {
+            button.addEventListener('click', function () {
+                const rows = rowsContainer.querySelectorAll('.attribute-row');
+                if (rows.length === 1) {
+                    rows[0].querySelectorAll('input').forEach(input => {
+                        input.value = '';
+                    });
+                    return;
+                }
+
+                button.closest('.attribute-row').remove();
+            });
+        }
+
+        function createRow() {
+            const row = document.createElement('div');
+            row.className = 'attribute-row';
+            row.style.display = 'grid';
+            row.style.gridTemplateColumns = '1fr 1fr auto';
+            row.style.gap = '0.75rem';
+
+            row.innerHTML = `
+                <input type="text" name="attribute_name[]" class="form-control" list="attribute-name-suggestions" placeholder="Назва атрибута (напр. Колір)">
+                <input type="text" name="attribute_value[]" class="form-control" placeholder="Значення (напр. Чорний)">
+                <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;">Видалити</button>
+            `;
+
+            const removeButton = row.querySelector('.attribute-remove-btn');
+            bindRemoveButton(removeButton);
+
+            return row;
+        }
+
+        addRowButton.addEventListener('click', function () {
+            rowsContainer.appendChild(createRow());
+        });
+
+        rowsContainer.querySelectorAll('.attribute-remove-btn').forEach(bindRemoveButton);
+    })();
+</script>
