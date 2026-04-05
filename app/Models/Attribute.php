@@ -33,6 +33,22 @@ class Attribute extends Model
     }
 
     /**
+     * Отримати атрибут за назвою (без урахування регістру)
+     *
+     * @param string $name
+     * @return array|null
+     */
+    public static function findByName($name)
+    {
+        $result = self::query(
+            "SELECT * FROM " . self::$table . " WHERE LOWER(name) = LOWER(?) LIMIT 1",
+            [trim((string) $name)]
+        );
+
+        return $result ? $result[0] : null;
+    }
+
+    /**
      * Отримати всі атрибути
      * 
      * @param bool $filterableOnly
@@ -81,6 +97,23 @@ class Attribute extends Model
     }
 
     /**
+     * Отримати опцію атрибута за значенням
+     *
+     * @param int $attributeId
+     * @param string $value
+     * @return array|null
+     */
+    public static function getOptionByValue($attributeId, $value)
+    {
+        $result = self::query(
+            "SELECT * FROM attribute_options WHERE attribute_id = ? AND LOWER(value) = LOWER(?) LIMIT 1",
+            [(int) $attributeId, trim((string) $value)]
+        );
+
+        return $result ? $result[0] : null;
+    }
+
+    /**
      * Створити новий атрибут
      * 
      * @param array $data
@@ -91,6 +124,14 @@ class Attribute extends Model
         // Генерувати slug, якщо не надано
         if (empty($data['slug'])) {
             $data['slug'] = self::generateSlug($data['name']);
+        }
+
+        // Забезпечити унікальність slug
+        $baseSlug = $data['slug'];
+        $suffix = 2;
+        while (self::findBySlug($data['slug'])) {
+            $data['slug'] = $baseSlug . '-' . $suffix;
+            $suffix++;
         }
 
         $columns = array_keys($data);
@@ -230,5 +271,22 @@ class Attribute extends Model
     {
         $result = self::query("SELECT LAST_INSERT_ID() as id");
         return $result ? $result[0]['id'] : 0;
+    }
+
+    /**
+     * Отримати список назв атрибутів для автодоповнення
+     *
+     * @return array
+     */
+    public static function getAllNames()
+    {
+        $result = self::query("SELECT DISTINCT name FROM " . self::$table . " ORDER BY name ASC");
+        if (!$result) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map(function ($row) {
+            return $row['name'] ?? null;
+        }, $result)));
     }
 }

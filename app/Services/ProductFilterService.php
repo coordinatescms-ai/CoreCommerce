@@ -6,6 +6,7 @@ use App\Core\Database\DB as Database;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\ProductAttribute;
+use App\Models\Attribute;
 
 class ProductFilterService
 {
@@ -307,6 +308,81 @@ class ProductFilterService
         }
         
         return ['min' => 0, 'max' => 0];
+    }
+
+    /**
+     * Отримати діапазон цін для всього каталогу.
+     *
+     * @return array{min: float, max: float}
+     */
+    public static function getGlobalPriceRange()
+    {
+        $db = Database::getInstance();
+        $result = $db->query(
+            "SELECT MIN(price) as min_price, MAX(price) as max_price FROM products"
+        )->fetchAll(\PDO::FETCH_ASSOC);
+
+        if (!empty($result) && $result[0]['min_price'] !== null && $result[0]['max_price'] !== null) {
+            return [
+                'min' => (float) $result[0]['min_price'],
+                'max' => (float) $result[0]['max_price']
+            ];
+        }
+
+        return ['min' => 0.0, 'max' => 0.0];
+    }
+
+    /**
+     * Отримати опції фільтра для всього каталогу на основі існуючих атрибутів у БД.
+     *
+     * @return array
+     */
+    public static function getCatalogFilterOptions()
+    {
+        $attributes = Attribute::all(true);
+        $filterOptions = [];
+
+        foreach ($attributes as $attribute) {
+            $values = Product::query(
+                "SELECT DISTINCT pa.value
+                 FROM product_attributes pa
+                 INNER JOIN products p ON p.id = pa.product_id
+                 WHERE pa.attribute_id = ? AND pa.value IS NOT NULL AND pa.value <> ''
+                 ORDER BY pa.value",
+                [$attribute['id']]
+            ) ?? [];
+
+            if (empty($values)) {
+                continue;
+            }
+
+            $filterOptions[$attribute['id']] = [
+                'id' => $attribute['id'],
+                'name' => $attribute['name'],
+                'slug' => $attribute['slug'],
+                'type' => $attribute['type'],
+                'options' => []
+            ];
+
+            foreach ($values as $valueRow) {
+                $value = $valueRow['value'];
+                $countResult = Product::query(
+                    "SELECT COUNT(DISTINCT product_id) as count
+                     FROM product_attributes
+                     WHERE attribute_id = ? AND value = ?",
+                    [$attribute['id'], $value]
+                );
+
+                $filterOptions[$attribute['id']]['options'][] = [
+                    'value' => $value,
+                    'label' => $value,
+                    'count' => (int) ($countResult[0]['count'] ?? 0),
+                    'color' => null,
+                ];
+            }
+        }
+
+        return $filterOptions;
     }
 
     /**

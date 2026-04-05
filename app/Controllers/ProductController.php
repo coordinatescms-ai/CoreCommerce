@@ -17,24 +17,22 @@ class ProductController
      */
     public function index()
     {
-        $page = $_GET['page'] ?? 1;
-        $limit = 12;
-        $offset = ($page - 1) * $limit;
+        $filters = ProductFilterService::parseFiltersFromUrl($_GET);
+        $filters['limit'] = (int) ($_GET['limit'] ?? 12);
+        $filters['sort_by'] = $_GET['sort_by'] ?? 'created_at';
+        $filters['sort_order'] = $_GET['sort_order'] ?? 'DESC';
 
-        // Отримати товари
-        $products = Product::query(
-            "SELECT * FROM products ORDER BY id DESC LIMIT ? OFFSET ?",
-            [$limit, $offset]
-        );
-        $products = !empty($products) ? $products : [];
+        $page = max(1, (int) ($_GET['page'] ?? 1));
+        $filters['offset'] = ($page - 1) * $filters['limit'];
 
-        // Отримати загальну кількість товарів
-        $totalResult = Product::query("SELECT COUNT(*) as count FROM products");
-        $total = !empty($totalResult) ? $totalResult[0]['count'] : 0;
-        $pages = ceil($total / $limit);
+        $products = ProductFilterService::filter($filters);
+        $total = ProductFilterService::count($filters);
+        $pages = max(1, (int) ceil($total / $filters['limit']));
 
         // Отримати категорії для навігації
         $categories = Category::getTree();
+        $filterOptions = ProductFilterService::getCatalogFilterOptions();
+        $priceRange = ProductFilterService::getGlobalPriceRange();
 
         return View::render('products/index', [
             'products' => $products,
@@ -42,7 +40,10 @@ class ProductController
             'total' => $total,
             'page' => $page,
             'pages' => $pages,
-            'limit' => $limit
+            'limit' => $filters['limit'],
+            'filterOptions' => $filterOptions,
+            'priceRange' => $priceRange,
+            'currentFilters' => $filters
         ]);
     }
 
