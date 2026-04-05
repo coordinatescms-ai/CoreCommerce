@@ -99,6 +99,9 @@
             <a href="/admin/categories" class="menu-item">
                 <i class="fas fa-list"></i> Категорії
             </a>
+            <a href="/admin/attributes" class="menu-item <?php echo strpos($request_uri, '/admin/attributes') === 0 ? 'active' : ''; ?>">
+                <i class="fas fa-sliders-h"></i> Атрибути
+            </a>
             <a href="/admin/users" class="menu-item">
                 <i class="fas fa-users"></i> Користувачі
             </a>

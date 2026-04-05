@@ -67,7 +67,9 @@
                                 <?php endforeach; ?>
                             <?php endif; ?>
                         </select>
-                        <input type="text" name="attribute_value[]" class="form-control" placeholder="Значення (напр. Чорний)">
+                        <div class="attribute-value-wrap">
+                            <input type="text" name="attribute_value[]" class="form-control" placeholder="Значення (напр. Чорний)">
+                        </div>
                         <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;">Видалити</button>
                     </div>
                 <?php else: ?>
@@ -90,7 +92,9 @@
                                     </option>
                                 <?php endif; ?>
                             </select>
-                            <input type="text" name="attribute_value[]" class="form-control" value="<?php echo htmlspecialchars($row['value'] ?? ''); ?>" placeholder="Значення (напр. Чорний)">
+                            <div class="attribute-value-wrap">
+                                <input type="text" name="attribute_value[]" class="form-control" value="<?php echo htmlspecialchars($row['value'] ?? ''); ?>" placeholder="Значення (напр. Чорний)">
+                            </div>
                             <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;">Видалити</button>
                         </div>
                     <?php endforeach; ?>
@@ -188,6 +192,45 @@
             }).join('');
         }
 
+        function findAttributeById(attributeId) {
+            const id = String(attributeId || '');
+            return allowedAttributes.find(item => String(item.id) === id) || null;
+        }
+
+        function escapeHtml(value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/\"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function renderValueInput(row, attributeId = '', currentValue = '') {
+            const container = row.querySelector('.attribute-value-wrap');
+            const attribute = findAttributeById(attributeId);
+            const safeValue = escapeHtml(currentValue);
+
+            if (attribute && attribute.type === 'range') {
+                container.innerHTML = '<input type=\"number\" step=\"0.01\" inputmode=\"decimal\" name=\"attribute_value[]\" class=\"form-control\" placeholder=\"Числове значення\" value=\"' + safeValue + '\">';
+                return;
+            }
+
+            if (attribute && attribute.type === 'select') {
+                const listId = 'attr-options-' + Math.random().toString(36).slice(2);
+                const options = Array.isArray(attribute.options) ? attribute.options : [];
+                const optionsHtml = options.map(function (option) {
+                    const value = escapeHtml(option.name || option.value || '');
+                    return '<option value=\"' + value + '\"></option>';
+                }).join('');
+
+                container.innerHTML = '<input type=\"text\" name=\"attribute_value[]\" class=\"form-control\" list=\"' + listId + '\" placeholder=\"Оберіть або введіть значення\" value=\"' + safeValue + '\"><datalist id=\"' + listId + '\">' + optionsHtml + '</datalist>';
+                return;
+            }
+
+            container.innerHTML = '<input type=\"text\" name=\"attribute_value[]\" class=\"form-control\" placeholder=\"Значення (напр. Чорний)\" value=\"' + safeValue + '\">';
+        }
+
         function bindRemoveButton(button) {
             button.addEventListener('click', function () {
                 const rows = rowsContainer.querySelectorAll('.attribute-row');
@@ -220,14 +263,18 @@
 
             row.innerHTML = `
                 <select name="attribute_id[]" class="form-control attribute-id-select">${buildAttributeOptions(attributeId)}</select>
-                <input type="text" name="attribute_value[]" class="form-control" placeholder="Значення (напр. Чорний)">
+                <div class="attribute-value-wrap"></div>
                 <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;">Видалити</button>
             `;
 
-            row.querySelector('input[name="attribute_value[]"]').value = value;
+            renderValueInput(row, attributeId, value);
             const removeButton = row.querySelector('.attribute-remove-btn');
             bindRemoveButton(removeButton);
-            bindAttributeSelectProtection(row.querySelector('.attribute-id-select'));
+            const attributeSelect = row.querySelector('.attribute-id-select');
+            bindAttributeSelectProtection(attributeSelect);
+            attributeSelect.addEventListener('change', function () {
+                renderValueInput(row, attributeSelect.value, '');
+            });
 
             return row;
         }
@@ -248,13 +295,17 @@
         });
 
         function refreshAllRows() {
-            rowsContainer.querySelectorAll('.attribute-id-select').forEach(function (select) {
+            rowsContainer.querySelectorAll('.attribute-row').forEach(function (row) {
+                const select = row.querySelector('.attribute-id-select');
                 const currentValue = select.value;
+                const valueInput = row.querySelector('input[name="attribute_value[]"]');
+                const currentValueText = valueInput ? valueInput.value : '';
                 select.innerHTML = buildAttributeOptions(currentValue);
                 if (currentValue && !select.value) {
-                    const rowValueInput = select.closest('.attribute-row').querySelector('input[name="attribute_value[]"]');
-                    rowValueInput.value = '';
+                    renderValueInput(row, '', '');
+                    return;
                 }
+                renderValueInput(row, select.value, currentValueText);
             });
         }
 
@@ -295,7 +346,16 @@
 
         categorySelect.addEventListener('change', fetchAllowedAttributes);
         rowsContainer.querySelectorAll('.attribute-remove-btn').forEach(bindRemoveButton);
-        rowsContainer.querySelectorAll('.attribute-id-select').forEach(bindAttributeSelectProtection);
+        rowsContainer.querySelectorAll('.attribute-row').forEach(function (row) {
+            const select = row.querySelector('.attribute-id-select');
+            const valueInput = row.querySelector('input[name="attribute_value[]"]');
+            const valueText = valueInput ? valueInput.value : '';
+            bindAttributeSelectProtection(select);
+            select.addEventListener('change', function () {
+                renderValueInput(row, select.value, '');
+            });
+            renderValueInput(row, select.value, valueText);
+        });
         fetchAllowedAttributes();
     })();
 </script>
