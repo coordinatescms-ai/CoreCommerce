@@ -87,12 +87,15 @@ class ProductController
             $breadcrumbs = Category::getBreadcrumbs($product['category_id']);
         }
 
+        $similarProducts = Product::getSimilar((int) $product['id'], isset($product['category_id']) ? (int) $product['category_id'] : null, 4);
+
         return View::render('products/show', [
             'product' => $product,
             'attributes' => $attributes,
             'category' => $category,
             'breadcrumbs' => $breadcrumbs,
-            'seoSettings' => $seoSettings
+            'seoSettings' => $seoSettings,
+            'similarProducts' => $similarProducts
         ]);
     }
 

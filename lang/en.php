@@ -117,4 +117,13 @@ return [
     'delete_attribute' => 'Delete Attribute',
     'breadcrumb_home' => 'Home',
     'breadcrumb_products' => 'Products',
+    'wishlist' => 'Wishlist',
+    'choose_options' => 'Choose options',
+    'short_description' => 'Short description',
+    'product_details' => 'Detailed specs',
+    'reviews' => 'Reviews',
+    'shipping_terms' => 'Shipping terms',
+    'similar_products' => 'Similar products',
+    'delivery_info_default' => 'Delivery across Ukraine in 1-3 days. Online payment or cash on delivery.',
+    'reviews_empty' => 'No reviews yet. Be the first customer to leave a review.',
 ];
