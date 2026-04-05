@@ -225,6 +225,77 @@ class Category extends Model
     }
 
     /**
+     * Отримати ланцюжок категорій від поточної до кореня.
+     *
+     * @param int $categoryId
+     * @return array
+     */
+    public static function getLineageIds($categoryId)
+    {
+        $lineageIds = [];
+        $visitedIds = [];
+        $currentId = (int) $categoryId;
+
+        while ($currentId > 0 && !isset($visitedIds[$currentId])) {
+            $visitedIds[$currentId] = true;
+            $lineageIds[] = $currentId;
+
+            $category = self::findById($currentId);
+            if (!$category || empty($category['parent_id'])) {
+                break;
+            }
+
+            $currentId = (int) $category['parent_id'];
+        }
+
+        return $lineageIds;
+    }
+
+    /**
+     * Отримати дозволені атрибути категорії з урахуванням успадкування від батьків.
+     *
+     * @param int $categoryId
+     * @return array
+     */
+    public static function getAllowedAttributes($categoryId)
+    {
+        $lineageIds = self::getLineageIds($categoryId);
+        if (empty($lineageIds)) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($lineageIds), '?'));
+        $result = self::query(
+            "SELECT DISTINCT a.id, a.name, a.slug, a.type, a.is_filterable, a.is_visible, a.sort_order
+             FROM category_attributes ca
+             INNER JOIN attributes a ON a.id = ca.attribute_id
+             WHERE ca.category_id IN ($placeholders)
+             ORDER BY a.sort_order, a.name",
+            $lineageIds
+        );
+
+        return $result ?? [];
+    }
+
+    /**
+     * Отримати тільки ID дозволених атрибутів категорії.
+     *
+     * @param int $categoryId
+     * @return array
+     */
+    public static function getAllowedAttributeIds($categoryId)
+    {
+        $attributes = self::getAllowedAttributes($categoryId);
+        if (empty($attributes)) {
+            return [];
+        }
+
+        return array_values(array_map(function ($attribute) {
+            return (int) $attribute['id'];
+        }, $attributes));
+    }
+
+    /**
      * Створити нову категорію
      * 
      * @param array $data
