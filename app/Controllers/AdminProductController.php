@@ -5,10 +5,80 @@ namespace App\Controllers;
 use App\Core\View\View;
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\Attribute;
+use App\Models\ProductAttribute;
 use App\Services\SlugHelper;
 
 class AdminProductController
 {
+    /**
+     * Підготувати рядки атрибутів із форми.
+     *
+     * @return array
+     */
+    private function collectAttributeRows()
+    {
+        $names = $_POST['attribute_name'] ?? [];
+        $values = $_POST['attribute_value'] ?? [];
+
+        if (!is_array($names) || !is_array($values)) {
+            return [];
+        }
+
+        $rows = [];
+        $maxCount = max(count($names), count($values));
+
+        for ($i = 0; $i < $maxCount; $i++) {
+            $name = trim((string) ($names[$i] ?? ''));
+            $value = trim((string) ($values[$i] ?? ''));
+
+            if ($name === '' || $value === '') {
+                continue;
+            }
+
+            $rows[] = [
+                'name' => $name,
+                'value' => $value
+            ];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Зберегти атрибути товару, створюючи нові атрибути за потреби.
+     *
+     * @param int $productId
+     * @param array $attributeRows
+     * @return void
+     */
+    private function syncProductAttributes($productId, $attributeRows)
+    {
+        ProductAttribute::deleteAll((int) $productId);
+
+        foreach ($attributeRows as $row) {
+            $attribute = Attribute::findByName($row['name']);
+            if (!$attribute) {
+                $attributeId = Attribute::create([
+                    'name' => $row['name'],
+                    'type' => 'text',
+                    'description' => null,
+                    'is_filterable' => 1,
+                    'is_visible' => 1,
+                    'sort_order' => 0,
+                ]);
+
+                if (!$attributeId) {
+                    continue;
+                }
+            } else {
+                $attributeId = (int) $attribute['id'];
+            }
+
+            ProductAttribute::setValue((int) $productId, (int) $attributeId, $row['value']);
+        }
+    }
+
     private function checkAdmin()
     {
         if (empty($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
@@ -28,7 +98,12 @@ class AdminProductController
     {
         $this->checkAdmin();
         $categories = Category::getFlatTree();
-        View::render('admin/products/create', ['categories' => $categories], 'admin');
+        $attributeNameSuggestions = Attribute::getAllNames();
+
+        View::render('admin/products/create', [
+            'categories' => $categories,
+            'attributeNameSuggestions' => $attributeNameSuggestions
+        ], 'admin');
     }
 
     public function show($id)
@@ -79,6 +154,7 @@ class AdminProductController
         }
 
         $image = $this->handleImageUpload();
+        $attributeRows = $this->collectAttributeRows();
 
         $data = [
             'name' => trim($_POST['name'] ?? ''),
@@ -91,7 +167,10 @@ class AdminProductController
             'meta_description' => $_POST['meta_description'] ?? ''
         ];
 
-        if (Product::create($data)) {
+        $productId = Product::create($data);
+
+        if ($productId) {
+            $this->syncProductAttributes((int) $productId, $attributeRows);
             $_SESSION['success'] = 'Товар успішно додано!';
             header('Location: /admin/products');
         } else {
@@ -113,10 +192,14 @@ class AdminProductController
         }
 
         $categories = Category::getFlatTree();
+        $existingAttributes = ProductAttribute::getByProduct($id);
+        $attributeNameSuggestions = Attribute::getAllNames();
 
         View::render('admin/products/edit', [
             'product' => $product,
             'categories' => $categories,
+            'existingAttributes' => $existingAttributes,
+            'attributeNameSuggestions' => $attributeNameSuggestions,
         ], 'admin');
     }
 
@@ -139,11 +222,13 @@ class AdminProductController
         ];
 
         $newImage = $this->handleImageUpload();
+        $attributeRows = $this->collectAttributeRows();
         if ($newImage) {
             $data['image'] = $newImage;
         }
 
         if (Product::update($id, $data)) {
+            $this->syncProductAttributes((int) $id, $attributeRows);
             $_SESSION['success'] = 'Товар успішно оновлено!';
             header('Location: /admin/products');
         } else {

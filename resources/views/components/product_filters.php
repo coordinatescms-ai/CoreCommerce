@@ -13,6 +13,7 @@ $filterOptions = $filterOptions ?? [];
 $priceRange = $priceRange ?? ['min' => 0, 'max' => 1000];
 $currentFilters = $currentFilters ?? [];
 $categorySlug = $categorySlug ?? '';
+$clearUrl = $categorySlug !== '' ? "/category/" . $categorySlug : '/products';
 
 ?>
 
@@ -118,7 +119,7 @@ $categorySlug = $categorySlug ?? '';
         <!-- Кнопки -->
         <div class="filter-actions">
             <button type="submit" class="btn btn-primary"><?php echo __('apply_filters'); ?></button>
-            <a href="/category/<?php echo htmlspecialchars($categorySlug); ?>" class="btn btn-secondary"><?php echo __('clear_filters'); ?></a>
+            <a href="<?php echo htmlspecialchars($clearUrl); ?>" class="btn btn-secondary"><?php echo __('clear_filters'); ?></a>
         </div>
     </form>
 </div>
