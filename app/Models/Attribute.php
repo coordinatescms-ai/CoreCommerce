@@ -97,6 +97,31 @@ class Attribute extends Model
     }
 
     /**
+     * Отримати опцію атрибута за значенням/назвою (без урахування регістру)
+     *
+     * @param int $attributeId
+     * @param string $value
+     * @return array|null
+     */
+    public static function findOptionByValue($attributeId, $value)
+    {
+        $normalizedValue = trim((string) $value);
+        if ($normalizedValue === '') {
+            return null;
+        }
+
+        $result = self::query(
+            "SELECT * FROM attribute_options
+             WHERE attribute_id = ?
+               AND (LOWER(value) = LOWER(?) OR LOWER(name) = LOWER(?))
+             LIMIT 1",
+            [(int) $attributeId, $normalizedValue, $normalizedValue]
+        );
+
+        return $result ? $result[0] : null;
+    }
+
+    /**
      * Створити новий атрибут
      * 
      * @param array $data
