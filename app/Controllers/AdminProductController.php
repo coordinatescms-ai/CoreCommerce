@@ -18,31 +18,65 @@ class AdminProductController
      */
     private function collectAttributeRows()
     {
-        $names = $_POST['attribute_name'] ?? [];
+        $attributeIds = $_POST['attribute_id'] ?? [];
         $values = $_POST['attribute_value'] ?? [];
 
-        if (!is_array($names) || !is_array($values)) {
+        if (!is_array($attributeIds) || !is_array($values)) {
             return [];
         }
 
         $rows = [];
-        $maxCount = max(count($names), count($values));
+        $maxCount = max(count($attributeIds), count($values));
 
         for ($i = 0; $i < $maxCount; $i++) {
-            $name = trim((string) ($names[$i] ?? ''));
+            $attributeId = (int) ($attributeIds[$i] ?? 0);
             $value = trim((string) ($values[$i] ?? ''));
 
-            if ($name === '' || $value === '') {
+            if ($attributeId <= 0 || $value === '') {
                 continue;
             }
 
             $rows[] = [
-                'name' => $name,
+                'attribute_id' => $attributeId,
                 'value' => $value
             ];
         }
 
         return $rows;
+    }
+
+    /**
+     * Перевірити, чи дозволені атрибути для обраної категорії.
+     *
+     * @param int|null $categoryId
+     * @param array $attributeRows
+     * @return bool
+     */
+    private function validateAttributesForCategory($categoryId, $attributeRows)
+    {
+        if (empty($attributeRows)) {
+            return true;
+        }
+
+        $categoryId = (int) $categoryId;
+        if ($categoryId <= 0) {
+            return false;
+        }
+
+        $allowedIds = Category::getAllowedAttributeIds($categoryId);
+        if (empty($allowedIds)) {
+            return false;
+        }
+
+        $allowedLookup = array_fill_keys($allowedIds, true);
+        foreach ($attributeRows as $row) {
+            $attributeId = (int) ($row['attribute_id'] ?? 0);
+            if ($attributeId <= 0 || !isset($allowedLookup[$attributeId])) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -57,22 +91,9 @@ class AdminProductController
         ProductAttribute::deleteAll((int) $productId);
 
         foreach ($attributeRows as $row) {
-            $attribute = Attribute::findByName($row['name']);
-            if (!$attribute) {
-                $attributeId = Attribute::create([
-                    'name' => $row['name'],
-                    'type' => 'text',
-                    'description' => null,
-                    'is_filterable' => 1,
-                    'is_visible' => 1,
-                    'sort_order' => 0,
-                ]);
-
-                if (!$attributeId) {
-                    continue;
-                }
-            } else {
-                $attributeId = (int) $attribute['id'];
+            $attributeId = (int) ($row['attribute_id'] ?? 0);
+            if ($attributeId <= 0 || !Attribute::findById($attributeId)) {
+                continue;
             }
 
             $option = Attribute::findOptionByValue((int) $attributeId, $row['value']);
@@ -113,11 +134,10 @@ class AdminProductController
     {
         $this->checkAdmin();
         $categories = Category::getFlatTree();
-        $attributeNameSuggestions = Attribute::getAllNames();
 
         View::render('admin/products/create', [
             'categories' => $categories,
-            'attributeNameSuggestions' => $attributeNameSuggestions
+            'allowedAttributes' => []
         ], 'admin');
     }
 
@@ -185,6 +205,13 @@ class AdminProductController
         $productId = Product::create($data);
 
         if ($productId) {
+            if (!$this->validateAttributesForCategory($data['category_id'], $attributeRows)) {
+                Product::delete((int) $productId);
+                $_SESSION['error'] = 'Неможливо зберегти характеристики: обрано атрибути, які не дозволені для категорії товару.';
+                header('Location: /admin/products/create');
+                exit;
+            }
+
             $this->syncProductAttributes((int) $productId, $attributeRows);
             $_SESSION['success'] = 'Товар успішно додано!';
             header('Location: /admin/products');
@@ -208,13 +235,16 @@ class AdminProductController
 
         $categories = Category::getFlatTree();
         $existingAttributes = ProductAttribute::getByProduct($id);
-        $attributeNameSuggestions = Attribute::getAllNames();
+        $allowedAttributes = [];
+        if (!empty($product['category_id'])) {
+            $allowedAttributes = Category::getAllowedAttributes((int) $product['category_id']);
+        }
 
         View::render('admin/products/edit', [
             'product' => $product,
             'categories' => $categories,
             'existingAttributes' => $existingAttributes,
-            'attributeNameSuggestions' => $attributeNameSuggestions,
+            'allowedAttributes' => $allowedAttributes,
         ], 'admin');
     }
 
@@ -243,6 +273,12 @@ class AdminProductController
         }
 
         if (Product::update($id, $data)) {
+            if (!$this->validateAttributesForCategory($data['category_id'], $attributeRows)) {
+                $_SESSION['error'] = 'Неможливо зберегти характеристики: обрано атрибути, які не дозволені для категорії товару.';
+                header('Location: /admin/products/edit/' . $id);
+                exit;
+            }
+
             $this->syncProductAttributes((int) $id, $attributeRows);
             $_SESSION['success'] = 'Товар успішно оновлено!';
             header('Location: /admin/products');
@@ -270,5 +306,45 @@ class AdminProductController
 
         header('Location: /admin/products');
         exit;
+    }
+
+    /**
+     * Повернути список дозволених атрибутів для категорії (AJAX).
+     *
+     * @param int $categoryId
+     * @return void
+     */
+    public function allowedAttributes($categoryId)
+    {
+        $this->checkAdmin();
+
+        header('Content-Type: application/json; charset=utf-8');
+
+        $categoryId = (int) $categoryId;
+        if ($categoryId <= 0) {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Некоректний ID категорії.',
+                'attributes' => []
+            ]);
+            return;
+        }
+
+        $category = Category::findById($categoryId);
+        if (!$category) {
+            http_response_code(404);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Категорію не знайдено.',
+                'attributes' => []
+            ]);
+            return;
+        }
+
+        echo json_encode([
+            'success' => true,
+            'attributes' => Category::getAllowedAttributes($categoryId)
+        ]);
     }
 }

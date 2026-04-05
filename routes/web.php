@@ -62,6 +62,7 @@ $router->post('/admin/settings/save', [AdminController::class, 'saveSettings']);
 // Управління товарами в адмінці
 $router->get('/admin/products', [AdminProductController::class, 'index']);
 $router->get('/admin/products/create', [AdminProductController::class, 'create']);
+$router->get('/admin/products/allowed-attributes/{categoryId}', [AdminProductController::class, 'allowedAttributes']);
 $router->post('/admin/products/store', [AdminProductController::class, 'store']);
 $router->get('/admin/products/edit/{id}', [AdminProductController::class, 'edit']);
 $router->get('/admin/products/show/{id}', [AdminProductController::class, 'show']);

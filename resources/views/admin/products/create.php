@@ -63,17 +63,14 @@
             <i class="fas fa-list"></i> Характеристики товару
         </div>
         <div class="card-body">
-            <p style="margin-top: 0; color: #64748b;">Додавайте довільні пари "атрибут → значення" (наприклад: Колір, Розмір, Матеріал).</p>
-
-            <datalist id="attribute-name-suggestions">
-                <?php foreach (($attributeNameSuggestions ?? []) as $attributeName): ?>
-                    <option value="<?php echo htmlspecialchars($attributeName); ?>"></option>
-                <?php endforeach; ?>
-            </datalist>
+            <p style="margin-top: 0; color: #64748b;">Оберіть категорію, після чого стануть доступними лише дозволені для неї характеристики.</p>
+            <div id="attributes-warning" style="display:none; margin-bottom: 0.75rem; color:#b45309; background:#fffbeb; border:1px solid #fde68a; padding:0.5rem 0.75rem; border-radius:6px;"></div>
 
             <div id="attribute-rows" style="display: flex; flex-direction: column; gap: 0.75rem;">
                 <div class="attribute-row" style="display:grid; grid-template-columns: 1fr 1fr auto; gap: 0.75rem;">
-                    <input type="text" name="attribute_name[]" class="form-control" list="attribute-name-suggestions" placeholder="Назва атрибута (напр. Колір)">
+                    <select name="attribute_id[]" class="form-control attribute-id-select">
+                        <option value="">Спочатку оберіть категорію</option>
+                    </select>
                     <input type="text" name="attribute_value[]" class="form-control" placeholder="Значення (напр. Чорний)">
                     <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;">Видалити</button>
                 </div>
@@ -124,8 +121,42 @@
 
 <script>
     (function () {
+        const categorySelect = document.getElementById('category_id');
         const rowsContainer = document.getElementById('attribute-rows');
         const addRowButton = document.getElementById('add-attribute-row');
+        const warningBox = document.getElementById('attributes-warning');
+        let allowedAttributes = <?php echo json_encode($allowedAttributes ?? [], JSON_UNESCAPED_UNICODE); ?>;
+
+        function showWarning(message) {
+            warningBox.textContent = message;
+            warningBox.style.display = 'block';
+        }
+
+        function clearWarning() {
+            warningBox.textContent = '';
+            warningBox.style.display = 'none';
+        }
+
+        function hasCategory() {
+            return Number(categorySelect.value || 0) > 0;
+        }
+
+        function buildAttributeOptions(selectedId = '') {
+            if (!hasCategory()) {
+                return '<option value="">Спочатку оберіть категорію</option>';
+            }
+
+            if (!allowedAttributes.length) {
+                return '<option value="">Немає доступних характеристик</option>';
+            }
+
+            const normalizedSelectedId = String(selectedId || '');
+            return '<option value="">-- Оберіть характеристику --</option>' + allowedAttributes.map(function (attribute) {
+                const attributeId = String(attribute.id);
+                const selected = attributeId === normalizedSelectedId ? ' selected' : '';
+                return '<option value="' + attributeId + '"' + selected + '>' + attribute.name + '</option>';
+            }).join('');
+        }
 
         function bindRemoveButton(button) {
             button.addEventListener('click', function () {
@@ -141,7 +172,16 @@
             });
         }
 
-        function createRow() {
+        function bindAttributeSelectProtection(select) {
+            select.addEventListener('focus', function () {
+                if (!hasCategory()) {
+                    showWarning('Спочатку потрібно вибрати категорію товару.');
+                    select.blur();
+                }
+            });
+        }
+
+        function createRow(attributeId = '', value = '') {
             const row = document.createElement('div');
             row.className = 'attribute-row';
             row.style.display = 'grid';
@@ -149,21 +189,82 @@
             row.style.gap = '0.75rem';
 
             row.innerHTML = `
-                <input type="text" name="attribute_name[]" class="form-control" list="attribute-name-suggestions" placeholder="Назва атрибута (напр. Колір)">
-                <input type="text" name="attribute_value[]" class="form-control" placeholder="Значення (напр. Чорний)">
+                <select name="attribute_id[]" class="form-control attribute-id-select">${buildAttributeOptions(attributeId)}</select>
+                <input type="text" name="attribute_value[]" class="form-control" placeholder="Значення (напр. Чорний)" value="${value}">
                 <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;">Видалити</button>
             `;
 
             const removeButton = row.querySelector('.attribute-remove-btn');
             bindRemoveButton(removeButton);
+            bindAttributeSelectProtection(row.querySelector('.attribute-id-select'));
 
             return row;
         }
 
         addRowButton.addEventListener('click', function () {
+            if (!hasCategory()) {
+                showWarning('Спочатку потрібно вибрати категорію товару.');
+                return;
+            }
+
+            if (!allowedAttributes.length) {
+                showWarning('Для вибраної категорії немає доступних характеристик.');
+                return;
+            }
+
+            clearWarning();
             rowsContainer.appendChild(createRow());
         });
 
+        function refreshAllRows() {
+            rowsContainer.querySelectorAll('.attribute-id-select').forEach(function (select) {
+                const currentValue = select.value;
+                select.innerHTML = buildAttributeOptions(currentValue);
+                if (currentValue && !select.value) {
+                    const rowValueInput = select.closest('.attribute-row').querySelector('input[name="attribute_value[]"]');
+                    rowValueInput.value = '';
+                }
+            });
+        }
+
+        function fetchAllowedAttributes() {
+            const categoryId = Number(categorySelect.value || 0);
+            if (categoryId <= 0) {
+                allowedAttributes = [];
+                refreshAllRows();
+                showWarning('Щоб працювати з характеристиками, спочатку виберіть категорію товару.');
+                return;
+            }
+
+            fetch('/admin/products/allowed-attributes/' + categoryId, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        throw new Error(data.message || 'Не вдалося отримати характеристики категорії.');
+                    }
+
+                    allowedAttributes = Array.isArray(data.attributes) ? data.attributes : [];
+                    refreshAllRows();
+                    clearWarning();
+
+                    if (!allowedAttributes.length) {
+                        showWarning('Для цієї категорії ще не налаштовано жодної характеристики.');
+                    }
+                })
+                .catch(() => {
+                    allowedAttributes = [];
+                    refreshAllRows();
+                    showWarning('Сталася помилка при завантаженні характеристик. Спробуйте ще раз.');
+                });
+        }
+
+        categorySelect.addEventListener('change', fetchAllowedAttributes);
         rowsContainer.querySelectorAll('.attribute-remove-btn').forEach(bindRemoveButton);
+        rowsContainer.querySelectorAll('.attribute-id-select').forEach(bindAttributeSelectProtection);
+        fetchAllowedAttributes();
     })();
 </script>
