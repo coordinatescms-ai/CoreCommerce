@@ -88,6 +88,41 @@ class Product extends Model
     }
 
     /**
+     * Отримати схожі товари для сторінки товару.
+     *
+     * @param int $productId
+     * @param int|null $categoryId
+     * @param int $limit
+     * @return array
+     */
+    public static function getSimilar(int $productId, ?int $categoryId, int $limit = 4): array
+    {
+        $limit = max(1, min($limit, 12));
+
+        if ($categoryId) {
+            $items = self::query(
+                "SELECT * FROM " . static::$table . "
+                 WHERE category_id = ? AND id != ?
+                 ORDER BY updated_at DESC, id DESC
+                 LIMIT " . $limit,
+                [$categoryId, $productId]
+            ) ?? [];
+
+            if (!empty($items)) {
+                return $items;
+            }
+        }
+
+        return self::query(
+            "SELECT * FROM " . static::$table . "
+             WHERE id != ?
+             ORDER BY updated_at DESC, id DESC
+             LIMIT " . $limit,
+            [$productId]
+        ) ?? [];
+    }
+
+    /**
      * Створити новий товар
      * 
      * @param array $data

@@ -117,4 +117,13 @@ return [
     'delete_attribute' => 'Видалити атрибут',
     'breadcrumb_home' => 'Головна',
     'breadcrumb_products' => 'Товари',
+    'wishlist' => 'В обране',
+    'choose_options' => 'Оберіть характеристики',
+    'short_description' => 'Короткий опис',
+    'product_details' => 'Детальні характеристики',
+    'reviews' => 'Відгуки',
+    'shipping_terms' => 'Умови доставки',
+    'similar_products' => 'Схожі товари',
+    'delivery_info_default' => 'Доставка по Україні 1-3 дні. Оплата онлайн або при отриманні.',
+    'reviews_empty' => 'Відгуків поки немає. Станьте першим покупцем, який залишить відгук.',
 ];
