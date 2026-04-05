@@ -75,7 +75,22 @@ class AdminProductController
                 $attributeId = (int) $attribute['id'];
             }
 
-            ProductAttribute::setValue((int) $productId, (int) $attributeId, $row['value']);
+            $option = Attribute::findOptionByValue((int) $attributeId, $row['value']);
+            if (!$option) {
+                $optionId = Attribute::createOption((int) $attributeId, [
+                    'name' => $row['value'],
+                    'value' => $row['value'],
+                    'sort_order' => 0,
+                ]);
+            } else {
+                $optionId = (int) $option['id'];
+            }
+
+            if (!$optionId) {
+                $optionId = null;
+            }
+
+            ProductAttribute::setValue((int) $productId, (int) $attributeId, $row['value'], $optionId);
         }
     }
 
