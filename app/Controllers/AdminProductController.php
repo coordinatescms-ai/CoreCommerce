@@ -12,6 +12,33 @@ use App\Services\SlugHelper;
 class AdminProductController
 {
     /**
+     * Додати до дозволених атрибутів опції для select-типів.
+     *
+     * @param array $allowedAttributes
+     * @return array
+     */
+    private function enrichAllowedAttributes(array $allowedAttributes)
+    {
+        foreach ($allowedAttributes as &$attribute) {
+            $type = (string) ($attribute['type'] ?? '');
+            if (in_array($type, [Attribute::TYPE_SELECT, 'multiselect', 'color'], true)) {
+                $attribute['options'] = array_values(array_map(function ($option) {
+                    return [
+                        'id' => (int) ($option['id'] ?? 0),
+                        'name' => (string) ($option['name'] ?? ''),
+                        'value' => (string) ($option['value'] ?? ''),
+                    ];
+                }, Attribute::getOptions((int) ($attribute['id'] ?? 0))));
+            } else {
+                $attribute['options'] = [];
+            }
+        }
+        unset($attribute);
+
+        return $allowedAttributes;
+    }
+
+    /**
      * Підготувати рядки атрибутів із форми.
      *
      * @return array
@@ -43,6 +70,33 @@ class AdminProductController
         }
 
         return $rows;
+    }
+
+    /**
+     * Нормалізувати значення атрибута згідно з його типом.
+     *
+     * @param array $attribute
+     * @param string $value
+     * @return string|null
+     */
+    private function normalizeValueByType($attribute, $value)
+    {
+        $type = (string) ($attribute['type'] ?? Attribute::TYPE_TEXT);
+        $trimmed = trim((string) $value);
+
+        if ($trimmed === '') {
+            return null;
+        }
+
+        if ($type === Attribute::TYPE_RANGE) {
+            $normalized = str_replace(',', '.', $trimmed);
+            if (!is_numeric($normalized)) {
+                return null;
+            }
+            return (string) (float) $normalized;
+        }
+
+        return $trimmed;
     }
 
     /**
@@ -92,26 +146,35 @@ class AdminProductController
 
         foreach ($attributeRows as $row) {
             $attributeId = (int) ($row['attribute_id'] ?? 0);
-            if ($attributeId <= 0 || !Attribute::findById($attributeId)) {
+            $attribute = $attributeId > 0 ? Attribute::findById($attributeId) : null;
+            if (!$attribute) {
                 continue;
             }
 
-            $option = Attribute::findOptionByValue((int) $attributeId, $row['value']);
-            if (!$option) {
-                $optionId = Attribute::createOption((int) $attributeId, [
-                    'name' => $row['value'],
-                    'value' => $row['value'],
-                    'sort_order' => 0,
-                ]);
-            } else {
-                $optionId = (int) $option['id'];
+            $normalizedValue = $this->normalizeValueByType($attribute, (string) ($row['value'] ?? ''));
+            if ($normalizedValue === null) {
+                continue;
             }
 
-            if (!$optionId) {
-                $optionId = null;
+            $optionId = null;
+            if (($attribute['type'] ?? '') === Attribute::TYPE_SELECT) {
+                $option = Attribute::findOptionByValue((int) $attributeId, $normalizedValue);
+                if (!$option) {
+                    $optionId = Attribute::createOption((int) $attributeId, [
+                        'name' => $normalizedValue,
+                        'value' => $normalizedValue,
+                        'sort_order' => 0,
+                    ]);
+                } else {
+                    $optionId = (int) $option['id'];
+                }
+
+                if (!$optionId) {
+                    $optionId = null;
+                }
             }
 
-            ProductAttribute::setValue((int) $productId, (int) $attributeId, $row['value'], $optionId);
+            ProductAttribute::setValue((int) $productId, (int) $attributeId, $normalizedValue, $optionId);
         }
     }
 
@@ -237,7 +300,9 @@ class AdminProductController
         $existingAttributes = ProductAttribute::getByProduct($id);
         $allowedAttributes = [];
         if (!empty($product['category_id'])) {
-            $allowedAttributes = Category::getAllowedAttributes((int) $product['category_id']);
+            $allowedAttributes = $this->enrichAllowedAttributes(
+                Category::getAllowedAttributes((int) $product['category_id'])
+            );
         }
 
         View::render('admin/products/edit', [
@@ -344,7 +409,7 @@ class AdminProductController
 
         echo json_encode([
             'success' => true,
-            'attributes' => Category::getAllowedAttributes($categoryId)
+            'attributes' => $this->enrichAllowedAttributes(Category::getAllowedAttributes($categoryId))
         ]);
     }
 }
