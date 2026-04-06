@@ -19,7 +19,7 @@ $attributeRows = $attributeRows ?? [];
         </div>
         <div class="card-body">
             <div class="form-group">
-                <label for="name">Назва товару</label>
+                <label for="name">Назва товару <span style="color:#dc2626;">*</span></label>
                 <input type="text" name="name" id="name" class="form-control" required placeholder="Наприклад: iPhone 15 Pro Max" value="<?php echo htmlspecialchars($formData['name'] ?? ''); ?>">
             </div>
 
@@ -30,7 +30,7 @@ $attributeRows = $attributeRows ?? [];
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                 <div class="form-group">
-                    <label for="price">Ціна (грн)</label>
+                    <label for="price">Ціна (грн) <span style="color:#dc2626;">*</span></label>
                     <input
                         type="number"
                         min="0"
@@ -45,8 +45,8 @@ $attributeRows = $attributeRows ?? [];
                     >
                 </div>
                 <div class="form-group">
-                    <label for="category_id">Категорія</label>
-                    <select name="category_id" id="category_id" class="form-control">
+                    <label for="category_id">Категорія <span style="color:#dc2626;">*</span></label>
+                    <select name="category_id" id="category_id" class="form-control" required>
                         <option value="">-- Без категорії --</option>
                         <?php foreach ($categories as $cat): ?>
                             <option value="<?php echo $cat['id']; ?>" <?php echo ((int) $cat['id'] === (int) ($formData['category_id'] ?? 0)) ? 'selected' : ''; ?>>
@@ -150,6 +150,7 @@ $attributeRows = $attributeRows ?? [];
 
 <script>
     (function () {
+        const form = document.querySelector('form[action="/admin/products/store"]');
         const categorySelect = document.getElementById('category_id');
         const rowsContainer = document.getElementById('attribute-rows');
         const addRowButton = document.getElementById('add-attribute-row');
@@ -211,7 +212,7 @@ $attributeRows = $attributeRows ?? [];
                 return;
             }
 
-            if (attribute && attribute.type === 'select') {
+            if (attribute && ['select', 'multiselect', 'color'].includes(attribute.type)) {
                 const listId = 'attr-options-' + Math.random().toString(36).slice(2);
                 const options = Array.isArray(attribute.options) ? attribute.options : [];
                 const optionsHtml = options.map(function (option) {
@@ -342,6 +343,24 @@ $attributeRows = $attributeRows ?? [];
         categorySelect.addEventListener('change', fetchAllowedAttributes);
         rowsContainer.querySelectorAll('.attribute-remove-btn').forEach(bindRemoveButton);
         rowsContainer.querySelectorAll('.attribute-id-select').forEach(bindAttributeSelectProtection);
+
+        form.addEventListener('submit', function (event) {
+            const rows = rowsContainer.querySelectorAll('.attribute-row');
+            for (const row of rows) {
+                const attributeSelect = row.querySelector('.attribute-id-select');
+                const valueInput = row.querySelector('input[name="attribute_value[]"]');
+                const attributeId = Number(attributeSelect ? attributeSelect.value : 0);
+                const value = valueInput ? valueInput.value.trim() : '';
+
+                if (attributeId > 0 && value === '') {
+                    event.preventDefault();
+                    showWarning('Для обраної характеристики потрібно заповнити поле "Значення".');
+                    valueInput && valueInput.focus();
+                    return;
+                }
+            }
+        });
+
         fetchAllowedAttributes();
     })();
 </script>
