@@ -5,6 +5,11 @@
     </a>
 </div>
 
+<?php
+$formData = $formData ?? [];
+$attributeRows = $attributeRows ?? [];
+?>
+
 <form action="/admin/products/store" method="POST" enctype="multipart/form-data">
     <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf']); ?>">
 
@@ -15,12 +20,12 @@
         <div class="card-body">
             <div class="form-group">
                 <label for="name">Назва товару</label>
-                <input type="text" name="name" id="name" class="form-control" required placeholder="Наприклад: iPhone 15 Pro Max">
+                <input type="text" name="name" id="name" class="form-control" required placeholder="Наприклад: iPhone 15 Pro Max" value="<?php echo htmlspecialchars($formData['name'] ?? ''); ?>">
             </div>
 
             <div class="form-group">
                 <label for="slug">Slug (URL посилання)</label>
-                <input type="text" name="slug" id="slug" class="form-control" placeholder="Залиште порожнім для автогенерації">
+                <input type="text" name="slug" id="slug" class="form-control" placeholder="Залиште порожнім для автогенерації" value="<?php echo htmlspecialchars($formData['slug'] ?? ''); ?>">
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
@@ -36,6 +41,7 @@
                         class="form-control"
                         required
                         placeholder="0.00"
+                        value="<?php echo htmlspecialchars($formData['price'] ?? ''); ?>"
                     >
                 </div>
                 <div class="form-group">
@@ -43,7 +49,7 @@
                     <select name="category_id" id="category_id" class="form-control">
                         <option value="">-- Без категорії --</option>
                         <?php foreach ($categories as $cat): ?>
-                            <option value="<?php echo $cat['id']; ?>">
+                            <option value="<?php echo $cat['id']; ?>" <?php echo ((int) $cat['id'] === (int) ($formData['category_id'] ?? 0)) ? 'selected' : ''; ?>>
                                 <?php echo str_repeat('— ', $cat['level'] ?? 0) . htmlspecialchars($cat['name']); ?>
                             </option>
                         <?php endforeach; ?>
@@ -53,7 +59,7 @@
 
             <div class="form-group">
                 <label for="description">Опис товару</label>
-                <textarea name="description" id="description" class="form-control" rows="6" placeholder="Короткий або детальний опис товару..."></textarea>
+                <textarea name="description" id="description" class="form-control" rows="6" placeholder="Короткий або детальний опис товару..."><?php echo htmlspecialchars($formData['description'] ?? ''); ?></textarea>
             </div>
         </div>
     </div>
@@ -67,15 +73,36 @@
             <div id="attributes-warning" style="display:none; margin-bottom: 0.75rem; color:#b45309; background:#fffbeb; border:1px solid #fde68a; padding:0.5rem 0.75rem; border-radius:6px;"></div>
 
             <div id="attribute-rows" style="display: flex; flex-direction: column; gap: 0.75rem;">
-                <div class="attribute-row" style="display:grid; grid-template-columns: 1fr 1fr auto; gap: 0.75rem;">
-                    <select name="attribute_id[]" class="form-control attribute-id-select">
-                        <option value="">Спочатку оберіть категорію</option>
-                    </select>
-                    <div class="attribute-value-wrap">
-                        <input type="text" name="attribute_value[]" class="form-control" placeholder="Значення (напр. Чорний)">
+                <?php if (empty($attributeRows)): ?>
+                    <div class="attribute-row" style="display:grid; grid-template-columns: 1fr 1fr auto; gap: 0.75rem;">
+                        <select name="attribute_id[]" class="form-control attribute-id-select">
+                            <option value="">Спочатку оберіть категорію</option>
+                        </select>
+                        <div class="attribute-value-wrap">
+                            <input type="text" name="attribute_value[]" class="form-control" placeholder="Значення (напр. Чорний)">
+                        </div>
+                        <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;">Видалити</button>
                     </div>
-                    <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;">Видалити</button>
-                </div>
+                <?php else: ?>
+                    <?php foreach ($attributeRows as $row): ?>
+                        <div class="attribute-row" style="display:grid; grid-template-columns: 1fr 1fr auto; gap: 0.75rem;">
+                            <?php $rowAttributeId = (int) ($row['attribute_id'] ?? 0); ?>
+                            <select name="attribute_id[]" class="form-control attribute-id-select">
+                                <option value="">-- Оберіть характеристику --</option>
+                                <?php foreach (($allowedAttributes ?? []) as $attribute): ?>
+                                    <?php $attributeId = (int) $attribute['id']; ?>
+                                    <option value="<?php echo $attributeId; ?>" <?php echo ($attributeId === $rowAttributeId) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($attribute['name']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <div class="attribute-value-wrap">
+                                <input type="text" name="attribute_value[]" class="form-control" value="<?php echo htmlspecialchars((string) ($row['value'] ?? '')); ?>" placeholder="Значення (напр. Чорний)">
+                            </div>
+                            <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;">Видалити</button>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </div>
 
             <div style="margin-top: 1rem;">
@@ -105,11 +132,11 @@
         <div class="card-body">
             <div class="form-group">
                 <label for="meta_title">Meta Title</label>
-                <input type="text" name="meta_title" id="meta_title" class="form-control">
+                <input type="text" name="meta_title" id="meta_title" class="form-control" value="<?php echo htmlspecialchars($formData['meta_title'] ?? ''); ?>">
             </div>
             <div class="form-group">
                 <label for="meta_description">Meta Description</label>
-                <textarea name="meta_description" id="meta_description" class="form-control" rows="2"></textarea>
+                <textarea name="meta_description" id="meta_description" class="form-control" rows="2"><?php echo htmlspecialchars($formData['meta_description'] ?? ''); ?></textarea>
             </div>
         </div>
     </div>
