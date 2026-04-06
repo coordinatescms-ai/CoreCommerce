@@ -1,9 +1,4 @@
-<div class="page-header">
-    <h1 class="page-title">Редагування товару: <?php echo htmlspecialchars($product['name']); ?></h1>
-    <a href="/admin/products" class="btn btn-outline" style="border: 1px solid #ddd; color: #64748b;">
-        <i class="fas fa-arrow-left"></i> Назад до списку
-    </a>
-</div>
+
 
 <form action="/admin/products/update/<?php echo $product['id']; ?>" method="POST" enctype="multipart/form-data">
     <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf']); ?>">
