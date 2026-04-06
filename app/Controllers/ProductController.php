@@ -13,6 +13,66 @@ use App\Services\ProductFilterService;
 class ProductController
 {
     /**
+     * Підготувати дані сторінки категорії.
+     *
+     * @param array $category
+     * @param array $queryParams
+     * @return array
+     */
+    private function buildCategoryPageData(array $category, array $queryParams): array
+    {
+        $filters = ProductFilterService::parseFiltersFromUrl($queryParams);
+        $filters['category_id'] = $category['id'];
+        $filters['limit'] = (int) ($queryParams['limit'] ?? 12);
+        $page = max(1, (int) ($queryParams['page'] ?? 1));
+        $filters['offset'] = ($page - 1) * $filters['limit'];
+        $filters['sort_by'] = $queryParams['sort_by'] ?? 'name';
+        $filters['sort_order'] = $queryParams['sort_order'] ?? 'ASC';
+
+        $products = ProductFilterService::filter($filters);
+        $totalProducts = ProductFilterService::count($filters);
+        $pages = max(1, (int) ceil($totalProducts / max(1, $filters['limit'])));
+        $filterOptions = ProductFilterService::getFilterOptions($category['id'], $filters);
+        $priceRange = ProductFilterService::getPriceRange($category['id']);
+        $breadcrumbs = Category::getBreadcrumbs($category['id']);
+
+        $breadcrumbs[] = [
+            'id' => $category['id'],
+            'name' => $category['name'],
+            'slug' => $category['slug'],
+            'url' => '/category/' . $category['slug']
+        ];
+
+        return [
+            'category' => $category,
+            'products' => $products,
+            'totalProducts' => $totalProducts,
+            'page' => $page,
+            'pages' => $pages,
+            'filterOptions' => $filterOptions,
+            'priceRange' => $priceRange,
+            'currentFilters' => $filters,
+            'breadcrumbs' => $breadcrumbs,
+            'childCategories' => Category::getChildren($category['id']),
+            'seoSettings' => Category::getSeoSettings($category['id'])
+        ];
+    }
+
+    /**
+     * Зрендерити html блок зі списком товарів категорії.
+     *
+     * @param array $data
+     * @return string
+     */
+    private function renderCategoryProductsHtml(array $data): string
+    {
+        extract($data);
+        ob_start();
+        include __DIR__ . '/../../resources/views/products/partials/category_products.php';
+        return ob_get_clean();
+    }
+
+    /**
      * Показати список товарів
      */
     public function index()
@@ -124,52 +184,33 @@ class ProductController
             return;
         }
 
-        // Розпарсити фільтри з URL
-        $filters = ProductFilterService::parseFiltersFromUrl($_GET);
-        $filters['category_id'] = $category['id'];
-        $filters['limit'] = $_GET['limit'] ?? 12;
-        $filters['offset'] = (($_GET['page'] ?? 1) - 1) * $filters['limit'];
-        $filters['sort_by'] = $_GET['sort_by'] ?? 'name';
-        $filters['sort_order'] = $_GET['sort_order'] ?? 'ASC';
+        $data = $this->buildCategoryPageData($category, $_GET);
 
-        // Отримати відфільтровані товари
-        $products = ProductFilterService::filter($filters);
-        $totalProducts = ProductFilterService::count($filters);
-        $pages = ceil($totalProducts / $filters['limit']);
+        $isAjax = (!empty($_GET['ajax']) && (int) $_GET['ajax'] === 1)
+            || (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
 
-        // Отримати опції фільтрів
-        $filterOptions = ProductFilterService::getFilterOptions($category['id'], $filters);
-        $priceRange = ProductFilterService::getPriceRange($category['id']);
+        if ($isAjax) {
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode([
+                'html' => $this->renderCategoryProductsHtml($data),
+                'total' => $data['totalProducts'],
+                'pages' => $data['pages'],
+                'page' => $data['page']
+            ]);
+            return;
+        }
 
-        // Отримати хлібні крихти
-        $breadcrumbs = Category::getBreadcrumbs($category['id']);
-        
-        // Додати поточну категорію до хлібних крихт
-        $breadcrumbs[] = [
-            'id' => $category['id'],
-            'name' => $category['name'],
-            'slug' => $category['slug'],
-            'url' => '/category/' . $category['slug']
-        ];
+        return View::render('products/category', $data);
+    }
 
-        // Отримати дочірні категорії
-        $childCategories = Category::getChildren($category['id']);
-
-        // Отримати SEO-налаштування
-        $seoSettings = Category::getSeoSettings($category['id']);
-
-        return View::render('products/category', [
-            'category' => $category,
-            'products' => $products,
-            'totalProducts' => $totalProducts,
-            'page' => $_GET['page'] ?? 1,
-            'pages' => $pages,
-            'filterOptions' => $filterOptions,
-            'priceRange' => $priceRange,
-            'currentFilters' => $filters,
-            'breadcrumbs' => $breadcrumbs,
-            'childCategories' => $childCategories,
-            'seoSettings' => $seoSettings
-        ]);
+    /**
+     * AJAX endpoint для фільтрації товарів категорії.
+     *
+     * @param string $slug
+     * @return void
+     */
+    public function filterCategory($slug)
+    {
+        return $this->showCategory($slug);
     }
 }
