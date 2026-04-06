@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\Attribute;
 use App\Models\ProductAttribute;
+use App\Models\ProductAttributeValue;
 use App\Services\SlugHelper;
 
 class AdminProductController
@@ -72,6 +73,37 @@ class AdminProductController
         }
 
         return $rows;
+    }
+
+    /**
+     * Перевірити заповнення пари "характеристика-значення".
+     *
+     * @return string|null
+     */
+    private function validateAttributePairs()
+    {
+        $attributeIds = $_POST['attribute_id'] ?? [];
+        $values = $_POST['attribute_value'] ?? [];
+
+        if (!is_array($attributeIds) || !is_array($values)) {
+            return null;
+        }
+
+        $maxCount = max(count($attributeIds), count($values));
+        for ($i = 0; $i < $maxCount; $i++) {
+            $attributeId = (int) ($attributeIds[$i] ?? 0);
+            $value = trim((string) ($values[$i] ?? ''));
+
+            if ($attributeId > 0 && $value === '') {
+                return 'Для обраної характеристики потрібно заповнити поле "Значення".';
+            }
+
+            if ($attributeId <= 0 && $value !== '') {
+                return 'Вказано значення без характеристики. Будь ласка, оберіть характеристику.';
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -145,6 +177,7 @@ class AdminProductController
     private function syncProductAttributes($productId, $attributeRows)
     {
         ProductAttribute::deleteAll((int) $productId);
+        ProductAttributeValue::deleteAll((int) $productId);
 
         foreach ($attributeRows as $row) {
             $attributeId = (int) ($row['attribute_id'] ?? 0);
@@ -177,6 +210,7 @@ class AdminProductController
             }
 
             ProductAttribute::setValue((int) $productId, (int) $attributeId, $normalizedValue, $optionId);
+            ProductAttributeValue::addValue((int) $productId, (int) $attributeId, $normalizedValue);
         }
     }
 
@@ -273,6 +307,14 @@ class AdminProductController
             'meta_title' => trim((string) ($_POST['meta_title'] ?? '')),
             'meta_description' => trim((string) ($_POST['meta_description'] ?? ''))
         ];
+        $attributePairError = $this->validateAttributePairs();
+        if ($attributePairError !== null) {
+            $this->flashProductFormData($data, $attributeRows);
+            $_SESSION['error'] = $attributePairError;
+            header('Location: /admin/products/create');
+            exit;
+        }
+
         $validationError = $this->validateProductPayload($data);
         if ($validationError !== null) {
             $this->flashProductFormData($data, $attributeRows);
@@ -333,7 +375,7 @@ class AdminProductController
 
         $existingAttributes = !empty($formData['attributes'])
             ? $formData['attributes']
-            : ProductAttribute::getByProduct($id);
+            : ProductAttributeValue::getByProduct($id);
         $allowedAttributes = [];
         if (!empty($product['category_id'])) {
             $allowedAttributes = $this->enrichAllowedAttributes(
@@ -368,6 +410,14 @@ class AdminProductController
         ];
 
         $attributeRows = $this->collectAttributeRows();
+        $attributePairError = $this->validateAttributePairs();
+        if ($attributePairError !== null) {
+            $this->flashProductFormData($data, $attributeRows);
+            $_SESSION['error'] = $attributePairError;
+            header('Location: /admin/products/edit/' . $id);
+            exit;
+        }
+
         $validationError = $this->validateProductPayload($data);
         if ($validationError !== null) {
             $this->flashProductFormData($data, $attributeRows);
