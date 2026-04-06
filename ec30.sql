@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: MySQL-8.0:3306
--- Час створення: Квт 04 2026 р., 17:38
+-- Час створення: Квт 06 2026 р., 18:43
 -- Версія сервера: 8.0.44
 -- Версія PHP: 8.3.29
 
@@ -127,27 +127,8 @@ INSERT INTO `attribute_options` (`id`, `attribute_id`, `name`, `value`, `color_c
 (11, 3, 'Бавовна', 'cotton', NULL, 1, '2026-03-29 16:28:20'),
 (12, 3, 'Поліестер', 'polyester', NULL, 2, '2026-03-29 16:28:20'),
 (13, 3, 'Шовк', 'silk', NULL, 3, '2026-03-29 16:28:20'),
-(14, 3, 'Вовна', 'wool', NULL, 4, '2026-03-29 16:28:20');
-
--- --------------------------------------------------------
-
---
--- Структура таблиці `attribute_values`
---
-
-CREATE TABLE `attribute_values` (
-  `id` int NOT NULL,
-  `product_id` int DEFAULT NULL,
-  `attribute_id` int DEFAULT NULL,
-  `value` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Дамп даних таблиці `attribute_values`
---
-
-INSERT INTO `attribute_values` (`id`, `product_id`, `attribute_id`, `value`) VALUES
-(1, 1, 1, 'Чорний');
+(14, 3, 'Вовна', 'wool', NULL, 4, '2026-03-29 16:28:20'),
+(31, 4, 'Китай', 'Китай', NULL, 1, '2026-04-05 15:56:41');
 
 -- --------------------------------------------------------
 
@@ -177,7 +158,8 @@ CREATE TABLE `categories` (
 
 INSERT INTO `categories` (`id`, `name`, `parent_id`, `slug`, `description`, `sort_order`, `image`, `is_active`, `meta_title`, `meta_description`, `meta_keywords`, `created_at`, `updated_at`) VALUES
 (1, 'Смартфони', NULL, 'smartfoni', 'Категорія смартфони', 0, NULL, 1, 'Купити Смартфони', 'Великий вибір смартфонів!', NULL, '2026-04-04 07:47:51', '2026-04-04 07:47:51'),
-(2, 'iPhone', 1, 'iphone', 'Смартфони iPhone! Смартфони iPhone! Смартфони iPhone! Смартфони iPhone! Смартфони iPhone! Смартфони iPhone!', 0, NULL, 1, 'Смартфони iPhone!', 'Смартфони iPhone! Смартфони iPhone!', NULL, '2026-04-04 15:31:02', '2026-04-04 15:31:02');
+(2, 'iPhone', 1, 'iphone', 'Смартфони iPhone! Смартфони iPhone! Смартфони iPhone! Смартфони iPhone! Смартфони iPhone! Смартфони iPhone!', 0, NULL, 1, 'Смартфони iPhone!', 'Смартфони iPhone! Смартфони iPhone!', NULL, '2026-04-04 15:31:02', '2026-04-04 15:31:02'),
+(3, 'Телевізори', NULL, 'televzori', 'Телевізори Телевізори Телевізори Телевізори! Телевізори Телевізори Телевізори Телевізори! Телевізори Телевізори Телевізори Телевізори!', 0, NULL, 1, 'Телевізори Телевізори Телевізори Телевізори!', 'Телевізори Телевізори Телевізори Телевізори!', NULL, '2026-04-04 21:23:11', '2026-04-04 21:23:11');
 
 -- --------------------------------------------------------
 
@@ -193,6 +175,13 @@ CREATE TABLE `category_attributes` (
   `sort_order` int DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Дамп даних таблиці `category_attributes`
+--
+
+INSERT INTO `category_attributes` (`id`, `category_id`, `attribute_id`, `is_required`, `sort_order`, `created_at`) VALUES
+(1, 3, 4, 0, 0, '2026-04-05 15:56:41');
 
 -- --------------------------------------------------------
 
@@ -295,7 +284,8 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`id`, `category_id`, `name`, `description`, `image`, `slug`, `meta_title`, `meta_description`, `meta_keywords`, `price`, `created_at`, `updated_at`) VALUES
-(1, 1, 'iPhone 13', 'Крутий смартфон, по дуже низьким цінам! Доступна ціна за круту якість!', NULL, 'iphone-13', '', '', NULL, 999.00, '2026-03-30 07:45:12', '2026-04-04 15:29:07');
+(1, 2, 'iPhone 13', 'Крутий смартфон, по дуже низьким цінам! Доступна ціна за круту якість!', NULL, 'iphone-13', '', '', NULL, 999.00, '2026-03-30 07:45:12', '2026-04-04 17:05:24'),
+(2, 3, 'Сіомі', 'Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі!', NULL, 'siomi', '', '', NULL, 2050.00, '2026-04-05 08:11:57', '2026-04-05 11:31:15');
 
 -- --------------------------------------------------------
 
@@ -312,6 +302,26 @@ CREATE TABLE `product_attributes` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Дамп даних таблиці `product_attributes`
+--
+
+INSERT INTO `product_attributes` (`id`, `product_id`, `attribute_id`, `value`, `attribute_option_id`, `created_at`, `updated_at`) VALUES
+(2, 2, 4, 'Китай', NULL, '2026-04-05 11:31:15', '2026-04-05 11:31:15');
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблиці `product_attribute_values`
+--
+
+CREATE TABLE `product_attribute_values` (
+  `id` int NOT NULL,
+  `product_id` int NOT NULL,
+  `attribute_id` int NOT NULL,
+  `value_text` text COLLATE utf8mb4_general_ci
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -341,7 +351,8 @@ CREATE TABLE `seo_settings` (
 
 INSERT INTO `seo_settings` (`id`, `entity_type`, `entity_id`, `title`, `description`, `keywords`, `og_title`, `og_description`, `og_image`, `canonical_url`, `robots_meta`, `created_at`, `updated_at`) VALUES
 (1, 'category', 1, 'Купити Смартфони', 'Великий вибір смартфонів!', NULL, NULL, NULL, NULL, NULL, NULL, '2026-04-04 07:47:51', '2026-04-04 07:47:51'),
-(2, 'category', 2, 'Смартфони iPhone!', 'Смартфони iPhone! Смартфони iPhone!', NULL, NULL, NULL, NULL, NULL, NULL, '2026-04-04 15:31:02', '2026-04-04 15:31:02');
+(2, 'category', 2, 'Смартфони iPhone!', 'Смартфони iPhone! Смартфони iPhone!', NULL, NULL, NULL, NULL, NULL, NULL, '2026-04-04 15:31:02', '2026-04-04 15:31:02'),
+(3, 'category', 3, 'Телевізори Телевізори Телевізори Телевізори!', 'Телевізори Телевізори Телевізори Телевізори!', NULL, NULL, NULL, NULL, NULL, NULL, '2026-04-04 21:23:11', '2026-04-04 21:23:11');
 
 -- --------------------------------------------------------
 
@@ -439,7 +450,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `email`, `password`, `first_name`, `last_name`, `phone`, `avatar`, `role_id`, `is_active`, `email_verified`, `email_verified_at`, `last_login`, `password_reset_token`, `password_reset_expires`, `remember_token`, `created_at`, `updated_at`) VALUES
-(2, 'systemmaster@meta.ua', '$2y$12$knhVn0wIOYbnqx3TRccf1OrGmEGu3JWSZsbLQ/c9tvLrmZElAaU86', 'Василь', 'Присяжнюк', NULL, NULL, 1, 1, 0, NULL, '2026-04-04 15:20:07', NULL, NULL, '88c765047366ed96657e639c1ea40360ea8115e428c0ed372422f91263aa6e2b', '2026-03-31 09:57:24', '2026-04-04 15:20:07');
+(2, 'systemmaster@meta.ua', '$2y$12$knhVn0wIOYbnqx3TRccf1OrGmEGu3JWSZsbLQ/c9tvLrmZElAaU86', 'Василь', 'Присяжнюк', NULL, NULL, 1, 1, 0, NULL, '2026-04-06 16:36:00', NULL, NULL, '88c765047366ed96657e639c1ea40360ea8115e428c0ed372422f91263aa6e2b', '2026-03-31 09:57:24', '2026-04-06 16:36:00');
 
 -- --------------------------------------------------------
 
@@ -484,12 +495,6 @@ ALTER TABLE `attribute_options`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `unique_option` (`attribute_id`,`value`),
   ADD KEY `idx_attribute_id` (`attribute_id`);
-
---
--- Індекси таблиці `attribute_values`
---
-ALTER TABLE `attribute_values`
-  ADD PRIMARY KEY (`id`);
 
 --
 -- Індекси таблиці `categories`
@@ -568,6 +573,12 @@ ALTER TABLE `product_attributes`
   ADD KEY `idx_product_attr_value` (`value`);
 
 --
+-- Індекси таблиці `product_attribute_values`
+--
+ALTER TABLE `product_attribute_values`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Індекси таблиці `seo_settings`
 --
 ALTER TABLE `seo_settings`
@@ -634,25 +645,19 @@ ALTER TABLE `attributes`
 -- AUTO_INCREMENT для таблиці `attribute_options`
 --
 ALTER TABLE `attribute_options`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
-
---
--- AUTO_INCREMENT для таблиці `attribute_values`
---
-ALTER TABLE `attribute_values`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT для таблиці `categories`
 --
 ALTER TABLE `categories`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT для таблиці `category_attributes`
 --
 ALTER TABLE `category_attributes`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT для таблиці `category_filters`
@@ -688,19 +693,25 @@ ALTER TABLE `order_items`
 -- AUTO_INCREMENT для таблиці `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT для таблиці `product_attributes`
 --
 ALTER TABLE `product_attributes`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT для таблиці `product_attribute_values`
+--
+ALTER TABLE `product_attribute_values`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT для таблиці `seo_settings`
 --
 ALTER TABLE `seo_settings`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT для таблиці `slug_history`
