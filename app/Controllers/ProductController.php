@@ -36,13 +36,6 @@ class ProductController
         $priceRange = ProductFilterService::getPriceRange($category['id']);
         $breadcrumbs = Category::getBreadcrumbs($category['id']);
 
-        $breadcrumbs[] = [
-            'id' => $category['id'],
-            'name' => $category['name'],
-            'slug' => $category['slug'],
-            'url' => '/category/' . $category['slug']
-        ];
-
         return [
             'category' => $category,
             'products' => $products,
@@ -53,6 +46,7 @@ class ProductController
             'priceRange' => $priceRange,
             'currentFilters' => $filters,
             'breadcrumbs' => $breadcrumbs,
+            'categoryTree' => Category::getTree(),
             'childCategories' => Category::getChildren($category['id']),
             'seoSettings' => Category::getSeoSettings($category['id'])
         ];
