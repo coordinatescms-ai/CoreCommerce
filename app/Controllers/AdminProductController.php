@@ -11,6 +11,8 @@ use App\Services\SlugHelper;
 
 class AdminProductController
 {
+    private const PRODUCT_FORM_FLASH_KEY = 'product_form_old';
+
     /**
      * Додати до дозволених атрибутів опції для select-типів.
      *
@@ -197,10 +199,20 @@ class AdminProductController
     {
         $this->checkAdmin();
         $categories = Category::getFlatTree();
+        $formData = $this->consumeProductFormFlash();
+        $selectedCategoryId = (int) ($formData['category_id'] ?? 0);
+        $allowedAttributes = [];
+        if ($selectedCategoryId > 0) {
+            $allowedAttributes = $this->enrichAllowedAttributes(
+                Category::getAllowedAttributes($selectedCategoryId)
+            );
+        }
 
         View::render('admin/products/create', [
             'categories' => $categories,
-            'allowedAttributes' => []
+            'allowedAttributes' => $allowedAttributes,
+            'formData' => $formData,
+            'attributeRows' => $formData['attributes'] ?? [],
         ], 'admin');
     }
 
@@ -251,34 +263,45 @@ class AdminProductController
             die('CSRF validation failed');
         }
 
-        $image = $this->handleImageUpload();
         $attributeRows = $this->collectAttributeRows();
-
         $data = [
             'name' => trim($_POST['name'] ?? ''),
             'slug' => !empty($_POST['slug']) ? trim($_POST['slug']) : SlugHelper::getUnique($_POST['name'], 'product'),
-            'price' => (float)($_POST['price'] ?? 0),
+            'price' => trim((string) ($_POST['price'] ?? '')),
             'category_id' => !empty($_POST['category_id']) ? (int)$_POST['category_id'] : null,
-            'description' => $_POST['description'] ?? '',
-            'image' => $image,
-            'meta_title' => $_POST['meta_title'] ?? '',
-            'meta_description' => $_POST['meta_description'] ?? ''
+            'description' => trim((string) ($_POST['description'] ?? '')),
+            'meta_title' => trim((string) ($_POST['meta_title'] ?? '')),
+            'meta_description' => trim((string) ($_POST['meta_description'] ?? ''))
         ];
+        $validationError = $this->validateProductPayload($data);
+        if ($validationError !== null) {
+            $this->flashProductFormData($data, $attributeRows);
+            $_SESSION['error'] = $validationError;
+            header('Location: /admin/products/create');
+            exit;
+        }
+
+        $data['price'] = (float) str_replace(',', '.', (string) $data['price']);
+        $image = $this->handleImageUpload();
+        $data['image'] = $image;
 
         $productId = Product::create($data);
 
         if ($productId) {
             if (!$this->validateAttributesForCategory($data['category_id'], $attributeRows)) {
                 Product::delete((int) $productId);
+                $this->flashProductFormData($data, $attributeRows);
                 $_SESSION['error'] = 'Неможливо зберегти характеристики: обрано атрибути, які не дозволені для категорії товару.';
                 header('Location: /admin/products/create');
                 exit;
             }
 
             $this->syncProductAttributes((int) $productId, $attributeRows);
+            unset($_SESSION[self::PRODUCT_FORM_FLASH_KEY]);
             $_SESSION['success'] = 'Товар успішно додано!';
             header('Location: /admin/products');
         } else {
+            $this->flashProductFormData($data, $attributeRows);
             $_SESSION['error'] = 'Помилка при додаванні товару. Перевірте унікальність slug.';
             header('Location: /admin/products/create');
         }
@@ -297,7 +320,20 @@ class AdminProductController
         }
 
         $categories = Category::getFlatTree();
-        $existingAttributes = ProductAttribute::getByProduct($id);
+        $formData = $this->consumeProductFormFlash();
+        if (!empty($formData)) {
+            $product['name'] = $formData['name'] ?? $product['name'];
+            $product['slug'] = $formData['slug'] ?? $product['slug'];
+            $product['price'] = $formData['price'] ?? $product['price'];
+            $product['category_id'] = $formData['category_id'] ?? $product['category_id'];
+            $product['description'] = $formData['description'] ?? $product['description'];
+            $product['meta_title'] = $formData['meta_title'] ?? $product['meta_title'];
+            $product['meta_description'] = $formData['meta_description'] ?? $product['meta_description'];
+        }
+
+        $existingAttributes = !empty($formData['attributes'])
+            ? $formData['attributes']
+            : ProductAttribute::getByProduct($id);
         $allowedAttributes = [];
         if (!empty($product['category_id'])) {
             $allowedAttributes = $this->enrichAllowedAttributes(
@@ -324,30 +360,42 @@ class AdminProductController
         $data = [
             'name' => trim($_POST['name'] ?? ''),
             'slug' => trim($_POST['slug'] ?? ''),
-            'price' => (float)($_POST['price'] ?? 0),
+            'price' => trim((string) ($_POST['price'] ?? '')),
             'category_id' => !empty($_POST['category_id']) ? (int)$_POST['category_id'] : null,
-            'description' => $_POST['description'] ?? '',
-            'meta_title' => $_POST['meta_title'] ?? '',
-            'meta_description' => $_POST['meta_description'] ?? ''
+            'description' => trim((string) ($_POST['description'] ?? '')),
+            'meta_title' => trim((string) ($_POST['meta_title'] ?? '')),
+            'meta_description' => trim((string) ($_POST['meta_description'] ?? ''))
         ];
 
-        $newImage = $this->handleImageUpload();
         $attributeRows = $this->collectAttributeRows();
+        $validationError = $this->validateProductPayload($data);
+        if ($validationError !== null) {
+            $this->flashProductFormData($data, $attributeRows);
+            $_SESSION['error'] = $validationError;
+            header('Location: /admin/products/edit/' . $id);
+            exit;
+        }
+
+        $data['price'] = (float) str_replace(',', '.', (string) $data['price']);
+        $newImage = $this->handleImageUpload();
         if ($newImage) {
             $data['image'] = $newImage;
         }
 
         if (Product::update($id, $data)) {
             if (!$this->validateAttributesForCategory($data['category_id'], $attributeRows)) {
+                $this->flashProductFormData($data, $attributeRows);
                 $_SESSION['error'] = 'Неможливо зберегти характеристики: обрано атрибути, які не дозволені для категорії товару.';
                 header('Location: /admin/products/edit/' . $id);
                 exit;
             }
 
             $this->syncProductAttributes((int) $id, $attributeRows);
+            unset($_SESSION[self::PRODUCT_FORM_FLASH_KEY]);
             $_SESSION['success'] = 'Товар успішно оновлено!';
             header('Location: /admin/products');
         } else {
+            $this->flashProductFormData($data, $attributeRows);
             $_SESSION['error'] = 'Помилка при оновленні товару. Перевірте унікальність slug.';
             header('Location: /admin/products/edit/' . $id);
         }
@@ -411,5 +459,65 @@ class AdminProductController
             'success' => true,
             'attributes' => $this->enrichAllowedAttributes(Category::getAllowedAttributes($categoryId))
         ]);
+    }
+
+    /**
+     * @param array $data
+     * @return string|null
+     */
+    private function validateProductPayload(array $data)
+    {
+        if (trim((string) ($data['name'] ?? '')) === '') {
+            return 'Поле "Назва товару" є обов’язковим.';
+        }
+
+        $priceValue = str_replace(',', '.', (string) ($data['price'] ?? ''));
+        if ($priceValue === '' || !is_numeric($priceValue)) {
+            return 'Поле "Ціна" повинно містити коректне число.';
+        }
+
+        if ((float) $priceValue <= 0) {
+            return 'Поле "Ціна" повинно бути більше 0.';
+        }
+
+        if (trim((string) ($data['description'] ?? '')) === '') {
+            return 'Поле "Опис товару" є обов’язковим.';
+        }
+
+        if ((int) ($data['category_id'] ?? 0) <= 0) {
+            return 'Потрібно обрати категорію товару.';
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array $data
+     * @param array $attributeRows
+     * @return void
+     */
+    private function flashProductFormData(array $data, array $attributeRows)
+    {
+        $_SESSION[self::PRODUCT_FORM_FLASH_KEY] = [
+            'name' => (string) ($data['name'] ?? ''),
+            'slug' => (string) ($data['slug'] ?? ''),
+            'price' => (string) ($data['price'] ?? ''),
+            'category_id' => (int) ($data['category_id'] ?? 0),
+            'description' => (string) ($data['description'] ?? ''),
+            'meta_title' => (string) ($data['meta_title'] ?? ''),
+            'meta_description' => (string) ($data['meta_description'] ?? ''),
+            'attributes' => array_values($attributeRows),
+        ];
+    }
+
+    /**
+     * @return array
+     */
+    private function consumeProductFormFlash()
+    {
+        $data = $_SESSION[self::PRODUCT_FORM_FLASH_KEY] ?? [];
+        unset($_SESSION[self::PRODUCT_FORM_FLASH_KEY]);
+
+        return is_array($data) ? $data : [];
     }
 }
