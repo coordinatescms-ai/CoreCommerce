@@ -11,11 +11,74 @@ $placeholderImage = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http:
 $mainImage = !empty($product['image']) ? $product['image'] : $placeholderImage;
 $galleryImages = [$mainImage, $mainImage, $mainImage, $mainImage];
 $similarProducts = $similarProducts ?? [];
+$categoryTree = $categoryTree ?? [];
+$currentCategoryId = (int) (($category['id'] ?? 0));
 
 $groupedAttributes = [];
 foreach (($attributes ?? []) as $attribute) {
     $label = $attribute['attribute_name'] ?? __('attribute');
     $groupedAttributes[$label][] = $attribute['value'] ?? '';
+}
+
+if (!function_exists('renderCategorySidebarAccordion')) {
+    function renderCategorySidebarAccordion(array $items, int $currentCategoryId, array $expandedIds, int $depth = 0): void
+    {
+        if (empty($items)) {
+            return;
+        }
+
+        $padding = 12 + ($depth * 16);
+
+        echo '<ul class="category-royal-list" role="tree">';
+
+        foreach ($items as $item) {
+            $itemId = (int) ($item['id'] ?? 0);
+            $children = $item['children'] ?? [];
+            $hasChildren = !empty($children);
+            $isActive = $itemId === $currentCategoryId;
+            $isExpanded = $isActive || in_array($itemId, $expandedIds, true);
+
+            echo '<li class="category-royal-item" role="treeitem" aria-expanded="' . ($isExpanded ? 'true' : 'false') . '">';
+            echo '<div class="category-royal-row">';
+            echo '<a href="/category/' . htmlspecialchars((string) ($item['slug'] ?? '')) . '" class="category-royal-link';
+            echo $isActive ? ' is-active' : '';
+            echo '" style="padding-left:' . $padding . 'px">';
+            echo htmlspecialchars((string) ($item['name'] ?? ''));
+            echo '</a>';
+
+            if ($hasChildren) {
+                echo '<button type="button" class="category-accordion-trigger"';
+                echo ' data-accordion-trigger aria-label="Toggle subcategories" aria-expanded="' . ($isExpanded ? 'true' : 'false') . '">';
+                echo '<svg class="category-accordion-icon ' . ($isExpanded ? 'is-open' : '') . '" viewBox="0 0 24 24" fill="none" aria-hidden="true">';
+                echo '<path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>';
+                echo '</svg>';
+                echo '</button>';
+            }
+
+            echo '</div>';
+
+            if ($hasChildren) {
+                echo '<div class="category-accordion-panel" data-accordion-panel';
+                echo $isExpanded ? ' style="max-height: 1000px; opacity:1;"' : ' style="max-height:0; opacity:.4;"';
+                echo '>';
+                echo '<div class="category-royal-branch">';
+                renderCategorySidebarAccordion($children, $currentCategoryId, $expandedIds, $depth + 1);
+                echo '</div>';
+                echo '</div>';
+            }
+
+            echo '</li>';
+        }
+
+        echo '</ul>';
+    }
+}
+
+$expandedCategoryIds = [];
+foreach (($breadcrumbs ?? []) as $crumb) {
+    if (!empty($crumb['id'])) {
+        $expandedCategoryIds[] = (int) $crumb['id'];
+    }
 }
 ?>
 
@@ -32,120 +95,138 @@ foreach (($attributes ?? []) as $attribute) {
         <span class="is-current"><?= $productName ?></span>
     </nav>
 
-    <div class="pdp-main-grid">
-        <div class="pdp-gallery">
-            <figure class="pdp-main-image-wrap">
-                <img id="pdp-main-image" src="<?= htmlspecialchars($mainImage) ?>" alt="<?= $productName ?>" class="pdp-main-image">
-            </figure>
+    <div class="pdp-layout">
+        <aside class="pdp-sidebar">
+            <section class="category-royal-card">
+                <h2 class="category-royal-title">
+                    <svg class="category-royal-title-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M4 6H20M4 12H20M4 18H14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    Категорії
+                </h2>
+                <div class="category-royal-nav">
+                    <?php renderCategorySidebarAccordion($categoryTree, $currentCategoryId, $expandedCategoryIds); ?>
+                </div>
+            </section>
+        </aside>
 
-            <div class="pdp-thumbs" role="list" aria-label="Product gallery thumbnails">
-                <?php foreach ($galleryImages as $idx => $image): ?>
-                    <button
-                        type="button"
-                        class="pdp-thumb <?= $idx === 0 ? 'is-active' : '' ?>"
-                        data-pdp-thumb
-                        data-image="<?= htmlspecialchars($image) ?>"
-                        aria-label="Фото <?= $idx + 1 ?>"
-                    >
-                        <img src="<?= htmlspecialchars($image) ?>" alt="<?= $productName ?> thumbnail <?= $idx + 1 ?>">
-                    </button>
-                <?php endforeach; ?>
-            </div>
-        </div>
+        <div class="pdp-content">
+            <div class="pdp-main-grid">
+                <div class="pdp-gallery">
+                    <figure class="pdp-main-image-wrap">
+                        <img id="pdp-main-image" src="<?= htmlspecialchars($mainImage) ?>" alt="<?= $productName ?>" class="pdp-main-image">
+                    </figure>
 
-        <div class="pdp-info">
-            <h1><?= $productName ?></h1>
-            <div class="pdp-price"><?= $productPrice ?> грн</div>
+                    <div class="pdp-thumbs" role="list" aria-label="Product gallery thumbnails">
+                        <?php foreach ($galleryImages as $idx => $image): ?>
+                            <button
+                                type="button"
+                                class="pdp-thumb <?= $idx === 0 ? 'is-active' : '' ?>"
+                                data-pdp-thumb
+                                data-image="<?= htmlspecialchars($image) ?>"
+                                aria-label="Фото <?= $idx + 1 ?>"
+                            >
+                                <img src="<?= htmlspecialchars($image) ?>" alt="<?= $productName ?> thumbnail <?= $idx + 1 ?>">
+                            </button>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
 
-            <p class="pdp-short-description">
-                <strong><?= __('short_description') ?>:</strong>
-                <?= htmlspecialchars($shortDescription !== '' ? $shortDescription : __('no_products_found')) ?>
-            </p>
+                <div class="pdp-info">
+                    <h1><?= $productName ?></h1>
+                    <div class="pdp-price"><?= $productPrice ?> грн</div>
 
-            <div class="pdp-options" aria-label="Product options">
-                <h3><?= __('choose_options') ?></h3>
-                <?php if (!empty($groupedAttributes)): ?>
-                    <?php foreach ($groupedAttributes as $attributeName => $values): ?>
-                        <div class="pdp-option-group">
-                            <div class="pdp-option-label"><?= htmlspecialchars($attributeName) ?></div>
-                            <div class="pdp-option-values">
-                                <?php foreach (array_unique(array_filter($values)) as $value): ?>
-                                    <button type="button" class="pdp-chip"><?= htmlspecialchars((string) $value) ?></button>
-                                <?php endforeach; ?>
+                    <p class="pdp-short-description">
+                        <strong><?= __('short_description') ?>:</strong>
+                        <?= htmlspecialchars($shortDescription !== '' ? $shortDescription : __('no_products_found')) ?>
+                    </p>
+
+                    <div class="pdp-options" aria-label="Product options">
+                        <h3><?= __('choose_options') ?></h3>
+                        <?php if (!empty($groupedAttributes)): ?>
+                            <?php foreach ($groupedAttributes as $attributeName => $values): ?>
+                                <div class="pdp-option-group">
+                                    <div class="pdp-option-label"><?= htmlspecialchars($attributeName) ?></div>
+                                    <div class="pdp-option-values">
+                                        <?php foreach (array_unique(array_filter($values)) as $value): ?>
+                                            <button type="button" class="pdp-chip"><?= htmlspecialchars((string) $value) ?></button>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="pdp-option-group">
+                                <div class="pdp-option-label">Розмір</div>
+                                <div class="pdp-option-values">
+                                    <button type="button" class="pdp-chip">S</button>
+                                    <button type="button" class="pdp-chip">M</button>
+                                    <button type="button" class="pdp-chip">L</button>
+                                </div>
                             </div>
-                        </div>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <div class="pdp-option-group">
-                        <div class="pdp-option-label">Розмір</div>
-                        <div class="pdp-option-values">
-                            <button type="button" class="pdp-chip">S</button>
-                            <button type="button" class="pdp-chip">M</button>
-                            <button type="button" class="pdp-chip">L</button>
-                        </div>
+                            <div class="pdp-option-group">
+                                <div class="pdp-option-label">Колір</div>
+                                <div class="pdp-option-values">
+                                    <button type="button" class="pdp-chip">Чорний</button>
+                                    <button type="button" class="pdp-chip">Синій</button>
+                                </div>
+                            </div>
+                        <?php endif; ?>
                     </div>
-                    <div class="pdp-option-group">
-                        <div class="pdp-option-label">Колір</div>
-                        <div class="pdp-option-values">
-                            <button type="button" class="pdp-chip">Чорний</button>
-                            <button type="button" class="pdp-chip">Синій</button>
-                        </div>
+
+                    <div class="pdp-actions">
+                        <a class="pdp-btn pdp-btn-primary" href="/cart/add/<?= (int) $product['id'] ?>"><?= __('add_to_cart') ?></a>
+                        <button type="button" class="pdp-btn pdp-btn-ghost"><?= __('wishlist') ?></button>
                     </div>
-                <?php endif; ?>
+                </div>
             </div>
 
-            <div class="pdp-actions">
-                <a class="pdp-btn pdp-btn-primary" href="/cart/add/<?= (int) $product['id'] ?>"><?= __('add_to_cart') ?></a>
-                <button type="button" class="pdp-btn pdp-btn-ghost"><?= __('wishlist') ?></button>
-            </div>
+            <section class="pdp-tabs" aria-label="Product details tabs">
+                <details open>
+                    <summary><?= __('product_details') ?></summary>
+                    <?php if (!empty($productDescription)): ?>
+                        <p><?= nl2br(htmlspecialchars($productDescription)) ?></p>
+                    <?php else: ?>
+                        <p><?= __('no_products_found') ?></p>
+                    <?php endif; ?>
+                </details>
+
+                <details>
+                    <summary><?= __('reviews') ?></summary>
+                    <p><?= __('reviews_empty') ?></p>
+                </details>
+
+                <details>
+                    <summary><?= __('shipping_terms') ?></summary>
+                    <p><?= __('delivery_info_default') ?></p>
+                </details>
+            </section>
+
+            <section class="pdp-similar" aria-label="<?= __('similar_products') ?>">
+                <h2><?= __('similar_products') ?></h2>
+                <div class="pdp-similar-grid">
+                    <?php foreach (array_slice($similarProducts, 0, 4) as $item): ?>
+                        <article class="pdp-similar-card">
+                            <a href="/product/<?= htmlspecialchars($item['slug']) ?>" class="pdp-similar-image-link">
+                                <img src="<?= htmlspecialchars(!empty($item['image']) ? $item['image'] : $placeholderImage) ?>" alt="<?= htmlspecialchars($item['name']) ?>">
+                            </a>
+                            <h3><a href="/product/<?= htmlspecialchars($item['slug']) ?>"><?= htmlspecialchars($item['name']) ?></a></h3>
+                            <div class="pdp-similar-price"><?= number_format((float) ($item['price'] ?? 0), 2, '.', ' ') ?> грн</div>
+                        </article>
+                    <?php endforeach; ?>
+
+                    <?php if (empty($similarProducts)): ?>
+                        <?php for ($i = 0; $i < 4; $i++): ?>
+                            <article class="pdp-similar-card is-placeholder">
+                                <div class="pdp-similar-image-link"><img src="<?= htmlspecialchars($placeholderImage) ?>" alt="placeholder"></div>
+                                <h3>Product <?= $i + 1 ?></h3>
+                                <div class="pdp-similar-price">0.00 грн</div>
+                            </article>
+                        <?php endfor; ?>
+                    <?php endif; ?>
+                </div>
+            </section>
         </div>
     </div>
-
-    <section class="pdp-tabs" aria-label="Product details tabs">
-        <details open>
-            <summary><?= __('product_details') ?></summary>
-            <?php if (!empty($productDescription)): ?>
-                <p><?= nl2br(htmlspecialchars($productDescription)) ?></p>
-            <?php else: ?>
-                <p><?= __('no_products_found') ?></p>
-            <?php endif; ?>
-        </details>
-
-        <details>
-            <summary><?= __('reviews') ?></summary>
-            <p><?= __('reviews_empty') ?></p>
-        </details>
-
-        <details>
-            <summary><?= __('shipping_terms') ?></summary>
-            <p><?= __('delivery_info_default') ?></p>
-        </details>
-    </section>
-
-    <section class="pdp-similar" aria-label="<?= __('similar_products') ?>">
-        <h2><?= __('similar_products') ?></h2>
-        <div class="pdp-similar-grid">
-            <?php foreach (array_slice($similarProducts, 0, 4) as $item): ?>
-                <article class="pdp-similar-card">
-                    <a href="/product/<?= htmlspecialchars($item['slug']) ?>" class="pdp-similar-image-link">
-                        <img src="<?= htmlspecialchars(!empty($item['image']) ? $item['image'] : $placeholderImage) ?>" alt="<?= htmlspecialchars($item['name']) ?>">
-                    </a>
-                    <h3><a href="/product/<?= htmlspecialchars($item['slug']) ?>"><?= htmlspecialchars($item['name']) ?></a></h3>
-                    <div class="pdp-similar-price"><?= number_format((float) ($item['price'] ?? 0), 2, '.', ' ') ?> грн</div>
-                </article>
-            <?php endforeach; ?>
-
-            <?php if (empty($similarProducts)): ?>
-                <?php for ($i = 0; $i < 4; $i++): ?>
-                    <article class="pdp-similar-card is-placeholder">
-                        <div class="pdp-similar-image-link"><img src="<?= htmlspecialchars($placeholderImage) ?>" alt="placeholder"></div>
-                        <h3>Product <?= $i + 1 ?></h3>
-                        <div class="pdp-similar-price">0.00 грн</div>
-                    </article>
-                <?php endfor; ?>
-            <?php endif; ?>
-        </div>
-    </section>
 </section>
 
 <style>
@@ -153,6 +234,12 @@ foreach (($attributes ?? []) as $attribute) {
     --pdp-primary: var(--primary, #2563eb);
     --pdp-border: #dbe3ef;
     --pdp-muted: #64748b;
+}
+
+.pdp-layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 1.5rem;
 }
 
 .pdp-breadcrumbs {
@@ -163,6 +250,109 @@ foreach (($attributes ?? []) as $attribute) {
     margin-bottom: 1.25rem;
     color: var(--pdp-muted);
     font-size: 0.92rem;
+}
+
+.category-royal-card {
+    margin-bottom: 1rem;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    border-radius: 10px;
+    padding: 0.75rem;
+}
+
+.category-royal-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: #334155;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.category-royal-title-icon {
+    width: 16px;
+    height: 16px;
+    color: #64748b;
+}
+
+.category-royal-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.category-royal-item {
+    margin-bottom: 0.2rem;
+}
+
+.category-royal-row {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.category-royal-link {
+    flex: 1;
+    min-width: 0;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-radius: 8px;
+    color: #334155;
+    text-decoration: none;
+    line-height: 1.3;
+}
+
+.category-royal-link:hover {
+    background: #f8fafc;
+    text-decoration: none;
+}
+
+.category-royal-link.is-active {
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-weight: 600;
+}
+
+.category-accordion-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: 0;
+    background: transparent;
+    border-radius: 6px;
+    color: #64748b;
+    cursor: pointer;
+}
+
+.category-accordion-trigger:hover {
+    background: #f1f5f9;
+    color: #334155;
+}
+
+.category-accordion-icon {
+    width: 16px;
+    height: 16px;
+    transition: transform .25s ease;
+}
+
+.category-accordion-icon.is-open {
+    transform: rotate(90deg);
+}
+
+.category-accordion-panel {
+    overflow: hidden;
+    transition: max-height .3s ease, opacity .3s ease;
+}
+
+.category-royal-branch {
+    margin-left: 0.55rem;
+    padding-left: 0.35rem;
+    border-left: 1px solid #cbd5e1;
 }
 
 .pdp-breadcrumbs .is-current {
@@ -384,6 +574,10 @@ foreach (($attributes ?? []) as $attribute) {
 }
 
 @media (max-width: 1024px) {
+    .pdp-layout {
+        grid-template-columns: 1fr;
+    }
+
     .pdp-main-grid {
         grid-template-columns: 1fr;
     }
@@ -424,6 +618,37 @@ foreach (($attributes ?? []) as $attribute) {
                 button.classList.remove('is-active');
             });
             thumb.classList.add('is-active');
+        });
+    });
+
+    document.querySelectorAll('[data-accordion-trigger]').forEach((trigger) => {
+        trigger.addEventListener('click', () => {
+            const panel = trigger.parentElement?.parentElement?.querySelector(':scope > [data-accordion-panel]');
+            const icon = trigger.querySelector('.category-accordion-icon');
+            if (!panel) {
+                return;
+            }
+
+            const isExpanded = trigger.getAttribute('aria-expanded') === 'true';
+            const nextExpanded = !isExpanded;
+
+            trigger.setAttribute('aria-expanded', nextExpanded ? 'true' : 'false');
+            const treeItem = trigger.closest('.category-royal-item');
+            if (treeItem) {
+                treeItem.setAttribute('aria-expanded', nextExpanded ? 'true' : 'false');
+            }
+
+            if (icon) {
+                icon.classList.toggle('is-open', nextExpanded);
+            }
+
+            if (nextExpanded) {
+                panel.style.maxHeight = `${panel.scrollHeight + 12}px`;
+                panel.style.opacity = '1';
+            } else {
+                panel.style.maxHeight = '0';
+                panel.style.opacity = '.4';
+            }
         });
     });
 })();

@@ -149,7 +149,8 @@ class ProductController
             'category' => $category,
             'breadcrumbs' => $breadcrumbs,
             'seoSettings' => $seoSettings,
-            'similarProducts' => $similarProducts
+            'similarProducts' => $similarProducts,
+            'categoryTree' => Category::getTree()
         ]);
     }
 
