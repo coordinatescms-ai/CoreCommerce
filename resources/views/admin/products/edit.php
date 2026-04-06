@@ -155,6 +155,7 @@
 
 <script>
     (function () {
+        const form = document.querySelector('form[action^="/admin/products/update/"]');
         const categorySelect = document.getElementById('category_id');
         const rowsContainer = document.getElementById('attribute-rows');
         const addRowButton = document.getElementById('add-attribute-row');
@@ -169,6 +170,67 @@
         function clearWarning() {
             warningBox.textContent = '';
             warningBox.style.display = 'none';
+        }
+
+        function setRowInvalidState(row, isInvalid) {
+            const valueInput = row.querySelector('input[name="attribute_value[]"]');
+            if (!valueInput) {
+                return;
+            }
+
+            valueInput.style.borderColor = isInvalid ? '#dc2626' : '';
+            valueInput.style.boxShadow = isInvalid ? '0 0 0 1px #dc2626' : '';
+        }
+
+        function updateRowRequiredState(row) {
+            const select = row.querySelector('.attribute-id-select');
+            const valueInput = row.querySelector('input[name="attribute_value[]"]');
+            if (!select || !valueInput) {
+                return;
+            }
+
+            valueInput.required = Number(select.value || 0) > 0;
+        }
+
+        function bindValueInputValidation(row) {
+            const valueInput = row.querySelector('input[name="attribute_value[]"]');
+            if (!valueInput) {
+                return;
+            }
+
+            valueInput.addEventListener('input', function () {
+                const select = row.querySelector('.attribute-id-select');
+                const hasSelectedAttribute = Number(select ? (select.value || 0) : 0) > 0;
+                if (hasSelectedAttribute && valueInput.value.trim() !== '') {
+                    setRowInvalidState(row, false);
+                }
+            });
+        }
+
+        function validateAttributeRowsBeforeSubmit() {
+            const rows = rowsContainer.querySelectorAll('.attribute-row');
+            let hasError = false;
+
+            rows.forEach(function (row) {
+                const select = row.querySelector('.attribute-id-select');
+                const valueInput = row.querySelector('input[name="attribute_value[]"]');
+                const hasSelectedAttribute = Number(select ? (select.value || 0) : 0) > 0;
+                const value = valueInput ? valueInput.value.trim() : '';
+                const rowInvalid = hasSelectedAttribute && value === '';
+
+                setRowInvalidState(row, rowInvalid);
+                if (rowInvalid) {
+                    hasError = true;
+                }
+            });
+
+            if (hasError) {
+                showWarning('Для вибраної характеристики заповніть значення');
+                return false;
+            }
+
+            clearWarning();
+            return true;
         }
 
         function hasCategory() {
@@ -213,6 +275,8 @@
 
             if (attribute && attribute.type === 'range') {
                 container.innerHTML = '<input type=\"number\" step=\"0.01\" inputmode=\"decimal\" name=\"attribute_value[]\" class=\"form-control\" placeholder=\"Числове значення\" value=\"' + safeValue + '\">';
+                updateRowRequiredState(row);
+                bindValueInputValidation(row);
                 return;
             }
 
@@ -225,10 +289,14 @@
                 }).join('');
 
                 container.innerHTML = '<input type=\"text\" name=\"attribute_value[]\" class=\"form-control\" list=\"' + listId + '\" placeholder=\"Оберіть або введіть значення\" value=\"' + safeValue + '\"><datalist id=\"' + listId + '\">' + optionsHtml + '</datalist>';
+                updateRowRequiredState(row);
+                bindValueInputValidation(row);
                 return;
             }
 
             container.innerHTML = '<input type=\"text\" name=\"attribute_value[]\" class=\"form-control\" placeholder=\"Значення (напр. Чорний)\" value=\"' + safeValue + '\">';
+            updateRowRequiredState(row);
+            bindValueInputValidation(row);
         }
 
         function bindRemoveButton(button) {
@@ -274,6 +342,7 @@
             bindAttributeSelectProtection(attributeSelect);
             attributeSelect.addEventListener('change', function () {
                 renderValueInput(row, attributeSelect.value, '');
+                setRowInvalidState(row, false);
             });
 
             return row;
@@ -353,8 +422,14 @@
             bindAttributeSelectProtection(select);
             select.addEventListener('change', function () {
                 renderValueInput(row, select.value, '');
+                setRowInvalidState(row, false);
             });
             renderValueInput(row, select.value, valueText);
+        });
+        form.addEventListener('submit', function (event) {
+            if (!validateAttributeRowsBeforeSubmit()) {
+                event.preventDefault();
+            }
         });
         fetchAllowedAttributes();
     })();

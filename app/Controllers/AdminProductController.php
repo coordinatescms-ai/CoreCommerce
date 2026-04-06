@@ -73,6 +73,34 @@ class AdminProductController
     }
 
     /**
+     * Перевірити, чи заповнені значення для обраних характеристик.
+     *
+     * @return bool
+     */
+    private function hasEmptySelectedAttributeValues()
+    {
+        $attributeIds = $_POST['attribute_id'] ?? [];
+        $values = $_POST['attribute_value'] ?? [];
+
+        if (!is_array($attributeIds) || !is_array($values)) {
+            return false;
+        }
+
+        $maxCount = max(count($attributeIds), count($values));
+
+        for ($i = 0; $i < $maxCount; $i++) {
+            $attributeId = (int) ($attributeIds[$i] ?? 0);
+            $value = trim((string) ($values[$i] ?? ''));
+
+            if ($attributeId > 0 && $value === '') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Нормалізувати значення атрибута згідно з його типом.
      *
      * @param array $attribute
@@ -251,30 +279,36 @@ class AdminProductController
             die('CSRF validation failed');
         }
 
-        $image = $this->handleImageUpload();
-        $attributeRows = $this->collectAttributeRows();
-
         $data = [
             'name' => trim($_POST['name'] ?? ''),
             'slug' => !empty($_POST['slug']) ? trim($_POST['slug']) : SlugHelper::getUnique($_POST['name'], 'product'),
             'price' => (float)($_POST['price'] ?? 0),
             'category_id' => !empty($_POST['category_id']) ? (int)$_POST['category_id'] : null,
             'description' => $_POST['description'] ?? '',
-            'image' => $image,
+            'image' => null,
             'meta_title' => $_POST['meta_title'] ?? '',
             'meta_description' => $_POST['meta_description'] ?? ''
         ];
 
+        if ($this->hasEmptySelectedAttributeValues()) {
+            $_SESSION['error'] = 'Для вибраної характеристики заповніть значення';
+            header('Location: /admin/products/create');
+            exit;
+        }
+
+        $attributeRows = $this->collectAttributeRows();
+        if (!$this->validateAttributesForCategory($data['category_id'], $attributeRows)) {
+            $_SESSION['error'] = 'Неможливо зберегти характеристики: обрано атрибути, які не дозволені для категорії товару.';
+            header('Location: /admin/products/create');
+            exit;
+        }
+
+        $image = $this->handleImageUpload();
+        $data['image'] = $image;
+
         $productId = Product::create($data);
 
         if ($productId) {
-            if (!$this->validateAttributesForCategory($data['category_id'], $attributeRows)) {
-                Product::delete((int) $productId);
-                $_SESSION['error'] = 'Неможливо зберегти характеристики: обрано атрибути, які не дозволені для категорії товару.';
-                header('Location: /admin/products/create');
-                exit;
-            }
-
             $this->syncProductAttributes((int) $productId, $attributeRows);
             $_SESSION['success'] = 'Товар успішно додано!';
             header('Location: /admin/products');
@@ -331,19 +365,25 @@ class AdminProductController
             'meta_description' => $_POST['meta_description'] ?? ''
         ];
 
-        $newImage = $this->handleImageUpload();
+        if ($this->hasEmptySelectedAttributeValues()) {
+            $_SESSION['error'] = 'Для вибраної характеристики заповніть значення';
+            header('Location: /admin/products/edit/' . $id);
+            exit;
+        }
+
         $attributeRows = $this->collectAttributeRows();
+        if (!$this->validateAttributesForCategory($data['category_id'], $attributeRows)) {
+            $_SESSION['error'] = 'Неможливо зберегти характеристики: обрано атрибути, які не дозволені для категорії товару.';
+            header('Location: /admin/products/edit/' . $id);
+            exit;
+        }
+
+        $newImage = $this->handleImageUpload();
         if ($newImage) {
             $data['image'] = $newImage;
         }
 
         if (Product::update($id, $data)) {
-            if (!$this->validateAttributesForCategory($data['category_id'], $attributeRows)) {
-                $_SESSION['error'] = 'Неможливо зберегти характеристики: обрано атрибути, які не дозволені для категорії товару.';
-                header('Location: /admin/products/edit/' . $id);
-                exit;
-            }
-
             $this->syncProductAttributes((int) $id, $attributeRows);
             $_SESSION['success'] = 'Товар успішно оновлено!';
             header('Location: /admin/products');
