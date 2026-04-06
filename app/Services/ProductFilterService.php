@@ -231,7 +231,7 @@ class ProductFilterService
             return [];
         }
 
-        $attributes = Category::getAttributes($categoryId);
+        $attributes = Category::getAllowedAttributes($categoryId);
         $filterOptions = [];
 
         $categoryIds = self::getCategoryWithChildrenIds($categoryId);

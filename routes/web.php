@@ -20,6 +20,7 @@ $router = new Router();
 $router->get('/',[HomeController::class,'index']);
 $router->get('/products',[ProductController::class,'index']);
 $router->get('/product/{slug}',[ProductController::class,'show']);
+$router->get('/category/{slug}/filter',[ProductController::class,'filterCategory']);
 $router->get('/category/{slug}',[ProductController::class,'showCategory']);
 $router->get('/cart',[CartController::class,'index']);
 $router->post('/cart/add',[CartController::class,'add']);

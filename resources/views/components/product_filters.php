@@ -14,13 +14,14 @@ $priceRange = $priceRange ?? ['min' => 0, 'max' => 1000];
 $currentFilters = $currentFilters ?? [];
 $categorySlug = $categorySlug ?? '';
 $clearUrl = $categorySlug !== '' ? "/category/" . $categorySlug : '/products';
+$filterAjaxEnabled = !empty($filterAjaxEnabled);
 
 ?>
 
-<div class="product-filters">
+<div class="product-filters" data-product-filters>
     <h3 class="filters-title"><?php echo __('filters'); ?></h3>
     
-    <form id="filter-form" method="GET" class="filter-form">
+    <form id="filter-form" method="GET" class="filter-form" data-live-filter="<?php echo $filterAjaxEnabled ? '1' : '0'; ?>">
         
         <!-- Фільтр за ціною -->
         <div class="filter-group filter-price">
