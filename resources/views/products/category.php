@@ -31,7 +31,7 @@ if (!function_exists('renderCategorySidebarAccordion')) {
 
         $padding = 12 + ($depth * 16);
 
-        echo '<ul class="space-y-1" role="tree">';
+        echo '<ul class="category-royal-list" role="tree">';
 
         foreach ($items as $item) {
             $itemId = (int) ($item['id'] ?? 0);
@@ -40,18 +40,18 @@ if (!function_exists('renderCategorySidebarAccordion')) {
             $isActive = $itemId === $currentCategoryId;
             $isExpanded = $isActive || in_array($itemId, $expandedIds, true);
 
-            echo '<li class="relative" role="treeitem" aria-expanded="' . ($isExpanded ? 'true' : 'false') . '">';
-            echo '<div class="relative flex items-center gap-1 rounded-lg transition-colors">';
-            echo '<a href="/category/' . htmlspecialchars((string) ($item['slug'] ?? '')) . '" class="block min-w-0 flex-1 rounded-lg py-2 pr-2 text-sm transition-colors ';
-            echo $isActive ? 'bg-blue-50 font-semibold text-blue-700' : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900';
+            echo '<li class="category-royal-item" role="treeitem" aria-expanded="' . ($isExpanded ? 'true' : 'false') . '">';
+            echo '<div class="category-royal-row">';
+            echo '<a href="/category/' . htmlspecialchars((string) ($item['slug'] ?? '')) . '" class="category-royal-link';
+            echo $isActive ? ' is-active' : '';
             echo '" style="padding-left:' . $padding . 'px">';
             echo htmlspecialchars((string) ($item['name'] ?? ''));
             echo '</a>';
 
             if ($hasChildren) {
-                echo '<button type="button" class="category-accordion-trigger mr-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"';
+                echo '<button type="button" class="category-accordion-trigger"';
                 echo ' data-accordion-trigger aria-label="Toggle subcategories" aria-expanded="' . ($isExpanded ? 'true' : 'false') . '">';
-                echo '<svg class="h-4 w-4 transition-transform ' . ($isExpanded ? 'rotate-90' : '') . '" viewBox="0 0 24 24" fill="none" aria-hidden="true">';
+                echo '<svg class="category-accordion-icon ' . ($isExpanded ? 'is-open' : '') . '" viewBox="0 0 24 24" fill="none" aria-hidden="true">';
                 echo '<path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>';
                 echo '</svg>';
                 echo '</button>';
@@ -60,10 +60,10 @@ if (!function_exists('renderCategorySidebarAccordion')) {
             echo '</div>';
 
             if ($hasChildren) {
-                echo '<div class="category-accordion-panel overflow-hidden transition-all duration-300 ease-out" data-accordion-panel';
+                echo '<div class="category-accordion-panel" data-accordion-panel';
                 echo $isExpanded ? ' style="max-height: 1000px; opacity:1;"' : ' style="max-height:0; opacity:.4;"';
                 echo '>';
-                echo '<div class="ml-3 border-l border-slate-200 pl-2">';
+                echo '<div class="category-royal-branch">';
                 renderCategorySidebarAccordion($children, $currentCategoryId, $expandedIds, $depth + 1);
                 echo '</div>';
                 echo '</div>';
@@ -78,11 +78,11 @@ if (!function_exists('renderCategorySidebarAccordion')) {
 ?>
 
 <div class="category-page" data-category-page>
-    <nav class="mb-4 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm" aria-label="Breadcrumb">
-        <ol class="m-0 flex list-none flex-wrap items-center gap-2 p-0 text-slate-500">
+    <nav class="category-breadcrumbs" aria-label="Breadcrumb">
+        <ol>
             <li>
-                <a class="inline-flex items-center gap-2 rounded-md px-1.5 py-1 text-slate-600 transition hover:bg-slate-50 hover:text-slate-900" href="/">
-                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <a class="breadcrumb-link breadcrumb-link-home" href="/">
+                    <svg class="breadcrumb-home-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                         <path d="M3 10.5L12 3L21 10.5V20A1 1 0 0 1 20 21H4A1 1 0 0 1 3 20V10.5Z" stroke="currentColor" stroke-width="1.8"/>
                     </svg>
                     <span>Головна</span>
@@ -90,12 +90,12 @@ if (!function_exists('renderCategorySidebarAccordion')) {
             </li>
             <?php foreach ($breadcrumbs as $index => $crumb): ?>
                 <?php $isLast = $index === count($breadcrumbs) - 1; ?>
-                <li aria-hidden="true" class="text-slate-300">/</li>
+                <li class="breadcrumb-divider" aria-hidden="true">/</li>
                 <li>
                     <?php if ($isLast): ?>
-                        <span class="rounded-md bg-slate-100 px-2 py-1 font-medium text-slate-800"><?= htmlspecialchars($crumb['name'] ?? '') ?></span>
+                        <span class="breadcrumb-current"><?= htmlspecialchars($crumb['name'] ?? '') ?></span>
                     <?php else: ?>
-                        <a class="rounded-md px-1.5 py-1 text-slate-600 transition hover:bg-slate-50 hover:text-slate-900" href="<?= htmlspecialchars($crumb['url'] ?? '#') ?>">
+                        <a class="breadcrumb-link" href="<?= htmlspecialchars($crumb['url'] ?? '#') ?>">
                             <?= htmlspecialchars($crumb['name'] ?? '') ?>
                         </a>
                     <?php endif; ?>
@@ -104,23 +104,23 @@ if (!function_exists('renderCategorySidebarAccordion')) {
         </ol>
     </nav>
 
-    <section class="mb-4 rounded-xl border border-slate-200 bg-white p-4">
-        <div class="flex flex-wrap items-center justify-between gap-2">
-            <h1 class="!mb-0 text-2xl font-semibold text-slate-900"><?= htmlspecialchars($category['name'] ?? __('categories')) ?></h1>
-            <div class="text-sm text-slate-600">
+    <section class="category-heading">
+        <div class="category-heading-top">
+            <h1 class="category-title"><?= htmlspecialchars($category['name'] ?? __('categories')) ?></h1>
+            <div class="category-total">
                 <?= __('products') ?>: <strong id="category-total-products"><?= $totalProducts ?></strong>
             </div>
         </div>
         <?php if (!empty($category['description'])): ?>
-            <p class="category-description mb-0 mt-2"><?= nl2br(htmlspecialchars($category['description'])) ?></p>
+            <p class="category-description"><?= nl2br(htmlspecialchars($category['description'])) ?></p>
         <?php endif; ?>
     </section>
 
     <div class="category-layout">
         <aside class="category-sidebar">
-            <section class="mb-4 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-                <h2 class="mb-2 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-700">
-                    <svg class="h-4 w-4 text-slate-500" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <section class="category-royal-card">
+                <h2 class="category-royal-title">
+                    <svg class="category-royal-title-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                         <path d="M4 6H20M4 12H20M4 18H14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                     </svg>
                     Категорії
@@ -151,9 +151,192 @@ if (!function_exists('renderCategorySidebarAccordion')) {
     gap: 1.5rem;
 }
 
+.category-breadcrumbs {
+    margin-bottom: 1rem;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+}
+
+.category-breadcrumbs ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.breadcrumb-link {
+    color: #475569;
+    text-decoration: none;
+    border-radius: 6px;
+    padding: 0.2rem 0.45rem;
+}
+
+.breadcrumb-link:hover {
+    background: #f8fafc;
+    text-decoration: none;
+    color: #0f172a;
+}
+
+.breadcrumb-link-home {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.breadcrumb-home-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.breadcrumb-divider {
+    color: #cbd5e1;
+}
+
+.breadcrumb-current {
+    background: #f1f5f9;
+    color: #0f172a;
+    border-radius: 6px;
+    padding: 0.2rem 0.45rem;
+    font-weight: 600;
+}
+
+.category-heading {
+    margin-bottom: 1rem;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+.category-heading-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.category-title {
+    margin: 0;
+    font-size: 2rem;
+}
+
+.category-total {
+    color: #475569;
+}
+
 .category-description {
     color: #64748b;
     margin-bottom: 0;
+    margin-top: 0.4rem;
+}
+
+.category-royal-card {
+    margin-bottom: 1rem;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    border-radius: 10px;
+    padding: 0.75rem;
+}
+
+.category-royal-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: #334155;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.category-royal-title-icon {
+    width: 16px;
+    height: 16px;
+    color: #64748b;
+}
+
+.category-royal-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.category-royal-item {
+    margin-bottom: 0.2rem;
+}
+
+.category-royal-row {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.category-royal-link {
+    flex: 1;
+    min-width: 0;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-radius: 8px;
+    color: #334155;
+    text-decoration: none;
+    line-height: 1.3;
+}
+
+.category-royal-link:hover {
+    background: #f8fafc;
+    text-decoration: none;
+}
+
+.category-royal-link.is-active {
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-weight: 600;
+}
+
+.category-accordion-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: 0;
+    background: transparent;
+    border-radius: 6px;
+    color: #64748b;
+    cursor: pointer;
+}
+
+.category-accordion-trigger:hover {
+    background: #f1f5f9;
+    color: #334155;
+}
+
+.category-accordion-icon {
+    width: 16px;
+    height: 16px;
+    transition: transform .25s ease;
+}
+
+.category-accordion-icon.is-open {
+    transform: rotate(90deg);
+}
+
+.category-accordion-panel {
+    overflow: hidden;
+    transition: max-height .3s ease, opacity .3s ease;
+}
+
+.category-royal-branch {
+    margin-left: 0.55rem;
+    padding-left: 0.35rem;
+    border-left: 1px solid #cbd5e1;
 }
 
 .category-products-grid {
@@ -222,6 +405,10 @@ if (!function_exists('renderCategorySidebarAccordion')) {
     .category-layout {
         grid-template-columns: 1fr;
     }
+
+    .category-title {
+        font-size: 1.6rem;
+    }
 }
 </style>
 
@@ -236,6 +423,26 @@ if (!function_exists('renderCategorySidebarAccordion')) {
     const productsContainer = pageRoot.querySelector('[data-products-container]');
     const totalElement = pageRoot.querySelector('#category-total-products');
     const categorySlug = <?= json_encode($categorySlug) ?>;
+    const accordionTriggers = pageRoot.querySelectorAll('[data-accordion-trigger]');
+
+    accordionTriggers.forEach((trigger) => {
+        trigger.addEventListener('click', () => {
+            const panel = trigger.parentElement?.parentElement?.querySelector(':scope > [data-accordion-panel]');
+            const icon = trigger.querySelector('svg');
+            if (!panel) {
+                return;
+            }
+
+            const isExpanded = trigger.getAttribute('aria-expanded') === 'true';
+            trigger.setAttribute('aria-expanded', isExpanded ? 'false' : 'true');
+            panel.style.maxHeight = isExpanded ? '0px' : `${panel.scrollHeight}px`;
+            panel.style.opacity = isExpanded ? '0.4' : '1';
+
+            if (icon) {
+                icon.classList.toggle('is-open', !isExpanded);
+            }
+        });
+    });
 
     if (!filterForm || !productsContainer || !categorySlug) {
         return;
@@ -331,26 +538,6 @@ if (!function_exists('renderCategorySidebarAccordion')) {
         if (Number.isFinite(page) && page > 0) {
             fetchProducts(page);
         }
-    });
-
-    pageRoot.querySelectorAll('[data-accordion-trigger]').forEach((trigger) => {
-        trigger.addEventListener('click', () => {
-            const panel = trigger.parentElement?.parentElement?.querySelector(':scope > [data-accordion-panel]');
-            const icon = trigger.querySelector('svg');
-            if (!panel) {
-                return;
-            }
-
-            const isExpanded = trigger.getAttribute('aria-expanded') === 'true';
-            trigger.setAttribute('aria-expanded', isExpanded ? 'false' : 'true');
-            panel.style.maxHeight = isExpanded ? '0px' : `${panel.scrollHeight}px`;
-            panel.style.opacity = isExpanded ? '0.4' : '1';
-
-            if (icon) {
-                icon.classList.toggle('rotate-90', !isExpanded);
-                icon.classList.toggle('rotate-0', isExpanded);
-            }
-        });
     });
 })();
 </script>
