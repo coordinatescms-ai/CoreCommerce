@@ -167,26 +167,6 @@ foreach (($breadcrumbs ?? []) as $crumb) {
                         <?php endif; ?>
                     </div>
 
-                    <div class="pdp-options" aria-label="Product details">
-                        <h3>Детальні характеристики</h3>
-                        <?php if (!empty($groupedDetailAttributes)): ?>
-                            <?php foreach ($groupedDetailAttributes as $attributeName => $values): ?>
-                                <div class="pdp-option-group">
-                                    <div class="pdp-option-label"><?= htmlspecialchars($attributeName) ?></div>
-                                    <div class="pdp-option-values">
-                                        <?php foreach (array_unique(array_filter($values)) as $value): ?>
-                                            <span class="pdp-chip"><?= htmlspecialchars((string) $value) ?></span>
-                                        <?php endforeach; ?>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <div class="pdp-option-group">
-                                <div class="pdp-option-label">Детальні характеристики відсутні.</div>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-
                     <div class="pdp-actions">
                         <a class="pdp-btn pdp-btn-primary" href="/cart/add/<?= (int) $product['id'] ?>"><?= __('add_to_cart') ?></a>
                         <button type="button" class="pdp-btn pdp-btn-ghost"><?= __('wishlist') ?></button>
@@ -197,10 +177,23 @@ foreach (($breadcrumbs ?? []) as $crumb) {
             <section class="pdp-tabs" aria-label="Product details tabs">
                 <details open>
                     <summary><?= __('product_details') ?></summary>
+                    <?php if (!empty($groupedDetailAttributes)): ?>
+                        <?php foreach ($groupedDetailAttributes as $attributeName => $values): ?>
+                            <div class="pdp-option-group">
+                                <div class="pdp-option-label"><?= htmlspecialchars($attributeName) ?></div>
+                                <div class="pdp-option-values">
+                                    <?php foreach (array_unique(array_filter($values)) as $value): ?>
+                                        <span class="pdp-chip"><?= htmlspecialchars((string) $value) ?></span>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+
                     <?php if (!empty($productDescription)): ?>
                         <p><?= nl2br(htmlspecialchars($productDescription)) ?></p>
-                    <?php else: ?>
-                        <p><?= __('no_products_found') ?></p>
+                    <?php elseif (empty($groupedDetailAttributes)): ?>
+                        <p>Детальні характеристики відсутні.</p>
                     <?php endif; ?>
                 </details>
 
