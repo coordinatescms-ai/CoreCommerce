@@ -342,7 +342,16 @@ $attributeRows = $attributeRows ?? [];
 
         categorySelect.addEventListener('change', fetchAllowedAttributes);
         rowsContainer.querySelectorAll('.attribute-remove-btn').forEach(bindRemoveButton);
-        rowsContainer.querySelectorAll('.attribute-id-select').forEach(bindAttributeSelectProtection);
+        rowsContainer.querySelectorAll('.attribute-row').forEach(function (row) {
+            const select = row.querySelector('.attribute-id-select');
+            const valueInput = row.querySelector('input[name="attribute_value[]"]');
+            const valueText = valueInput ? valueInput.value : '';
+            bindAttributeSelectProtection(select);
+            select.addEventListener('change', function () {
+                renderValueInput(row, select.value, '');
+            });
+            renderValueInput(row, select.value, valueText);
+        });
 
         form.addEventListener('submit', function (event) {
             const rows = rowsContainer.querySelectorAll('.attribute-row');

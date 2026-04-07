@@ -192,26 +192,84 @@ class AdminProductController
             }
 
             $optionId = null;
-            if (($attribute['type'] ?? '') === Attribute::TYPE_SELECT) {
-                $option = Attribute::findOptionByValue((int) $attributeId, $normalizedValue);
-                if (!$option) {
-                    $optionId = Attribute::createOption((int) $attributeId, [
-                        'name' => $normalizedValue,
-                        'value' => $normalizedValue,
-                        'sort_order' => 0,
-                    ]);
-                } else {
-                    $optionId = (int) $option['id'];
-                }
-
-                if (!$optionId) {
-                    $optionId = null;
-                }
+            $attributeType = (string) ($attribute['type'] ?? '');
+            if (in_array($attributeType, [Attribute::TYPE_SELECT, 'multiselect', 'color'], true)) {
+                $optionId = $this->resolveAttributeOptionId((int) $attributeId, $normalizedValue);
             }
 
             ProductAttribute::setValue((int) $productId, (int) $attributeId, $normalizedValue, $optionId);
             ProductAttributeValue::addValue((int) $productId, (int) $attributeId, $normalizedValue);
         }
+    }
+
+
+    /**
+     * Транслітерувати значення опції до латиниці для збереження у attribute_options.value.
+     *
+     * @param string $value
+     * @return string
+     */
+    private function transliterateOptionValue($value)
+    {
+        $value = trim((string) $value);
+        if ($value == '') {
+            return '';
+        }
+
+        $map = [
+            'а' => 'a', 'б' => 'b', 'в' => 'v', 'г' => 'h', 'ґ' => 'g', 'д' => 'd', 'е' => 'e', 'є' => 'ye', 'ж' => 'zh', 'з' => 'z',
+            'и' => 'y', 'і' => 'i', 'ї' => 'yi', 'й' => 'y', 'к' => 'k', 'л' => 'l', 'м' => 'm', 'н' => 'n', 'о' => 'o', 'п' => 'p',
+            'р' => 'r', 'с' => 's', 'т' => 't', 'у' => 'u', 'ф' => 'f', 'х' => 'kh', 'ц' => 'ts', 'ч' => 'ch', 'ш' => 'sh', 'щ' => 'shch',
+            'ь' => '', 'ю' => 'yu', 'я' => 'ya', 'ы' => 'y', 'э' => 'e', 'ъ' => '',
+        ];
+
+        $lowered = mb_strtolower($value, 'UTF-8');
+        $transliterated = strtr($lowered, $map);
+        $transliterated = preg_replace('/[^a-z0-9\s\-_.]/', '-', $transliterated);
+        $transliterated = preg_replace('/\s+/', '-', $transliterated);
+        $transliterated = preg_replace('/-+/', '-', $transliterated);
+
+        return trim($transliterated, '-');
+    }
+
+    /**
+     * Повернути ID опції атрибута (створює нову опцію, якщо введено нове значення).
+     *
+     * @param int $attributeId
+     * @param string $displayValue
+     * @return int|null
+     */
+    private function resolveAttributeOptionId($attributeId, $displayValue)
+    {
+        $displayValue = trim((string) $displayValue);
+        if ($displayValue === '') {
+            return null;
+        }
+
+        $existing = Attribute::findOptionByValue((int) $attributeId, $displayValue);
+        if ($existing) {
+            return (int) ($existing['id'] ?? 0) ?: null;
+        }
+
+        $optionValue = $this->transliterateOptionValue($displayValue);
+        if ($optionValue !== '') {
+            $existingByTranslit = Attribute::findOptionByValue((int) $attributeId, $optionValue);
+            if ($existingByTranslit) {
+                return (int) ($existingByTranslit['id'] ?? 0) ?: null;
+            }
+        }
+
+        if ($optionValue === '') {
+            $optionValue = 'option-' . time();
+        }
+
+        $optionId = Attribute::createOption((int) $attributeId, [
+            'name' => $displayValue,
+            'value' => $optionValue,
+            'sort_order' => 0,
+        ]);
+
+        return $optionId ? (int) $optionId : null;
     }
 
     private function checkAdmin()
