@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: MySQL-8.0:3306
--- Час створення: Квт 06 2026 р., 18:43
+-- Час створення: Квт 07 2026 р., 21:42
 -- Версія сервера: 8.0.44
 -- Версія PHP: 8.3.29
 
@@ -320,8 +320,16 @@ CREATE TABLE `product_attribute_values` (
   `id` int NOT NULL,
   `product_id` int NOT NULL,
   `attribute_id` int NOT NULL,
-  `value_text` text COLLATE utf8mb4_general_ci
+  `value_text` text COLLATE utf8mb4_general_ci,
+  `is_selectable` tinyint(1) DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Дамп даних таблиці `product_attribute_values`
+--
+
+INSERT INTO `product_attribute_values` (`id`, `product_id`, `attribute_id`, `value_text`, `is_selectable`) VALUES
+(1, 2, 4, 'Китай', 1);
 
 -- --------------------------------------------------------
 
@@ -450,7 +458,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `email`, `password`, `first_name`, `last_name`, `phone`, `avatar`, `role_id`, `is_active`, `email_verified`, `email_verified_at`, `last_login`, `password_reset_token`, `password_reset_expires`, `remember_token`, `created_at`, `updated_at`) VALUES
-(2, 'systemmaster@meta.ua', '$2y$12$knhVn0wIOYbnqx3TRccf1OrGmEGu3JWSZsbLQ/c9tvLrmZElAaU86', 'Василь', 'Присяжнюк', NULL, NULL, 1, 1, 0, NULL, '2026-04-06 16:36:00', NULL, NULL, '88c765047366ed96657e639c1ea40360ea8115e428c0ed372422f91263aa6e2b', '2026-03-31 09:57:24', '2026-04-06 16:36:00');
+(2, 'systemmaster@meta.ua', '$2y$12$knhVn0wIOYbnqx3TRccf1OrGmEGu3JWSZsbLQ/c9tvLrmZElAaU86', 'Василь', 'Присяжнюк', NULL, NULL, 1, 1, 0, NULL, '2026-04-07 19:27:21', NULL, NULL, '88c765047366ed96657e639c1ea40360ea8115e428c0ed372422f91263aa6e2b', '2026-03-31 09:57:24', '2026-04-07 19:27:21');
 
 -- --------------------------------------------------------
 
@@ -705,7 +713,7 @@ ALTER TABLE `product_attributes`
 -- AUTO_INCREMENT для таблиці `product_attribute_values`
 --
 ALTER TABLE `product_attribute_values`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT для таблиці `seo_settings`
