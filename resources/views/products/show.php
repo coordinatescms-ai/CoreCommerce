@@ -14,10 +14,16 @@ $similarProducts = $similarProducts ?? [];
 $categoryTree = $categoryTree ?? [];
 $currentCategoryId = (int) (($category['id'] ?? 0));
 
-$groupedAttributes = [];
-foreach (($attributes ?? []) as $attribute) {
+$groupedSelectableAttributes = [];
+foreach (($selectableAttributes ?? []) as $attribute) {
     $label = $attribute['attribute_name'] ?? __('attribute');
-    $groupedAttributes[$label][] = $attribute['value'] ?? '';
+    $groupedSelectableAttributes[$label][] = $attribute['value'] ?? '';
+}
+
+$groupedDetailAttributes = [];
+foreach (($detailAttributes ?? []) as $attribute) {
+    $label = $attribute['attribute_name'] ?? __('attribute');
+    $groupedDetailAttributes[$label][] = $attribute['value'] ?? '';
 }
 
 if (!function_exists('renderCategorySidebarAccordion')) {
@@ -142,9 +148,9 @@ foreach (($breadcrumbs ?? []) as $crumb) {
                     </p>
 
                     <div class="pdp-options" aria-label="Product options">
-                        <h3><?= __('choose_options') ?></h3>
-                        <?php if (!empty($groupedAttributes)): ?>
-                            <?php foreach ($groupedAttributes as $attributeName => $values): ?>
+                        <h3>Оберіть характеристики</h3>
+                        <?php if (!empty($groupedSelectableAttributes)): ?>
+                            <?php foreach ($groupedSelectableAttributes as $attributeName => $values): ?>
                                 <div class="pdp-option-group">
                                     <div class="pdp-option-label"><?= htmlspecialchars($attributeName) ?></div>
                                     <div class="pdp-option-values">
@@ -156,19 +162,27 @@ foreach (($breadcrumbs ?? []) as $crumb) {
                             <?php endforeach; ?>
                         <?php else: ?>
                             <div class="pdp-option-group">
-                                <div class="pdp-option-label">Розмір</div>
-                                <div class="pdp-option-values">
-                                    <button type="button" class="pdp-chip">S</button>
-                                    <button type="button" class="pdp-chip">M</button>
-                                    <button type="button" class="pdp-chip">L</button>
-                                </div>
+                                <div class="pdp-option-label">Для цього товару немає варіантів вибору.</div>
                             </div>
-                            <div class="pdp-option-group">
-                                <div class="pdp-option-label">Колір</div>
-                                <div class="pdp-option-values">
-                                    <button type="button" class="pdp-chip">Чорний</button>
-                                    <button type="button" class="pdp-chip">Синій</button>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="pdp-options" aria-label="Product details">
+                        <h3>Детальні характеристики</h3>
+                        <?php if (!empty($groupedDetailAttributes)): ?>
+                            <?php foreach ($groupedDetailAttributes as $attributeName => $values): ?>
+                                <div class="pdp-option-group">
+                                    <div class="pdp-option-label"><?= htmlspecialchars($attributeName) ?></div>
+                                    <div class="pdp-option-values">
+                                        <?php foreach (array_unique(array_filter($values)) as $value): ?>
+                                            <span class="pdp-chip"><?= htmlspecialchars((string) $value) ?></span>
+                                        <?php endforeach; ?>
+                                    </div>
                                 </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="pdp-option-group">
+                                <div class="pdp-option-label">Детальні характеристики відсутні.</div>
                             </div>
                         <?php endif; ?>
                     </div>
