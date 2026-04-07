@@ -6,7 +6,7 @@ use App\Core\View\View;
 use App\Core\Database\DB;
 use App\Models\Product;
 use App\Models\Category;
-use App\Models\ProductAttribute;
+use App\Models\ProductAttributeValue;
 use App\Services\SlugHelper;
 use App\Services\ProductFilterService;
 
@@ -127,7 +127,18 @@ class ProductController
         }
 
         // Отримати атрибути товару
-        $attributes = ProductAttribute::getByProduct($product['id']);
+        $attributes = ProductAttributeValue::getByProduct($product['id']);
+        $selectableAttributes = [];
+        $detailAttributes = [];
+
+        foreach ($attributes as $attribute) {
+            if (!empty($attribute['is_selectable'])) {
+                $selectableAttributes[] = $attribute;
+                continue;
+            }
+
+            $detailAttributes[] = $attribute;
+        }
 
         // Отримати SEO-налаштування
         $seoSettings = Product::getSeoSettings($product['id']);
@@ -146,6 +157,8 @@ class ProductController
         return View::render('products/show', [
             'product' => $product,
             'attributes' => $attributes,
+            'selectableAttributes' => $selectableAttributes,
+            'detailAttributes' => $detailAttributes,
             'category' => $category,
             'breadcrumbs' => $breadcrumbs,
             'seoSettings' => $seoSettings,

@@ -17,7 +17,8 @@ class ProductAttributeValue extends Model
     public static function getByProduct($productId)
     {
         $result = self::query(
-            "SELECT pav.*, a.name AS attribute_name, a.slug AS attribute_slug, a.type AS attribute_type, pav.value_text AS value
+            "SELECT pav.*, a.name AS attribute_name, a.slug AS attribute_slug, a.type AS attribute_type, pav.value_text AS value,
+                    COALESCE(pav.is_selectable, 0) AS is_selectable
              FROM " . static::$table . " pav
              INNER JOIN attributes a ON pav.attribute_id = a.id
              WHERE pav.product_id = ?
@@ -48,13 +49,14 @@ class ProductAttributeValue extends Model
      * @param int $productId
      * @param int $attributeId
      * @param string $valueText
+     * @param bool $isSelectable
      * @return bool
      */
-    public static function addValue($productId, $attributeId, $valueText)
+    public static function addValue($productId, $attributeId, $valueText, $isSelectable = false)
     {
         return self::execute(
-            "INSERT INTO " . static::$table . " (product_id, attribute_id, value_text) VALUES (?, ?, ?)",
-            [(int) $productId, (int) $attributeId, (string) $valueText]
+            "INSERT INTO " . static::$table . " (product_id, attribute_id, value_text, is_selectable) VALUES (?, ?, ?, ?)",
+            [(int) $productId, (int) $attributeId, (string) $valueText, $isSelectable ? 1 : 0]
         );
     }
 }
