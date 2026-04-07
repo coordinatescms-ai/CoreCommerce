@@ -56,7 +56,7 @@
             <div id="attribute-rows" style="display: flex; flex-direction: column; gap: 0.75rem;">
                 <?php $rows = $existingAttributes ?? []; ?>
                 <?php if (empty($rows)): ?>
-                    <div class="attribute-row" style="display:grid; grid-template-columns: 1fr 1fr auto; gap: 0.75rem;">
+                    <div class="attribute-row" style="display:grid; grid-template-columns: 1fr 1fr 180px auto; gap: 0.75rem;">
                         <select name="attribute_id[]" class="form-control attribute-id-select">
                             <?php if (empty($allowedAttributes)): ?>
                                 <option value="">Спочатку оберіть категорію</option>
@@ -70,11 +70,18 @@
                         <div class="attribute-value-wrap">
                             <input type="text" name="attribute_value[]" class="form-control" placeholder="Значення (напр. Чорний)">
                         </div>
+                        <div class="attribute-selectable-wrap" style="display:flex; align-items:center; gap:0.5rem; justify-content:flex-start;">
+                            <input type="hidden" name="attribute_is_selectable[]" class="attribute-is-selectable-hidden" value="0">
+                            <label style="display:flex; align-items:center; gap:0.5rem; margin:0; cursor:pointer;">
+                                <input type="checkbox" class="attribute-is-selectable-checkbox" value="1">
+                                <span>Опція вибору</span>
+                            </label>
+                        </div>
                         <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;">Видалити</button>
                     </div>
                 <?php else: ?>
                     <?php foreach ($rows as $row): ?>
-                        <div class="attribute-row" style="display:grid; grid-template-columns: 1fr 1fr auto; gap: 0.75rem;">
+                        <div class="attribute-row" style="display:grid; grid-template-columns: 1fr 1fr 180px auto; gap: 0.75rem;">
                             <?php $rowAttributeId = (int)($row['attribute_id'] ?? 0); ?>
                             <?php $isAllowed = false; ?>
                             <select name="attribute_id[]" class="form-control attribute-id-select">
@@ -94,6 +101,14 @@
                             </select>
                             <div class="attribute-value-wrap">
                                 <input type="text" name="attribute_value[]" class="form-control" value="<?php echo htmlspecialchars($row['value'] ?? ''); ?>" placeholder="Значення (напр. Чорний)">
+                            </div>
+                            <div class="attribute-selectable-wrap" style="display:flex; align-items:center; gap:0.5rem; justify-content:flex-start;">
+                                <?php $isSelectable = !empty($row['is_selectable']); ?>
+                                <input type="hidden" name="attribute_is_selectable[]" class="attribute-is-selectable-hidden" value="<?php echo $isSelectable ? '1' : '0'; ?>">
+                                <label style="display:flex; align-items:center; gap:0.5rem; margin:0; cursor:pointer;">
+                                    <input type="checkbox" class="attribute-is-selectable-checkbox" value="1" <?php echo $isSelectable ? 'checked' : ''; ?>>
+                                    <span>Опція вибору</span>
+                                </label>
                             </div>
                             <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;">Видалити</button>
                         </div>
@@ -237,8 +252,17 @@
                 const rows = rowsContainer.querySelectorAll('.attribute-row');
                 if (rows.length === 1) {
                     rows[0].querySelectorAll('input').forEach(input => {
+                        if (input.type === 'checkbox') {
+                            input.checked = false;
+                            return;
+                        }
                         input.value = '';
                     });
+                    const firstSelect = rows[0].querySelector('.attribute-id-select');
+                    if (firstSelect) {
+                        firstSelect.value = '';
+                    }
+                    syncSelectableHidden(rows[0]);
                     return;
                 }
 
@@ -255,16 +279,33 @@
             });
         }
 
-        function createRow(attributeId = '', value = '') {
+        function syncSelectableHidden(row) {
+            const checkbox = row.querySelector('.attribute-is-selectable-checkbox');
+            const hidden = row.querySelector('.attribute-is-selectable-hidden');
+            if (!checkbox || !hidden) {
+                return;
+            }
+
+            hidden.value = checkbox.checked ? '1' : '0';
+        }
+
+        function createRow(attributeId = '', value = '', isSelectable = false) {
             const row = document.createElement('div');
             row.className = 'attribute-row';
             row.style.display = 'grid';
-            row.style.gridTemplateColumns = '1fr 1fr auto';
+            row.style.gridTemplateColumns = '1fr 1fr 180px auto';
             row.style.gap = '0.75rem';
 
             row.innerHTML = `
                 <select name="attribute_id[]" class="form-control attribute-id-select">${buildAttributeOptions(attributeId)}</select>
                 <div class="attribute-value-wrap"></div>
+                <div class="attribute-selectable-wrap" style="display:flex; align-items:center; gap:0.5rem; justify-content:flex-start;">
+                    <input type="hidden" name="attribute_is_selectable[]" class="attribute-is-selectable-hidden" value="${isSelectable ? '1' : '0'}">
+                    <label style="display:flex; align-items:center; gap:0.5rem; margin:0; cursor:pointer;">
+                        <input type="checkbox" class="attribute-is-selectable-checkbox" value="1" ${isSelectable ? 'checked' : ''}>
+                        <span>Опція вибору</span>
+                    </label>
+                </div>
                 <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;">Видалити</button>
             `;
 
@@ -276,6 +317,11 @@
             attributeSelect.addEventListener('change', function () {
                 renderValueInput(row, attributeSelect.value, '');
             });
+            const selectableCheckbox = row.querySelector('.attribute-is-selectable-checkbox');
+            selectableCheckbox.addEventListener('change', function () {
+                syncSelectableHidden(row);
+            });
+            syncSelectableHidden(row);
 
             return row;
         }
@@ -304,9 +350,11 @@
                 select.innerHTML = buildAttributeOptions(currentValue);
                 if (currentValue && !select.value) {
                     renderValueInput(row, '', '');
+                    syncSelectableHidden(row);
                     return;
                 }
                 renderValueInput(row, select.value, currentValueText);
+                syncSelectableHidden(row);
             });
         }
 
@@ -351,11 +399,18 @@
             const select = row.querySelector('.attribute-id-select');
             const valueInput = row.querySelector('input[name="attribute_value[]"]');
             const valueText = valueInput ? valueInput.value : '';
+            const selectableCheckbox = row.querySelector('.attribute-is-selectable-checkbox');
             bindAttributeSelectProtection(select);
             select.addEventListener('change', function () {
                 renderValueInput(row, select.value, '');
             });
+            if (selectableCheckbox) {
+                selectableCheckbox.addEventListener('change', function () {
+                    syncSelectableHidden(row);
+                });
+            }
             renderValueInput(row, select.value, valueText);
+            syncSelectableHidden(row);
         });
 
         form.addEventListener('submit', function (event) {
