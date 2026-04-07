@@ -50,8 +50,9 @@ class AdminProductController
     {
         $attributeIds = $_POST['attribute_id'] ?? [];
         $values = $_POST['attribute_value'] ?? [];
+        $selectableFlags = $_POST['attribute_is_selectable'] ?? [];
 
-        if (!is_array($attributeIds) || !is_array($values)) {
+        if (!is_array($attributeIds) || !is_array($values) || !is_array($selectableFlags)) {
             return [];
         }
 
@@ -68,7 +69,8 @@ class AdminProductController
 
             $rows[] = [
                 'attribute_id' => $attributeId,
-                'value' => $value
+                'value' => $value,
+                'is_selectable' => (int) ($selectableFlags[$i] ?? 0) === 1
             ];
         }
 
@@ -197,8 +199,10 @@ class AdminProductController
                 $optionId = $this->resolveAttributeOptionId((int) $attributeId, $normalizedValue);
             }
 
+            $isSelectable = !empty($row['is_selectable']);
+
             ProductAttribute::setValue((int) $productId, (int) $attributeId, $normalizedValue, $optionId);
-            ProductAttributeValue::addValue((int) $productId, (int) $attributeId, $normalizedValue);
+            ProductAttributeValue::addValue((int) $productId, (int) $attributeId, $normalizedValue, $isSelectable);
         }
     }
 
