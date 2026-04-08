@@ -168,8 +168,15 @@ foreach (($breadcrumbs ?? []) as $crumb) {
                     </div>
 
                     <div class="pdp-actions">
-                        <a class="pdp-btn pdp-btn-primary" href="/cart/add/<?= (int) $product['id'] ?>"><?= __('add_to_cart') ?></a>
+                        <form action="/cart/add/<?= (int) $product['id'] ?>" method="POST" class="d-flex align-items-center">
+                            <input type="hidden" name="csrf" value="<?= $_SESSION['csrf'] ?? '' ?>">
+                            <input type="number" name="quantity" value="1" min="1" max="<?= (int)($product['stock'] ?? 0) ?>" class="form-control me-2" style="width: 80px;">
+                            <button type="submit" class="pdp-btn pdp-btn-primary"><?= __('add_to_cart') ?></button>
+                        </form>
                         <button type="button" class="pdp-btn pdp-btn-ghost"><?= __('wishlist') ?></button>
+                    </div>
+                    <div class="mt-2 small text-muted">
+                        <?= __('in_stock') ?>: <?= (int)($product['stock'] ?? 0) ?>
                     </div>
                 </div>
             </div>
