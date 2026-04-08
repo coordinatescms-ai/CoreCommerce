@@ -25,7 +25,12 @@
                         <?php endif; ?>
                         <h3 style="margin-top: 0.25rem;"><a href="/product/<?= htmlspecialchars($p['slug']) ?>" style="text-decoration: none; color: #333;"><?= htmlspecialchars($p['name']) ?></a></h3>
                         <p><strong><?= htmlspecialchars($p['price']) ?> грн</strong></p>
-                        <a href="/cart/add/<?= (int)$p['id'] ?>" style="background: #007bff; color: white; padding: 0.5rem 1rem; text-decoration: none; border-radius: 4px; display: inline-block;"><?= __('add_to_cart') ?></a>
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <a href="/cart/add/<?= (int)$p['id'] ?>" style="background: #007bff; color: white; padding: 0.5rem 1rem; text-decoration: none; border-radius: 4px; display: inline-block; text-align: center;"><?= __('add_to_cart') ?></a>
+                            <?php if (isset($p['stock'])): ?>
+                                <small style="color: #64748b; font-size: 0.8rem;"><?= __('in_stock') ?>: <?= (int)$p['stock'] ?></small>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 <?php endforeach; ?>
             </div>
