@@ -22,9 +22,15 @@ $router->get('/products',[ProductController::class,'index']);
 $router->get('/product/{slug}',[ProductController::class,'show']);
 $router->get('/category/{slug}/filter',[ProductController::class,'filterCategory']);
 $router->get('/category/{slug}',[ProductController::class,'showCategory']);
+
+// Кошик
 $router->get('/cart',[CartController::class,'index']);
-$router->post('/cart/add',[CartController::class,'add']);
+$router->post('/cart/add/{id}',[CartController::class,'add']);
 $router->get('/cart/add/{id}',[CartController::class,'addByGet']);
+$router->post('/cart/update',[CartController::class,'update']);
+$router->post('/cart/remove/{id}',[CartController::class,'remove']);
+$router->post('/cart/clear',[CartController::class,'clear']);
+
 $router->get('/checkout',[OrderController::class,'checkout']);
 $router->post('/place-order',[OrderController::class,'placeOrder']);
 
@@ -89,3 +95,5 @@ $router->get('/admin/attributes/delete/{id}', [AdminAttributeController::class, 
 
 // Управління темами в адмінці
 $router->get('/admin/themes', [AdminThemeController::class, 'index']);
+
+return $router;
