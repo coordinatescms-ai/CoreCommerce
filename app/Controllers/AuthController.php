@@ -59,6 +59,8 @@ class AuthController
             exit;
         }
 
+        $oldSessionId = session_id();
+        
         // Встановити сесію
         $_SESSION['user'] = [
             'id' => $user['id'],
@@ -67,6 +69,9 @@ class AuthController
             'last_name' => $user['last_name'],
             'role' => $user['role'],
         ];
+
+        // Перенести кошик з сесії до користувача
+        \App\Models\Cart::migrate($oldSessionId, $user['id']);
 
         // Якщо користувач вибрав "Запам'ятати мене"
         if (!empty($_POST['remember_me'])) {
