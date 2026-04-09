@@ -57,9 +57,12 @@
                         <a href="/product/<?= htmlspecialchars($product['slug']) ?>" style="text-decoration: none; color: #111827;"><?= htmlspecialchars($product['name']) ?></a>
                     </h3>
                     <p style="margin: 0 0 0.75rem;"><strong><?= htmlspecialchars($product['price']) ?> грн</strong></p>
-                    <a href="/cart/add/<?= (int)$product['id'] ?>" style="display: inline-block; padding: 0.5rem 0.85rem; background: #111827; color: #fff; text-decoration: none; border-radius: 0.45rem;">
-                        <?= __('add_to_cart') ?>
-                    </a>
+                    <form action="/cart/add/<?= (int)$product['id'] ?>" method="POST" style="display: inline-block; margin: 0;">
+                        <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
+                        <button type="submit" style="display: inline-block; padding: 0.5rem 0.85rem; background: #111827; color: #fff; text-decoration: none; border-radius: 0.45rem; border: 0; cursor: pointer;">
+                            <?= __('add_to_cart') ?>
+                        </button>
+                    </form>
                 </article>
             <?php endforeach; ?>
         </div>

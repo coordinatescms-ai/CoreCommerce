@@ -8,6 +8,16 @@ use App\Services\SlugHelper;
 
 class AdminCategoryController
 {
+    private function validateCsrfOrAbort()
+    {
+        $sessionToken = $_SESSION['csrf'] ?? '';
+        $requestToken = $_POST['csrf'] ?? '';
+
+        if (!is_string($sessionToken) || !is_string($requestToken) || $sessionToken === '' || !hash_equals($sessionToken, $requestToken)) {
+            die('CSRF validation failed');
+        }
+    }
+
     private function checkAdmin()
     {
         if (empty($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
@@ -33,10 +43,7 @@ class AdminCategoryController
     public function store()
     {
         $this->checkAdmin();
-        
-        if (empty($_POST['csrf']) || $_POST['csrf'] !== $_SESSION['csrf']) {
-            die('CSRF validation failed');
-        }
+        $this->validateCsrfOrAbort();
 
         $data = [
             'name' => $_POST['name'],
@@ -75,10 +82,7 @@ class AdminCategoryController
     public function update($id)
     {
         $this->checkAdmin();
-        
-        if (empty($_POST['csrf']) || $_POST['csrf'] !== $_SESSION['csrf']) {
-            die('CSRF validation failed');
-        }
+        $this->validateCsrfOrAbort();
 
         $data = [
             'name' => $_POST['name'],
@@ -102,6 +106,8 @@ class AdminCategoryController
     public function delete($id)
     {
         $this->checkAdmin();
+        $this->validateCsrfOrAbort();
+
         if (Category::delete($id)) {
             $_SESSION['success'] = "Категорію видалено!";
         } else {

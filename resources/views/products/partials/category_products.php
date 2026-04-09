@@ -30,7 +30,10 @@ $category = $category ?? null;
                         <?= number_format((float) ($product['price'] ?? 0), 2, '.', ' ') ?> грн
                     </div>
 
-                    <a class="btn btn-primary" href="/cart/add/<?= (int) $product['id'] ?>"><?= __('add_to_cart') ?></a>
+                    <form action="/cart/add/<?= (int) $product['id'] ?>" method="POST">
+                        <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
+                        <button type="submit" class="btn btn-primary"><?= __('add_to_cart') ?></button>
+                    </form>
                 </div>
             </article>
         <?php endforeach; ?>
