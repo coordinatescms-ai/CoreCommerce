@@ -4,20 +4,30 @@ namespace App\Controllers;
 
 use App\Core\Database\DB;
 use App\Core\View\View;
+use App\Models\Cart;
 
 class OrderController
 {
     public function checkout()
     {
-        $cart = $_SESSION['cart'] ?? [];
+        $cartItems = Cart::getItems();
 
-        if (empty($cart)) {
+        if (empty($cartItems)) {
             $_SESSION['error'] = 'Кошик порожній. Додайте товари перед оформленням.';
             header('Location: /cart');
             exit;
         }
 
-        $items = $this->loadCartItems($cart);
+        $items = [];
+        foreach ($cartItems as $row) {
+            $items[] = [
+                'id' => (int) $row['product_id'],
+                'name' => $row['name'],
+                'price' => (float) $row['price'],
+                'stock' => (int) $row['stock'],
+                'quantity' => (int) $row['quantity'],
+            ];
+        }
 
         if (empty($items)) {
             $_SESSION['error'] = 'Не вдалося знайти товари з кошика.';
@@ -56,10 +66,27 @@ class OrderController
             return;
         }
 
-        $cart = $_SESSION['cart'] ?? [];
-        if (empty($cart)) {
+        $cartItems = Cart::getItems();
+        if (empty($cartItems)) {
             http_response_code(422);
             echo json_encode(['success' => false, 'message' => 'Кошик порожній']);
+            return;
+        }
+
+        $items = [];
+        foreach ($cartItems as $row) {
+            $items[] = [
+                'id' => (int) $row['product_id'],
+                'name' => $row['name'],
+                'price' => (float) $row['price'],
+                'stock' => (int) $row['stock'],
+                'quantity' => (int) $row['quantity'],
+            ];
+        }
+
+        if (empty($items)) {
+            http_response_code(422);
+            echo json_encode(['success' => false, 'message' => 'Товари кошика недоступні']);
             return;
         }
 
@@ -69,13 +96,6 @@ class OrderController
         if (!empty($errors)) {
             http_response_code(422);
             echo json_encode(['success' => false, 'message' => 'Помилка валідації', 'errors' => $errors]);
-            return;
-        }
-
-        $items = $this->loadCartItems($cart);
-        if (empty($items)) {
-            http_response_code(422);
-            echo json_encode(['success' => false, 'message' => 'Товари кошика недоступні']);
             return;
         }
 
@@ -145,7 +165,9 @@ class OrderController
             }
 
             DB::$pdo->commit();
-            $_SESSION['cart'] = [];
+
+            // Очищаємо кошик у БД (поточний scope: user_id або session_id)
+            Cart::clear();
 
             echo json_encode([
                 'success' => true,
@@ -224,35 +246,6 @@ class OrderController
         }
 
         return $errors;
-    }
-
-    private function loadCartItems(array $cart): array
-    {
-        $ids = array_map('intval', array_keys($cart));
-        $ids = array_values(array_filter($ids, function ($id) {
-            return $id > 0;
-        }));
-
-        if (empty($ids)) {
-            return [];
-        }
-
-        $placeholders = implode(',', array_fill(0, count($ids), '?'));
-        $products = DB::query("SELECT id, name, price, stock FROM products WHERE id IN ($placeholders)", $ids)->fetchAll();
-
-        $items = [];
-        foreach ($products as $product) {
-            $productId = (int) $product['id'];
-            $items[] = [
-                'id' => $productId,
-                'name' => $product['name'],
-                'price' => (float) $product['price'],
-                'stock' => (int) $product['stock'],
-                'quantity' => max(1, (int) ($cart[$productId] ?? 1)),
-            ];
-        }
-
-        return $items;
     }
 
     private function loadAndLockProducts(array $ids): array
