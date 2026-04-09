@@ -1,13 +1,6 @@
 # Залежності Composer (їх не можна пушити!)
 vendor/
+.osp/
 
 # Файли конфігурації (там зазвичай паролі до БД)
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Логи та кеш
-*.log
-.phpunit.result.cache
