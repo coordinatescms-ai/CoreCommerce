@@ -26,7 +26,6 @@ $router->get('/category/{slug}',[ProductController::class,'showCategory']);
 // Кошик
 $router->get('/cart',[CartController::class,'index']);
 $router->post('/cart/add/{id}',[CartController::class,'add']);
-$router->get('/cart/add/{id}',[CartController::class,'addByGet']);
 $router->post('/cart/update',[CartController::class,'update']);
 $router->post('/cart/remove/{id}',[CartController::class,'remove']);
 $router->post('/cart/clear',[CartController::class,'clear']);
@@ -75,7 +74,7 @@ $router->post('/admin/products/store', [AdminProductController::class, 'store'])
 $router->get('/admin/products/edit/{id}', [AdminProductController::class, 'edit']);
 $router->get('/admin/products/show/{id}', [AdminProductController::class, 'show']);
 $router->post('/admin/products/update/{id}', [AdminProductController::class, 'update']);
-$router->get('/admin/products/delete/{id}', [AdminProductController::class, 'delete']);
+$router->post('/admin/products/delete/{id}', [AdminProductController::class, 'delete']);
 
 // Управління категоріями в адмінці
 $router->get('/admin/categories', [AdminCategoryController::class, 'index']);
@@ -83,7 +82,7 @@ $router->get('/admin/categories/create', [AdminCategoryController::class, 'creat
 $router->post('/admin/categories/store', [AdminCategoryController::class, 'store']);
 $router->get('/admin/categories/edit/{id}', [AdminCategoryController::class, 'edit']);
 $router->post('/admin/categories/update/{id}', [AdminCategoryController::class, 'update']);
-$router->get('/admin/categories/delete/{id}', [AdminCategoryController::class, 'delete']);
+$router->post('/admin/categories/delete/{id}', [AdminCategoryController::class, 'delete']);
 
 // Управління атрибутами в адмінці
 $router->get('/admin/attributes', [AdminAttributeController::class, 'index']);
@@ -91,7 +90,7 @@ $router->get('/admin/attributes/create', [AdminAttributeController::class, 'crea
 $router->post('/admin/attributes/store', [AdminAttributeController::class, 'store']);
 $router->get('/admin/attributes/edit/{id}', [AdminAttributeController::class, 'edit']);
 $router->post('/admin/attributes/update/{id}', [AdminAttributeController::class, 'update']);
-$router->get('/admin/attributes/delete/{id}', [AdminAttributeController::class, 'delete']);
+$router->post('/admin/attributes/delete/{id}', [AdminAttributeController::class, 'delete']);
 
 // Управління темами в адмінці
 $router->get('/admin/themes', [AdminThemeController::class, 'index']);

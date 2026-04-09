@@ -8,6 +8,16 @@ use App\Models\Product;
 
 class CartController
 {
+    private function validateCsrfOrAbort()
+    {
+        $sessionToken = $_SESSION['csrf'] ?? '';
+        $requestToken = $_POST['csrf'] ?? '';
+
+        if (!is_string($sessionToken) || !is_string($requestToken) || $sessionToken === '' || !hash_equals($sessionToken, $requestToken)) {
+            die('CSRF token mismatch');
+        }
+    }
+
     /**
      * Сторінка перегляду кошика
      */
@@ -28,30 +38,10 @@ class CartController
      */
     public function add($id)
     {
-        // 🔐 CSRF CHECK
-        if (!isset($_POST['csrf']) || $_POST['csrf'] !== $_SESSION['csrf']) {
-            die('CSRF token mismatch');
-        }
+        $this->validateCsrfOrAbort();
 
         $quantity = isset($_POST['quantity']) ? (int)$_POST['quantity'] : 1;
         $result = Cart::add($id, $quantity);
-
-        if ($result['success']) {
-            $_SESSION['success'] = __('product_added_to_cart');
-        } else {
-            $_SESSION['error'] = __($result['message']);
-        }
-
-        header('Location: /cart');
-        exit;
-    }
-
-    /**
-     * Додати товар через GET (для зручності зі списку товарів)
-     */
-    public function addByGet($id)
-    {
-        $result = Cart::add($id, 1);
 
         if ($result['success']) {
             $_SESSION['success'] = __('product_added_to_cart');
@@ -68,10 +58,7 @@ class CartController
      */
     public function update()
     {
-        // 🔐 CSRF CHECK
-        if (!isset($_POST['csrf']) || $_POST['csrf'] !== $_SESSION['csrf']) {
-            die('CSRF token mismatch');
-        }
+        $this->validateCsrfOrAbort();
 
         $productId = (int)$_POST['product_id'];
         $quantity = (int)$_POST['quantity'];
@@ -93,10 +80,7 @@ class CartController
      */
     public function remove($id)
     {
-        // 🔐 CSRF CHECK
-        if (!isset($_POST['csrf']) || $_POST['csrf'] !== $_SESSION['csrf']) {
-            die('CSRF token mismatch');
-        }
+        $this->validateCsrfOrAbort();
 
         Cart::remove($id);
         $_SESSION['success'] = __('product_removed_from_cart');
@@ -110,10 +94,7 @@ class CartController
      */
     public function clear()
     {
-        // 🔐 CSRF CHECK
-        if (!isset($_POST['csrf']) || $_POST['csrf'] !== $_SESSION['csrf']) {
-            die('CSRF token mismatch');
-        }
+        $this->validateCsrfOrAbort();
 
         Cart::clear();
         $_SESSION['success'] = __('cart_cleared');

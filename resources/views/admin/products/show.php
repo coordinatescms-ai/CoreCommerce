@@ -78,12 +78,14 @@
 </div>
 
 <div style="margin-bottom: 2rem; display: flex; justify-content: flex-end;">
-    <a
-        href="/admin/products/delete/<?php echo $product['id']; ?>?csrf=<?php echo urlencode($_SESSION['csrf']); ?>"
-        class="btn btn-outline"
-        style="border: 1px solid #ddd; color: #ef4444;"
-        onclick="return confirm('Ви впевнені, що хочете видалити цей товар?')"
-    >
-        <i class="fas fa-trash"></i> Видалити товар
-    </a>
+    <form action="/admin/products/delete/<?php echo (int)$product['id']; ?>" method="POST" style="margin: 0;" onsubmit="return confirm('Ви впевнені, що хочете видалити цей товар?')">
+        <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf']); ?>">
+        <button
+            type="submit"
+            class="btn btn-outline"
+            style="border: 1px solid #ddd; color: #ef4444;"
+        >
+            <i class="fas fa-trash"></i> Видалити товар
+        </button>
+    </form>
 </div>

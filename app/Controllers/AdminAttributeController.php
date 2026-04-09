@@ -8,6 +8,16 @@ use App\Models\Category;
 
 class AdminAttributeController
 {
+    private function validateCsrfOrAbort()
+    {
+        $sessionToken = $_SESSION['csrf'] ?? '';
+        $requestToken = $_POST['csrf'] ?? '';
+
+        if (!is_string($sessionToken) || !is_string($requestToken) || $sessionToken === '' || !hash_equals($sessionToken, $requestToken)) {
+            die('CSRF validation failed');
+        }
+    }
+
     private function checkAdmin()
     {
         if (empty($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
@@ -106,10 +116,7 @@ class AdminAttributeController
     public function store()
     {
         $this->checkAdmin();
-
-        if (empty($_POST['csrf']) || $_POST['csrf'] !== $_SESSION['csrf']) {
-            die('CSRF validation failed');
-        }
+        $this->validateCsrfOrAbort();
 
         $name = trim((string) ($_POST['name'] ?? ''));
         if ($name === '') {
@@ -174,10 +181,7 @@ class AdminAttributeController
     public function update($id)
     {
         $this->checkAdmin();
-
-        if (empty($_POST['csrf']) || $_POST['csrf'] !== $_SESSION['csrf']) {
-            die('CSRF validation failed');
-        }
+        $this->validateCsrfOrAbort();
 
         $id = (int) $id;
         if (!Attribute::findById($id)) {
@@ -220,10 +224,7 @@ class AdminAttributeController
     public function delete($id)
     {
         $this->checkAdmin();
-
-        if (empty($_GET['csrf']) || $_GET['csrf'] !== $_SESSION['csrf']) {
-            die('CSRF validation failed');
-        }
+        $this->validateCsrfOrAbort();
 
         if (Attribute::delete((int) $id)) {
             $_SESSION['success'] = 'Атрибут видалено.';

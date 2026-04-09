@@ -14,6 +14,16 @@ class AdminProductController
 {
     private const PRODUCT_FORM_FLASH_KEY = 'product_form_old';
 
+    private function validateCsrfOrAbort()
+    {
+        $sessionToken = $_SESSION['csrf'] ?? '';
+        $requestToken = $_POST['csrf'] ?? '';
+
+        if (!is_string($sessionToken) || !is_string($requestToken) || $sessionToken === '' || !hash_equals($sessionToken, $requestToken)) {
+            die('CSRF validation failed');
+        }
+    }
+
     /**
      * Додати до дозволених атрибутів опції для select-типів.
      *
@@ -354,10 +364,7 @@ class AdminProductController
     public function store()
     {
         $this->checkAdmin();
-
-        if (empty($_POST['csrf']) || $_POST['csrf'] !== $_SESSION['csrf']) {
-            die('CSRF validation failed');
-        }
+        $this->validateCsrfOrAbort();
 
         $attributeRows = $this->collectAttributeRows();
         $data = [
@@ -456,10 +463,7 @@ class AdminProductController
     public function update($id)
     {
         $this->checkAdmin();
-
-        if (empty($_POST['csrf']) || $_POST['csrf'] !== $_SESSION['csrf']) {
-            die('CSRF validation failed');
-        }
+        $this->validateCsrfOrAbort();
 
         $data = [
             'name' => trim($_POST['name'] ?? ''),
@@ -518,10 +522,7 @@ class AdminProductController
     public function delete($id)
     {
         $this->checkAdmin();
-
-        if (empty($_GET['csrf']) || $_GET['csrf'] !== $_SESSION['csrf']) {
-            die('CSRF validation failed');
-        }
+        $this->validateCsrfOrAbort();
 
         if (Product::delete($id)) {
             $_SESSION['success'] = 'Товар видалено!';
