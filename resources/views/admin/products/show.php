@@ -28,6 +28,14 @@
                         <i class="fas fa-image fa-2x"></i>
                     </div>
                 <?php endif; ?>
+
+                <?php if (!empty($galleryImages)): ?>
+                    <div style="margin-top:0.75rem; display:grid; grid-template-columns: repeat(3, 1fr); gap:0.5rem;">
+                        <?php foreach ($galleryImages as $galleryImage): ?>
+                            <img src="<?php echo htmlspecialchars($galleryImage['image_path']); ?>" alt="" style="width:100%; height:64px; object-fit:cover; border-radius:6px; border:1px solid #e2e8f0;">
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
             </div>
 
             <div>

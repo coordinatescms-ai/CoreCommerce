@@ -7,6 +7,7 @@ use App\Core\Database\DB;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\ProductAttributeValue;
+use App\Models\ProductImage;
 use App\Services\SlugHelper;
 use App\Services\ProductFilterService;
 
@@ -140,6 +141,8 @@ class ProductController
             $detailAttributes[] = $attribute;
         }
 
+        $galleryImages = ProductImage::getByProduct((int) $product['id']);
+
         // Отримати SEO-налаштування
         $seoSettings = Product::getSeoSettings($product['id']);
 
@@ -161,6 +164,7 @@ class ProductController
             'detailAttributes' => $detailAttributes,
             'category' => $category,
             'breadcrumbs' => $breadcrumbs,
+            'galleryImages' => $galleryImages,
             'seoSettings' => $seoSettings,
             'similarProducts' => $similarProducts,
             'categoryTree' => Category::getTree()

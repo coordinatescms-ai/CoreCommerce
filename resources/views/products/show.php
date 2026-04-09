@@ -9,7 +9,21 @@ if ((function_exists('mb_strlen') ? mb_strlen($productDescription) : strlen($pro
 
 $placeholderImage = 'data:image/svg+xml;utf8,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="900" height="900"><rect width="100%" height="100%" fill="#e2e8f0"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#64748b" font-family="Arial" font-size="36">No Image</text></svg>');
 $mainImage = !empty($product['image']) ? $product['image'] : $placeholderImage;
-$galleryImages = [$mainImage, $mainImage, $mainImage, $mainImage];
+$galleryItems = $galleryImages ?? [];
+$galleryImages = [];
+foreach ($galleryItems as $galleryImage) {
+    $path = (string) ($galleryImage['image_path'] ?? '');
+    if ($path !== '') {
+        $galleryImages[] = $path;
+    }
+}
+if (empty($galleryImages)) {
+    $galleryImages = [$mainImage];
+}
+if (!in_array($mainImage, $galleryImages, true)) {
+    array_unshift($galleryImages, $mainImage);
+}
+$galleryImages = array_values(array_unique($galleryImages));
 $similarProducts = $similarProducts ?? [];
 $categoryTree = $categoryTree ?? [];
 $currentCategoryId = (int) (($category['id'] ?? 0));
