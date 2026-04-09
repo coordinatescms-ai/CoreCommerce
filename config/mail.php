@@ -1,11 +1,11 @@
 <?php
 
 return [
-    'host' => 'smtp.mailtrap.io', // Замініть на реальний SMTP сервер
-    'port' => 2525,
-    'username' => 'your_username',
-    'password' => 'your_password',
-    'encryption' => 'tls',
-    'from_email' => 'no-reply@mysite.test',
-    'from_name' => 'MySite Store',
+    'host'       => $_ENV['MAIL_HOST'] ?? 'localhost',
+    'port'       => $_ENV['MAIL_PORT'] ?? 25,
+    'username'   => $_ENV['MAIL_USER'] ?? '',
+    'password'   => $_ENV['MAIL_PASS'] ?? '',
+    'encryption' => $_ENV['MAIL_ENCRYPTION'] ?? 'tls',
+    'from_email' => $_ENV['MAIL_FROM_ADDRESS'] ?? 'admin@example.com',
+    'from_name'  => $_ENV['MAIL_FROM_NAME'] ?? 'My App',
 ];
