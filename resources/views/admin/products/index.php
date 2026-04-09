@@ -59,15 +59,22 @@
                             <a href="/admin/products/edit/<?php echo $product['id']; ?>" class="btn btn-outline" style="border: 1px solid #ddd; color: #2563eb;" title="Редагувати">
                                 <i class="fas fa-edit" aria-hidden="true"></i>
                             </a>
-                            <a
-                                href="/admin/products/delete/<?php echo $product['id']; ?>?csrf=<?php echo urlencode($_SESSION['csrf']); ?>"
-                                class="btn btn-outline"
-                                style="border: 1px solid #ddd; color: #ef4444;"
-                                title="Видалити"
-                                onclick="return confirm('Ви впевнені, що хочете видалити цей товар?')"
+                            <form
+                                action="/admin/products/delete/<?php echo (int)$product['id']; ?>"
+                                method="POST"
+                                style="display: inline-block; margin: 0;"
+                                onsubmit="return confirm('Ви впевнені, що хочете видалити цей товар?')"
                             >
-                                <i class="fas fa-trash" aria-hidden="true"></i>
-                            </a>
+                                <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf']); ?>">
+                                <button
+                                    type="submit"
+                                    class="btn btn-outline"
+                                    style="border: 1px solid #ddd; color: #ef4444;"
+                                    title="Видалити"
+                                >
+                                    <i class="fas fa-trash" aria-hidden="true"></i>
+                                </button>
+                            </form>
                         </td>
                     </tr>
                 <?php endforeach; ?>

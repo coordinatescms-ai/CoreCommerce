@@ -26,7 +26,10 @@
                         <h3 style="margin-top: 0.25rem;"><a href="/product/<?= htmlspecialchars($p['slug']) ?>" style="text-decoration: none; color: #333;"><?= htmlspecialchars($p['name']) ?></a></h3>
                         <p><strong><?= htmlspecialchars($p['price']) ?> грн</strong></p>
                         <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                            <a href="/cart/add/<?= (int)$p['id'] ?>" style="background: #007bff; color: white; padding: 0.5rem 1rem; text-decoration: none; border-radius: 4px; display: inline-block; text-align: center;"><?= __('add_to_cart') ?></a>
+                            <form action="/cart/add/<?= (int)$p['id'] ?>" method="POST" style="margin: 0;">
+                                <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
+                                <button type="submit" style="background: #007bff; color: white; padding: 0.5rem 1rem; border-radius: 4px; display: inline-block; text-align: center; width: 100%; border: 0; cursor: pointer;"><?= __('add_to_cart') ?></button>
+                            </form>
                             <?php if (isset($p['stock'])): ?>
                                 <small style="color: #64748b; font-size: 0.8rem;"><?= __('in_stock') ?>: <?= (int)$p['stock'] ?></small>
                             <?php endif; ?>
