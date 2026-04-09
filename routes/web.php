@@ -14,6 +14,7 @@ use App\Controllers\AdminThemeController;
 use App\Controllers\AuthController;
 use App\Controllers\SocialAuthController;
 use App\Controllers\AdminController;
+use App\Controllers\AdminUserController;
 
 $router = new Router();
 
@@ -94,5 +95,11 @@ $router->post('/admin/attributes/delete/{id}', [AdminAttributeController::class,
 
 // Управління темами в адмінці
 $router->get('/admin/themes', [AdminThemeController::class, 'index']);
+
+// Управління користувачами в адмінці
+$router->get('/admin/users', [AdminUserController::class, 'index']);
+$router->get('/admin/users/edit/{id}', [AdminUserController::class, 'edit']);
+$router->post('/admin/users/update/{id}', [AdminUserController::class, 'update']);
+$router->post('/admin/users/delete/{id}', [AdminUserController::class, 'delete']);
 
 return $router;
