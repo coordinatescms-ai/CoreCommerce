@@ -129,16 +129,29 @@
             <i class="fas fa-image"></i> Зображення товару
         </div>
         <div class="card-body">
-            <?php if (!empty($product['image'])): ?>
-                <div style="margin-bottom: 1rem;">
-                    <img src="<?php echo htmlspecialchars($product['image']); ?>" alt="" style="width: 150px; border-radius: 4px; border: 1px solid #ddd;">
-                    <p style="font-size: 0.85rem; color: #64748b;">Поточне фото</p>
+            <div style="margin-bottom: 1rem;">
+                <p style="margin:0 0 0.75rem; color:#64748b;">Поточна галерея</p>
+                <div id="existing-gallery" style="display:grid; grid-template-columns: repeat(auto-fill,minmax(130px,1fr)); gap:0.75rem;">
+                    <?php foreach (($galleryImages ?? []) as $galleryImage): ?>
+                        <div class="gallery-item" data-gallery-item style="border:1px solid #e2e8f0; border-radius:8px; overflow:hidden; background:#fff;">
+                            <img src="<?php echo htmlspecialchars($galleryImage['image_path']); ?>" alt="" style="width:100%; height:100px; object-fit:cover; display:block;">
+                            <div style="padding:0.5rem; display:flex; justify-content:space-between; align-items:center; gap:0.5rem;">
+                                <small style="color:#64748b;">ID: <?php echo (int) $galleryImage['id']; ?></small>
+                                <button type="button" class="btn btn-outline remove-existing-image" data-image-id="<?php echo (int) $galleryImage['id']; ?>" style="border:1px solid #ddd; color:#ef4444; padding:0.25rem 0.5rem;">Видалити</button>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
-            <?php endif; ?>
-            <div class="form-group">
-                <label for="image">Змінити головне фото</label>
-                <input type="file" name="image" id="image" class="form-control" accept="image/*">
             </div>
+
+            <div id="delete-gallery-inputs"></div>
+
+            <div class="form-group">
+                <label for="images">Додати фото до галереї (до <?php echo (int) ($galleryLimit ?? 5); ?> шт.)</label>
+                <input type="file" name="images[]" id="images" class="form-control" accept=".jpg,.jpeg,.png,.webp" multiple>
+                <small style="color:#64748b; display:block; margin-top:0.5rem;">Дозволені формати: JPG, PNG, WEBP. Максимум 5MB на файл.</small>
+            </div>
+            <div id="gallery-preview" style="display:grid; grid-template-columns: repeat(auto-fill,minmax(110px,1fr)); gap:0.75rem;"></div>
         </div>
     </div>
 
@@ -175,6 +188,11 @@
         const rowsContainer = document.getElementById('attribute-rows');
         const addRowButton = document.getElementById('add-attribute-row');
         const warningBox = document.getElementById('attributes-warning');
+        const imagesInput = document.getElementById('images');
+        const galleryPreview = document.getElementById('gallery-preview');
+        const galleryLimit = <?php echo (int) ($galleryLimit ?? 5); ?>;
+        const existingGallery = document.getElementById('existing-gallery');
+        const deleteGalleryInputs = document.getElementById('delete-gallery-inputs');
         let allowedAttributes = <?php echo json_encode($allowedAttributes ?? [], JSON_UNESCAPED_UNICODE); ?>;
 
         function showWarning(message) {
@@ -395,6 +413,66 @@
 
         categorySelect.addEventListener('change', fetchAllowedAttributes);
         rowsContainer.querySelectorAll('.attribute-remove-btn').forEach(bindRemoveButton);
+        function updateGalleryPreview(files) {
+            if (!galleryPreview) {
+                return;
+            }
+
+            galleryPreview.innerHTML = '';
+            Array.from(files || []).forEach(function (file) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const card = document.createElement('div');
+                    card.style.border = '1px solid #e2e8f0';
+                    card.style.borderRadius = '8px';
+                    card.style.overflow = 'hidden';
+                    card.style.background = '#fff';
+                    card.innerHTML = '<img src="' + event.target.result + '" alt="preview" style="width:100%;height:90px;object-fit:cover;display:block;"><div style="padding:0.35rem 0.5rem;font-size:0.75rem;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + file.name + '</div>' ;
+                    galleryPreview.appendChild(card);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function markExistingImageForDelete(imageId, item) {
+            if (!deleteGalleryInputs || !imageId) {
+                return;
+            }
+
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'delete_gallery_image_ids[]';
+            input.value = String(imageId);
+            deleteGalleryInputs.appendChild(input);
+
+            if (item) {
+                item.remove();
+            }
+        }
+
+        if (existingGallery) {
+            existingGallery.querySelectorAll('.remove-existing-image').forEach(function (button) {
+                button.addEventListener('click', function () {
+                    const item = button.closest('[data-gallery-item]');
+                    markExistingImageForDelete(button.dataset.imageId, item);
+                });
+            });
+        }
+
+        if (imagesInput) {
+            imagesInput.addEventListener('change', function () {
+                const existingItemsCount = existingGallery ? existingGallery.querySelectorAll('[data-gallery-item]').length : 0;
+                if ((existingItemsCount + imagesInput.files.length) > galleryLimit) {
+                    alert('Перевищено ліміт у ' + galleryLimit + ' фото. Спочатку видаліть зайві зображення.');
+                    imagesInput.value = '';
+                    updateGalleryPreview([]);
+                    return;
+                }
+
+                updateGalleryPreview(imagesInput.files);
+            });
+        }
+
         rowsContainer.querySelectorAll('.attribute-row').forEach(function (row) {
             const select = row.querySelector('.attribute-id-select');
             const valueInput = row.querySelector('input[name="attribute_value[]"]');
