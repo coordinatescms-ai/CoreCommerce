@@ -8,11 +8,17 @@ use App\Models\Category;
 use App\Models\Attribute;
 use App\Models\ProductAttribute;
 use App\Models\ProductAttributeValue;
+use App\Models\ProductImage;
 use App\Services\SlugHelper;
 
 class AdminProductController
 {
     private const PRODUCT_FORM_FLASH_KEY = 'product_form_old';
+
+    private const MAX_GALLERY_IMAGES = 5;
+    private const MAX_IMAGE_SIZE_BYTES = 5242880; // 5MB
+    private const ALLOWED_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
+
 
     private function validateCsrfOrAbort()
     {
@@ -319,6 +325,7 @@ class AdminProductController
             'allowedAttributes' => $allowedAttributes,
             'formData' => $formData,
             'attributeRows' => $formData['attributes'] ?? [],
+            'galleryLimit' => $this->getGalleryImagesLimit(),
         ], 'admin');
     }
 
@@ -332,30 +339,147 @@ class AdminProductController
             exit;
         }
 
-        View::render('admin/products/show', ['product' => $product], 'admin');
+        $galleryImages = ProductImage::getByProduct((int) $id);
+
+        View::render('admin/products/show', ['product' => $product, 'galleryImages' => $galleryImages], 'admin');
     }
 
-    private function handleImageUpload()
+    private function getGalleryImagesLimit(): int
     {
-        if (!empty($_FILES['image']['name'])) {
-            $allowed = ['jpg', 'jpeg', 'png', 'webp'];
-            $ext = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
+        return self::MAX_GALLERY_IMAGES;
+    }
 
-            if (!in_array($ext, $allowed)) {
-                return null;
+    private function normalizeFilesInput(string $fieldName): array
+    {
+        if (empty($_FILES[$fieldName]) || !is_array($_FILES[$fieldName]['name'] ?? null)) {
+            return [];
+        }
+
+        $normalized = [];
+        $names = $_FILES[$fieldName]['name'];
+        foreach ($names as $index => $name) {
+            $normalized[] = [
+                'name' => (string) ($name ?? ''),
+                'type' => (string) ($_FILES[$fieldName]['type'][$index] ?? ''),
+                'tmp_name' => (string) ($_FILES[$fieldName]['tmp_name'][$index] ?? ''),
+                'error' => (int) ($_FILES[$fieldName]['error'][$index] ?? UPLOAD_ERR_NO_FILE),
+                'size' => (int) ($_FILES[$fieldName]['size'][$index] ?? 0),
+            ];
+        }
+
+        return $normalized;
+    }
+
+    private function validateImageFile(array $file, int $maxSizeBytes): ?string
+    {
+        if (($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+            return null;
+        }
+
+        if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+            return 'Помилка завантаження файлу: ' . ($file['name'] ?? 'невідомий файл') . '.';
+        }
+
+        $extension = strtolower(pathinfo((string) ($file['name'] ?? ''), PATHINFO_EXTENSION));
+        if (!in_array($extension, self::ALLOWED_IMAGE_EXTENSIONS, true)) {
+            return 'Дозволені формати зображень: jpg, png, webp.';
+        }
+
+        $size = (int) ($file['size'] ?? 0);
+        if ($size <= 0 || $size > $maxSizeBytes) {
+            return 'Максимальний розмір одного зображення — 5MB.';
+        }
+
+        $imageInfo = @getimagesize((string) ($file['tmp_name'] ?? ''));
+        if ($imageInfo === false) {
+            return 'Один із файлів не є валідним зображенням.';
+        }
+
+        return null;
+    }
+
+    private function uploadImageFile(array $file): ?string
+    {
+        $extension = strtolower(pathinfo((string) ($file['name'] ?? ''), PATHINFO_EXTENSION));
+        $uploadDir = __DIR__ . '/../../public/uploads/products/gallery/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+
+        $filename = date('YmdHis') . '_' . bin2hex(random_bytes(6)) . '.' . $extension;
+        $destination = $uploadDir . $filename;
+
+        if (!move_uploaded_file((string) ($file['tmp_name'] ?? ''), $destination)) {
+            return null;
+        }
+
+        return '/uploads/products/gallery/' . $filename;
+    }
+
+    private function uploadGalleryImages(int $productId, int $alreadyStoredCount = 0): array
+    {
+        $files = $this->normalizeFilesInput('images');
+        $files = array_values(array_filter($files, static function (array $file) {
+            return ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
+        }));
+
+        if (empty($files)) {
+            return ['paths' => [], 'error' => null];
+        }
+
+        $limit = $this->getGalleryImagesLimit();
+        if ($alreadyStoredCount + count($files) > $limit) {
+            return ['paths' => [], 'error' => 'Можна завантажити максимум ' . $limit . ' фото для одного товару.'];
+        }
+
+        foreach ($files as $file) {
+            $validationError = $this->validateImageFile($file, self::MAX_IMAGE_SIZE_BYTES);
+            if ($validationError !== null) {
+                return ['paths' => [], 'error' => $validationError];
             }
+        }
 
-            $uploadDir = __DIR__ . '/../../public/uploads/products/';
-            if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0755, true);
+        $uploadedPaths = [];
+        foreach ($files as $file) {
+            $path = $this->uploadImageFile($file);
+            if ($path === null) {
+                foreach ($uploadedPaths as $uploadedPath) {
+                    $absolute = __DIR__ . '/../../public' . $uploadedPath;
+                    if (is_file($absolute)) {
+                        @unlink($absolute);
+                    }
+                }
+
+                return ['paths' => [], 'error' => 'Не вдалося зберегти одне із зображень.'];
             }
+            $uploadedPaths[] = $path;
+        }
 
-            $filename = time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
-            $destination = $uploadDir . $filename;
+        $sortOrder = ProductImage::getNextSortOrder($productId);
+        foreach ($uploadedPaths as $path) {
+            ProductImage::createForProduct($productId, $path, $sortOrder++);
+        }
 
-            if (move_uploaded_file($_FILES['image']['tmp_name'], $destination)) {
-                return '/uploads/products/' . $filename;
-            }
+        return ['paths' => $uploadedPaths, 'error' => null];
+    }
+
+    private function removeImageFileByPath(?string $imagePath): void
+    {
+        if (empty($imagePath) || !is_string($imagePath)) {
+            return;
+        }
+
+        $absolutePath = __DIR__ . '/../../public' . $imagePath;
+        if (is_file($absolutePath)) {
+            @unlink($absolutePath);
+        }
+    }
+
+    private function resolvePrimaryImageFromGallery(int $productId): ?string
+    {
+        $gallery = ProductImage::getByProduct($productId);
+        if (!empty($gallery[0]['image_path'])) {
+            return (string) $gallery[0]['image_path'];
         }
 
         return null;
@@ -393,8 +517,7 @@ class AdminProductController
         }
 
         $data['price'] = (float) str_replace(',', '.', (string) $data['price']);
-        $image = $this->handleImageUpload();
-        $data['image'] = $image;
+        $data['image'] = null;
 
         $productId = Product::create($data);
 
@@ -407,7 +530,22 @@ class AdminProductController
                 exit;
             }
 
+            $uploadResult = $this->uploadGalleryImages((int) $productId);
+            if ($uploadResult['error'] !== null) {
+                Product::delete((int) $productId);
+                $this->flashProductFormData($data, $attributeRows);
+                $_SESSION['error'] = $uploadResult['error'];
+                header('Location: /admin/products/create');
+                exit;
+            }
+
             $this->syncProductAttributes((int) $productId, $attributeRows);
+
+            $primaryImage = $this->resolvePrimaryImageFromGallery((int) $productId);
+            if ($primaryImage !== null) {
+                Product::update((int) $productId, ['image' => $primaryImage]);
+            }
+
             unset($_SESSION[self::PRODUCT_FORM_FLASH_KEY]);
             $_SESSION['success'] = 'Товар успішно додано!';
             header('Location: /admin/products');
@@ -457,6 +595,8 @@ class AdminProductController
             'categories' => $categories,
             'existingAttributes' => $existingAttributes,
             'allowedAttributes' => $allowedAttributes,
+            'galleryImages' => ProductImage::getByProduct((int) $id),
+            'galleryLimit' => $this->getGalleryImagesLimit(),
         ], 'admin');
     }
 
@@ -493,9 +633,29 @@ class AdminProductController
         }
 
         $data['price'] = (float) str_replace(',', '.', (string) $data['price']);
-        $newImage = $this->handleImageUpload();
-        if ($newImage) {
-            $data['image'] = $newImage;
+
+        $existingGallery = ProductImage::getByProduct((int) $id);
+        $existingById = [];
+        foreach ($existingGallery as $image) {
+            $existingById[(int) ($image['id'] ?? 0)] = $image;
+        }
+
+        $deleteImageIds = $_POST['delete_gallery_image_ids'] ?? [];
+        if (!is_array($deleteImageIds)) {
+            $deleteImageIds = [];
+        }
+
+        $deleteImageIds = array_values(array_unique(array_filter(array_map('intval', $deleteImageIds), static function ($imageId) use ($existingById) {
+            return $imageId > 0 && isset($existingById[$imageId]);
+        })));
+
+        $remainingCount = max(0, count($existingGallery) - count($deleteImageIds));
+        $uploadResult = $this->uploadGalleryImages((int) $id, $remainingCount);
+        if ($uploadResult['error'] !== null) {
+            $this->flashProductFormData($data, $attributeRows);
+            $_SESSION['error'] = $uploadResult['error'];
+            header('Location: /admin/products/edit/' . $id);
+            exit;
         }
 
         if (Product::update($id, $data)) {
@@ -506,7 +666,21 @@ class AdminProductController
                 exit;
             }
 
+            foreach ($deleteImageIds as $imageId) {
+                $image = $existingById[$imageId] ?? null;
+                if (!$image) {
+                    continue;
+                }
+
+                ProductImage::deleteById($imageId);
+                $this->removeImageFileByPath((string) ($image['image_path'] ?? ''));
+            }
+
             $this->syncProductAttributes((int) $id, $attributeRows);
+
+            $primaryImage = $this->resolvePrimaryImageFromGallery((int) $id);
+            Product::update((int) $id, ['image' => $primaryImage]);
+
             unset($_SESSION[self::PRODUCT_FORM_FLASH_KEY]);
             $_SESSION['success'] = 'Товар успішно оновлено!';
             header('Location: /admin/products');
@@ -523,6 +697,12 @@ class AdminProductController
     {
         $this->checkAdmin();
         $this->validateCsrfOrAbort();
+
+        $galleryImages = ProductImage::getByProduct((int) $id);
+        foreach ($galleryImages as $galleryImage) {
+            $this->removeImageFileByPath((string) ($galleryImage['image_path'] ?? ''));
+        }
+        ProductImage::deleteByProduct((int) $id);
 
         if (Product::delete($id)) {
             $_SESSION['success'] = 'Товар видалено!';
