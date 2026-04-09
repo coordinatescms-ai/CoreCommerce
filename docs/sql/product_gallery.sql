@@ -1,7 +1,7 @@
 -- Галерея зображень товарів
 CREATE TABLE IF NOT EXISTS `product_images` (
-    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `product_id` BIGINT UNSIGNED NOT NULL,
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `product_id` INT NOT NULL,
     `image_path` VARCHAR(255) NOT NULL,
     `sort_order` INT UNSIGNED NOT NULL DEFAULT 1,
     `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
