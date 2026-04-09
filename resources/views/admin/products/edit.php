@@ -77,7 +77,9 @@
                                 <span>Опція вибору</span>
                             </label>
                         </div>
-                        <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;">Видалити</button>
+                        <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;" title="Видалити">
+                        <i class="fas fa-trash" aria-hidden="true"></i>
+                        </button>
                     </div>
                 <?php else: ?>
                     <?php foreach ($rows as $row): ?>
@@ -110,7 +112,9 @@
                                     <span>Опція вибору</span>
                                 </label>
                             </div>
-                            <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;">Видалити</button>
+                            <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;" title="Видалити">
+                             <i class="fas fa-trash" aria-hidden="true"></i>
+                            </button>
                         </div>
                     <?php endforeach; ?>
                 <?php endif; ?>
@@ -137,7 +141,9 @@
                             <img src="<?php echo htmlspecialchars($galleryImage['image_path']); ?>" alt="" style="width:100%; height:100px; object-fit:cover; display:block;">
                             <div style="padding:0.5rem; display:flex; justify-content:space-between; align-items:center; gap:0.5rem;">
                                 <small style="color:#64748b;">ID: <?php echo (int) $galleryImage['id']; ?></small>
-                                <button type="button" class="btn btn-outline remove-existing-image" data-image-id="<?php echo (int) $galleryImage['id']; ?>" style="border:1px solid #ddd; color:#ef4444; padding:0.25rem 0.5rem;">Видалити</button>
+                                <button type="button" class="btn btn-outline remove-existing-image" data-image-id="<?php echo (int) $galleryImage['id']; ?>" style="border:1px solid #ddd; color:#ef4444; padding:0.25rem 0.5rem;" title="Видалити">
+                                <i class="fas fa-trash" aria-hidden="true"></i>
+                                </button>
                             </div>
                         </div>
                     <?php endforeach; ?>
@@ -324,7 +330,9 @@
                         <span>Опція вибору</span>
                     </label>
                 </div>
-                <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;">Видалити</button>
+                <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;" title="Видалити">
+                <i class="fas fa-trash" aria-hidden="true"></i>
+                </button>
             `;
 
             renderValueInput(row, attributeId, value);

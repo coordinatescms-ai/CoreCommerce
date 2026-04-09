@@ -88,7 +88,9 @@ $attributeRows = $attributeRows ?? [];
                                 <span>Опція вибору</span>
                             </label>
                         </div>
-                        <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;">Видалити</button>
+                        <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;" title="Видалити">
+                         <i class="fas fa-trash" aria-hidden="true"></i>
+                         </button>
                     </div>
                 <?php else: ?>
                     <?php foreach ($attributeRows as $row): ?>
@@ -114,7 +116,9 @@ $attributeRows = $attributeRows ?? [];
                                     <span>Опція вибору</span>
                                 </label>
                             </div>
-                            <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;">Видалити</button>
+                            <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;" title="Видалити">
+                            <i class="fas fa-trash" aria-hidden="true"></i>
+                            </button>
                         </div>
                     <?php endforeach; ?>
                 <?php endif; ?>
@@ -306,7 +310,9 @@ $attributeRows = $attributeRows ?? [];
                         <span>Опція вибору</span>
                     </label>
                 </div>
-                <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;">Видалити</button>
+                <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;" title="Видалити">
+                <i class="fas fa-trash" aria-hidden="true"></i>
+                </button>
             `;
 
             const removeButton = row.querySelector('.attribute-remove-btn');

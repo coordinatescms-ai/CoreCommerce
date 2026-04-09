@@ -53,7 +53,7 @@
                             /product/<?php echo htmlspecialchars($product['slug']); ?>
                         </td>
                         <td style="padding: 1rem; text-align: right; white-space: nowrap;">
-                            <a href="/admin/products/show/<?php echo $product['id']; ?>" class="btn btn-outline" style="border: 1px solid #ddd; color: #0f766e;" title="Перегляд">
+                            <a href="/admin/products/show/<?php echo $product['id']; ?>"class="btn btn-outline" style="border: 1px solid #ddd; color: #0f766e;" title="Перегляд">
                                 <i class="fas fa-eye" aria-hidden="true"></i>
                             </a>
                             <a href="/admin/products/edit/<?php echo $product['id']; ?>" class="btn btn-outline" style="border: 1px solid #ddd; color: #2563eb;" title="Редагувати">
