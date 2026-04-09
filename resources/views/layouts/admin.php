@@ -102,7 +102,7 @@
             <a href="/admin/attributes" class="menu-item <?php echo strpos($request_uri, '/admin/attributes') === 0 ? 'active' : ''; ?>">
                 <i class="fas fa-sliders-h"></i> Атрибути
             </a>
-            <a href="/admin/users" class="menu-item">
+            <a href="/admin/users" class="menu-item <?php echo strpos($request_uri, '/admin/users') === 0 ? 'active' : ''; ?>">
                 <i class="fas fa-users"></i> Користувачі
             </a>
             <a href="/admin/plugins" class="menu-item">

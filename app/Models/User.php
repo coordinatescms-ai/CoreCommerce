@@ -73,6 +73,51 @@ class User extends Model
     }
 
     /**
+     * Отримати всіх користувачів для адмін-панелі
+     *
+     * @return array
+     */
+    public static function getAllForAdmin()
+    {
+        return self::query(
+            "SELECT u.id, u.email, u.phone, u.created_at, u.role_id, r.name AS role_name
+             FROM users u
+             LEFT JOIN user_roles r ON r.id = u.role_id
+             ORDER BY u.created_at DESC"
+        );
+    }
+
+    /**
+     * Отримати список ролей
+     *
+     * @return array
+     */
+    public static function getRoles()
+    {
+        return self::query(
+            "SELECT id, name, slug
+             FROM user_roles
+             ORDER BY id ASC"
+        );
+    }
+
+    /**
+     * Перевірити наявність ролі
+     *
+     * @param int $roleId
+     * @return bool
+     */
+    public static function roleExists($roleId)
+    {
+        $result = self::query(
+            "SELECT id FROM user_roles WHERE id = ? LIMIT 1",
+            [(int) $roleId]
+        );
+
+        return !empty($result);
+    }
+
+    /**
      * Отримати кількість користувачів
      * 
      * @return int
@@ -147,6 +192,10 @@ class User extends Model
     {
         // Не дозволяти змінювати пароль через цей метод
         unset($data['password']);
+
+        if (empty($data)) {
+            return false;
+        }
 
         $updates = [];
         $values = [];
