@@ -54,6 +54,20 @@ class View
         include $layout_path;
     }
     
+
+
+    public static function renderPartial($view, $data = [])
+    {
+        extract($data);
+
+        $view_path = __DIR__ . '/../../../resources/views/' . str_replace('.', '/', $view) . '.php';
+        if (!file_exists($view_path)) {
+            throw new \Exception("View file not found: {$view_path}");
+        }
+
+        include $view_path;
+    }
+
     /**
      * Отримати активну тему
      * 
