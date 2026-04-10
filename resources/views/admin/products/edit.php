@@ -139,8 +139,18 @@
                     <?php foreach (($galleryImages ?? []) as $galleryImage): ?>
                         <div class="gallery-item" data-gallery-item style="border:1px solid #e2e8f0; border-radius:8px; overflow:hidden; background:#fff;">
                             <img src="<?php echo htmlspecialchars($galleryImage['image_path']); ?>" alt="" style="width:100%; height:100px; object-fit:cover; display:block;">
-                            <div style="padding:0.5rem; display:flex; justify-content:space-between; align-items:center; gap:0.5rem;">
+                            <div style="padding:0.5rem; display:flex; flex-direction:column; gap:0.5rem; align-items:stretch;">
                                 <small style="color:#64748b;">ID: <?php echo (int) $galleryImage['id']; ?></small>
+                                <button
+                                    type="submit"
+                                    class="btn <?php echo (($product['image'] ?? '') === ($galleryImage['image_path'] ?? '')) ? 'btn-primary' : 'btn-outline'; ?>"
+                                    name="main_gallery_image_id"
+                                    value="<?php echo (int) $galleryImage['id']; ?>"
+                                    formaction="/admin/products/set-main-image/<?php echo (int) $product['id']; ?>"
+                                    formmethod="POST"
+                                    style="border:1px solid #ddd; padding:0.35rem 0.5rem;">
+                                    <i class="fas fa-star"></i> Зробити головним
+                                </button>
                                 <button type="button" class="btn btn-outline remove-existing-image" data-image-id="<?php echo (int) $galleryImage['id']; ?>" style="border:1px solid #ddd; color:#ef4444; padding:0.25rem 0.5rem;" title="Видалити">
                                 <i class="fas fa-trash" aria-hidden="true"></i>
                                 </button>

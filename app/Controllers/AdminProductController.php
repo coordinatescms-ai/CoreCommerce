@@ -10,6 +10,7 @@ use App\Models\ProductAttribute;
 use App\Models\ProductAttributeValue;
 use App\Models\ProductImage;
 use App\Services\SlugHelper;
+use App\Services\ImageManager;
 
 class AdminProductController
 {
@@ -17,8 +18,6 @@ class AdminProductController
 
     private const MAX_GALLERY_IMAGES = 5;
     private const MAX_IMAGE_SIZE_BYTES = 5242880; // 5MB
-    private const ALLOWED_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
-
 
     private function validateCsrfOrAbort()
     {
@@ -380,19 +379,20 @@ class AdminProductController
             return 'Помилка завантаження файлу: ' . ($file['name'] ?? 'невідомий файл') . '.';
         }
 
-        $extension = strtolower(pathinfo((string) ($file['name'] ?? ''), PATHINFO_EXTENSION));
-        if (!in_array($extension, self::ALLOWED_IMAGE_EXTENSIONS, true)) {
-            return 'Дозволені формати зображень: jpg, png, webp.';
-        }
-
         $size = (int) ($file['size'] ?? 0);
         if ($size <= 0 || $size > $maxSizeBytes) {
             return 'Максимальний розмір одного зображення — 5MB.';
         }
 
-        $imageInfo = @getimagesize((string) ($file['tmp_name'] ?? ''));
-        if ($imageInfo === false) {
-            return 'Один із файлів не є валідним зображенням.';
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime = $finfo ? finfo_file($finfo, (string) ($file['tmp_name'] ?? '')) : false;
+        if ($finfo) {
+            finfo_close($finfo);
+        }
+
+        $allowedMime = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!is_string($mime) || !in_array($mime, $allowedMime, true)) {
+            return 'Дозволені формати зображень: jpg, jpeg, png, webp.';
         }
 
         return null;
@@ -400,20 +400,23 @@ class AdminProductController
 
     private function uploadImageFile(array $file): ?string
     {
-        $extension = strtolower(pathinfo((string) ($file['name'] ?? ''), PATHINFO_EXTENSION));
-        $uploadDir = __DIR__ . '/../../public/uploads/products/gallery/';
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
-        }
+        $imageManager = new ImageManager();
 
-        $filename = date('YmdHis') . '_' . bin2hex(random_bytes(6)) . '.' . $extension;
-        $destination = $uploadDir . $filename;
+        try {
+            $paths = $imageManager->processUploadedProductImage($file, [
+                'thumb_width' => (int) get_setting('media_thumb_width', 200),
+                'medium_width' => (int) get_setting('media_medium_width', 800),
+                'quality' => (int) get_setting('media_quality', 82),
+                'auto_webp' => (int) get_setting('media_auto_webp', 1),
+                'apply_watermark' => (int) get_setting('media_apply_watermark', 0),
+                'watermark_path' => (string) get_setting('media_watermark_path', ''),
+                'watermark_position' => (string) get_setting('media_watermark_position', 'bottom-right'),
+            ]);
 
-        if (!move_uploaded_file((string) ($file['tmp_name'] ?? ''), $destination)) {
+            return $paths['original'] ?? null;
+        } catch (\Throwable $e) {
             return null;
         }
-
-        return '/uploads/products/gallery/' . $filename;
     }
 
     private function uploadGalleryImages(int $productId, int $alreadyStoredCount = 0): array
@@ -472,6 +475,18 @@ class AdminProductController
         $absolutePath = __DIR__ . '/../../public' . $imagePath;
         if (is_file($absolutePath)) {
             @unlink($absolutePath);
+        }
+
+        if (strpos($imagePath, '/uploads/products/gallery/original/') === 0) {
+            $basename = pathinfo($imagePath, PATHINFO_FILENAME);
+            foreach (['medium', 'thumb'] as $variant) {
+                $pattern = __DIR__ . '/../../public/uploads/products/gallery/' . $variant . '/' . $basename . '.*';
+                foreach (glob($pattern) ?: [] as $variantFile) {
+                    if (is_file($variantFile)) {
+                        @unlink($variantFile);
+                    }
+                }
+            }
         }
     }
 
@@ -690,6 +705,25 @@ class AdminProductController
             header('Location: /admin/products/edit/' . $id);
         }
 
+        exit;
+    }
+
+    public function setMainImage($id)
+    {
+        $this->checkAdmin();
+        $this->validateCsrfOrAbort();
+
+        $imageId = (int) ($_POST['main_gallery_image_id'] ?? 0);
+        $image = ProductImage::findById($imageId);
+        if (!$image || (int) ($image['product_id'] ?? 0) !== (int) $id) {
+            $_SESSION['error'] = 'Не вдалося знайти обране фото.';
+            header('Location: /admin/products/edit/' . (int) $id);
+            exit;
+        }
+
+        Product::update((int) $id, ['image' => (string) $image['image_path']]);
+        $_SESSION['success'] = 'Головне фото оновлено.';
+        header('Location: /admin/products/edit/' . (int) $id);
         exit;
     }
 

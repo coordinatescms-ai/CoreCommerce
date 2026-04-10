@@ -66,6 +66,7 @@ $router->get('/auth/facebook/callback', [SocialAuthController::class, 'handleFac
 $router->get('/admin', [AdminController::class, 'dashboard']);
 $router->get('/admin/settings', [AdminController::class, 'settings']);
 $router->post('/admin/settings/save', [AdminController::class, 'saveSettings']);
+$router->get('/admin/settings/tab/{tab}', [AdminController::class, 'settingsTab']);
 
 // Управління товарами в адмінці
 $router->get('/admin/products', [AdminProductController::class, 'index']);
@@ -75,6 +76,7 @@ $router->post('/admin/products/store', [AdminProductController::class, 'store'])
 $router->get('/admin/products/edit/{id}', [AdminProductController::class, 'edit']);
 $router->get('/admin/products/show/{id}', [AdminProductController::class, 'show']);
 $router->post('/admin/products/update/{id}', [AdminProductController::class, 'update']);
+$router->post('/admin/products/set-main-image/{id}', [AdminProductController::class, 'setMainImage']);
 $router->post('/admin/products/delete/{id}', [AdminProductController::class, 'delete']);
 
 // Управління категоріями в адмінці

@@ -1,5 +1,6 @@
 <?php
 use App\Core\Localization\LocalizationManager;
+use App\Models\Setting;
 
 function __($key)
 {
@@ -20,4 +21,9 @@ function get_current_language()
 function get_supported_languages()
 {
     return LocalizationManager::getSupportedLanguages();
+}
+
+function get_setting($key, $default = null)
+{
+    return Setting::get($key, $default);
 }
