@@ -102,17 +102,31 @@ foreach (($breadcrumbs ?? []) as $crumb) {
 }
 ?>
 
-<section class="pdp">
-    <nav class="pdp-breadcrumbs" aria-label="Breadcrumb">
-        <a href="/"><?= __('breadcrumb_home') ?></a>
-        <span>/</span>
-        <a href="/products"><?= __('breadcrumb_products') ?></a>
-        <?php foreach (($breadcrumbs ?? []) as $crumb): ?>
-            <span>/</span>
-            <a href="/category/<?= htmlspecialchars($crumb['slug']) ?>"><?= htmlspecialchars($crumb['name']) ?></a>
-        <?php endforeach; ?>
-        <span>/</span>
-        <span class="is-current"><?= $productName ?></span>
+<section class="pdp" data-category-page>
+    <nav class="category-breadcrumbs" aria-label="Breadcrumb">
+        <ol>
+            <li>
+                <a class="breadcrumb-link breadcrumb-link-home" href="/">
+                    <svg class="breadcrumb-home-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M3 10.5L12 3L21 10.5V20A1 1 0 0 1 20 21H4A1 1 0 0 1 3 20V10.5Z" stroke="currentColor" stroke-width="1.8"/>
+                    </svg>
+                    <span><?= __('breadcrumb_home') ?></span>
+                </a>
+            </li>
+            <?php foreach ($breadcrumbs as $index => $crumb): ?>
+                <?php $isLast = $index === count($breadcrumbs) - 1; ?>
+                <li class="breadcrumb-divider" aria-hidden="true">/</li>
+                <li>
+                    <?php if ($isLast): ?>
+                        <span class="breadcrumb-current"><?= htmlspecialchars($crumb['name'] ?? '') ?></span>
+                    <?php else: ?>
+                        <a class="breadcrumb-link" href="<?= htmlspecialchars($crumb['url'] ?? '#') ?>">
+                            <?= htmlspecialchars($crumb['name'] ?? '') ?>
+                        </a>
+                    <?php endif; ?>
+                </li>
+            <?php endforeach; ?>
+        </ol>
     </nav>
 
     <div class="pdp-layout">
@@ -270,14 +284,58 @@ foreach (($breadcrumbs ?? []) as $crumb) {
     gap: 1.5rem;
 }
 
-.pdp-breadcrumbs {
+.category-breadcrumbs {
+    margin-bottom: 1rem;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+}
+
+.category-breadcrumbs ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+    gap: 0.35rem;
+}
+
+.breadcrumb-link {
+    color: #475569;
+    text-decoration: none;
+    border-radius: 6px;
+    padding: 0.2rem 0.45rem;
+}
+
+.breadcrumb-link:hover {
+    background: #f8fafc;
+    text-decoration: none;
+    color: #0f172a;
+}
+
+.breadcrumb-link-home {
+    display: inline-flex;
+    align-items: center;
     gap: 0.4rem;
-    margin-bottom: 1.25rem;
-    color: var(--pdp-muted);
-    font-size: 0.92rem;
+}
+
+.breadcrumb-home-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.breadcrumb-divider {
+    color: #cbd5e1;
+}
+
+.breadcrumb-current {
+    background: #f1f5f9;
+    color: #0f172a;
+    border-radius: 6px;
+    padding: 0.2rem 0.45rem;
+    font-weight: 600;
 }
 
 .category-royal-card {

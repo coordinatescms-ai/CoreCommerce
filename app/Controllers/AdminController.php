@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Core\View\View;
 use App\Models\User;
 use App\Models\Setting;
+use App\Core\Database\DB;
 
 class AdminController
 {
@@ -20,6 +21,37 @@ class AdminController
     {
         $this->checkAdmin();
 
+    // Отримуємо дані для графіка
+    $results = [];
+
+    try {
+        $stmt = DB::query("
+            SELECT DATE(created_at) as d, SUM(total) as daily_sum 
+            FROM orders 
+            WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
+            GROUP BY DATE(created_at)
+        ");
+        // DB::query вже виконав запит, тому просто отримуємо результат
+        $results = $stmt->fetchAll(\PDO::FETCH_KEY_PAIR);
+    } catch (\Exception $e) {
+        $results = [];
+    }
+
+    // 2. Отримуємо 5 останніх замовлень
+    $recentOrders = [];
+    try {
+        $stmt = DB::query("
+            SELECT o.id, o.total, o.status, o.created_at, u.first_name as customer_name 
+            FROM orders o
+            LEFT JOIN users u ON o.user_id = u.id
+            ORDER BY o.created_at DESC
+            LIMIT 5
+        ");
+        $recentOrders = $stmt->fetchAll();
+    } catch (\Exception $e) {
+        $recentOrders = [];
+    }
+
         $stats = [
             'users_count' => User::count(),
             'orders_count' => 0,
@@ -27,7 +59,11 @@ class AdminController
             'total_sales' => 0
         ];
 
-        View::render('admin/dashboard', ['stats' => $stats], 'admin');
+        View::render('admin/dashboard', [
+        'stats' => $stats,
+        'chartData' => $results,  // Передаємо дані для графіка
+        'recentOrders' => $recentOrders
+    ], 'admin');
     }
 
     public function settings()

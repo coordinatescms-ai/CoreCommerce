@@ -1,5 +1,39 @@
+<?php
+// 1. Створюємо список останніх 7 днів (для заповнення нулями, якщо продажів не було)
+$week_data = [];
+for ($i = 6; $i >= 0; $i--) {
+    $date = date('Y-m-d', strtotime("-$i days"));
+    $week_data[$date] = [
+        'label' => date('d.m', strtotime($date)), // формат 11.04
+        'day_name' => '', 
+        'sum' => 0
+    ];
+}
+
+// Масив назв днів тижня
+$days_ua = ['Нд', 'Пн', 'Вв', 'Ср', 'Чт', 'Пт', 'Сб'];
+
+// 3. Об'єднуємо дані
+$final_labels = [];
+$final_values = [];
+
+foreach ($week_data as $date => $info) {
+    $sum = $results[$date] ?? 0; // Якщо дати немає в базі, ставимо 0
+    $day_index = date('w', strtotime($date));
+    
+    $final_labels[] = $days_ua[$day_index] . ' (' . $info['label'] . ')';
+    $final_values[] = (float)$sum;  
+}
+?>
+
 <div class="page-header">
     <h1 class="page-title">Панель керування</h1>
+</div>
+
+<!-- Контейнер для графіка -->
+<i class="fa-solid fa-chart-line"></i> Динаміка продажів
+<div style="width: 100%; max-width: 800px; margin: 20px auto;">
+    <canvas id="myChart"></canvas>
 </div>
 
 <div class="stats-grid">
@@ -39,6 +73,53 @@
             <p><?php echo number_format($stats['total_sales'], 2); ?> грн</p>
         </div>
     </div>
+</div>
+
+<div class="recent-orders-card">
+    <div class="card-header">
+        <h3><i class="fa-solid fa-clock-rotate-left"></i> Останні замовлення</h3>
+        <a href="orders.php" class="view-all" title="Дивитись всі"><i class="fas fa-eye" aria-hidden="true"></i></a>
+    </div>
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Клієнт</th>
+                <th>Дата</th>
+                <th>Сума</th>
+                <th>Статус</th>
+                <th>Дія</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if (empty($recent_orders)): ?>
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 20px; color: #94a3b8;">
+                        Замовлень поки немає
+                    </td>
+                </tr>
+            <?php else: ?>
+                <?php foreach ($recent_orders as $order): ?>
+                <tr>
+                    <td>#<?= $order['id'] ?></td>
+                    <td><strong><?= htmlspecialchars($order['customer_name'] ?? 'Гість') ?></strong></td>
+                    <td><?= date('d.m.Y H:i', strtotime($order['created_at'])) ?></td>
+                    <td><?= number_format($order['total'], 2, '.', ' ') ?> ₴</td>
+                    <td>
+                        <span class="status-badge status-<?= $order['status'] ?>">
+                            <?= $order['status'] ?>
+                        </span>
+                    </td>
+                    <td>
+                        <a href="order_details.php?id=<?= $order['id'] ?>" class="btn-edit">
+                            <i class="fa-solid fa-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </tbody>
+    </table>
 </div>
 
 <div class="card">
@@ -86,3 +167,48 @@
         </table>
     </div>
 </div>
+
+<script>
+if (typeof Chart !== 'undefined') {
+    const ctx = document.getElementById('myChart').getContext('2d');
+    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, 'rgba(54, 162, 235, 0.4)');
+    gradient.addColorStop(1, 'rgba(54, 162, 235, 0)');
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: <?php echo json_encode($final_labels); ?>, // Дні тижня: Пн (07.04)
+            datasets: [{
+                label: 'Продажі за тиждень',
+                data: <?php echo json_encode($final_values); ?>, // Реальні суми
+                borderColor: '#36a2eb',
+                borderWidth: 3,
+                pointBackgroundColor: '#ffffff',
+                pointBorderColor: '#36a2eb',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                fill: true,
+                backgroundColor: gradient,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) { return value.toLocaleString() + ' ₴'; }
+                    }
+                },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+}
+</script>
