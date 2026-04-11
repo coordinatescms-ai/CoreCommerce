@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - <?php echo htmlspecialchars($site_name ?? 'MySite'); ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="/js/chart.umd.js"></script>
     <style>
         :root {
             --primary-color: #2563eb;
@@ -73,7 +74,58 @@
         .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; }
         .form-control { width: 100%; padding: 0.625rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.9rem; }
         .form-control:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
-        
+
+    .recent-orders-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        margin-top: 30px;
+    }
+    .card-header {
+        display: flex;
+        /* ВИПРАВЛЕННЯ: притискаємо все вліво */
+        justify-content: flex-start; 
+        align-items: center;
+        margin-bottom: 20px;
+        /* Додаємо відступ між заголовком і посиланням */
+        gap: 20px; 
+    }
+    .card-header h3 { 
+        margin: 0; 
+        font-size: 18px; 
+        color: #334155; 
+        /* Гарантуємо, що текст всередині h3 теж зліва */
+        text-align: left; 
+    }
+    .view-all { 
+        color: #36a2eb; 
+        text-decoration: none; 
+        font-size: 14px; 
+        font-weight: 600; 
+    }
+
+    .admin-table { 
+        width: 100%; 
+        border-collapse: collapse; 
+        /* Додаємо на всякий випадок */
+        text-align: left; 
+    }
+    .admin-table th { 
+        text-align: left; 
+        padding: 12px; 
+        border-bottom: 2px solid #f1f5f9; 
+        color: #64748b; 
+        font-size: 14px; 
+    }
+    .admin-table td { 
+        text-align: left; 
+        padding: 12px; 
+        border-bottom: 1px solid #f1f5f9; 
+        color: #334155; 
+        font-size: 14px; 
+    }
+
         @media (max-width: 768px) {
             .sidebar { transform: translateX(-100%); }
             .main-content { margin-left: 0; width: 100%; }

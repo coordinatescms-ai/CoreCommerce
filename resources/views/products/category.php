@@ -85,7 +85,7 @@ if (!function_exists('renderCategorySidebarAccordion')) {
                     <svg class="breadcrumb-home-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                         <path d="M3 10.5L12 3L21 10.5V20A1 1 0 0 1 20 21H4A1 1 0 0 1 3 20V10.5Z" stroke="currentColor" stroke-width="1.8"/>
                     </svg>
-                    <span>Головна</span>
+                    <span><?= __('breadcrumb_home') ?></span>
                 </a>
             </li>
             <?php foreach ($breadcrumbs as $index => $crumb): ?>
