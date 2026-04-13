@@ -251,6 +251,13 @@ class AdminController
             'media_apply_watermark' => ['group' => 'media', 'type' => 'checkbox'],
             'media_watermark_position' => ['group' => 'media', 'type' => 'select'],
             'media_watermark_path' => ['group' => 'media', 'type' => 'text'],
+            'seo_title_template' => ['group' => 'seo', 'type' => 'text'],
+            'seo_desc_template' => ['group' => 'seo', 'type' => 'textarea'],
+            'site_timezone' => ['group' => 'general', 'type' => 'text'],
+            'smtp_pass' => ['group' => 'general', 'type' => 'text'],
+            'smtp_port' => ['group' => 'general', 'type' => 'text'],
+            'smtr' => ['group' => 'general', 'type' => 'text'],
+            'nova_poshta_api_key' => ['group' => 'general', 'type' => 'text'],
         ];
     }
 }
