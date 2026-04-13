@@ -126,6 +126,48 @@
         font-size: 14px; 
     }
 
+    .settings-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        margin-bottom: 25px;
+    }
+    .grid-inputs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    .input-group { margin-bottom: 15px; }
+    .input-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #334155; }
+    .input-group input, .input-group textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+    }
+    .hint { font-size: 12px; color: #64748b; margin-top: 5px; }
+    code { background: #f1f5f9; padding: 2px 4px; border-radius: 4px; color: #e11d48; }
+
+    .custom-select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        background-color: #fff;
+        color: #334155;
+        cursor: pointer;
+        appearance: none; /* Прибираємо стандартну стрілку браузера */
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://w3.org' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        background-size: 16px;
+    }
+    .custom-select:focus {
+        border-color: #36a2eb;
+        outline: none;
+    }
+
         @media (max-width: 768px) {
             .sidebar { transform: translateX(-100%); }
             .main-content { margin-left: 0; width: 100%; }

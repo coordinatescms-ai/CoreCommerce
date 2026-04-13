@@ -51,6 +51,85 @@
         </div>
     </div>
 
+<!-- Секція Локалізація -->
+<div class="settings-card">
+    <div class="card-header">
+        <h3><i class="fa-solid fa-clock"></i> Регіональні налаштування</h3>
+    </div>
+    <div class="grid-inputs">
+        <div class="input-group">
+            <label>Часовий пояс (Timezone)</label>
+            <select name="settings[site_timezone]" id="site_timezone" class="custom-select">
+                <option value="Europe/Kiev" <?php echo get_setting('site_timezone', 'Europe/Kiev') === 'Europe/Kiev' ? 'selected' : ''; ?>>Kyiv (GMT+2 / GMT+3)</option>
+                <option value="Europe/London" <?php echo get_setting('site_timezone', 'Europe/London') === 'Europe/London' ? 'selected' : ''; ?>>London (GMT+0 / GMT+1)</option>
+                <option value="Europe/Warsaw">Warsaw (GMT+1 / GMT+2)</option>
+                <option value="UTC">Universal Time (UTC)</option>
+            </select>
+            <small class="hint">Впливає на відображення дати та часу в замовленнях.</small>
+        </div>
+        <div class="input-group">
+            <label>Формат дати</label>
+            <input type="text" name="date_format" value="d.m.Y H:i" placeholder="d.m.Y H:i">
+            <p class="hint">Наприклад: <code>11.04.2024 15:30</code></p>
+        </div>
+    </div>
+</div>
+
+<!-- Секція SMTP -->
+<div class="settings-card">
+    <div class="card-header">
+        <h3><i class="fa-solid fa-envelope"></i> Налаштування пошти (SMTP)</h3>
+    </div>
+    <div class="grid-inputs">
+        <div class="input-group">
+            <label>SMTP Хост</label>
+            <input type="text" id="smtp" name="settings[smtr]" value="<?php echo htmlspecialchars(get_setting('smtr', '')); ?>">
+        </div>
+        <div class="input-group">
+            <label>Порт</label>
+            <input type="number" id="smtp_port" name="settings[smtp_port]" value="<?php echo htmlspecialchars(get_setting('smtp_port', '')); ?>">
+        </div>
+        <div class="input-group">
+            <label>Користувач (Email)</label>
+            <input type="email" id="email" name="settings[email]" value="<?php echo htmlspecialchars(get_setting('email', '')); ?>">
+        </div>
+        <div class="input-group">
+            <label>Пароль</label>
+            <input type="password" id="smtp_pass" name="settings[smtp_pass]" value="<?php echo htmlspecialchars(get_setting('smtp_pass', '')); ?>">
+        </div>
+    </div>
+</div>
+
+<!-- Секція Доставка -->
+<div class="settings-card">
+    <div class="card-header">
+        <h3><i class="fa-solid fa-truck"></i> Інтеграція з Новою Поштою</h3>
+    </div>
+    <div class="input-group">
+        <label>API Ключ Нової Пошти</label>
+        <input type="text" id="nova_poshta_api_key" name="settings[nova_poshta_api_key]" value="<?php echo htmlspecialchars(get_setting('nova_poshta_api_key', '')); ?>">
+        <small class="hint">Потрібен для автоматичного створення ТТН та вибору відділень.</small>
+    </div>
+</div>
+
+<!-- Секція SEO -->
+<div class="settings-card">
+    <div class="card-header">
+        <h3><i class="fa-solid fa-search"></i> SEO-шаблони для товарів</h3>
+    </div>
+    <div class="input-group">
+        <label>Шаблон Title</label>
+        <input type="text" id="seo_title_template" name="settings[seo_title_template]" value="<?php echo htmlspecialchars(get_setting('seo_title_template', '')); ?>">
+        <p class="hint">Доступні маски: <code>{name}</code>, <code>{price}</code>, <code>{category}</code></p>
+    </div>
+    <div class="input-group">
+        <label>Шаблон Description</label>
+        <textarea id="seo_desc_template" name="settings[seo_desc_template]" rows="3"><?php echo htmlspecialchars(get_setting('seo_desc_template', '')); ?></textarea>
+        <p class="hint">Якщо для конкретного товару відсутнє seo-налаштування, тоді застосовуються автоматичні шаблони для всіх товарів</p>
+    </div>
+
+</div>
+
     <div class="card">
         <div class="card-header">
             <i class="fas fa-palette"></i> Зовнішній вигляд
