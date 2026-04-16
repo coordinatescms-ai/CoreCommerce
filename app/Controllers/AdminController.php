@@ -52,6 +52,32 @@ class AdminController
         $recentOrders = [];
     }
 
+    // 1. Створюємо список останніх 7 днів (для заповнення нулями, якщо продажів не було)
+    $week_data = [];
+    for ($i = 6; $i >= 0; $i--) {
+        $date = date('Y-m-d', strtotime("-$i days"));
+        $week_data[$date] = [
+            'label' => date('d.m', strtotime($date)), // формат 11.04
+            'day_name' => '', 
+            'sum' => 0
+        ];
+    }
+
+    // Масив назв днів тижня
+    $days_ua = ['Нд', 'Пн', 'Вв', 'Ср', 'Чт', 'Пт', 'Сб'];
+
+    // 3. Об'єднуємо дані
+    $final_labels = [];
+    $final_values = [];
+
+    foreach ($week_data as $date => $info) {
+        $sum = $results[$date] ?? 0; // Якщо дати немає в базі, ставимо 0
+        $day_index = date('w', strtotime($date));
+    
+        $final_labels[] = $days_ua[$day_index] . ' (' . $info['label'] . ')';
+        $final_values[] = (float)$sum;  
+    }
+
         $stats = [
             'users_count' => User::count(),
             'orders_count' => 0,
@@ -62,8 +88,10 @@ class AdminController
         View::render('admin/dashboard', [
         'stats' => $stats,
         'chartData' => $results,  // Передаємо дані для графіка
-        'recentOrders' => $recentOrders
-    ], 'admin');
+        'recentOrders' => $recentOrders,
+        'final_labels' => $final_labels,
+        'final_values' => $final_values
+        ], 'admin');
     }
 
     public function settings()
@@ -78,6 +106,111 @@ class AdminController
             'settings' => $settings,
             'themes' => $themes,
         ], 'admin');
+    }
+
+    public function analytics($period)
+    {
+        $this->checkAdmin();
+    
+        $title_text = ""; // Початкове значення
+        $period = $period;
+        $labels = [];
+        $values = [];
+        $popular_products = [];
+
+        // Масиви для перекладу
+       $months_ua = ['01'=>'Січ','02'=>'Лют','03'=>'Бер','04'=>'Квіт','05'=>'Трав','06'=>'Черв','07'=>'Лип','08'=>'Серп','09'=>'Вер','10'=>'Жовт','11'=>'Лист','12'=>'Груд'];
+       $days_ua = [0=>'Нд', 1=>'Пн', 2=>'Вв', 3=>'Ср', 4=>'Чт', 5=>'Пт', 6=>'Сб'];
+       // Додаємо кількість замовлень для кожного дня
+
+switch ($period) {
+    case 'year':
+        // Запит за останні 12 місяців
+        $title_text = "Продажі за останні 12 місяців";
+        $stmt = DB::query("SELECT DATE_FORMAT(created_at, '%m') as m_num, SUM(total) as rev, COUNT(id) as cnt 
+                  FROM orders WHERE created_at >= DATE_SUB(NOW(), INTERVAL 1 YEAR) 
+                  AND status = 'completed' GROUP BY m_num ORDER BY MIN(created_at) ASC");
+        break;
+    case 'month':
+        // За останні 30 днів (групуємо по днях)
+        $title_text = "Продажі за останні 30 днів";
+        $stmt = DB::query("SELECT DATE_FORMAT(created_at, '%d.%m') as day_label, SUM(total) as rev, COUNT(id) as cnt 
+                  FROM orders WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) 
+                  AND status = 'completed' GROUP BY DATE(created_at), day_label ORDER BY DATE(created_at) ASC");
+        break;
+    default: // week
+        // За останні 7 днів (використовуємо дні тижня)
+        $title_text = "Продажі за поточний тиждень";
+        $stmt = DB::query("SELECT (DAYOFWEEK(created_at)-1) as d_idx, DATE_FORMAT(created_at, '%d.%m') as d_date, SUM(total) as rev, COUNT(id) as cnt 
+                  FROM orders WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) 
+                  AND status = 'completed' GROUP BY d_idx, d_date, DATE(created_at) ORDER BY DATE(created_at) ASC");
+        break;
+}
+
+        $db_data = $stmt->fetchAll();
+
+        foreach ($db_data as $row) {
+            if ($period == 'year') {
+                $labels[] = $months_ua[$row['m_num']];
+            } elseif ($period == 'month') {
+                $labels[] = $row['day_label'];
+            } else {
+                $labels[] = $days_ua[$row['d_idx']] . ' (' . $row['d_date'] . ')';
+            }
+                $values[] = (float)$row['rev'];
+                $counts[] = (int)$row['cnt'];
+        }
+
+         // Якщо даних немає, ініціалізуємо порожніми значеннями для Chart.js
+        if (empty($db_data)) { 
+            $labels = ['Немає даних']; 
+            $values = [0]; 
+            $counts = [0]; 
+        }
+
+        // Використовуємо той самий $period, що і для графіка
+        switch ($period) {
+            case 'year':  $interval = "INTERVAL 1 YEAR"; break;
+            case 'month': $interval = "INTERVAL 30 DAY"; break;
+            default:      $interval = "INTERVAL 7 DAY"; break;
+        }
+
+        $stmt = DB::query("SELECT 
+    p.id, 
+    p.name, 
+    SUM(oi.qty) as total_qty, 
+    SUM(oi.price * oi.qty) as total_revenue
+FROM order_items oi
+JOIN orders o ON oi.order_id = o.id
+JOIN products p ON oi.product_id = p.id
+WHERE o.created_at >= DATE_SUB(NOW(), $interval) 
+  AND o.status != 'canceled'
+GROUP BY p.id, p.name
+ORDER BY total_revenue DESC
+LIMIT 5");
+
+        $popular_products = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        // 1. ПІДСТАВЛЯЄМО ДАНІ (Тимчасово замість SQL)
+        $popular_products = [
+            ['id' => 1, 'name' => 'Тестовий товар №1', 'total_qty' => 10, 'total_revenue' => 5000.00],
+            ['id' => 2, 'name' => 'Популярний гаджет', 'total_qty' => 5, 'total_revenue' => 12500.50]
+        ];   
+
+        // Дані для таблиці (PHP використовує їх у foreach)
+        // Це для прикладу, в майбутньому видалити цих два рядка
+        $labels = ['Пн', 'Вв', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'];
+        $values = [12500, 18200, 14000, 25000, 21000, 32000, 28500];
+        // Це для прикладу, в майбутньому видалити цей рядок
+        $counts = [5, 8, 4, 12, 7, 15, 10];
+        $title_text = "Демонстраційний звіт (Тестові дані)";
+
+        View::render('admin/analytics/index', ['title_text' => $title_text,
+            'labels' => $labels,
+            'values' => $values,
+            'counts' => $counts,
+            'popular_products' => $popular_products],
+            'admin');
     }
 
     public function settingsTab($tab)

@@ -68,6 +68,9 @@ $router->get('/admin/settings', [AdminController::class, 'settings']);
 $router->post('/admin/settings/save', [AdminController::class, 'saveSettings']);
 $router->get('/admin/settings/tab/{tab}', [AdminController::class, 'settingsTab']);
 
+// Перегляд аналітики продажів в адмінці
+$router->get('/admin/analytics/{period}', [AdminController::class, 'analytics']);
+
 // Управління товарами в адмінці
 $router->get('/admin/products', [AdminProductController::class, 'index']);
 $router->get('/admin/products/create', [AdminProductController::class, 'create']);
