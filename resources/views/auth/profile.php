@@ -34,7 +34,10 @@
         
         <div class="profile-actions">
             <a href="/profile/edit" class="btn btn-primary"><?php echo __('edit_profile'); ?></a>
-            <a href="/logout" class="btn btn-danger"><?php echo __('logout'); ?></a>
+            <form action="/logout" method="POST" style="display:inline-block;">
+                <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf'] ?? ''); ?>">
+                <button type="submit" class="btn btn-danger"><?php echo __('logout'); ?></button>
+            </form>
         </div>
     </div>
 </div>

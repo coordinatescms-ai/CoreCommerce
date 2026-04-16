@@ -67,6 +67,7 @@
                                         <td class="fw-bold"><?php echo number_format($item["total_price"], 2); ?> грн</td>
                                         <td class="text-end">
                                             <form action="/cart/remove/<?php echo $item["product_id"]; ?>" method="POST" class="d-inline">
+                                                <input type="hidden" name="_method" value="DELETE">
                                                 <input type="hidden" name="csrf" value="<?php echo $csrf; ?>">
                                                 <button type="submit" class="btn btn-sm btn-outline-danger" title="<?php echo __('remove'); ?>">
                                                     <i class="bi bi-trash"></i>
@@ -85,6 +86,7 @@
                         <i class="bi bi-arrow-left me-2"></i><?php echo __('continue_shopping'); ?>
                     </a>
                     <form action="/cart/clear" method="POST">
+                        <input type="hidden" name="_method" value="DELETE">
                         <input type="hidden" name="csrf" value="<?php echo $csrf; ?>">
                         <button type="submit" class="btn btn-outline-danger">
                             <i class="bi bi-x-circle me-2"></i><?php echo __('clear_cart'); ?>

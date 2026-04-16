@@ -28,8 +28,8 @@ $router->get('/category/{slug}',[ProductController::class,'showCategory']);
 $router->get('/cart',[CartController::class,'index']);
 $router->post('/cart/add/{id}',[CartController::class,'add']);
 $router->post('/cart/update',[CartController::class,'update']);
-$router->post('/cart/remove/{id}',[CartController::class,'remove']);
-$router->post('/cart/clear',[CartController::class,'clear']);
+$router->delete('/cart/remove/{id}',[CartController::class,'remove']);
+$router->delete('/cart/clear',[CartController::class,'clear']);
 
 $router->get('/checkout',[OrderController::class,'checkout']);
 $router->post('/place-order',[OrderController::class,'placeOrder']);
@@ -47,7 +47,7 @@ $router->post('/login',[AuthController::class,'login']);
 $router->get('/register',[AuthController::class,'showRegister']);
 $router->post('/register',[AuthController::class,'register']);
 $router->get('/verify-email/{token}', [AuthController::class, 'verifyEmail']);
-$router->get('/logout',[AuthController::class,'logout']);
+$router->post('/logout',[AuthController::class,'logout']);
 $router->get('/forgot-password',[AuthController::class,'showForgotPassword']);
 $router->post('/forgot-password',[AuthController::class,'forgotPassword']);
 $router->get('/reset-password/{token}',[AuthController::class,'showResetPassword']);
@@ -80,7 +80,7 @@ $router->get('/admin/products/edit/{id}', [AdminProductController::class, 'edit'
 $router->get('/admin/products/show/{id}', [AdminProductController::class, 'show']);
 $router->post('/admin/products/update/{id}', [AdminProductController::class, 'update']);
 $router->post('/admin/products/set-main-image/{id}', [AdminProductController::class, 'setMainImage']);
-$router->post('/admin/products/delete/{id}', [AdminProductController::class, 'delete']);
+$router->delete('/admin/products/delete/{id}', [AdminProductController::class, 'delete']);
 
 // Управління категоріями в адмінці
 $router->get('/admin/categories', [AdminCategoryController::class, 'index']);
@@ -88,7 +88,7 @@ $router->get('/admin/categories/create', [AdminCategoryController::class, 'creat
 $router->post('/admin/categories/store', [AdminCategoryController::class, 'store']);
 $router->get('/admin/categories/edit/{id}', [AdminCategoryController::class, 'edit']);
 $router->post('/admin/categories/update/{id}', [AdminCategoryController::class, 'update']);
-$router->post('/admin/categories/delete/{id}', [AdminCategoryController::class, 'delete']);
+$router->delete('/admin/categories/delete/{id}', [AdminCategoryController::class, 'delete']);
 
 // Управління атрибутами в адмінці
 $router->get('/admin/attributes', [AdminAttributeController::class, 'index']);
@@ -96,7 +96,7 @@ $router->get('/admin/attributes/create', [AdminAttributeController::class, 'crea
 $router->post('/admin/attributes/store', [AdminAttributeController::class, 'store']);
 $router->get('/admin/attributes/edit/{id}', [AdminAttributeController::class, 'edit']);
 $router->post('/admin/attributes/update/{id}', [AdminAttributeController::class, 'update']);
-$router->post('/admin/attributes/delete/{id}', [AdminAttributeController::class, 'delete']);
+$router->delete('/admin/attributes/delete/{id}', [AdminAttributeController::class, 'delete']);
 
 // Управління темами в адмінці
 $router->get('/admin/themes', [AdminThemeController::class, 'index']);
@@ -105,6 +105,6 @@ $router->get('/admin/themes', [AdminThemeController::class, 'index']);
 $router->get('/admin/users', [AdminUserController::class, 'index']);
 $router->get('/admin/users/edit/{id}', [AdminUserController::class, 'edit']);
 $router->post('/admin/users/update/{id}', [AdminUserController::class, 'update']);
-$router->post('/admin/users/delete/{id}', [AdminUserController::class, 'delete']);
+$router->delete('/admin/users/delete/{id}', [AdminUserController::class, 'delete']);
 
 return $router;

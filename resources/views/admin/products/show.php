@@ -87,6 +87,7 @@
 
 <div style="margin-bottom: 2rem; display: flex; justify-content: flex-end;">
     <form action="/admin/products/delete/<?php echo (int)$product['id']; ?>" method="POST" style="margin: 0;" onsubmit="return confirm('Ви впевнені, що хочете видалити цей товар?')">
+        <input type="hidden" name="_method" value="DELETE">
         <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf']); ?>">
         <button
             type="submit"
