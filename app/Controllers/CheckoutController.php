@@ -1,14 +1,13 @@
 <?php
 namespace App\Controllers;
 use App\Core\Database\DB;
+use App\Core\Http\Csrf;
 
 class CheckoutController{
 function index(){return "Checkout";}
 function process(){
         // 🔐 CSRF CHECK
-        if (!isset($_POST['csrf']) || $_POST['csrf'] !== $_SESSION['csrf']) {
-            die('CSRF token mismatch');
-        }
+        Csrf::abortIfInvalid('CSRF token mismatch');
 $cart=$_SESSION['cart']??[];
 $user=$_SESSION['user']??null;
 if(!$user)return "Login required";

@@ -258,7 +258,12 @@
             </div>
             <div class="user-nav">
                 <span>Привіт, <strong><?php echo htmlspecialchars($_SESSION['user']['first_name']); ?></strong></span>
-                <a href="/logout"><i class="fas fa-sign-out-alt"></i> Вийти</a>
+                <form action="/logout" method="POST" style="display:inline-block; margin:0;">
+                    <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf'] ?? ''); ?>">
+                    <button type="submit" class="btn btn-link" style="padding:0; border:none; background:none; color:inherit; cursor:pointer;">
+                        <i class="fas fa-sign-out-alt"></i> Вийти
+                    </button>
+                </form>
             </div>
         </header>
 
