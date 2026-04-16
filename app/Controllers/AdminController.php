@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Core\View\View;
+use App\Core\Http\Csrf;
 use App\Models\User;
 use App\Models\Setting;
 use App\Core\Database\DB;
@@ -234,7 +235,7 @@ LIMIT 5");
     {
         $this->checkAdmin();
 
-        if (empty($_POST['csrf']) || $_POST['csrf'] !== ($_SESSION['csrf'] ?? null)) {
+        if (!Csrf::isValid()) {
             $_SESSION['error'] = 'CSRF token validation failed';
             header('Location: /admin/settings');
             exit;

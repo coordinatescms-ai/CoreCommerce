@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Core\View\View;
+use App\Core\Http\Csrf;
 use App\Models\Category;
 use App\Services\SlugHelper;
 
@@ -10,12 +11,7 @@ class AdminCategoryController
 {
     private function validateCsrfOrAbort()
     {
-        $sessionToken = $_SESSION['csrf'] ?? '';
-        $requestToken = $_POST['csrf'] ?? '';
-
-        if (!is_string($sessionToken) || !is_string($requestToken) || $sessionToken === '' || !hash_equals($sessionToken, $requestToken)) {
-            die('CSRF validation failed');
-        }
+        Csrf::abortIfInvalid();
     }
 
     private function checkAdmin()

@@ -123,7 +123,10 @@
             <span class="nav-separator">|</span>
             <?php if (!empty($_SESSION['user'])): ?>
                 <a href="/profile"><?= $_SESSION['user']['first_name'] ?? $_SESSION['user']['email'] ?></a> |
-                <a href="/logout"><?= __('logout') ?></a>
+                <form action="/logout" method="POST" style="display: inline;">
+                    <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
+                    <button type="submit" style="border: none; background: none; padding: 0; color: inherit; cursor: pointer; text-decoration: underline;"><?= __('logout') ?></button>
+                </form>
             <?php else: ?>
                 <a href="/login"><?= __('login') ?></a> |
                 <a href="/register"><?= __('register') ?></a>

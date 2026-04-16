@@ -41,6 +41,7 @@
                                 <i class="fas fa-edit"></i>
                             </a>
                             <form action="/admin/categories/delete/<?php echo (int)$category['id']; ?>" method="POST" style="display: inline-block; margin: 0;" onsubmit="return confirm('Ви впевнені, що хочете видалити цю категорію?')">
+                                <input type="hidden" name="_method" value="DELETE">
                                 <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf']); ?>">
                                 <button type="submit" class="btn btn-outline" style="border: 1px solid #ddd; color: #ef4444;">
                                     <i class="fas fa-trash"></i>

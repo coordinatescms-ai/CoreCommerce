@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Core\View\View;
+use App\Core\Http\Csrf;
 use App\Models\Cart;
 use App\Models\Product;
 
@@ -10,12 +11,7 @@ class CartController
 {
     private function validateCsrfOrAbort()
     {
-        $sessionToken = $_SESSION['csrf'] ?? '';
-        $requestToken = $_POST['csrf'] ?? '';
-
-        if (!is_string($sessionToken) || !is_string($requestToken) || $sessionToken === '' || !hash_equals($sessionToken, $requestToken)) {
-            die('CSRF token mismatch');
-        }
+        Csrf::abortIfInvalid('CSRF token mismatch');
     }
 
     /**
@@ -29,7 +25,7 @@ class CartController
         return View::render('cart.index', [
             'items' => $items,
             'total' => $total,
-            'csrf' => $_SESSION['csrf'] ?? ''
+            'csrf' => Csrf::token()
         ]);
     }
 

@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Core\View\View;
+use App\Core\Http\Csrf;
 use App\Models\User;
 use App\Core\Mail\MailService;
 
@@ -29,7 +30,7 @@ class AuthController
     public function login()
     {
         // Перевірити CSRF токен
-        if (empty($_POST['csrf']) || $_POST['csrf'] !== $_SESSION['csrf']) {
+        if (!Csrf::isValid()) {
             return 'CSRF token validation failed';
         }
 
@@ -106,7 +107,7 @@ class AuthController
     public function register()
     {
         // Перевірити CSRF токен
-        if (empty($_POST['csrf']) || $_POST['csrf'] !== $_SESSION['csrf']) {
+        if (!Csrf::isValid()) {
             return 'CSRF token validation failed';
         }
 
@@ -201,6 +202,13 @@ class AuthController
      */
     public function logout()
     {
+        if (!Csrf::isValid()) {
+            http_response_code(419);
+            $_SESSION['error'] = 'CSRF token validation failed';
+            header('Location: /');
+            exit;
+        }
+
         // Видалити токен запам'ятовування з бази даних
         if (!empty($_COOKIE['user_id'])) {
             User::clearRememberToken($_COOKIE['user_id']);
@@ -231,7 +239,7 @@ class AuthController
     public function forgotPassword()
     {
         // Перевірити CSRF токен
-        if (empty($_POST['csrf']) || $_POST['csrf'] !== $_SESSION['csrf']) {
+        if (!Csrf::isValid()) {
             return 'CSRF token validation failed';
         }
 
@@ -306,7 +314,7 @@ class AuthController
     public function resetPassword()
     {
         // Перевірити CSRF токен
-        if (empty($_POST['csrf']) || $_POST['csrf'] !== $_SESSION['csrf']) {
+        if (!Csrf::isValid()) {
             return 'CSRF token validation failed';
         }
 

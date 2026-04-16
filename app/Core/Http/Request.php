@@ -1,1 +1,1 @@
-<?php namespace App\Core\Http; class Request{static function capture(){return new static;} function method(){return $_SERVER['REQUEST_METHOD'];} function uri(){return strtok($_SERVER['REQUEST_URI'],'?');}}
+<?php namespace App\Core\Http; class Request{static function capture(){return new static;} function method(){$method=$_SERVER['REQUEST_METHOD']??'GET';if($method==='POST'){$_method=strtoupper((string)($_POST['_method']??''));if(in_array($_method,['PUT','PATCH','DELETE'],true))return $_method;}return $method;} function uri(){return strtok($_SERVER['REQUEST_URI'],'?');}}

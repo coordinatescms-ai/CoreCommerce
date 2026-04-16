@@ -559,7 +559,12 @@
                 </div>
                 <?php if (!empty($_SESSION['user'])): ?>
                     <a href="/profile"><?php echo function_exists('__') ? __('profile') : 'Profile'; ?> (<?php echo htmlspecialchars($_SESSION['user']['first_name'] ?? $_SESSION['user']['email']); ?>)</a>
-                    <a href="/logout"><?php echo function_exists('__') ? __('logout') : 'Logout'; ?></a>
+                    <form action="/logout" method="POST" style="display:inline;">
+                        <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf'] ?? ''); ?>">
+                        <button type="submit" style="border:none; background:none; color:inherit; cursor:pointer; padding:0; text-decoration:underline;">
+                            <?php echo function_exists('__') ? __('logout') : 'Logout'; ?>
+                        </button>
+                    </form>
                 <?php else: ?>
                     <a href="/login"><?php echo function_exists('__') ? __('login') : 'Login'; ?></a>
                     <a href="/register"><?php echo function_exists('__') ? __('register') : 'Register'; ?></a>

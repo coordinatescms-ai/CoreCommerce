@@ -65,6 +65,7 @@
                                 style="display: inline-block; margin: 0;"
                                 onsubmit="return confirm('Ви впевнені, що хочете видалити цей товар?')"
                             >
+                                <input type="hidden" name="_method" value="DELETE">
                                 <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf']); ?>">
                                 <button
                                     type="submit"
