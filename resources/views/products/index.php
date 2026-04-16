@@ -21,7 +21,7 @@
                 <?php foreach($products as $p): ?>
                     <div style="border: 1px solid #ddd; padding: 1rem; border-radius: 4px; background: #fff;">
                         <?php if (!empty($p['image'])): ?>
-                            <img src="<?= htmlspecialchars($p['image']) ?>" alt="<?= htmlspecialchars($p['name']) ?>" style="width: 100%; height: auto; margin-bottom: 0.5rem;">
+                            <img src="<?= htmlspecialchars(product_image_variant_path((string) $p['image'], 'medium')) ?>" alt="<?= htmlspecialchars($p['name']) ?>" style="width: 100%; height: auto; margin-bottom: 0.5rem;">
                         <?php endif; ?>
                         <h3 style="margin-top: 0.25rem;"><a href="/product/<?= htmlspecialchars($p['slug']) ?>" style="text-decoration: none; color: #333;"><?= htmlspecialchars($p['name']) ?></a></h3>
                         <p><strong><?= htmlspecialchars($p['price']) ?> грн</strong></p>

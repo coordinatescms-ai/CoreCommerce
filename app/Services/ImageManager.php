@@ -24,101 +24,105 @@ class ImageManager
             throw new \RuntimeException('Дозволені формати зображень: jpg, jpeg, png, webp.');
         }
 
-        $resource = $this->createResourceFromFile($tmpName, $mime);
-        if (!$resource) {
-            throw new \RuntimeException('Не вдалося відкрити файл зображення.');
-        }
-
-        $width = imagesx($resource);
-        $height = imagesy($resource);
-        if ($width <= 0 || $height <= 0) {
-            imagedestroy($resource);
-            throw new \RuntimeException('Некоректні розміри зображення.');
-        }
-
-        $quality = (int) ($config['quality'] ?? 82);
-        $quality = max(10, min(100, $quality));
-
-        $thumbMaxWidth = max(1, (int) ($config['thumb_width'] ?? 200));
-        $mediumMaxWidth = max(1, (int) ($config['medium_width'] ?? 800));
-        $convertToWebp = !isset($config['auto_webp']) || (int) $config['auto_webp'] === 1;
-
-        $watermarkPath = (string) ($config['watermark_path'] ?? '');
-        $applyWatermark = !empty($config['apply_watermark']) && $watermarkPath !== '';
-
-        $baseName = str_replace('.', '', uniqid('product_', true));
-        $baseDir = '/uploads/products/gallery';
-
-        $targetDirs = [
-            'original' => $this->publicRoot . $baseDir . '/original/',
-            'medium' => $this->publicRoot . $baseDir . '/medium/',
-            'thumb' => $this->publicRoot . $baseDir . '/thumb/',
-        ];
-
-        foreach ($targetDirs as $dir) {
-            if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
-                imagedestroy($resource);
-                throw new \RuntimeException('Не вдалося створити директорію для зображень.');
-            }
-        }
-
-        $resultPaths = [];
         try {
-            $originalResource = $this->cloneResource($resource, $width, $height);
-            if ($applyWatermark) {
-                $this->applyWatermark($originalResource, $watermarkPath, (string) ($config['watermark_position'] ?? 'bottom-right'));
+            $resource = $this->createResourceFromFile($tmpName, $mime);
+            if (!$resource) {
+                throw new \RuntimeException('Не вдалося відкрити файл зображення.');
             }
-            $resultPaths['original'] = $this->saveResource(
-                $originalResource,
-                $targetDirs['original'] . $baseName,
-                $mime,
-                $convertToWebp,
-                $quality,
-                $baseDir . '/original/'
-            );
-            imagedestroy($originalResource);
 
-            $mediumResource = $this->resizeResource($resource, $width, $height, $mediumMaxWidth);
-            if ($applyWatermark) {
-                $this->applyWatermark($mediumResource, $watermarkPath, (string) ($config['watermark_position'] ?? 'bottom-right'));
+            $width = imagesx($resource);
+            $height = imagesy($resource);
+            if ($width <= 0 || $height <= 0) {
+                imagedestroy($resource);
+                throw new \RuntimeException('Некоректні розміри зображення.');
             }
-            $resultPaths['medium'] = $this->saveResource(
-                $mediumResource,
-                $targetDirs['medium'] . $baseName,
-                $mime,
-                $convertToWebp,
-                $quality,
-                $baseDir . '/medium/'
-            );
-            imagedestroy($mediumResource);
 
-            $thumbResource = $this->resizeResource($resource, $width, $height, $thumbMaxWidth);
-            if ($applyWatermark) {
-                $this->applyWatermark($thumbResource, $watermarkPath, (string) ($config['watermark_position'] ?? 'bottom-right'));
-            }
-            $resultPaths['thumb'] = $this->saveResource(
-                $thumbResource,
-                $targetDirs['thumb'] . $baseName,
-                $mime,
-                $convertToWebp,
-                $quality,
-                $baseDir . '/thumb/'
-            );
-            imagedestroy($thumbResource);
-        } catch (\Throwable $e) {
-            foreach ($resultPaths as $path) {
-                $absolutePath = $this->publicRoot . $path;
-                if (is_file($absolutePath)) {
-                    @unlink($absolutePath);
+            $quality = (int) ($config['quality'] ?? 82);
+            $quality = max(10, min(100, $quality));
+
+            $thumbMaxWidth = max(1, (int) ($config['thumb_width'] ?? 200));
+            $mediumMaxWidth = max(1, (int) ($config['medium_width'] ?? 800));
+            $convertToWebp = !isset($config['auto_webp']) || (int) $config['auto_webp'] === 1;
+
+            $watermarkPath = (string) ($config['watermark_path'] ?? '');
+            $applyWatermark = !empty($config['apply_watermark']) && $watermarkPath !== '';
+
+            $baseName = str_replace('.', '', uniqid('product_', true));
+            $baseDir = '/uploads/products/gallery';
+
+            $targetDirs = [
+                'original' => $this->publicRoot . $baseDir . '/original/',
+                'medium' => $this->publicRoot . $baseDir . '/medium/',
+                'thumb' => $this->publicRoot . $baseDir . '/thumb/',
+            ];
+
+            foreach ($targetDirs as $dir) {
+                if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
+                    imagedestroy($resource);
+                    throw new \RuntimeException('Не вдалося створити директорію для зображень.');
                 }
             }
+
+            $resultPaths = [];
+            try {
+                $originalResource = $this->cloneResource($resource, $width, $height);
+                if ($applyWatermark) {
+                    $this->applyWatermark($originalResource, $watermarkPath, (string) ($config['watermark_position'] ?? 'bottom-right'));
+                }
+                $resultPaths['original'] = $this->saveResource(
+                    $originalResource,
+                    $targetDirs['original'] . $baseName,
+                    $mime,
+                    $convertToWebp,
+                    $quality,
+                    $baseDir . '/original/'
+                );
+                imagedestroy($originalResource);
+
+                $mediumResource = $this->resizeResource($resource, $width, $height, $mediumMaxWidth);
+                if ($applyWatermark) {
+                    $this->applyWatermark($mediumResource, $watermarkPath, (string) ($config['watermark_position'] ?? 'bottom-right'));
+                }
+                $resultPaths['medium'] = $this->saveResource(
+                    $mediumResource,
+                    $targetDirs['medium'] . $baseName,
+                    $mime,
+                    $convertToWebp,
+                    $quality,
+                    $baseDir . '/medium/'
+                );
+                imagedestroy($mediumResource);
+
+                $thumbResource = $this->resizeResource($resource, $width, $height, $thumbMaxWidth);
+                if ($applyWatermark) {
+                    $this->applyWatermark($thumbResource, $watermarkPath, (string) ($config['watermark_position'] ?? 'bottom-right'));
+                }
+                $resultPaths['thumb'] = $this->saveResource(
+                    $thumbResource,
+                    $targetDirs['thumb'] . $baseName,
+                    $mime,
+                    $convertToWebp,
+                    $quality,
+                    $baseDir . '/thumb/'
+                );
+                imagedestroy($thumbResource);
+            } catch (\Throwable $e) {
+                foreach ($resultPaths as $path) {
+                    $absolutePath = $this->publicRoot . $path;
+                    if (is_file($absolutePath)) {
+                        @unlink($absolutePath);
+                    }
+                }
+                imagedestroy($resource);
+                throw $e;
+            }
+
             imagedestroy($resource);
-            throw $e;
+
+            return $resultPaths;
+        } finally {
+            $this->cleanupUploadedTempFile($tmpName);
         }
-
-        imagedestroy($resource);
-
-        return $resultPaths;
     }
 
     private function validateUpload(array $file): void
@@ -282,5 +286,16 @@ class ImageManager
 
         imagecopy($targetImage, $watermark, $x, $y, 0, 0, $wmW, $wmH);
         imagedestroy($watermark);
+    }
+
+    private function cleanupUploadedTempFile(string $tmpName): void
+    {
+        if ($tmpName === '' || !is_file($tmpName)) {
+            return;
+        }
+
+        if (is_uploaded_file($tmpName)) {
+            @unlink($tmpName);
+        }
     }
 }

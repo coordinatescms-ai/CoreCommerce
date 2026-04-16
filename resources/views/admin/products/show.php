@@ -19,7 +19,7 @@
             <div>
                 <?php if (!empty($product['image'])): ?>
                     <img
-                        src="<?php echo htmlspecialchars($product['image']); ?>"
+                        src="<?php echo htmlspecialchars(product_image_variant_path((string) $product['image'], 'thumb')); ?>"
                         alt="<?php echo htmlspecialchars($product['name']); ?>"
                         style="width: 100%; max-width: 220px; border-radius: 8px; border: 1px solid #e2e8f0; object-fit: cover;"
                     >
@@ -32,7 +32,7 @@
                 <?php if (!empty($galleryImages)): ?>
                     <div style="margin-top:0.75rem; display:grid; grid-template-columns: repeat(3, 1fr); gap:0.5rem;">
                         <?php foreach ($galleryImages as $galleryImage): ?>
-                            <img src="<?php echo htmlspecialchars($galleryImage['image_path']); ?>" alt="" style="width:100%; height:64px; object-fit:cover; border-radius:6px; border:1px solid #e2e8f0;">
+                            <img src="<?php echo htmlspecialchars(product_image_variant_path((string) ($galleryImage['image_path'] ?? ''), 'thumb')); ?>" alt="" style="width:100%; height:64px; object-fit:cover; border-radius:6px; border:1px solid #e2e8f0;">
                         <?php endforeach; ?>
                     </div>
                 <?php endif; ?>
