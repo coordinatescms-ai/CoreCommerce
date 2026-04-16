@@ -4,6 +4,7 @@ class Router{
 protected $r=[];
 function get($u,$a){$this->r[]=['GET',$u,$a];}
 function post($u,$a){$this->r[]=['POST',$u,$a];}
+function delete($u,$a){$this->r[]=['DELETE',$u,$a];}
 function match($p,$u,&$pa){$p=preg_replace('#\{([^/]+)\}#','([^/]+)',$p);$p='#^'.$p.'$#';if(preg_match($p,$u,$m)){array_shift($m);$pa=$m;return true;}return false;}
 function dispatch($m,$u){
 foreach($this->r as [$rm,$ru,$ra]){

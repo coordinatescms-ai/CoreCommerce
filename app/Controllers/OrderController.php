@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Core\Database\DB;
+use App\Core\Http\Csrf;
 use App\Core\View\View;
 use App\Models\Cart;
 
@@ -42,7 +43,7 @@ class OrderController
         return View::render('checkout/index', [
             'items' => $items,
             'total' => $total,
-            'csrf' => $_SESSION['csrf'] ?? '',
+            'csrf' => Csrf::token(),
             'user' => $_SESSION['user'] ?? null,
         ]);
     }
@@ -57,10 +58,7 @@ class OrderController
             return;
         }
 
-        $sessionToken = $_SESSION['csrf'] ?? '';
-        $requestToken = $_POST['csrf'] ?? '';
-
-        if (!is_string($sessionToken) || !is_string($requestToken) || $sessionToken === '' || !hash_equals($sessionToken, $requestToken)) {
+        if (!Csrf::isValid()) {
             http_response_code(419);
             echo json_encode(['success' => false, 'message' => 'CSRF токен недійсний']);
             return;
