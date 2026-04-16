@@ -13,8 +13,9 @@ $category = $category ?? null;
             <article class="product-card category-product-card">
                 <a class="category-product-image-link" href="/product/<?= htmlspecialchars($product['slug']) ?>">
                     <?php if (!empty($product['image'])): ?>
+                        <?php $categoryCardImage = product_image_variant_path((string) $product['image'], 'medium'); ?>
                         <img class="product-image category-product-image"
-                             src="<?= htmlspecialchars($product['image']) ?>"
+                             src="<?= htmlspecialchars($categoryCardImage) ?>"
                              alt="<?= htmlspecialchars($product['name']) ?>">
                     <?php else: ?>
                         <div class="category-product-image category-product-image-placeholder"><?= __('products') ?></div>

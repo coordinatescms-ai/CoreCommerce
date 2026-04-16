@@ -24,7 +24,7 @@
                             <div style="display:flex; gap: 0.75rem; align-items: center;">
                                 <?php if (!empty($product['image'])): ?>
                                     <img
-                                        src="<?php echo htmlspecialchars($product['image']); ?>"
+                                        src="<?php echo htmlspecialchars(product_image_variant_path((string) $product['image'], 'thumb')); ?>"
                                         alt="<?php echo htmlspecialchars($product['name']); ?>"
                                         style="width: 52px; height: 52px; border-radius: 6px; object-fit: cover; border: 1px solid #e2e8f0;"
                                     >

@@ -138,7 +138,7 @@
                 <div id="existing-gallery" style="display:grid; grid-template-columns: repeat(auto-fill,minmax(130px,1fr)); gap:0.75rem;">
                     <?php foreach (($galleryImages ?? []) as $galleryImage): ?>
                         <div class="gallery-item" data-gallery-item style="border:1px solid #e2e8f0; border-radius:8px; overflow:hidden; background:#fff;">
-                            <img src="<?php echo htmlspecialchars($galleryImage['image_path']); ?>" alt="" style="width:100%; height:100px; object-fit:cover; display:block;">
+                            <img src="<?php echo htmlspecialchars(product_image_variant_path((string) ($galleryImage['image_path'] ?? ''), 'thumb')); ?>" alt="" style="width:100%; height:100px; object-fit:cover; display:block;">
                             <div style="padding:0.5rem; display:flex; flex-direction:column; gap:0.5rem; align-items:stretch;">
                                 <small style="color:#64748b;">ID: <?php echo (int) $galleryImage['id']; ?></small>
                                 <button
