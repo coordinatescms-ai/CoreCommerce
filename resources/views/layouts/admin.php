@@ -168,6 +168,40 @@
         outline: none;
     }
 
+   .report-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        background: #fff;
+        padding: 15px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    .filter-btn {
+        text-decoration: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        background: #f1f5f9;
+        color: #64748b;
+        font-weight: 500;
+        margin-right: 5px;
+        transition: 0.3s;
+    }
+    .filter-btn.active {
+        background: #36a2eb;
+        color: #fff;
+    }
+    .filter-btn:hover:not(.active) {
+        background: #e2e8f0;
+    }
+    /* Стиль для форми вибору дат */
+    .date-range-form input {
+        padding: 7px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+    }
+
         @media (max-width: 768px) {
             .sidebar { transform: translateX(-100%); }
             .main-content { margin-left: 0; width: 100%; }
@@ -207,6 +241,9 @@
             </a>
             <a href="/admin/settings" class="menu-item <?php echo $request_uri === '/admin/settings' ? 'active' : ''; ?>">
                 <i class="fas fa-cog"></i> Налаштування
+            </a>
+            <a href="/admin/analytics/week" class="menu-item <?php echo $request_uri === '/admin/settings' ? 'active' : ''; ?>">
+                <i class="fas fa-chart-line"></i> Аналітика
             </a>
         </nav>
     </aside>

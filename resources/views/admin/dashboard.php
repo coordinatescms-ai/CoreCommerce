@@ -1,29 +1,5 @@
 <?php
-// 1. Створюємо список останніх 7 днів (для заповнення нулями, якщо продажів не було)
-$week_data = [];
-for ($i = 6; $i >= 0; $i--) {
-    $date = date('Y-m-d', strtotime("-$i days"));
-    $week_data[$date] = [
-        'label' => date('d.m', strtotime($date)), // формат 11.04
-        'day_name' => '', 
-        'sum' => 0
-    ];
-}
 
-// Масив назв днів тижня
-$days_ua = ['Нд', 'Пн', 'Вв', 'Ср', 'Чт', 'Пт', 'Сб'];
-
-// 3. Об'єднуємо дані
-$final_labels = [];
-$final_values = [];
-
-foreach ($week_data as $date => $info) {
-    $sum = $results[$date] ?? 0; // Якщо дати немає в базі, ставимо 0
-    $day_index = date('w', strtotime($date));
-    
-    $final_labels[] = $days_ua[$day_index] . ' (' . $info['label'] . ')';
-    $final_values[] = (float)$sum;  
-}
 ?>
 
 <div class="page-header">
