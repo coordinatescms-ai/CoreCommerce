@@ -15,6 +15,7 @@ use App\Controllers\AuthController;
 use App\Controllers\SocialAuthController;
 use App\Controllers\AdminController;
 use App\Controllers\AdminUserController;
+use App\Controllers\AdminOrderController;
 
 $router = new Router();
 
@@ -70,6 +71,9 @@ $router->get('/admin/settings/tab/{tab}', [AdminController::class, 'settingsTab'
 
 // Перегляд аналітики продажів в адмінці
 $router->get('/admin/analytics/{period}', [AdminController::class, 'analytics']);
+
+// Управління замовленнями в адмінці
+$router->get('/admin/orders', [AdminOrderController::class, 'index']);
 
 // Управління товарами в адмінці
 $router->get('/admin/products', [AdminProductController::class, 'index']);

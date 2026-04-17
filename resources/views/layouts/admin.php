@@ -218,7 +218,7 @@
             <a href="/admin" class="menu-item <?php echo $request_uri === '/admin' ? 'active' : ''; ?>">
                 <i class="fas fa-tachometer-alt"></i> Dashboard
             </a>
-            <a href="/admin/orders" class="menu-item">
+            <a href="/admin/orders" class="menu-item <?php echo strpos($request_uri, '/admin/orders') === 0 ? 'active' : ''; ?>">
                 <i class="fas fa-shopping-bag"></i> Замовлення
             </a>
             <a href="/admin/products" class="menu-item">
