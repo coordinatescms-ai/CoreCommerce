@@ -202,6 +202,19 @@
         border-radius: 6px;
     }
 
+    /* Додаткові стилі для залишків */
+    .stock-label {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    .low-stock { background: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; }
+    .out-of-stock { background: #fef2f2; color: #dc2626; border: 1px solid #fee2e2; }
+    
+    .btn-edit { color: #64748b; font-size: 18px; text-decoration: none; }
+    .btn-edit:hover { color: #36a2eb; }
+
         @media (max-width: 768px) {
             .sidebar { transform: translateX(-100%); }
             .main-content { margin-left: 0; width: 100%; }

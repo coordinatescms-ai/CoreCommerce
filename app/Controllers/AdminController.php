@@ -118,35 +118,36 @@ class AdminController
         $labels = [];
         $values = [];
         $popular_products = [];
+        $low_stock_products = [];
 
         // Масиви для перекладу
        $months_ua = ['01'=>'Січ','02'=>'Лют','03'=>'Бер','04'=>'Квіт','05'=>'Трав','06'=>'Черв','07'=>'Лип','08'=>'Серп','09'=>'Вер','10'=>'Жовт','11'=>'Лист','12'=>'Груд'];
        $days_ua = [0=>'Нд', 1=>'Пн', 2=>'Вв', 3=>'Ср', 4=>'Чт', 5=>'Пт', 6=>'Сб'];
        // Додаємо кількість замовлень для кожного дня
 
-switch ($period) {
-    case 'year':
-        // Запит за останні 12 місяців
-        $title_text = "Продажі за останні 12 місяців";
-        $stmt = DB::query("SELECT DATE_FORMAT(created_at, '%m') as m_num, SUM(total) as rev, COUNT(id) as cnt 
-                  FROM orders WHERE created_at >= DATE_SUB(NOW(), INTERVAL 1 YEAR) 
-                  AND status = 'completed' GROUP BY m_num ORDER BY MIN(created_at) ASC");
-        break;
-    case 'month':
-        // За останні 30 днів (групуємо по днях)
-        $title_text = "Продажі за останні 30 днів";
-        $stmt = DB::query("SELECT DATE_FORMAT(created_at, '%d.%m') as day_label, SUM(total) as rev, COUNT(id) as cnt 
-                  FROM orders WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) 
-                  AND status = 'completed' GROUP BY DATE(created_at), day_label ORDER BY DATE(created_at) ASC");
-        break;
-    default: // week
-        // За останні 7 днів (використовуємо дні тижня)
-        $title_text = "Продажі за поточний тиждень";
-        $stmt = DB::query("SELECT (DAYOFWEEK(created_at)-1) as d_idx, DATE_FORMAT(created_at, '%d.%m') as d_date, SUM(total) as rev, COUNT(id) as cnt 
-                  FROM orders WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) 
-                  AND status = 'completed' GROUP BY d_idx, d_date, DATE(created_at) ORDER BY DATE(created_at) ASC");
-        break;
-}
+        switch ($period) {
+            case 'year':
+            // Запит за останні 12 місяців
+            $title_text = "Продажі за останні 12 місяців";
+            $stmt = DB::query("SELECT DATE_FORMAT(created_at, '%m') as m_num, SUM(total) as rev, COUNT(id) as cnt 
+                    FROM orders WHERE created_at >= DATE_SUB(NOW(), INTERVAL 1 YEAR) 
+                    AND status = 'completed' GROUP BY m_num ORDER BY MIN(created_at) ASC");
+            break;
+            case 'month':
+                // За останні 30 днів (групуємо по днях)
+                $title_text = "Продажі за останні 30 днів";
+                $stmt = DB::query("SELECT DATE_FORMAT(created_at, '%d.%m') as day_label, SUM(total) as rev, COUNT(id) as cnt 
+                    FROM orders WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) 
+                    AND status = 'completed' GROUP BY DATE(created_at), day_label ORDER BY DATE(created_at) ASC");
+            break;
+            default: // week
+                // За останні 7 днів (використовуємо дні тижня)
+                $title_text = "Продажі за поточний тиждень";
+                $stmt = DB::query("SELECT (DAYOFWEEK(created_at)-1) as d_idx, DATE_FORMAT(created_at, '%d.%m') as d_date, SUM(total) as rev, COUNT(id) as cnt 
+                    FROM orders WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) 
+                    AND status = 'completed' GROUP BY d_idx, d_date, DATE(created_at) ORDER BY DATE(created_at) ASC");
+            break;
+        }
 
         $db_data = $stmt->fetchAll();
 
@@ -206,11 +207,21 @@ LIMIT 5");
         $counts = [5, 8, 4, 12, 7, 15, 10];
         $title_text = "Демонстраційний звіт (Тестові дані)";
 
+        $stmt = DB::query("
+            SELECT id, name, stock, price 
+            FROM products 
+            WHERE stock <= 5 
+            ORDER BY stock ASC 
+            LIMIT 5");
+
+        $low_stock_products = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
         View::render('admin/analytics/index', ['title_text' => $title_text,
             'labels' => $labels,
             'values' => $values,
             'counts' => $counts,
-            'popular_products' => $popular_products],
+            'popular_products' => $popular_products,
+            'low_stock_products' => $low_stock_products],
             'admin');
     }
 

@@ -1,123 +1,124 @@
-<!-- container -->
-<div class="container my-5">
-    <h1 class="mb-4"><?php echo __('cart'); ?></h1>
-
-    <?php if (isset($_SESSION["success"])) : ?>
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <?php echo $_SESSION["success"];
-            unset($_SESSION["success"]); ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    <?php endif; ?>
-
-    <?php if (isset($_SESSION["error"])) : ?>
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <?php echo $_SESSION["error"];
-            unset($_SESSION["error"]); ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    <?php endif; ?>
+<div class="container my-5" style="max-width: 1200px !important; margin: 0 auto !important; font-family: sans-serif !important;">
+    <h2 class="mb-4" style="font-weight: 700 !important; color: #333 !important; text-align: left !important;"><?php echo __('cart'); ?></h2>
 
     <?php if (empty($items)) : ?>
-        <div class="text-center py-5">
-            <p class="lead text-muted"><?php echo __('cart_is_empty'); ?></p>
+        <div style="text-align: center; padding: 40px; background: #fff; border-radius: 10px; border: 1px solid #ddd;">
+            <p><?php echo __('cart_is_empty'); ?></p>
             <a href="/products" class="btn btn-primary"><?php echo __('continue_shopping'); ?></a>
         </div>
     <?php else : ?>
-        <div class="row">
-            <div class="col-lg-8">
-                <div class="card shadow-sm mb-4">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th><?php echo __('product'); ?></th>
-                                    <th><?php echo __('price'); ?></th>
-                                    <th><?php echo __('quantity'); ?></th>
-                                    <th><?php echo __('sum'); ?></th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($items as $item) : ?>
-                                    <tr>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <?php if ($item["image"]) : ?>
-                                                    <img src="/uploads/products/<?php echo $item["image"]; ?>" alt="<?php echo $item["name"]; ?>" class="img-thumbnail me-3" style="width: 60px; height: 60px; object-fit: cover;">
-                                                <?php else : ?>
-                                                    <div class="bg-light d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px;">
-                                                        <i class="bi bi-image text-muted"></i>
-                                                    </div>
-                                                <?php endif; ?>
-                                                <div>
-                                                    <h6 class="mb-0"><?php echo $item["name"]; ?></h6>
-                                                    <small class="text-muted"><?php echo __('in_stock'); ?>: <?php echo $item["stock"]; ?></small>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td><?php echo number_format($item["price"], 2); ?> грн</td>
-                                        <td>
-                                            <form action="/cart/update" method="POST" class="d-flex align-items-center" style="max-width: 120px;">
-                                                <input type="hidden" name="csrf" value="<?php echo $csrf; ?>">
-                                                <input type="hidden" name="product_id" value="<?php echo $item["product_id"]; ?>">
-                                                <input type="number" name="quantity" value="<?php echo $item["quantity"]; ?>" min="1" max="<?php echo $item["stock"]; ?>" class="form-control form-control-sm me-2" onchange="this.form.submit()">
-                                            </form>
-                                        </td>
-                                        <td class="fw-bold"><?php echo number_format($item["total_price"], 2); ?> грн</td>
-                                        <td class="text-end">
-                                            <form action="/cart/remove/<?php echo $item["product_id"]; ?>" method="POST" class="d-inline">
-                                                <input type="hidden" name="_method" value="DELETE">
-                                                <input type="hidden" name="csrf" value="<?php echo $csrf; ?>">
-                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="<?php echo __('remove'); ?>">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
+        <div style="display: flex !important; flex-wrap: wrap !important; gap: 30px !important; align-items: flex-start !important;">
+            
+            <!-- ЛІВА ЧАСТИНА: ТОВАРИ -->
+            <div style="flex: 1 1 650px !important;">
+                
+                <!-- Заголовки (Тільки для десктопа) -->
+                <div style="display: flex; padding: 10px 0; border-bottom: 1px solid #eee; margin-bottom: 10px; color: #999; font-size: 12px; text-transform: uppercase; font-weight: bold;">
+                    <div style="width: 80px;"></div>
+                    <div style="flex: 2; padding-left: 10px;"><?php echo __('product'); ?></div>
+                    <div style="width: 100px; text-align: center;"><?php echo __('options'); ?></div>
+                    <div style="width: 80px; text-align: center;"><?php echo __('price'); ?></div>
+                    <div style="width: 80px; text-align: center;"><?php echo __('quantity'); ?></div>
+                    <div style="width: 100px; text-align: right;"><?php echo __('sum'); ?></div>
                 </div>
 
-                <div class="d-flex justify-content-between">
-                    <a href="/products" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left me-2"></i><?php echo __('continue_shopping'); ?>
-                    </a>
+                <?php foreach ($items as $item) : ?>
+                    <div style="background: #fff !important; border: 1px solid #e0e0e0 !important; border-radius: 12px !important; padding: 20px !important; margin-bottom: 15px !important; display: flex !important; align-items: center !important; position: relative !important; min-height: 100px !important;">
+                        
+                        <!-- Кнопка видалення (Червоний хрестик) -->
+                        <form action="/cart/remove/<?php echo $item["product_id"]; ?>" method="POST" style="position: absolute !important; top: 10px !important; right: 10px !important; margin: 0 !important;">
+                            <input type="hidden" name="_method" value="DELETE">
+                            <input type="hidden" name="csrf" value="<?php echo $csrf; ?>">
+                            <button type="submit" style="background: #fff !important; color: #ff5c5c !important; border: 1px solid #ffeded !important; width: 26px !important; height: 26px !important; border-radius: 5px !important; cursor: pointer !important; font-weight: bold !important; line-height: 1 !important; display: flex !important; align-items: center !important; justify-content: center !important;">✕</button>
+                        </form>
+
+                        <!-- Фото -->
+                        <div style="width: 80px !important; flex-shrink: 0 !important;">
+                            <img src="/uploads/products/<?php echo $item["image"]; ?>" style="width: 70px !important; height: 70px !important; object-fit: cover !important; border-radius: 8px !important; background: #f9f9f9 !important; border: 1px solid #eee !important;">
+                        </div>
+
+                        <!-- Назва та залишок -->
+                        <div style="flex: 2 !important; padding: 0 15px !important; text-align: left !important;">
+                            <h6 style="margin: 0 0 5px 0 !important; font-weight: 700 !important; font-size: 15px !important; color: #333 !important; line-height: 1.2 !important;"><?php echo $item["name"]; ?></h6>
+                            <small style="color: #28a745 !important; font-size: 11px !important; background: #f0fff4 !important; padding: 2px 6px !important; border-radius: 4px !important; display: inline-block !important;">
+                                <?php echo __('in_stock'); ?>: <?php echo $item["stock"]; ?>
+                            </small>
+                        </div>
+
+                        <!-- Опції -->
+                        <div style="width: 100px !important; text-align: center !important; font-size: 12px !important; color: #777 !important; border-left: 1px solid #f0f0f0 !important; border-right: 1px solid #f0f0f0 !important;">
+                            <?php if (!empty($item['options'])) : ?>
+                                <?php foreach ($item['options'] as $k => $v) : ?>
+                                    <div><b><?php echo $k; ?>:</b> <?php echo $v; ?></div>
+                                <?php endforeach; ?>
+                            <?php else : ?>
+                                <span style="color: #ccc;">—</span>
+                            <?php endif; ?>
+                        </div>
+
+                        <!-- Ціна -->
+                        <div style="width: 80px !important; text-align: center !important; font-weight: 500 !important; color: #666 !important; font-size: 14px !important;">
+                            <?php echo number_format($item["price"], 2); ?>
+                        </div>
+
+                        <!-- Кількість -->
+                        <div style="width: 80px !important; text-align: center !important;">
+                            <form action="/cart/update" method="POST" style="margin: 0 !important;">
+                                <input type="hidden" name="csrf" value="<?php echo $csrf; ?>">
+                                <input type="hidden" name="product_id" value="<?php echo $item["product_id"]; ?>">
+                                <input type="number" name="quantity" value="<?php echo $item["quantity"]; ?>" min="1" max="<?php echo $item["stock"]; ?>" style="width: 50px !important; padding: 4px !important; border: 1px solid #ddd !important; border-radius: 6px !important; text-align: center !important; font-weight: bold !important;" onchange="this.form.submit()">
+                            </form>
+                        </div>
+
+                        <!-- Сума -->
+                        <div style="width: 100px !important; text-align: right !important; font-weight: 800 !important; font-size: 16px !important; color: #000 !important;">
+                            <?php echo number_format($item["total_price"], 2); ?>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+
+                <div style="display: flex; justify-content: space-between; margin-top: 15px;">
+                    <a href="/products" style="text-decoration: none; color: #007bff; font-weight: 600; font-size: 14px;">← <?php echo __('continue_shopping'); ?></a>
                     <form action="/cart/clear" method="POST">
-                        <input type="hidden" name="_method" value="DELETE">
-                        <input type="hidden" name="csrf" value="<?php echo $csrf; ?>">
-                        <button type="submit" class="btn btn-outline-danger">
-                            <i class="bi bi-x-circle me-2"></i><?php echo __('clear_cart'); ?>
-                        </button>
+                        <input type="hidden" name="_method" value="DELETE"><input type="hidden" name="csrf" value="<?php echo $csrf; ?>">
+                        <button type="submit" style="background: none; border: none; color: #dc3545; cursor: pointer; font-size: 14px;"><?php echo __('clear_cart'); ?></button>
                     </form>
                 </div>
             </div>
 
-            <div class="col-lg-4">
-                <div class="card shadow-sm border-0">
-                    <div class="card-body">
-                        <h5 class="card-title mb-4"><?php echo __('order_summary'); ?></h5>
-                        <div class="d-flex justify-content-between mb-3">
-                            <span><?php echo __('subtotal'); ?></span>
-                            <span><?php echo number_format($total, 2); ?> грн</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-3">
-                            <span><?php echo __('shipping'); ?></span>
-                            <span class="text-success"><?php echo __('free'); ?></span>
-                        </div>
-                        <hr>
-                        <div class="d-flex justify-content-between mb-4">
-                            <span class="h5 mb-0"><?php echo __('total'); ?></span>
-                            <span class="h5 mb-0 text-primary"><?php echo number_format($total, 2); ?> грн</span>
-                        </div>
-                        <a href="/checkout" class="btn btn-primary btn-lg w-100 py-3">
-                            <?php echo __('proceed_to_checkout'); ?>
-                        </a>
+            <!-- ПРАВА ПАНЕЛЬ (Підсумок) -->
+            <div style="flex: 0 0 350px !important;">
+                <div style="background: #fff !important; border-radius: 15px !important; padding: 25px !important; border: 1px solid #e0e0e0 !important; box-shadow: 0 5px 15px rgba(0,0,0,0.05) !important;">
+                    <h5 style="margin-bottom: 20px !important; font-weight: 700 !important;"><?php echo __('order_summary'); ?></h5>
+                    
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px; color: #666;">
+                        <span><?php echo __('subtotal'); ?></span>
+                        <span style="font-weight: 600; color: #333;"><?php echo number_format($total, 2); ?> грн</span>
                     </div>
+                    
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 20px; color: #666;">
+                        <span><?php echo __('shipping'); ?></span>
+                        <span style="color: #28a745; font-weight: 700;"><?php echo __('free'); ?></span>
+                    </div>
+
+                    <hr style="border: 0; border-top: 1px solid #eee; margin-bottom: 20px;">
+
+                    <div style="margin-bottom: 25px;">
+                        <span style="display: block; font-size: 12px; color: #999; text-transform: uppercase;"><?php echo __('total'); ?></span>
+                        <span style="font-size: 28px; font-weight: 800; color: #007bff;"><?php echo number_format($total, 2); ?> <small style="font-size: 14px;">грн</small></span>
+                    </div>
+
+                    <a href="/checkout" style="display: block !important; background: #007bff !important; color: #fff !important; text-align: center !important; padding: 15px !important; border-radius: 10px !important; text-decoration: none !important; font-weight: 700 !important; font-size: 16px !important; transition: background 0.2s !important;">
+                        <?php echo __('proceed_to_checkout'); ?>
+                    </a>
                 </div>
             </div>
         </div>
     <?php endif; ?>
 </div>
+
+
+
+
+
+
