@@ -121,6 +121,51 @@
     </table>
 </div>
 
+<div class="recent-orders-card" style="margin-top: 30px;">
+    <div class="card-header">
+        <h3><i class="fa-solid fa-box-open" style="color: #ef4444;"></i> Товари, що закінчуються</h3>
+        <span class="status-badge" style="background: #fee2e2; color: #b91c1c;">Увага</span>
+    </div>
+    
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Назва товару</th>
+                <th style="text-align: center;">Залишок</th>
+                <th style="text-align: right;">Дія</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if (empty($low_stock_products)): ?>
+                <tr>
+                    <td colspan="3" style="text-align: center; padding: 20px; color: #94a3b8;">
+                        Всі товари в достатній кількості
+                    </td>
+                </tr>
+            <?php else: ?>
+                <?php foreach ($low_stock_products as $item): ?>
+                <tr>
+                    <td>
+                        <div style="font-weight: 600;"><?= htmlspecialchars($item['name']) ?></div>
+                        <small style="color: #94a3b8;">Ціна: <?= number_format($item['price'], 2) ?> ₴</small>
+                    </td>
+                    <td style="text-align: center;">
+                        <span class="stock-label <?= $item['stock'] == 0 ? 'out-of-stock' : 'low-stock' ?>">
+                            <?= $item['stock'] ?> шт.
+                        </span>
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="/admin/products/edit/<?= $item['id'] ?>" class="btn-edit" title="Оновити склад">
+                            <i class="fa-solid fa-plus-square"></i>
+                        </a>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </tbody>
+    </table>
+</div>
+
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         // Перевіряємо, чи завантажена бібліотека
