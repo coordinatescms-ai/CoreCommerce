@@ -90,8 +90,8 @@ class AdminOrderController
         }
 
         try {
-            DB::$pdo->beginTransaction();
             $this->ensureStatusHistoryTable();
+            DB::$pdo->beginTransaction();
 
             $order = DB::query('SELECT * FROM orders WHERE id = ? FOR UPDATE', [$orderId])->fetch(\PDO::FETCH_ASSOC);
             if (!$order) {
@@ -148,10 +148,15 @@ class AdminOrderController
                 DB::$pdo->rollBack();
             }
 
+            $message = $e->getMessage();
+            if (stripos($message, 'There is no active transaction') !== false) {
+                $message = 'Не вдалося завершити оновлення статусу. Спробуйте ще раз.';
+            }
+
             http_response_code(500);
             echo json_encode([
                 'success' => false,
-                'message' => $e->getMessage(),
+                'message' => $message,
             ]);
         }
     }
