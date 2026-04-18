@@ -70,43 +70,47 @@ $attributeRows = $attributeRows ?? [];
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-header">
-            <i class="fas fa-list"></i> Характеристики товару
-        </div>
-        <div class="card-body">
-            <p style="margin-top: 0; color: #64748b;">Оберіть категорію, після чого стануть доступними лише дозволені для неї характеристики.</p>
-            <div id="attributes-warning" style="display:none; margin-bottom: 0.75rem; color:#b45309; background:#fffbeb; border:1px solid #fde68a; padding:0.5rem 0.75rem; border-radius:6px;"></div>
+  <div class="card">
+    <div class="card-header">
+        <i class="fas fa-list"></i> Характеристики товару
+    </div>
+    <div class="card-body">
+        <p style="margin-top: 0; color: #64748b;">Оберіть категорію, після чого стануть доступними лише дозволені для неї характеристики.</p>
+        <div id="attributes-warning" style="display:none; margin-bottom: 0.75rem; color:#b45309; background:#fffbeb; border:1px solid #fde68a; padding:0.5rem 0.75rem; border-radius:6px;"></div>
 
-            <div id="attribute-rows" style="display: flex; flex-direction: column; gap: 0.75rem;">
-                <?php if (empty($attributeRows)): ?>
-                    <div class="attribute-row" style="display:grid; grid-template-columns: 1fr 1fr 180px auto; gap: 0.75rem;">
+        <div id="attribute-rows" style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <?php if (empty($attributeRows)): ?>
+                <div class="attribute-row" style="border: 1px solid #e2e8f0; padding: 1rem; border-radius: 8px;">
+                    <div style="display:grid; grid-template-columns: 1fr 1fr auto; gap: 0.75rem; margin-bottom: 0.75rem;">
                         <select name="attribute_id[]" class="form-control attribute-id-select">
                             <option value="">Спочатку оберіть категорію</option>
                         </select>
                         <div class="attribute-value-wrap">
                             <input type="text" name="attribute_value[]" class="form-control" placeholder="Значення (напр. Чорний)">
                         </div>
-                        <div class="attribute-selectable-wrap" style="display:flex; align-items:center; gap:0.5rem; justify-content:flex-start;">
-                            <input type="hidden" name="attribute_is_selectable[]" class="attribute-is-selectable-hidden" value="0">
-                            <label style="display:flex; align-items:center; gap:0.5rem; margin:0; cursor:pointer;">
-                                <input type="checkbox" class="attribute-is-selectable-checkbox" value="1">
-                                <span>Опція вибору</span>
-                            </label>
-                            <select name="attribute_price_operation[]" class="form-control attribute-price-operation" style="max-width:70px; display:none;">
-                                <option value="+">+</option>
-                                <option value="-">-</option>
-                            </select>
-                            <input type="number" min="0" step="0.01" name="attribute_price_modifier[]" class="form-control attribute-price-modifier" placeholder="Націнка" style="max-width:120px; display:none;" value="0">
-                            <input type="number" min="0" step="1" name="attribute_stock_quantity[]" class="form-control attribute-stock-quantity" placeholder="Склад" style="max-width:120px; display:none;" value="">
-                        </div>
                         <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;" title="Видалити">
-                         <i class="fas fa-trash" aria-hidden="true"></i>
-                         </button>
+                            <i class="fas fa-trash" aria-hidden="true"></i>
+                        </button>
                     </div>
-                <?php else: ?>
-                    <?php foreach ($attributeRows as $row): ?>
-                        <div class="attribute-row" style="display:grid; grid-template-columns: 1fr 1fr 180px auto; gap: 0.75rem;">
+
+                    <div class="attribute-selectable-wrap" style="display:flex; align-items:center; gap:0.75rem; flex-wrap: wrap;">
+                        <input type="hidden" name="attribute_is_selectable[]" class="attribute-is-selectable-hidden" value="0">
+                        <label style="display:flex; align-items:center; gap:0.5rem; margin:0; cursor:pointer; min-width: 150px;">
+                            <input type="checkbox" class="attribute-is-selectable-checkbox" value="1">
+                            <span style="font-weight: 500;">Опція вибору</span>
+                        </label>
+                        <select name="attribute_price_operation[]" class="form-control attribute-price-operation" style="max-width:70px; display:none;">
+                            <option value="+">+</option>
+                            <option value="-">-</option>
+                        </select>
+                        <input type="number" min="0" step="0.01" name="attribute_price_modifier[]" class="form-control attribute-price-modifier" placeholder="Націнка" style="max-width:150px; display:none;" value="">
+                        <input type="number" min="0" step="1" name="attribute_stock_quantity[]" class="form-control attribute-stock-quantity" placeholder="Кількість на складі" style="max-width:200px; display:none;" value="">
+                    </div>
+                </div>
+            <?php else: ?>
+                <?php foreach ($attributeRows as $row): ?>
+                    <div class="attribute-row" style="border: 1px solid #e2e8f0; padding: 1rem; border-radius: 8px;">
+                        <div style="display:grid; grid-template-columns: 1fr 1fr auto; gap: 0.75rem; margin-bottom: 0.75rem;">
                             <?php $rowAttributeId = (int) ($row['attribute_id'] ?? 0); ?>
                             <select name="attribute_id[]" class="form-control attribute-id-select">
                                 <option value="">-- Оберіть характеристику --</option>
@@ -120,35 +124,37 @@ $attributeRows = $attributeRows ?? [];
                             <div class="attribute-value-wrap">
                                 <input type="text" name="attribute_value[]" class="form-control" value="<?php echo htmlspecialchars((string) ($row['value'] ?? '')); ?>" placeholder="Значення (напр. Чорний)">
                             </div>
-                            <div class="attribute-selectable-wrap" style="display:flex; align-items:center; gap:0.5rem; justify-content:flex-start;">
-                                <?php $isSelectable = !empty($row['is_selectable']); ?>
-                                <input type="hidden" name="attribute_is_selectable[]" class="attribute-is-selectable-hidden" value="<?php echo $isSelectable ? '1' : '0'; ?>">
-                                <label style="display:flex; align-items:center; gap:0.5rem; margin:0; cursor:pointer;">
-                                    <input type="checkbox" class="attribute-is-selectable-checkbox" value="1" <?php echo $isSelectable ? 'checked' : ''; ?>>
-                                    <span>Опція вибору</span>
-                                </label>
-                                <select name="attribute_price_operation[]" class="form-control attribute-price-operation" style="max-width:70px; <?php echo $isSelectable ? '' : 'display:none;'; ?>">
-                                    <option value="+" <?php echo (($row['price_operation'] ?? '+') === '+') ? 'selected' : ''; ?>>+</option>
-                                    <option value="-" <?php echo (($row['price_operation'] ?? '+') === '-') ? 'selected' : ''; ?>>-</option>
-                                </select>
-                                <input type="number" min="0" step="0.01" name="attribute_price_modifier[]" class="form-control attribute-price-modifier" placeholder="Націнка" style="max-width:120px; <?php echo $isSelectable ? '' : 'display:none;'; ?>" value="<?php echo htmlspecialchars((string) ($row['price_modifier'] ?? '0')); ?>">
-                                <input type="number" min="0" step="1" name="attribute_stock_quantity[]" class="form-control attribute-stock-quantity" placeholder="Склад" style="max-width:120px; <?php echo $isSelectable ? '' : 'display:none;'; ?>" value="<?php echo htmlspecialchars((string) ($row['stock_quantity'] ?? '')); ?>">
-                            </div>
                             <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;" title="Видалити">
-                            <i class="fas fa-trash" aria-hidden="true"></i>
+                                <i class="fas fa-trash" aria-hidden="true"></i>
                             </button>
                         </div>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </div>
 
-            <div style="margin-top: 1rem;">
-                <button type="button" id="add-attribute-row" class="btn btn-outline" style="border: 1px solid #ddd; color: #2563eb;">
-                    <i class="fas fa-plus"></i> Додати характеристику
-                </button>
-            </div>
+                        <div class="attribute-selectable-wrap" style="display:flex; align-items:center; gap:0.75rem; flex-wrap: wrap;">
+                            <?php $isSelectable = !empty($row['is_selectable']); ?>
+                            <input type="hidden" name="attribute_is_selectable[]" class="attribute-is-selectable-hidden" value="<?php echo $isSelectable ? '1' : '0'; ?>">
+                            <label style="display:flex; align-items:center; gap:0.5rem; margin:0; cursor:pointer; min-width: 150px;">
+                                <input type="checkbox" class="attribute-is-selectable-checkbox" value="1" <?php echo $isSelectable ? 'checked' : ''; ?>>
+                                <span style="font-weight: 500;">Опція вибору</span>
+                            </label>
+                            <select name="attribute_price_operation[]" class="form-control attribute-price-operation" style="max-width:70px; <?php echo $isSelectable ? '' : 'display:none;'; ?>">
+                                <option value="+" <?php echo (($row['price_operation'] ?? '+') === '+') ? 'selected' : ''; ?>>+</option>
+                                <option value="-" <?php echo (($row['price_operation'] ?? '+') === '-') ? 'selected' : ''; ?>>-</option>
+                            </select>
+                            <input type="number" min="0" step="0.01" name="attribute_price_modifier[]" class="form-control attribute-price-modifier" placeholder="Націнка" style="max-width:150px; <?php echo $isSelectable ? '' : 'display:none;'; ?>" value="<?php echo htmlspecialchars((string) ($row['price_modifier'] ?? '')); ?>">
+                            <input type="number" min="0" step="1" name="attribute_stock_quantity[]" class="form-control attribute-stock-quantity" placeholder="Кількість на складі" style="max-width:200px; <?php echo $isSelectable ? '' : 'display:none;'; ?>" value="<?php echo htmlspecialchars((string) ($row['stock_quantity'] ?? '')); ?>">
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+
+        <div style="margin-top: 1.5rem;">
+            <button type="button" id="add-attribute-row" class="btn btn-outline" style="border: 1px solid #ddd; color: #2563eb;">
+                <i class="fas fa-plus"></i> Додати характеристику
+            </button>
         </div>
     </div>
+</div>
 
     <div class="card">
         <div class="card-header">
@@ -217,11 +223,9 @@ $attributeRows = $attributeRows ?? [];
             if (!hasCategory()) {
                 return '<option value="">Спочатку оберіть категорію</option>';
             }
-
             if (!allowedAttributes.length) {
                 return '<option value="">Немає доступних характеристик</option>';
             }
-
             const normalizedSelectedId = String(selectedId || '');
             return '<option value="">-- Оберіть характеристику --</option>' + allowedAttributes.map(function (attribute) {
                 const attributeId = String(attribute.id);
@@ -250,49 +254,44 @@ $attributeRows = $attributeRows ?? [];
             const safeValue = escapeHtml(currentValue);
 
             if (attribute && attribute.type === 'range') {
-                container.innerHTML = '<input type=\"number\" step=\"0.01\" inputmode=\"decimal\" name=\"attribute_value[]\" class=\"form-control\" placeholder=\"Числове значення\" value=\"' + safeValue + '\">';
+                container.innerHTML = '<input type="number" step="0.01" inputmode="decimal" name="attribute_value[]" class="form-control" placeholder="Числове значення" value="' + safeValue + '">';
                 return;
             }
-
             if (attribute && ['select', 'multiselect', 'color'].includes(attribute.type)) {
                 const listId = 'attr-options-' + Math.random().toString(36).slice(2);
                 const options = Array.isArray(attribute.options) ? attribute.options : [];
                 const optionsHtml = options.map(function (option) {
                     const value = escapeHtml(option.name || option.value || '');
-                    return '<option value=\"' + value + '\"></option>';
+                    return '<option value="' + value + '"></option>';
                 }).join('');
 
-                container.innerHTML = '<input type=\"text\" name=\"attribute_value[]\" class=\"form-control\" list=\"' + listId + '\" placeholder=\"Оберіть або введіть значення\" value=\"' + safeValue + '\"><datalist id=\"' + listId + '\">' + optionsHtml + '</datalist>';
+                container.innerHTML = '<input type="text" name="attribute_value[]" class="form-control" list="' + listId + '" placeholder="Оберіть або введіть значення" value="' + safeValue + '"><datalist id="' + listId + '">' + optionsHtml + '</datalist>';
                 return;
             }
-
-            container.innerHTML = '<input type=\"text\" name=\"attribute_value[]\" class=\"form-control\" placeholder=\"Значення (напр. Чорний)\" value=\"' + safeValue + '\">';
+            container.innerHTML = '<input type="text" name="attribute_value[]" class="form-control" placeholder="Значення (напр. Чорний)" value="' + safeValue + '">';
         }
 
         function bindRemoveButton(button) {
+            if (!button) return;
             button.addEventListener('click', function () {
                 const rows = rowsContainer.querySelectorAll('.attribute-row');
                 if (rows.length === 1) {
                     rows[0].querySelectorAll('input').forEach(input => {
-                        if (input.type === 'checkbox') {
-                            input.checked = false;
-                            return;
-                        }
+                        if (input.type === 'checkbox') { input.checked = false; return; }
                         input.value = '';
                     });
                     const firstSelect = rows[0].querySelector('.attribute-id-select');
-                    if (firstSelect) {
-                        firstSelect.value = '';
-                    }
+                    if (firstSelect) firstSelect.value = '';
                     syncSelectableHidden(rows[0]);
+                    syncSelectableFields(rows[0]);
                     return;
                 }
-
                 button.closest('.attribute-row').remove();
             });
         }
 
         function bindAttributeSelectProtection(select) {
+            if (!select) return;
             select.addEventListener('focus', function () {
                 if (!hasCategory()) {
                     showWarning('Спочатку потрібно вибрати категорію товару.');
@@ -304,11 +303,7 @@ $attributeRows = $attributeRows ?? [];
         function syncSelectableHidden(row) {
             const checkbox = row.querySelector('.attribute-is-selectable-checkbox');
             const hidden = row.querySelector('.attribute-is-selectable-hidden');
-            if (!checkbox || !hidden) {
-                return;
-            }
-
-            hidden.value = checkbox.checked ? '1' : '0';
+            if (checkbox && hidden) hidden.value = checkbox.checked ? '1' : '0';
         }
 
         function syncSelectableFields(row) {
@@ -319,57 +314,58 @@ $attributeRows = $attributeRows ?? [];
             const isVisible = !!(checkbox && checkbox.checked);
 
             [op, modifier, stock].forEach(function (field) {
-                if (!field) {
-                    return;
-                }
-                field.style.display = isVisible ? '' : 'none';
+                if (field) field.style.display = isVisible ? '' : 'none';
             });
         }
 
         function createRow(attributeId = '', value = '', isSelectable = false, priceOperation = '+', priceModifier = '0', stockQuantity = '') {
             const row = document.createElement('div');
             row.className = 'attribute-row';
-            row.style.display = 'grid';
-            row.style.gridTemplateColumns = '1fr 1fr 180px auto';
-            row.style.gap = '0.75rem';
+            row.style.border = '1px solid #e2e8f0';
+            row.style.padding = '1rem';
+            row.style.borderRadius = '8px';
+            row.style.marginBottom = '1rem';
+            row.style.display = 'block';
 
             row.innerHTML = `
-                <select name="attribute_id[]" class="form-control attribute-id-select">${buildAttributeOptions(attributeId)}</select>
-                <div class="attribute-value-wrap"></div>
-                <div class="attribute-selectable-wrap" style="display:flex; align-items:center; gap:0.5rem; justify-content:flex-start;">
+                <div style="display:grid; grid-template-columns: 1fr 1fr auto; gap: 0.75rem; margin-bottom: 0.75rem;">
+                    <select name="attribute_id[]" class="form-control attribute-id-select">${buildAttributeOptions(attributeId)}</select>
+                    <div class="attribute-value-wrap"></div>
+                    <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;" title="Видалити">
+                        <i class="fas fa-trash" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div class="attribute-selectable-wrap" style="display:flex; align-items:center; gap:0.75rem; flex-wrap: wrap;">
                     <input type="hidden" name="attribute_is_selectable[]" class="attribute-is-selectable-hidden" value="${isSelectable ? '1' : '0'}">
-                    <label style="display:flex; align-items:center; gap:0.5rem; margin:0; cursor:pointer;">
+                    <label style="display:flex; align-items:center; gap:0.5rem; margin:0; cursor:pointer; min-width: 150px;">
                         <input type="checkbox" class="attribute-is-selectable-checkbox" value="1" ${isSelectable ? 'checked' : ''}>
-                        <span>Опція вибору</span>
+                        <span style="font-weight: 500;">Опція вибору</span>
                     </label>
                     <select name="attribute_price_operation[]" class="form-control attribute-price-operation" style="max-width:70px; ${isSelectable ? '' : 'display:none;'}">
                         <option value="+" ${priceOperation === '+' ? 'selected' : ''}>+</option>
                         <option value="-" ${priceOperation === '-' ? 'selected' : ''}>-</option>
                     </select>
-                    <input type="number" min="0" step="0.01" name="attribute_price_modifier[]" class="form-control attribute-price-modifier" placeholder="Націнка" style="max-width:120px; ${isSelectable ? '' : 'display:none;'}" value="${escapeHtml(priceModifier)}">
-                    <input type="number" min="0" step="1" name="attribute_stock_quantity[]" class="form-control attribute-stock-quantity" placeholder="Склад" style="max-width:120px; ${isSelectable ? '' : 'display:none;'}" value="${escapeHtml(stockQuantity)}">
+                    <input type="number" min="0" step="0.01" name="attribute_price_modifier[]" class="form-control attribute-price-modifier" placeholder="Націнка" style="max-width:160px; ${isSelectable ? '' : 'display:none;'}" value="${priceModifier == '0' ? '' : escapeHtml(priceModifier)}">
+                    <input type="number" min="0" step="1" name="attribute_stock_quantity[]" class="form-control attribute-stock-quantity" placeholder="Кількість на складі" style="max-width:180px; ${isSelectable ? '' : 'display:none;'}" value="${escapeHtml(stockQuantity)}">
                 </div>
-                <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;" title="Видалити">
-                <i class="fas fa-trash" aria-hidden="true"></i>
-                </button>
             `;
 
-            const removeButton = row.querySelector('.attribute-remove-btn');
-            bindRemoveButton(removeButton);
-            const attributeSelect = row.querySelector('.attribute-id-select');
-            bindAttributeSelectProtection(attributeSelect);
-            attributeSelect.addEventListener('change', function () {
-                renderValueInput(row, attributeSelect.value, '');
+            const removeBtn = row.querySelector('.attribute-remove-btn');
+            bindRemoveButton(removeBtn);
+            const select = row.querySelector('.attribute-id-select');
+            bindAttributeSelectProtection(select);
+            select.addEventListener('change', function () {
+                renderValueInput(row, select.value, '');
             });
-            const selectableCheckbox = row.querySelector('.attribute-is-selectable-checkbox');
-            selectableCheckbox.addEventListener('change', function () {
+            const checkbox = row.querySelector('.attribute-is-selectable-checkbox');
+            checkbox.addEventListener('change', function () {
                 syncSelectableHidden(row);
                 syncSelectableFields(row);
             });
+
+            renderValueInput(row, attributeId, value);
             syncSelectableHidden(row);
             syncSelectableFields(row);
-            renderValueInput(row, attributeId, value);
-
             return row;
         }
 
@@ -378,12 +374,10 @@ $attributeRows = $attributeRows ?? [];
                 showWarning('Спочатку потрібно вибрати категорію товару.');
                 return;
             }
-
             if (!allowedAttributes.length) {
                 showWarning('Для вибраної категорії немає доступних характеристик.');
                 return;
             }
-
             clearWarning();
             rowsContainer.appendChild(createRow());
         });
@@ -400,10 +394,10 @@ $attributeRows = $attributeRows ?? [];
                     syncSelectableHidden(row);
                     return;
                 }
-            renderValueInput(row, select.value, currentValueText);
-            syncSelectableHidden(row);
-            syncSelectableFields(row);
-        });
+                renderValueInput(row, select.value, currentValueText);
+                syncSelectableHidden(row);
+                syncSelectableFields(row);
+            });
         }
 
         function fetchAllowedAttributes() {
@@ -414,51 +408,37 @@ $attributeRows = $attributeRows ?? [];
                 showWarning('Щоб працювати з характеристиками, спочатку виберіть категорію товару.');
                 return;
             }
-
             fetch('/admin/products/allowed-attributes/' + categoryId, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
-                .then(response => response.json())
-                .then(data => {
-                    if (!data.success) {
-                        throw new Error(data.message || 'Не вдалося отримати характеристики категорії.');
-                    }
-
-                    allowedAttributes = Array.isArray(data.attributes) ? data.attributes : [];
-                    refreshAllRows();
-                    clearWarning();
-
-                    if (!allowedAttributes.length) {
-                        showWarning('Для цієї категорії ще не налаштовано жодної характеристики.');
-                    }
-                })
-                .catch(() => {
-                    allowedAttributes = [];
-                    refreshAllRows();
-                    showWarning('Сталася помилка при завантаженні характеристик. Спробуйте ще раз.');
-                });
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) throw new Error(data.message || 'Error');
+                allowedAttributes = Array.isArray(data.attributes) ? data.attributes : [];
+                refreshAllRows();
+                clearWarning();
+                if (!allowedAttributes.length) showWarning('Для цієї категорії ще не налаштовано жодної характеристики.');
+            })
+            .catch(() => {
+                allowedAttributes = [];
+                refreshAllRows();
+                showWarning('Сталася помилка при завантаженні характеристик.');
+            });
         }
 
         categorySelect.addEventListener('change', fetchAllowedAttributes);
-        rowsContainer.querySelectorAll('.attribute-remove-btn').forEach(bindRemoveButton);
+        
         function updateGalleryPreview(files) {
-            if (!galleryPreview) {
-                return;
-            }
-
+            if (!galleryPreview) return;
             galleryPreview.innerHTML = '';
-            Array.from(files || []).forEach(function (file, index) {
+            Array.from(files || []).forEach(function (file) {
                 const reader = new FileReader();
-                reader.onload = function (event) {
+                reader.onload = function (e) {
                     const card = document.createElement('div');
                     card.style.border = '1px solid #e2e8f0';
                     card.style.borderRadius = '8px';
                     card.style.overflow = 'hidden';
-                    card.style.background = '#fff';
-
-                    card.innerHTML = '<img src="' + event.target.result + '" alt="preview" style="width:100%;height:90px;object-fit:cover;display:block;"><div style="padding:0.35rem 0.5rem;font-size:0.75rem;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + file.name + '</div>' ;
+                    card.innerHTML = '<img src="' + e.target.result + '" style="width:100%;height:90px;object-fit:cover;display:block;"><div style="padding:0.35rem;font-size:0.75rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + file.name + '</div>';
                     galleryPreview.appendChild(card);
                 };
                 reader.readAsDataURL(file);
@@ -468,27 +448,31 @@ $attributeRows = $attributeRows ?? [];
         if (imagesInput) {
             imagesInput.addEventListener('change', function () {
                 if (imagesInput.files.length > galleryLimit) {
-                    alert('Можна вибрати максимум ' + galleryLimit + ' фото.');
+                    alert('Максимум ' + galleryLimit + ' фото.');
                     imagesInput.value = '';
                     updateGalleryPreview([]);
                     return;
                 }
-
                 updateGalleryPreview(imagesInput.files);
             });
         }
 
+        // Початкова ініціалізація існуючих рядків
         rowsContainer.querySelectorAll('.attribute-row').forEach(function (row) {
             const select = row.querySelector('.attribute-id-select');
             const valueInput = row.querySelector('input[name="attribute_value[]"]');
             const valueText = valueInput ? valueInput.value : '';
-            const selectableCheckbox = row.querySelector('.attribute-is-selectable-checkbox');
+            
             bindAttributeSelectProtection(select);
+            bindRemoveButton(row.querySelector('.attribute-remove-btn'));
+            
             select.addEventListener('change', function () {
                 renderValueInput(row, select.value, '');
             });
-            if (selectableCheckbox) {
-                selectableCheckbox.addEventListener('change', function () {
+            
+            const checkbox = row.querySelector('.attribute-is-selectable-checkbox');
+            if (checkbox) {
+                checkbox.addEventListener('change', function () {
                     syncSelectableHidden(row);
                     syncSelectableFields(row);
                 });
@@ -501,15 +485,12 @@ $attributeRows = $attributeRows ?? [];
         form.addEventListener('submit', function (event) {
             const rows = rowsContainer.querySelectorAll('.attribute-row');
             for (const row of rows) {
-                const attributeSelect = row.querySelector('.attribute-id-select');
+                const select = row.querySelector('.attribute-id-select');
                 const valueInput = row.querySelector('input[name="attribute_value[]"]');
-                const attributeId = Number(attributeSelect ? attributeSelect.value : 0);
-                const value = valueInput ? valueInput.value.trim() : '';
-
-                if (attributeId > 0 && value === '') {
+                if (select && select.value > 0 && (!valueInput || valueInput.value.trim() === '')) {
                     event.preventDefault();
-                    showWarning('Для обраної характеристики потрібно заповнити поле "Значення".');
-                    valueInput && valueInput.focus();
+                    showWarning('Заповніть поле "Значення".');
+                    if (valueInput) valueInput.focus();
                     return;
                 }
             }
@@ -518,3 +499,4 @@ $attributeRows = $attributeRows ?? [];
         fetchAllowedAttributes();
     })();
 </script>
+

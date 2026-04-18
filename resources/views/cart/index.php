@@ -34,7 +34,7 @@
 
                         <!-- Фото -->
                         <div style="width: 80px !important; flex-shrink: 0 !important;">
-                            <img src="/uploads/products/<?php echo $item["image"]; ?>" style="width: 70px !important; height: 70px !important; object-fit: cover !important; border-radius: 8px !important; background: #f9f9f9 !important; border: 1px solid #eee !important;">
+                            <img src="<?php echo $item["image"]; ?>" style="width: 70px !important; height: 70px !important; object-fit: cover !important; border-radius: 8px !important; background: #f9f9f9 !important; border: 1px solid #eee !important;">
                         </div>
 
                         <!-- Назва та залишок -->
