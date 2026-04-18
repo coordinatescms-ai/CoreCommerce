@@ -74,6 +74,7 @@ $router->get('/admin/analytics/{period}', [AdminController::class, 'analytics'])
 
 // Управління замовленнями в адмінці
 $router->get('/admin/orders', [AdminOrderController::class, 'index']);
+$router->post('/admin/orders/update-status', [AdminOrderController::class, 'updateStatus']);
 
 // Управління товарами в адмінці
 $router->get('/admin/products', [AdminProductController::class, 'index']);
