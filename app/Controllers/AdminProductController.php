@@ -62,6 +62,9 @@ class AdminProductController
         $attributeIds = $_POST['attribute_id'] ?? [];
         $values = $_POST['attribute_value'] ?? [];
         $selectableFlags = $_POST['attribute_is_selectable'] ?? [];
+        $priceModifiers = $_POST['attribute_price_modifier'] ?? [];
+        $priceOperations = $_POST['attribute_price_operation'] ?? [];
+        $stockQuantities = $_POST['attribute_stock_quantity'] ?? [];
 
         if (!is_array($attributeIds) || !is_array($values) || !is_array($selectableFlags)) {
             return [];
@@ -78,10 +81,16 @@ class AdminProductController
                 continue;
             }
 
+            $stockRaw = $stockQuantities[$i] ?? null;
             $rows[] = [
                 'attribute_id' => $attributeId,
                 'value' => $value,
-                'is_selectable' => (int) ($selectableFlags[$i] ?? 0) === 1
+                'is_selectable' => (int) ($selectableFlags[$i] ?? 0) === 1,
+                'price_modifier' => max(0, (float) str_replace(',', '.', (string) ($priceModifiers[$i] ?? '0'))),
+                'price_operation' => (($priceOperations[$i] ?? '+') === '-') ? '-' : '+',
+                'stock_quantity' => ($stockRaw === '' || $stockRaw === null)
+                    ? null
+                    : max(0, (int) $stockRaw),
             ];
         }
 
@@ -211,6 +220,13 @@ class AdminProductController
             }
 
             $isSelectable = !empty($row['is_selectable']);
+            if ($optionId && $isSelectable) {
+                Attribute::updateOption((int) $optionId, [
+                    'price_modifier' => (float) ($row['price_modifier'] ?? 0),
+                    'price_operation' => (($row['price_operation'] ?? '+') === '-') ? '-' : '+',
+                    'stock_quantity' => isset($row['stock_quantity']) ? (int) $row['stock_quantity'] : null,
+                ]);
+            }
 
             ProductAttribute::setValue((int) $productId, (int) $attributeId, $normalizedValue, $optionId);
             ProductAttributeValue::addValue((int) $productId, (int) $attributeId, $normalizedValue, $isSelectable);
@@ -506,6 +522,7 @@ class AdminProductController
             'name' => trim($_POST['name'] ?? ''),
             'slug' => !empty($_POST['slug']) ? trim($_POST['slug']) : SlugHelper::getUnique($_POST['name'], 'product'),
             'price' => trim((string) ($_POST['price'] ?? '')),
+            'is_visible' => !empty($_POST['is_visible']) ? 1 : 0,
             'category_id' => !empty($_POST['category_id']) ? (int)$_POST['category_id'] : null,
             'description' => trim((string) ($_POST['description'] ?? '')),
             'meta_title' => trim((string) ($_POST['meta_title'] ?? '')),
@@ -585,6 +602,7 @@ class AdminProductController
             $product['name'] = $formData['name'] ?? $product['name'];
             $product['slug'] = $formData['slug'] ?? $product['slug'];
             $product['price'] = $formData['price'] ?? $product['price'];
+            $product['is_visible'] = isset($formData['is_visible']) ? (int) $formData['is_visible'] : (int) ($product['is_visible'] ?? 1);
             $product['category_id'] = $formData['category_id'] ?? $product['category_id'];
             $product['description'] = $formData['description'] ?? $product['description'];
             $product['meta_title'] = $formData['meta_title'] ?? $product['meta_title'];
@@ -620,6 +638,7 @@ class AdminProductController
             'name' => trim($_POST['name'] ?? ''),
             'slug' => trim($_POST['slug'] ?? ''),
             'price' => trim((string) ($_POST['price'] ?? '')),
+            'is_visible' => !empty($_POST['is_visible']) ? 1 : 0,
             'category_id' => !empty($_POST['category_id']) ? (int)$_POST['category_id'] : null,
             'description' => trim((string) ($_POST['description'] ?? '')),
             'meta_title' => trim((string) ($_POST['meta_title'] ?? '')),
@@ -825,6 +844,7 @@ class AdminProductController
             'name' => (string) ($data['name'] ?? ''),
             'slug' => (string) ($data['slug'] ?? ''),
             'price' => (string) ($data['price'] ?? ''),
+            'is_visible' => (int) ($data['is_visible'] ?? 0),
             'category_id' => (int) ($data['category_id'] ?? 0),
             'description' => (string) ($data['description'] ?? ''),
             'meta_title' => (string) ($data['meta_title'] ?? ''),

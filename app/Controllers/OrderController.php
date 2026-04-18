@@ -9,6 +9,57 @@ use App\Models\Cart;
 
 class OrderController
 {
+    private function parseSelectedOptions($value): array
+    {
+        if ($value === null || trim((string) $value) === '') {
+            return [];
+        }
+
+        $decoded = json_decode((string) $value, true);
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    private function resolveOptionStockLimit(int $productId, array $selectedOptions): ?int
+    {
+        $optionIds = array_values(array_unique(array_filter(array_map(static function ($option): int {
+            return (int) ($option['option_id'] ?? 0);
+        }, $selectedOptions), static fn (int $id): bool => $id > 0)));
+
+        if (empty($optionIds)) {
+            return null;
+        }
+
+        $placeholders = implode(',', array_fill(0, count($optionIds), '?'));
+        $rows = DB::query(
+            "SELECT pa.attribute_id, ao.stock_quantity
+             FROM product_attributes pa
+             INNER JOIN attribute_options ao ON ao.id = pa.attribute_option_id
+             WHERE pa.product_id = ? AND pa.attribute_option_id IN ($placeholders)",
+            array_merge([$productId], $optionIds)
+        )->fetchAll();
+
+        if (count($rows) !== count($optionIds)) {
+            throw new \RuntimeException('Обрані опції для товару більше недоступні.');
+        }
+
+        $seenAttributes = [];
+        $stockLimit = null;
+        foreach ($rows as $row) {
+            $attributeId = (int) ($row['attribute_id'] ?? 0);
+            if ($attributeId <= 0 || isset($seenAttributes[$attributeId])) {
+                throw new \RuntimeException('Обрані опції для товару некоректні.');
+            }
+            $seenAttributes[$attributeId] = true;
+
+            if ($row['stock_quantity'] !== null) {
+                $stock = max(0, (int) $row['stock_quantity']);
+                $stockLimit = $stockLimit === null ? $stock : min($stockLimit, $stock);
+            }
+        }
+
+        return $stockLimit;
+    }
+
     public function checkout()
     {
         $cartItems = Cart::getItems();
@@ -27,6 +78,7 @@ class OrderController
                 'price' => (float) $row['price'],
                 'stock' => (int) $row['stock'],
                 'quantity' => (int) $row['quantity'],
+                'selected_options' => $row['selected_options'] ?? [],
             ];
         }
 
@@ -79,6 +131,7 @@ class OrderController
                 'price' => (float) $row['price'],
                 'stock' => (int) $row['stock'],
                 'quantity' => (int) $row['quantity'],
+                'selected_options' => $row['selected_options'] ?? [],
             ];
         }
 
@@ -120,7 +173,12 @@ class OrderController
                     throw new \RuntimeException('Недостатньо залишків для товару: ' . $product['name']);
                 }
 
-                $total += ((float) $product['price'] * $quantity);
+                $optionStockLimit = $this->resolveOptionStockLimit($productId, (array) ($item['selected_options'] ?? []));
+                if ($optionStockLimit !== null && $quantity > $optionStockLimit) {
+                    throw new \RuntimeException('Недостатньо залишків вибраної опції для товару: ' . $product['name']);
+                }
+
+                $total += ((float) $item['price'] * $quantity);
             }
 
             DB::query(
@@ -145,11 +203,15 @@ class OrderController
             foreach ($items as $item) {
                 $productId = (int) $item['id'];
                 $quantity = (int) $item['quantity'];
-                $price = (float) $lockedMap[$productId]['price'];
+                $selectedOptions = (array) ($item['selected_options'] ?? []);
+                $price = (float) $item['price'];
+                $selectedOptionsJson = empty($selectedOptions)
+                    ? null
+                    : json_encode($selectedOptions, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
                 DB::query(
-                    'INSERT INTO order_items (order_id, product_id, qty, price) VALUES (?, ?, ?, ?)',
-                    [$orderId, $productId, $quantity, $price]
+                    'INSERT INTO order_items (order_id, product_id, selected_options, qty, price) VALUES (?, ?, ?, ?, ?)',
+                    [$orderId, $productId, $selectedOptionsJson, $quantity, $price]
                 );
 
                 $updateStatement = DB::query(

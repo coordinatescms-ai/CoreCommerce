@@ -18,7 +18,7 @@ class HomeController
         $popularCategories = Category::query(
             "SELECT c.*, COUNT(p.id) AS products_count
              FROM categories c
-             LEFT JOIN products p ON p.category_id = c.id
+             LEFT JOIN products p ON p.category_id = c.id AND p.is_visible = 1
              GROUP BY c.id
              ORDER BY products_count DESC, c.name ASC
              LIMIT 8"
@@ -27,6 +27,7 @@ class HomeController
         $newArrivals = Product::query(
             "SELECT *
              FROM products
+             WHERE is_visible = 1
              ORDER BY id DESC
              LIMIT 12"
         ) ?? [];
@@ -35,6 +36,7 @@ class HomeController
             "SELECT p.*, COUNT(oi.id) AS orders_count
              FROM products p
              LEFT JOIN order_items oi ON oi.product_id = p.id
+             WHERE p.is_visible = 1
              GROUP BY p.id
              ORDER BY orders_count DESC, p.id DESC
              LIMIT 8"
@@ -44,6 +46,7 @@ class HomeController
             $recommendedProducts = Product::query(
                 "SELECT *
                  FROM products
+                 WHERE is_visible = 1
                  ORDER BY id DESC
                  LIMIT 8"
             ) ?? [];

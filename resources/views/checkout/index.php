@@ -68,7 +68,16 @@
             <ul class="summary-list">
                 <?php foreach ($items as $item): ?>
                     <li>
-                        <span><?= htmlspecialchars($item['name']) ?> × <?= (int) $item['quantity'] ?></span>
+                        <span>
+                            <?= htmlspecialchars($item['name']) ?> × <?= (int) $item['quantity'] ?>
+                            <?php if (!empty($item['selected_options'])): ?>
+                                <small style="display:block; color:#6b7280;">
+                                    <?php foreach ($item['selected_options'] as $idx => $option): ?>
+                                        <?= $idx > 0 ? '; ' : '' ?><?= htmlspecialchars((string) ($option['name'] ?? '')) ?>: <?= htmlspecialchars((string) ($option['value'] ?? '')) ?>
+                                    <?php endforeach; ?>
+                                </small>
+                            <?php endif; ?>
+                        </span>
                         <strong><?= number_format($item['price'] * $item['quantity'], 2) ?> грн</strong>
                     </li>
                 <?php endforeach; ?>

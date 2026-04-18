@@ -42,6 +42,12 @@
                 <label for="description">Опис товару</label>
                 <textarea name="description" id="description" class="form-control" rows="6"><?php echo htmlspecialchars($product['description'] ?? ''); ?></textarea>
             </div>
+            <div class="form-group">
+                <label style="display:flex; align-items:center; gap:0.5rem; margin:0; cursor:pointer;">
+                    <input type="checkbox" name="is_visible" value="1" <?php echo !isset($product['is_visible']) || (int) ($product['is_visible'] ?? 0) === 1 ? 'checked' : ''; ?>>
+                    <span>Показувати товар на вітрині</span>
+                </label>
+            </div>
         </div>
     </div>
 
@@ -76,6 +82,12 @@
                                 <input type="checkbox" class="attribute-is-selectable-checkbox" value="1">
                                 <span>Опція вибору</span>
                             </label>
+                            <select name="attribute_price_operation[]" class="form-control attribute-price-operation" style="max-width:70px; display:none;">
+                                <option value="+">+</option>
+                                <option value="-">-</option>
+                            </select>
+                            <input type="number" min="0" step="0.01" name="attribute_price_modifier[]" class="form-control attribute-price-modifier" placeholder="Націнка" style="max-width:120px; display:none;" value="0">
+                            <input type="number" min="0" step="1" name="attribute_stock_quantity[]" class="form-control attribute-stock-quantity" placeholder="Склад" style="max-width:120px; display:none;" value="">
                         </div>
                         <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;" title="Видалити">
                         <i class="fas fa-trash" aria-hidden="true"></i>
@@ -111,6 +123,12 @@
                                     <input type="checkbox" class="attribute-is-selectable-checkbox" value="1" <?php echo $isSelectable ? 'checked' : ''; ?>>
                                     <span>Опція вибору</span>
                                 </label>
+                                <select name="attribute_price_operation[]" class="form-control attribute-price-operation" style="max-width:70px; <?php echo $isSelectable ? '' : 'display:none;'; ?>">
+                                    <option value="+" <?php echo (($row['price_operation'] ?? '+') === '+') ? 'selected' : ''; ?>>+</option>
+                                    <option value="-" <?php echo (($row['price_operation'] ?? '+') === '-') ? 'selected' : ''; ?>>-</option>
+                                </select>
+                                <input type="number" min="0" step="0.01" name="attribute_price_modifier[]" class="form-control attribute-price-modifier" placeholder="Націнка" style="max-width:120px; <?php echo $isSelectable ? '' : 'display:none;'; ?>" value="<?php echo htmlspecialchars((string) ($row['price_modifier'] ?? '0')); ?>">
+                                <input type="number" min="0" step="1" name="attribute_stock_quantity[]" class="form-control attribute-stock-quantity" placeholder="Склад" style="max-width:120px; <?php echo $isSelectable ? '' : 'display:none;'; ?>" value="<?php echo htmlspecialchars((string) ($row['stock_quantity'] ?? '')); ?>">
                             </div>
                             <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;" title="Видалити">
                              <i class="fas fa-trash" aria-hidden="true"></i>
@@ -323,7 +341,22 @@
             hidden.value = checkbox.checked ? '1' : '0';
         }
 
-        function createRow(attributeId = '', value = '', isSelectable = false) {
+        function syncSelectableFields(row) {
+            const checkbox = row.querySelector('.attribute-is-selectable-checkbox');
+            const op = row.querySelector('.attribute-price-operation');
+            const modifier = row.querySelector('.attribute-price-modifier');
+            const stock = row.querySelector('.attribute-stock-quantity');
+            const isVisible = !!(checkbox && checkbox.checked);
+
+            [op, modifier, stock].forEach(function (field) {
+                if (!field) {
+                    return;
+                }
+                field.style.display = isVisible ? '' : 'none';
+            });
+        }
+
+        function createRow(attributeId = '', value = '', isSelectable = false, priceOperation = '+', priceModifier = '0', stockQuantity = '') {
             const row = document.createElement('div');
             row.className = 'attribute-row';
             row.style.display = 'grid';
@@ -339,6 +372,12 @@
                         <input type="checkbox" class="attribute-is-selectable-checkbox" value="1" ${isSelectable ? 'checked' : ''}>
                         <span>Опція вибору</span>
                     </label>
+                    <select name="attribute_price_operation[]" class="form-control attribute-price-operation" style="max-width:70px; ${isSelectable ? '' : 'display:none;'}">
+                        <option value="+" ${priceOperation === '+' ? 'selected' : ''}>+</option>
+                        <option value="-" ${priceOperation === '-' ? 'selected' : ''}>-</option>
+                    </select>
+                    <input type="number" min="0" step="0.01" name="attribute_price_modifier[]" class="form-control attribute-price-modifier" placeholder="Націнка" style="max-width:120px; ${isSelectable ? '' : 'display:none;'}" value="${escapeHtml(priceModifier)}">
+                    <input type="number" min="0" step="1" name="attribute_stock_quantity[]" class="form-control attribute-stock-quantity" placeholder="Склад" style="max-width:120px; ${isSelectable ? '' : 'display:none;'}" value="${escapeHtml(stockQuantity)}">
                 </div>
                 <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;" title="Видалити">
                 <i class="fas fa-trash" aria-hidden="true"></i>
@@ -356,8 +395,10 @@
             const selectableCheckbox = row.querySelector('.attribute-is-selectable-checkbox');
             selectableCheckbox.addEventListener('change', function () {
                 syncSelectableHidden(row);
+                syncSelectableFields(row);
             });
             syncSelectableHidden(row);
+            syncSelectableFields(row);
 
             return row;
         }
@@ -385,12 +426,14 @@
                 const currentValueText = valueInput ? valueInput.value : '';
                 select.innerHTML = buildAttributeOptions(currentValue);
                 if (currentValue && !select.value) {
-                    renderValueInput(row, '', '');
+                renderValueInput(row, '', '');
                     syncSelectableHidden(row);
+                    syncSelectableFields(row);
                     return;
                 }
                 renderValueInput(row, select.value, currentValueText);
                 syncSelectableHidden(row);
+                syncSelectableFields(row);
             });
         }
 
@@ -503,10 +546,12 @@
             if (selectableCheckbox) {
                 selectableCheckbox.addEventListener('change', function () {
                     syncSelectableHidden(row);
+                    syncSelectableFields(row);
                 });
             }
             renderValueInput(row, select.value, valueText);
             syncSelectableHidden(row);
+            syncSelectableFields(row);
         });
 
         form.addEventListener('submit', function (event) {

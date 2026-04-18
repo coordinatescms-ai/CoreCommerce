@@ -98,7 +98,7 @@ class ProductFilterService
         $query = "SELECT DISTINCT p.* FROM products p";
         $params = [];
         $joins = [];
-        $conditions = [];
+        $conditions = ["p.is_visible = 1"];
 
         // Фільтр за категорією
         if (!empty($filters['category_id'])) {
@@ -174,7 +174,7 @@ class ProductFilterService
         $query = "SELECT COUNT(DISTINCT p.id) as count FROM products p";
         $params = [];
         $joins = [];
-        $conditions = [];
+        $conditions = ["p.is_visible = 1"];
 
         // Фільтр за категорією
         if (!empty($filters['category_id'])) {
@@ -296,7 +296,7 @@ class ProductFilterService
         $result = $db->query(
             "SELECT MIN(price) as min_price, MAX(price) as max_price 
              FROM products 
-             WHERE category_id IN ($placeholders)",
+             WHERE category_id IN ($placeholders) AND is_visible = 1",
             $allCategories
         )->fetchAll(\PDO::FETCH_ASSOC);
         
@@ -319,7 +319,7 @@ class ProductFilterService
     {
         $db = Database::getInstance();
         $result = $db->query(
-            "SELECT MIN(price) as min_price, MAX(price) as max_price FROM products"
+            "SELECT MIN(price) as min_price, MAX(price) as max_price FROM products WHERE is_visible = 1"
         )->fetchAll(\PDO::FETCH_ASSOC);
 
         if (!empty($result) && $result[0]['min_price'] !== null && $result[0]['max_price'] !== null) {

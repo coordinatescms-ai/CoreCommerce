@@ -39,8 +39,17 @@ $currentCategoryId = (int) (($category['id'] ?? 0));
 
 $groupedSelectableAttributes = [];
 foreach (($selectableAttributes ?? []) as $attribute) {
+    $attributeId = (int) ($attribute['attribute_id'] ?? 0);
     $label = $attribute['attribute_name'] ?? __('attribute');
-    $groupedSelectableAttributes[$label][] = $attribute['value'] ?? '';
+    $groupedSelectableAttributes[$attributeId] = [
+        'name' => $label,
+        'options' => [[
+            'option_id' => (int) ($attribute['attribute_option_id'] ?? 0),
+            'value' => (string) (($attribute['option_name'] ?? '') ?: ($attribute['value'] ?? '')),
+            'price' => max(0, (float) ($attribute['price_modifier'] ?? 0)),
+            'op' => (($attribute['price_operation'] ?? '+') === '-') ? '-' : '+',
+        ]],
+    ];
 }
 
 $groupedDetailAttributes = [];
@@ -177,7 +186,7 @@ foreach (($breadcrumbs ?? []) as $crumb) {
 
                 <div class="pdp-info">
                     <h1><?= $productName ?></h1>
-                    <div class="pdp-price"><?= $productPrice ?> грн</div>
+                    <div class="pdp-price" data-base-price="<?= htmlspecialchars((string) number_format((float) ($product['price'] ?? 0), 2, '.', '')) ?>"><?= $productPrice ?> грн</div>
 
                     <p class="pdp-short-description">
                         <strong><?= __('short_description') ?>:</strong>
@@ -187,12 +196,21 @@ foreach (($breadcrumbs ?? []) as $crumb) {
                     <div class="pdp-options" aria-label="Product options">
                         <h3>Оберіть характеристики</h3>
                         <?php if (!empty($groupedSelectableAttributes)): ?>
-                            <?php foreach ($groupedSelectableAttributes as $attributeName => $values): ?>
+                            <?php foreach ($groupedSelectableAttributes as $attributeId => $group): ?>
                                 <div class="pdp-option-group">
-                                    <div class="pdp-option-label"><?= htmlspecialchars($attributeName) ?></div>
+                                    <div class="pdp-option-label"><?= htmlspecialchars((string) ($group['name'] ?? '')) ?></div>
                                     <div class="pdp-option-values">
-                                        <?php foreach (array_unique(array_filter($values)) as $value): ?>
-                                            <button type="button" class="pdp-chip"><?= htmlspecialchars((string) $value) ?></button>
+                                        <?php foreach (($group['options'] ?? []) as $option): ?>
+                                            <label class="pdp-chip" style="display:inline-flex; align-items:center; gap:0.45rem;">
+                                                <input
+                                                    type="radio"
+                                                    name="selected_option_ids[<?= (int) $attributeId ?>]"
+                                                    value="<?= (int) ($option['option_id'] ?? 0) ?>"
+                                                    data-option-price="<?= htmlspecialchars((string) number_format((float) ($option['price'] ?? 0), 2, '.', '')) ?>"
+                                                    data-option-op="<?= htmlspecialchars((string) ($option['op'] ?? '+')) ?>"
+                                                >
+                                                <span><?= htmlspecialchars((string) ($option['value'] ?? '')) ?></span>
+                                            </label>
                                         <?php endforeach; ?>
                                     </div>
                                 </div>
@@ -696,25 +714,23 @@ foreach (($breadcrumbs ?? []) as $crumb) {
 <script>
 (() => {
     const mainImage = document.getElementById('pdp-main-image');
-    if (!mainImage) {
-        return;
-    }
+    if (mainImage) {
+        document.querySelectorAll('[data-pdp-thumb]').forEach((thumb) => {
+            thumb.addEventListener('click', () => {
+                const image = thumb.getAttribute('data-image');
+                if (!image) {
+                    return;
+                }
 
-    document.querySelectorAll('[data-pdp-thumb]').forEach((thumb) => {
-        thumb.addEventListener('click', () => {
-            const image = thumb.getAttribute('data-image');
-            if (!image) {
-                return;
-            }
+                mainImage.src = image;
 
-            mainImage.src = image;
-
-            document.querySelectorAll('[data-pdp-thumb]').forEach((button) => {
-                button.classList.remove('is-active');
+                document.querySelectorAll('[data-pdp-thumb]').forEach((button) => {
+                    button.classList.remove('is-active');
+                });
+                thumb.classList.add('is-active');
             });
-            thumb.classList.add('is-active');
         });
-    });
+    }
 
     document.querySelectorAll('[data-accordion-trigger]').forEach((trigger) => {
         trigger.addEventListener('click', () => {
@@ -746,5 +762,47 @@ foreach (($breadcrumbs ?? []) as $crumb) {
             }
         });
     });
+
+    const priceNode = document.querySelector('.pdp-price[data-base-price]');
+    const buyForm = document.querySelector('.pdp-actions form[action^="/cart/add/"]');
+    const optionRadios = document.querySelectorAll('.pdp-options input[type="radio"][name^="selected_option_ids"]');
+
+    function updateDisplayedPrice() {
+        if (!priceNode) {
+            return;
+        }
+
+        const basePrice = Number(priceNode.dataset.basePrice || 0);
+        let delta = 0;
+        document.querySelectorAll('.pdp-options input[type="radio"]:checked').forEach((radio) => {
+            const price = Number(radio.dataset.optionPrice || 0);
+            const op = radio.dataset.optionOp === '-' ? -1 : 1;
+            if (price > 0) {
+                delta += price * op;
+            }
+        });
+
+        const finalPrice = Math.max(0, basePrice + delta);
+        priceNode.textContent = `${finalPrice.toFixed(2)} грн`;
+    }
+
+    optionRadios.forEach((radio) => {
+        radio.addEventListener('change', updateDisplayedPrice);
+    });
+    updateDisplayedPrice();
+
+    if (buyForm) {
+        buyForm.addEventListener('submit', () => {
+            buyForm.querySelectorAll('input[data-dynamic-option="1"]').forEach((input) => input.remove());
+            document.querySelectorAll('.pdp-options input[type="radio"]:checked').forEach((radio) => {
+                const hidden = document.createElement('input');
+                hidden.type = 'hidden';
+                hidden.name = radio.name;
+                hidden.value = radio.value;
+                hidden.setAttribute('data-dynamic-option', '1');
+                buyForm.appendChild(hidden);
+            });
+        });
+    }
 })();
 </script>

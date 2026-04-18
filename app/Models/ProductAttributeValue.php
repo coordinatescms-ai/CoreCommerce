@@ -17,10 +17,22 @@ class ProductAttributeValue extends Model
     public static function getByProduct($productId)
     {
         $result = self::query(
-            "SELECT pav.*, a.name AS attribute_name, a.slug AS attribute_slug, a.type AS attribute_type, pav.value_text AS value,
-                    COALESCE(pav.is_selectable, 0) AS is_selectable
+            "SELECT
+                    pav.*,
+                    a.name AS attribute_name,
+                    a.slug AS attribute_slug,
+                    a.type AS attribute_type,
+                    pav.value_text AS value,
+                    COALESCE(pav.is_selectable, 0) AS is_selectable,
+                    pa.attribute_option_id,
+                    ao.name AS option_name,
+                    ao.price_modifier,
+                    ao.price_operation,
+                    ao.stock_quantity
              FROM " . static::$table . " pav
              INNER JOIN attributes a ON pav.attribute_id = a.id
+             LEFT JOIN product_attributes pa ON pa.product_id = pav.product_id AND pa.attribute_id = pav.attribute_id
+             LEFT JOIN attribute_options ao ON ao.id = pa.attribute_option_id
              WHERE pav.product_id = ?
              ORDER BY a.sort_order, a.name",
             [(int) $productId]
