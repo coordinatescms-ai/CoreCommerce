@@ -54,7 +54,7 @@
 <div class="recent-orders-card">
     <div class="card-header">
         <h3><i class="fa-solid fa-clock-rotate-left"></i> Останні замовлення</h3>
-        <a href="orders.php" class="view-all" title="Дивитись всі"><i class="fas fa-eye" aria-hidden="true"></i></a>
+        <a href="/admin/orders" class="view-all" title="Дивитись всі"><i class="fas fa-eye" aria-hidden="true"></i></a>
     </div>
     <table class="admin-table">
         <thead>
