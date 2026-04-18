@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: MySQL-8.0:3306
--- Час створення: Квт 18 2026 р., 09:18
+-- Час створення: Квт 18 2026 р., 10:04
 -- Версія сервера: 8.0.44
 -- Версія PHP: 8.3.29
 
@@ -293,6 +293,7 @@ CREATE TABLE `order_items` (
   `id` int NOT NULL,
   `order_id` int DEFAULT NULL,
   `product_id` int DEFAULT NULL,
+  `selected_options` json DEFAULT NULL,
   `qty` int DEFAULT NULL,
   `price` decimal(10,2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
