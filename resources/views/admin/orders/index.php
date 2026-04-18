@@ -62,6 +62,11 @@
         overflow: hidden;
     }
 
+    .orders-column.drag-over {
+        border-color: #2563eb;
+        box-shadow: inset 0 0 0 1px #2563eb;
+    }
+
     .orders-column__head {
         padding: 12px 14px;
         border-bottom: 1px solid #d9e1ef;
@@ -88,6 +93,7 @@
         padding: 10px;
         display: grid;
         gap: 10px;
+        min-height: 320px;
     }
 
     .order-card {
@@ -96,6 +102,12 @@
         background: #fff;
         padding: 10px;
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        cursor: grab;
+    }
+
+    .order-card.dragging {
+        opacity: 0.5;
+        cursor: grabbing;
     }
 
     .order-card__id {
@@ -149,8 +161,8 @@
             <?php foreach (($kanbanColumns ?? []) as $statusCode => $statusLabel): ?>
                 <?php
                 $cardsInColumn = array_values(array_filter(
-                    $demoCards ?? [],
-                    static fn(array $card): bool => $card['status'] === $statusCode
+                    $orders ?? [],
+                    static fn(array $card): bool => ($card['status'] ?? '') === $statusCode
                 ));
                 ?>
                 <article class="orders-column" data-status="<?= htmlspecialchars((string)$statusCode, ENT_QUOTES, 'UTF-8') ?>">
@@ -160,10 +172,13 @@
                     </div>
                     <div class="orders-column__body">
                         <?php foreach ($cardsInColumn as $order): ?>
-                            <div class="order-card" data-order-id="<?= (int)$order['id'] ?>">
+                            <div class="order-card"
+                                 draggable="true"
+                                 data-order-id="<?= (int)$order['id'] ?>"
+                                 data-status="<?= htmlspecialchars((string)($order['status'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
                                 <div class="order-card__id">#<?= (int)$order['id'] ?></div>
-                                <div class="order-card__line">Клієнт: <?= htmlspecialchars((string)$order['customer'], ENT_QUOTES, 'UTF-8') ?></div>
-                                <div class="order-card__line">Сума: <?= number_format((float)$order['total'], 2, '.', ' ') ?> ₴</div>
+                                <div class="order-card__line">Клієнт: <?= htmlspecialchars((string)($order['customer_name'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></div>
+                                <div class="order-card__line">Сума: <?= number_format((float)($order['total'] ?? 0), 2, '.', ' ') ?> ₴</div>
                             </div>
                         <?php endforeach; ?>
                     </div>
@@ -198,6 +213,112 @@
                 const target = document.getElementById(button.dataset.target);
                 if (target) {
                     target.classList.add('active');
+                }
+            });
+        });
+
+        const columns = document.querySelectorAll('.orders-column');
+        let draggedCard = null;
+
+        const updateBadges = () => {
+            columns.forEach((column) => {
+                const badge = column.querySelector('.orders-badge');
+                if (!badge) {
+                    return;
+                }
+                badge.textContent = String(column.querySelectorAll('.order-card').length);
+            });
+        };
+
+        const updateOrderStatus = async (orderId, status, ttnCode = '') => {
+            const response = await fetch('/update_status.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    order_id: Number(orderId),
+                    status,
+                    ttn_code: ttnCode
+                })
+            });
+
+            const result = await response.json();
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || 'Не вдалося оновити статус');
+            }
+
+            return result;
+        };
+
+        document.querySelectorAll('.order-card[draggable="true"]').forEach((card) => {
+            card.addEventListener('dragstart', () => {
+                draggedCard = card;
+                card.classList.add('dragging');
+            });
+
+            card.addEventListener('dragend', () => {
+                card.classList.remove('dragging');
+                draggedCard = null;
+            });
+        });
+
+        columns.forEach((column) => {
+            const body = column.querySelector('.orders-column__body');
+            if (!body) {
+                return;
+            }
+
+            body.addEventListener('dragover', (event) => {
+                event.preventDefault();
+                column.classList.add('drag-over');
+            });
+
+            body.addEventListener('dragleave', () => {
+                column.classList.remove('drag-over');
+            });
+
+            body.addEventListener('drop', async (event) => {
+                event.preventDefault();
+                column.classList.remove('drag-over');
+
+                if (!draggedCard) {
+                    return;
+                }
+
+                const movedCard = draggedCard;
+                const targetStatus = column.dataset.status;
+                const previousColumnBody = movedCard.closest('.orders-column__body');
+                const orderId = movedCard.dataset.orderId;
+                const currentStatus = movedCard.dataset.status;
+
+                if (!targetStatus || !orderId || targetStatus === currentStatus) {
+                    return;
+                }
+
+                let ttnCode = '';
+                if (targetStatus === 'shipped') {
+                    ttnCode = window.prompt('Введіть ТТН для відправлення:', '') || '';
+                    if (!ttnCode.trim()) {
+                        alert('ТТН обов\'язкова для статусу «Відправлено».');
+                        return;
+                    }
+                }
+
+                movedCard.style.pointerEvents = 'none';
+                try {
+                    await updateOrderStatus(orderId, targetStatus, ttnCode.trim());
+                    body.appendChild(movedCard);
+                    movedCard.dataset.status = targetStatus;
+                    updateBadges();
+                } catch (error) {
+                    if (previousColumnBody) {
+                        previousColumnBody.appendChild(movedCard);
+                    }
+                    alert(error.message);
+                } finally {
+                    movedCard.style.pointerEvents = '';
                 }
             });
         });
