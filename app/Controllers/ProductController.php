@@ -119,7 +119,7 @@ class ProductController
         }
 
         // Отримати товар за slug
-        $product = Product::findBySlug($slug);
+        $product = Product::findVisibleBySlug($slug);
         
         if (!$product) {
             http_response_code(404);

@@ -26,7 +26,7 @@
                     <div style="background: #fff !important; border: 1px solid #e0e0e0 !important; border-radius: 12px !important; padding: 20px !important; margin-bottom: 15px !important; display: flex !important; align-items: center !important; position: relative !important; min-height: 100px !important;">
                         
                         <!-- Кнопка видалення (Червоний хрестик) -->
-                        <form action="/cart/remove/<?php echo $item["product_id"]; ?>" method="POST" style="position: absolute !important; top: 10px !important; right: 10px !important; margin: 0 !important;">
+                        <form action="/cart/remove/<?php echo (int) $item["cart_item_id"]; ?>" method="POST" style="position: absolute !important; top: 10px !important; right: 10px !important; margin: 0 !important;">
                             <input type="hidden" name="_method" value="DELETE">
                             <input type="hidden" name="csrf" value="<?php echo $csrf; ?>">
                             <button type="submit" style="background: #fff !important; color: #ff5c5c !important; border: 1px solid #ffeded !important; width: 26px !important; height: 26px !important; border-radius: 5px !important; cursor: pointer !important; font-weight: bold !important; line-height: 1 !important; display: flex !important; align-items: center !important; justify-content: center !important;">✕</button>
@@ -47,9 +47,9 @@
 
                         <!-- Опції -->
                         <div style="width: 100px !important; text-align: center !important; font-size: 12px !important; color: #777 !important; border-left: 1px solid #f0f0f0 !important; border-right: 1px solid #f0f0f0 !important;">
-                            <?php if (!empty($item['options'])) : ?>
-                                <?php foreach ($item['options'] as $k => $v) : ?>
-                                    <div><b><?php echo $k; ?>:</b> <?php echo $v; ?></div>
+                            <?php if (!empty($item['selected_options'])) : ?>
+                                <?php foreach ($item['selected_options'] as $option) : ?>
+                                    <div><b><?php echo htmlspecialchars((string) ($option['name'] ?? '')); ?>:</b> <?php echo htmlspecialchars((string) ($option['value'] ?? '')); ?></div>
                                 <?php endforeach; ?>
                             <?php else : ?>
                                 <span style="color: #ccc;">—</span>
@@ -65,7 +65,7 @@
                         <div style="width: 80px !important; text-align: center !important;">
                             <form action="/cart/update" method="POST" style="margin: 0 !important;">
                                 <input type="hidden" name="csrf" value="<?php echo $csrf; ?>">
-                                <input type="hidden" name="product_id" value="<?php echo $item["product_id"]; ?>">
+                                <input type="hidden" name="cart_item_id" value="<?php echo (int) $item["cart_item_id"]; ?>">
                                 <input type="number" name="quantity" value="<?php echo $item["quantity"]; ?>" min="1" max="<?php echo $item["stock"]; ?>" style="width: 50px !important; padding: 4px !important; border: 1px solid #ddd !important; border-radius: 6px !important; text-align: center !important; font-weight: bold !important;" onchange="this.form.submit()">
                             </form>
                         </div>
@@ -116,7 +116,6 @@
         </div>
     <?php endif; ?>
 </div>
-
 
 
 
