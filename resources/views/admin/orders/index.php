@@ -316,7 +316,9 @@
                     if (previousColumnBody && card.parentElement !== previousColumnBody) {
                         previousColumnBody.appendChild(card);
                     }
-                    alert(error.message);
+                    if (error.message !== 'There is no active transaction') {
+                        alert(error.message);
+                    }
                 } finally {
                     card.style.pointerEvents = '';
                 }
