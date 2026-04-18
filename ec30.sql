@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: MySQL-8.0:3306
--- Час створення: Квт 18 2026 р., 10:04
+-- Час створення: Квт 18 2026 р., 16:52
 -- Версія сервера: 8.0.44
 -- Версія PHP: 8.3.29
 
@@ -131,7 +131,7 @@ INSERT INTO `attribute_options` (`id`, `attribute_id`, `name`, `value`, `price_m
 (12, 3, 'Поліестер', 'polyester', 0.00, '+', NULL, NULL, 2, '2026-03-29 16:28:20'),
 (13, 3, 'Шовк', 'silk', 0.00, '+', NULL, NULL, 3, '2026-03-29 16:28:20'),
 (14, 3, 'Вовна', 'wool', 0.00, '+', NULL, NULL, 4, '2026-03-29 16:28:20'),
-(31, 4, 'Китай', 'Китай', 0.00, '+', NULL, NULL, 1, '2026-04-05 15:56:41');
+(31, 4, 'Китай', 'Китай', 150.00, '+', NULL, NULL, 1, '2026-04-05 15:56:41');
 
 -- --------------------------------------------------------
 
@@ -149,14 +149,6 @@ CREATE TABLE `cart` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Дамп даних таблиці `cart`
---
-
-INSERT INTO `cart` (`id`, `user_id`, `session_id`, `product_id`, `selected_options`, `quantity`, `created_at`, `updated_at`) VALUES
-(3, 2, NULL, 2, NULL, 1, '2026-04-09 08:28:20', '2026-04-17 16:59:03'),
-(5, 2, NULL, 1, NULL, 1, '2026-04-10 16:02:14', '2026-04-17 16:59:02');
 
 -- --------------------------------------------------------
 
@@ -283,6 +275,13 @@ CREATE TABLE `orders` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Дамп даних таблиці `orders`
+--
+
+INSERT INTO `orders` (`id`, `user_id`, `total`, `customer_name`, `customer_phone`, `customer_email`, `delivery_method`, `delivery_city`, `delivery_warehouse`, `delivery_address`, `payment_method`, `status`, `comment`, `created_at`) VALUES
+(1, 2, 3199.00, 'Василь Присяжнюк', '+380967445693', 'systemmaster@meta.ua', 'courier', '', '', 'с.Ольгопіль', 'cod', 'new', '', '2026-04-18 14:43:34');
+
 -- --------------------------------------------------------
 
 --
@@ -297,6 +296,14 @@ CREATE TABLE `order_items` (
   `qty` int DEFAULT NULL,
   `price` decimal(10,2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Дамп даних таблиці `order_items`
+--
+
+INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `selected_options`, `qty`, `price`) VALUES
+(1, 1, 2, '[{\"op\": \"+\", \"name\": \"Бренд\", \"price\": 150, \"value\": \"Китай\", \"option_id\": 31}]', 1, 2200.00),
+(2, 1, 1, NULL, 1, 999.00);
 
 -- --------------------------------------------------------
 
@@ -326,8 +333,8 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`id`, `is_visible`, `category_id`, `name`, `description`, `image`, `slug`, `meta_title`, `meta_description`, `meta_keywords`, `price`, `stock`, `created_at`, `updated_at`) VALUES
-(1, 1, 2, 'iPhone 13', 'Крутий смартфон, по дуже низьким цінам! Доступна ціна за круту якість!', '/uploads/products/gallery/20260409154431_3a88f7c85179.jpg', 'iphone-13', '', '', NULL, 999.00, 10, '2026-03-30 07:45:12', '2026-04-09 13:44:31'),
-(2, 1, 3, 'Сіомі', 'Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі!', '/uploads/products/gallery/20260409153822_96fb749ee78f.jpg', 'siomi', '', '', NULL, 2050.00, 5, '2026-04-05 08:11:57', '2026-04-09 13:38:23');
+(1, 1, 2, 'iPhone 13', 'Крутий смартфон, по дуже низьким цінам! Доступна ціна за круту якість!', '/uploads/products/gallery/20260409154431_3a88f7c85179.jpg', 'iphone-13', '', '', NULL, 999.00, 9, '2026-03-30 07:45:12', '2026-04-18 14:43:34'),
+(2, 1, 3, 'Сіомі', 'Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі!', '/uploads/products/gallery/20260409153822_96fb749ee78f.jpg', 'siomi', '', '', NULL, 2050.00, 4, '2026-04-05 08:11:57', '2026-04-18 14:43:34');
 
 -- --------------------------------------------------------
 
@@ -350,7 +357,7 @@ CREATE TABLE `product_attributes` (
 --
 
 INSERT INTO `product_attributes` (`id`, `product_id`, `attribute_id`, `value`, `attribute_option_id`, `created_at`, `updated_at`) VALUES
-(5, 2, 4, 'Китай', 31, '2026-04-10 12:08:25', '2026-04-10 12:08:25');
+(6, 2, 4, 'Китай', 31, '2026-04-18 11:09:51', '2026-04-18 11:09:51');
 
 -- --------------------------------------------------------
 
@@ -371,7 +378,7 @@ CREATE TABLE `product_attribute_values` (
 --
 
 INSERT INTO `product_attribute_values` (`id`, `product_id`, `attribute_id`, `value_text`, `is_selectable`) VALUES
-(4, 2, 4, 'Китай', 1);
+(5, 2, 4, 'Китай', 1);
 
 -- --------------------------------------------------------
 
@@ -395,7 +402,8 @@ INSERT INTO `product_images` (`id`, `product_id`, `image_path`, `sort_order`, `c
 (1, 2, '/uploads/products/gallery/20260409153822_96fb749ee78f.jpg', 1, '2026-04-09 13:38:22'),
 (2, 2, '/uploads/products/gallery/20260409154039_98b7d4cc3092.webp', 2, '2026-04-09 13:40:39'),
 (3, 1, '/uploads/products/gallery/20260409154431_3a88f7c85179.jpg', 1, '2026-04-09 13:44:31'),
-(4, 2, '/uploads/products/gallery/original/product_69d8e8394b030834816977.webp', 3, '2026-04-10 12:08:25');
+(4, 2, '/uploads/products/gallery/original/product_69d8e8394b030834816977.webp', 3, '2026-04-10 12:08:25'),
+(5, 2, '/uploads/products/gallery/original/product_69e3667ef402c964862882.jpg', 4, '2026-04-18 11:09:51');
 
 -- --------------------------------------------------------
 
@@ -535,7 +543,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `email`, `password`, `first_name`, `last_name`, `phone`, `avatar`, `role_id`, `is_active`, `email_verified`, `email_verified_at`, `last_login`, `password_reset_token`, `password_reset_expires`, `remember_token`, `created_at`, `updated_at`) VALUES
-(2, 'systemmaster@meta.ua', '$2y$12$knhVn0wIOYbnqx3TRccf1OrGmEGu3JWSZsbLQ/c9tvLrmZElAaU86', 'Василь', 'Присяжнюк', NULL, NULL, 1, 1, 0, NULL, '2026-04-18 07:11:07', NULL, NULL, '6f10dd2db463830c50595bbe0c07b60dd053d52ade57421f38dd15899e472ab7', '2026-03-31 09:57:24', '2026-04-18 07:11:07');
+(2, 'systemmaster@meta.ua', '$2y$12$knhVn0wIOYbnqx3TRccf1OrGmEGu3JWSZsbLQ/c9tvLrmZElAaU86', 'Василь', 'Присяжнюк', NULL, NULL, 1, 1, 0, NULL, '2026-04-18 14:41:21', NULL, NULL, '6f10dd2db463830c50595bbe0c07b60dd053d52ade57421f38dd15899e472ab7', '2026-03-31 09:57:24', '2026-04-18 14:41:21');
 
 -- --------------------------------------------------------
 
@@ -755,7 +763,7 @@ ALTER TABLE `attribute_options`
 -- AUTO_INCREMENT для таблиці `cart`
 --
 ALTER TABLE `cart`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT для таблиці `categories`
@@ -791,13 +799,13 @@ ALTER TABLE `login_logs`
 -- AUTO_INCREMENT для таблиці `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT для таблиці `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT для таблиці `products`
@@ -809,19 +817,19 @@ ALTER TABLE `products`
 -- AUTO_INCREMENT для таблиці `product_attributes`
 --
 ALTER TABLE `product_attributes`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT для таблиці `product_attribute_values`
 --
 ALTER TABLE `product_attribute_values`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT для таблиці `product_images`
 --
 ALTER TABLE `product_images`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT для таблиці `seo_settings`
