@@ -287,10 +287,11 @@
                     return;
                 }
 
+                const card = draggedCard;
                 const targetStatus = column.dataset.status;
-                const previousColumnBody = draggedCard.closest('.orders-column__body');
-                const orderId = draggedCard.dataset.orderId;
-                const currentStatus = draggedCard.dataset.status;
+                const previousColumnBody = card.closest('.orders-column__body');
+                const orderId = card.dataset.orderId;
+                const currentStatus = card.dataset.status;
 
                 if (!targetStatus || !orderId || targetStatus === currentStatus) {
                     return;
@@ -305,19 +306,19 @@
                     }
                 }
 
-                draggedCard.style.pointerEvents = 'none';
+                card.style.pointerEvents = 'none';
                 try {
                     await updateOrderStatus(orderId, targetStatus, ttnCode.trim());
-                    body.appendChild(draggedCard);
-                    draggedCard.dataset.status = targetStatus;
+                    body.appendChild(card);
+                    card.dataset.status = targetStatus;
                     updateBadges();
                 } catch (error) {
-                    if (previousColumnBody) {
-                        previousColumnBody.appendChild(draggedCard);
+                    if (previousColumnBody && card.parentElement !== previousColumnBody) {
+                        previousColumnBody.appendChild(card);
                     }
                     alert(error.message);
                 } finally {
-                    draggedCard.style.pointerEvents = '';
+                    card.style.pointerEvents = '';
                 }
             });
         });
