@@ -134,6 +134,7 @@ return [
     'cart_cleared' => 'Cart cleared!',
     'product_not_found' => 'Product not found!',
     'not_enough_stock' => 'Not enough stock!',
+    'selected_option_not_available' => 'Selected product option is unavailable.',
     'cart_is_empty' => 'Your cart is empty.',
     'continue_shopping' => 'Continue Shopping',
     'product' => 'Product',

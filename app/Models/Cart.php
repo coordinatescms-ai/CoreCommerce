@@ -51,36 +51,165 @@ class Cart
         ];
     }
 
-    private static function findCartItem(int $productId): ?array
+    private static function normalizeSelectedOptions(array $selectedOptions): array
+    {
+        $normalized = [];
+
+        foreach ($selectedOptions as $option) {
+            if (!is_array($option)) {
+                continue;
+            }
+
+            $optionId = (int) ($option['option_id'] ?? 0);
+            if ($optionId <= 0) {
+                continue;
+            }
+
+            $price = (float) ($option['price'] ?? 0);
+            if ($price < 0) {
+                $price = 0;
+            }
+
+            $op = (($option['op'] ?? '+') === '-') ? '-' : '+';
+
+            $normalized[] = [
+                'option_id' => $optionId,
+                'name' => (string) ($option['name'] ?? ''),
+                'value' => (string) ($option['value'] ?? ''),
+                'price' => (float) number_format($price, 2, '.', ''),
+                'op' => $op,
+            ];
+        }
+
+        usort($normalized, static function (array $a, array $b): int {
+            return $a['option_id'] <=> $b['option_id'];
+        });
+
+        return array_values($normalized);
+    }
+
+    private static function selectedOptionsToJson(array $selectedOptions): ?string
+    {
+        if (empty($selectedOptions)) {
+            return null;
+        }
+
+        return json_encode(
+            self::normalizeSelectedOptions($selectedOptions),
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+        ) ?: null;
+    }
+
+    private static function parseSelectedOptions(?string $json): array
+    {
+        if ($json === null || trim($json) === '') {
+            return [];
+        }
+
+        $decoded = json_decode($json, true);
+        if (!is_array($decoded)) {
+            return [];
+        }
+
+        return self::normalizeSelectedOptions($decoded);
+    }
+
+    private static function findCartItem(int $productId, ?string $selectedOptionsJson): ?array
     {
         $scope = self::scope();
 
         $sql = "SELECT c.*
                 FROM " . self::TABLE . " c
                 WHERE {$scope['where']} AND c.product_id = ?
+                  AND (
+                    (? IS NULL AND c.selected_options IS NULL)
+                    OR c.selected_options = ?
+                  )
                 LIMIT 1";
 
-        $row = DB::query($sql, array_merge($scope['params'], [$productId]))->fetch(PDO::FETCH_ASSOC);
+        $row = DB::query($sql, array_merge($scope['params'], [$productId, $selectedOptionsJson, $selectedOptionsJson]))->fetch(PDO::FETCH_ASSOC);
 
         return $row ?: null;
     }
 
-    public static function add($productId, $quantity = 1): array
+    private static function resolveSelectedOptions(int $productId, array $selectedOptionIds): array
+    {
+        $optionIds = array_values(array_unique(array_filter(array_map('intval', $selectedOptionIds), static fn ($id) => $id > 0)));
+        if (empty($optionIds)) {
+            return ['success' => true, 'options' => [], 'stock_limit' => null];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($optionIds), '?'));
+        $rows = DB::query(
+            "SELECT pa.product_id, pa.attribute_id, pa.attribute_option_id,
+                    a.name AS attribute_name, ao.name AS option_name, ao.price_modifier, ao.price_operation, ao.stock_quantity
+             FROM product_attributes pa
+             INNER JOIN attributes a ON a.id = pa.attribute_id
+             INNER JOIN attribute_options ao ON ao.id = pa.attribute_option_id
+             WHERE pa.product_id = ? AND pa.attribute_option_id IN ($placeholders)",
+            array_merge([$productId], $optionIds)
+        )->fetchAll(PDO::FETCH_ASSOC);
+
+        if (count($rows) !== count($optionIds)) {
+            return ['success' => false, 'message' => 'selected_option_not_available'];
+        }
+
+        $uniqueAttributes = [];
+        $options = [];
+        $stockLimit = null;
+
+        foreach ($rows as $row) {
+            $attributeId = (int) ($row['attribute_id'] ?? 0);
+            if ($attributeId <= 0 || isset($uniqueAttributes[$attributeId])) {
+                return ['success' => false, 'message' => 'selected_option_not_available'];
+            }
+            $uniqueAttributes[$attributeId] = true;
+
+            $modifier = max(0.0, (float) ($row['price_modifier'] ?? 0));
+            $operation = (($row['price_operation'] ?? '+') === '-') ? '-' : '+';
+            $optionStock = $row['stock_quantity'] !== null ? (int) $row['stock_quantity'] : null;
+            if ($optionStock !== null) {
+                $stockLimit = $stockLimit === null ? $optionStock : min($stockLimit, $optionStock);
+            }
+
+            $options[] = [
+                'option_id' => (int) ($row['attribute_option_id'] ?? 0),
+                'name' => (string) ($row['attribute_name'] ?? ''),
+                'value' => (string) ($row['option_name'] ?? ''),
+                'price' => (float) number_format($modifier, 2, '.', ''),
+                'op' => $operation,
+            ];
+        }
+
+        return ['success' => true, 'options' => self::normalizeSelectedOptions($options), 'stock_limit' => $stockLimit];
+    }
+
+    public static function add($productId, $quantity = 1, array $selectedOptionIds = []): array
     {
         $productId = (int) $productId;
         $quantity = max(1, (int) $quantity);
 
-        $product = Product::findById($productId);
+        $product = Product::findVisibleById($productId);
         if (!$product) {
             return ['success' => false, 'message' => 'product_not_found'];
         }
 
+        $resolvedOptions = self::resolveSelectedOptions($productId, $selectedOptionIds);
+        if (!$resolvedOptions['success']) {
+            return ['success' => false, 'message' => $resolvedOptions['message']];
+        }
+
         $stock = (int) ($product['stock'] ?? 0);
+        if ($resolvedOptions['stock_limit'] !== null) {
+            $stock = min($stock, max(0, (int) $resolvedOptions['stock_limit']));
+        }
+
         if ($stock < 1) {
             return ['success' => false, 'message' => 'not_enough_stock'];
         }
 
-        $existing = self::findCartItem($productId);
+        $selectedOptionsJson = self::selectedOptionsToJson($resolvedOptions['options']);
+        $existing = self::findCartItem($productId, $selectedOptionsJson);
         $currentQty = (int) ($existing['quantity'] ?? 0);
         $newQty = $currentQty + $quantity;
 
@@ -98,21 +227,25 @@ class Cart
             );
         } else {
             DB::query(
-                "INSERT INTO " . self::TABLE . " (user_id, session_id, product_id, quantity)
-                 VALUES (?, ?, ?, ?)",
-                [$userId, $userId ? null : $sid, $productId, $newQty]
+                "INSERT INTO " . self::TABLE . " (user_id, session_id, product_id, selected_options, quantity)
+                 VALUES (?, ?, ?, ?, ?)",
+                [$userId, $userId ? null : $sid, $productId, $selectedOptionsJson, $newQty]
             );
         }
 
         return ['success' => true];
     }
 
-    public static function updateQuantity($productId, $quantity): array
+    public static function updateQuantity($cartItemId, $quantity): array
     {
-        $productId = (int) $productId;
+        $cartItemId = (int) $cartItemId;
         $quantity = (int) $quantity;
+        $scope = self::scope();
 
-        $existing = self::findCartItem($productId);
+        $existing = DB::query(
+            "SELECT c.* FROM " . self::TABLE . " c WHERE {$scope['where']} AND c.id = ? LIMIT 1",
+            array_merge($scope['params'], [$cartItemId])
+        )->fetch(PDO::FETCH_ASSOC);
         if (!$existing) {
             return ['success' => false, 'message' => 'product_not_found'];
         }
@@ -122,13 +255,26 @@ class Cart
             return ['success' => true];
         }
 
-        $product = Product::findById($productId);
+        $productId = (int) ($existing['product_id'] ?? 0);
+        $product = Product::findVisibleById($productId);
         if (!$product) {
             DB::query("DELETE FROM " . self::TABLE . " WHERE id = ?", [(int) $existing['id']]);
             return ['success' => false, 'message' => 'product_not_found'];
         }
 
         $stock = (int) ($product['stock'] ?? 0);
+        $selectedOptions = self::parseSelectedOptions($existing['selected_options'] ?? null);
+        if (!empty($selectedOptions)) {
+            $optionIds = array_map(static fn (array $option): int => (int) $option['option_id'], $selectedOptions);
+            $resolved = self::resolveSelectedOptions($productId, $optionIds);
+            if (!$resolved['success']) {
+                return ['success' => false, 'message' => 'selected_option_not_available'];
+            }
+            if ($resolved['stock_limit'] !== null) {
+                $stock = min($stock, max(0, (int) $resolved['stock_limit']));
+            }
+        }
+
         if ($quantity > $stock) {
             return ['success' => false, 'message' => 'not_enough_stock'];
         }
@@ -141,15 +287,15 @@ class Cart
         return ['success' => true];
     }
 
-    public static function remove($productId): void
+    public static function remove($cartItemId): void
     {
-        $productId = (int) $productId;
+        $cartItemId = (int) $cartItemId;
         $scope = self::scope();
 
         DB::query(
             "DELETE c FROM " . self::TABLE . " c
-             WHERE {$scope['where']} AND c.product_id = ?",
-            array_merge($scope['params'], [$productId])
+             WHERE {$scope['where']} AND c.id = ?",
+            array_merge($scope['params'], [$cartItemId])
         );
     }
 
@@ -169,6 +315,8 @@ class Cart
 
         $sql = "SELECT
                     c.product_id,
+                    c.id AS cart_item_id,
+                    c.selected_options,
                     c.quantity,
                     p.name,
                     p.image,
@@ -186,19 +334,28 @@ class Cart
             $price = (float) $row['price'];
             $qty = max(1, (int) $row['quantity']);
             $stock = max(0, (int) $row['stock']);
+            $selectedOptions = self::parseSelectedOptions($row['selected_options'] ?? null);
+            $priceDelta = 0.0;
+            foreach ($selectedOptions as $option) {
+                $optionPrice = max(0.0, (float) ($option['price'] ?? 0));
+                $priceDelta += (($option['op'] ?? '+') === '-') ? -$optionPrice : $optionPrice;
+            }
+            $finalPrice = max(0.0, $price + $priceDelta);
 
             if ($stock > 0 && $qty > $stock) {
                 $qty = $stock;
             }
 
             $items[] = [
+                'cart_item_id' => (int) $row['cart_item_id'],
                 'product_id'  => (int) $row['product_id'],
                 'name'        => $row['name'] ?? '',
                 'image'       => $row['image'] ?? null,
-                'price'       => $price,
+                'price'       => $finalPrice,
                 'quantity'    => $qty,
                 'stock'       => $stock,
-                'total_price' => $price * $qty,
+                'selected_options' => $selectedOptions,
+                'total_price' => $finalPrice * $qty,
             ];
         }
 
@@ -230,7 +387,7 @@ class Cart
         }
 
         $guestItems = DB::query(
-            "SELECT product_id, quantity
+            "SELECT product_id, selected_options, quantity
              FROM " . self::TABLE . "
              WHERE user_id IS NULL AND session_id = ?",
             [$oldSessionId]
@@ -242,14 +399,16 @@ class Cart
 
         foreach ($guestItems as $item) {
             $productId = (int) $item['product_id'];
+            $selectedOptionsJson = $item['selected_options'] ?? null;
             $qty = max(1, (int) $item['quantity']);
 
             $existing = DB::query(
                 "SELECT id, quantity
                  FROM " . self::TABLE . "
                  WHERE user_id = ? AND product_id = ?
+                   AND ((? IS NULL AND selected_options IS NULL) OR selected_options = ?)
                  LIMIT 1",
-                [$userId, $productId]
+                [$userId, $productId, $selectedOptionsJson, $selectedOptionsJson]
             )->fetch(PDO::FETCH_ASSOC);
 
             if ($existing) {
@@ -260,9 +419,9 @@ class Cart
                 );
             } else {
                 DB::query(
-                    "INSERT INTO " . self::TABLE . " (user_id, session_id, product_id, quantity)
-                     VALUES (?, NULL, ?, ?)",
-                    [$userId, $productId, $qty]
+                    "INSERT INTO " . self::TABLE . " (user_id, session_id, product_id, selected_options, quantity)
+                     VALUES (?, NULL, ?, ?, ?)",
+                    [$userId, $productId, $selectedOptionsJson, $qty]
                 );
             }
         }
