@@ -51,18 +51,19 @@
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-header">
-            <i class="fas fa-list"></i> Характеристики товару
-        </div>
-        <div class="card-body">
-            <p style="margin-top: 0; color: #64748b;">Доступні лише характеристики, прив'язані до обраної категорії (з урахуванням батьківських категорій).</p>
-            <div id="attributes-warning" style="display:none; margin-bottom: 0.75rem; color:#b45309; background:#fffbeb; border:1px solid #fde68a; padding:0.5rem 0.75rem; border-radius:6px;"></div>
+ <div class="card">
+    <div class="card-header">
+        <i class="fas fa-list"></i> Характеристики товару
+    </div>
+    <div class="card-body">
+        <p style="margin-top: 0; color: #64748b;">Доступні лише характеристики, прив'язані до обраної категорії (з урахуванням батьківських категорій).</p>
+        <div id="attributes-warning" style="display:none; margin-bottom: 0.75rem; color:#b45309; background:#fffbeb; border:1px solid #fde68a; padding:0.5rem 0.75rem; border-radius:6px;"></div>
 
-            <div id="attribute-rows" style="display: flex; flex-direction: column; gap: 0.75rem;">
-                <?php $rows = $existingAttributes ?? []; ?>
-                <?php if (empty($rows)): ?>
-                    <div class="attribute-row" style="display:grid; grid-template-columns: 1fr 1fr 180px auto; gap: 0.75rem;">
+        <div id="attribute-rows" style="display: flex; flex-direction: column; gap: 1rem;">
+            <?php $rows = $existingAttributes ?? []; ?>
+            <?php if (empty($rows)): ?>
+                <div class="attribute-row" style="border: 1px solid #e2e8f0; padding: 1rem; border-radius: 8px; display: block;">
+                    <div style="display:grid; grid-template-columns: 1fr 1fr auto; gap: 0.75rem; margin-bottom: 0.75rem;">
                         <select name="attribute_id[]" class="form-control attribute-id-select">
                             <?php if (empty($allowedAttributes)): ?>
                                 <option value="">Спочатку оберіть категорію</option>
@@ -76,28 +77,30 @@
                         <div class="attribute-value-wrap">
                             <input type="text" name="attribute_value[]" class="form-control" placeholder="Значення (напр. Чорний)">
                         </div>
-                        <div class="attribute-selectable-wrap" style="display:flex; align-items:center; gap:0.5rem; justify-content:flex-start;">
-                            <input type="hidden" name="attribute_is_selectable[]" class="attribute-is-selectable-hidden" value="0">
-                            <label style="display:flex; align-items:center; gap:0.5rem; margin:0; cursor:pointer;">
-                                <input type="checkbox" class="attribute-is-selectable-checkbox" value="1">
-                                <span>Опція вибору</span>
-                            </label>
-                            <select name="attribute_price_operation[]" class="form-control attribute-price-operation" style="max-width:70px; display:none;">
-                                <option value="+">+</option>
-                                <option value="-">-</option>
-                            </select>
-                            <input type="number" min="0" step="0.01" name="attribute_price_modifier[]" class="form-control attribute-price-modifier" placeholder="Націнка" style="max-width:120px; display:none;" value="0">
-                            <input type="number" min="0" step="1" name="attribute_stock_quantity[]" class="form-control attribute-stock-quantity" placeholder="Склад" style="max-width:120px; display:none;" value="">
-                        </div>
                         <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;" title="Видалити">
-                        <i class="fas fa-trash" aria-hidden="true"></i>
+                            <i class="fas fa-trash" aria-hidden="true"></i>
                         </button>
                     </div>
-                <?php else: ?>
-                    <?php foreach ($rows as $row): ?>
-                        <div class="attribute-row" style="display:grid; grid-template-columns: 1fr 1fr 180px auto; gap: 0.75rem;">
-                            <?php $rowAttributeId = (int)($row['attribute_id'] ?? 0); ?>
-                            <?php $isAllowed = false; ?>
+                    <div class="attribute-selectable-wrap" style="display:flex; align-items:center; gap:0.75rem; flex-wrap: wrap;">
+                        <input type="hidden" name="attribute_is_selectable[]" class="attribute-is-selectable-hidden" value="0">
+                        <label style="display:flex; align-items:center; gap:0.5rem; margin:0; cursor:pointer; min-width: 150px;">
+                            <input type="checkbox" class="attribute-is-selectable-checkbox" value="1">
+                            <span style="font-weight: 500;">Опція вибору</span>
+                        </label>
+                        <select name="attribute_price_operation[]" class="form-control attribute-price-operation" style="max-width:70px; display:none;">
+                            <option value="+">+</option>
+                            <option value="-">-</option>
+                        </select>
+                        <input type="number" min="0" step="0.01" name="attribute_price_modifier[]" class="form-control attribute-price-modifier" placeholder="Націнка" style="max-width:160px; display:none;" value="">
+                        <input type="number" min="0" step="1" name="attribute_stock_quantity[]" class="form-control attribute-stock-quantity" placeholder="Кількість на складі" style="max-width:180px; display:none;" value="">
+                    </div>
+                </div>
+            <?php else: ?>
+                <?php foreach ($rows as $row): ?>
+                    <div class="attribute-row" style="border: 1px solid #e2e8f0; padding: 1rem; border-radius: 8px; display: block;">
+                        <?php $rowAttributeId = (int)($row['attribute_id'] ?? 0); ?>
+                        <?php $isAllowed = false; ?>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr auto; gap: 0.75rem; margin-bottom: 0.75rem;">
                             <select name="attribute_id[]" class="form-control attribute-id-select">
                                 <option value="">-- Оберіть характеристику --</option>
                                 <?php foreach (($allowedAttributes ?? []) as $attribute): ?>
@@ -109,42 +112,44 @@
                                 <?php endforeach; ?>
                                 <?php if (!$isAllowed && !empty($rowAttributeId)): ?>
                                     <option value="<?php echo $rowAttributeId; ?>" selected>
-                                        <?php echo htmlspecialchars(($row['attribute_name'] ?? ('ID ' . $rowAttributeId)) . ' (недоступний для поточної категорії)'); ?>
+                                        <?php echo htmlspecialchars(($row['attribute_name'] ?? ('ID ' . $rowAttributeId)) . ' (недоступний)'); ?>
                                     </option>
                                 <?php endif; ?>
                             </select>
                             <div class="attribute-value-wrap">
                                 <input type="text" name="attribute_value[]" class="form-control" value="<?php echo htmlspecialchars($row['value'] ?? ''); ?>" placeholder="Значення (напр. Чорний)">
                             </div>
-                            <div class="attribute-selectable-wrap" style="display:flex; align-items:center; gap:0.5rem; justify-content:flex-start;">
-                                <?php $isSelectable = !empty($row['is_selectable']); ?>
-                                <input type="hidden" name="attribute_is_selectable[]" class="attribute-is-selectable-hidden" value="<?php echo $isSelectable ? '1' : '0'; ?>">
-                                <label style="display:flex; align-items:center; gap:0.5rem; margin:0; cursor:pointer;">
-                                    <input type="checkbox" class="attribute-is-selectable-checkbox" value="1" <?php echo $isSelectable ? 'checked' : ''; ?>>
-                                    <span>Опція вибору</span>
-                                </label>
-                                <select name="attribute_price_operation[]" class="form-control attribute-price-operation" style="max-width:70px; <?php echo $isSelectable ? '' : 'display:none;'; ?>">
-                                    <option value="+" <?php echo (($row['price_operation'] ?? '+') === '+') ? 'selected' : ''; ?>>+</option>
-                                    <option value="-" <?php echo (($row['price_operation'] ?? '+') === '-') ? 'selected' : ''; ?>>-</option>
-                                </select>
-                                <input type="number" min="0" step="0.01" name="attribute_price_modifier[]" class="form-control attribute-price-modifier" placeholder="Націнка" style="max-width:120px; <?php echo $isSelectable ? '' : 'display:none;'; ?>" value="<?php echo htmlspecialchars((string) ($row['price_modifier'] ?? '0')); ?>">
-                                <input type="number" min="0" step="1" name="attribute_stock_quantity[]" class="form-control attribute-stock-quantity" placeholder="Склад" style="max-width:120px; <?php echo $isSelectable ? '' : 'display:none;'; ?>" value="<?php echo htmlspecialchars((string) ($row['stock_quantity'] ?? '')); ?>">
-                            </div>
                             <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;" title="Видалити">
-                             <i class="fas fa-trash" aria-hidden="true"></i>
+                                <i class="fas fa-trash" aria-hidden="true"></i>
                             </button>
                         </div>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </div>
+                        <div class="attribute-selectable-wrap" style="display:flex; align-items:center; gap:0.75rem; flex-wrap: wrap;">
+                            <?php $isSelectable = !empty($row['is_selectable']); ?>
+                            <input type="hidden" name="attribute_is_selectable[]" class="attribute-is-selectable-hidden" value="<?php echo $isSelectable ? '1' : '0'; ?>">
+                            <label style="display:flex; align-items:center; gap:0.5rem; margin:0; cursor:pointer; min-width: 150px;">
+                                <input type="checkbox" class="attribute-is-selectable-checkbox" value="1" <?php echo $isSelectable ? 'checked' : ''; ?>>
+                                <span style="font-weight: 500;">Опція вибору</span>
+                            </label>
+                            <select name="attribute_price_operation[]" class="form-control attribute-price-operation" style="max-width:70px; <?php echo $isSelectable ? '' : 'display:none;'; ?>">
+                                <option value="+" <?php echo (($row['price_operation'] ?? '+') === '+') ? 'selected' : ''; ?>>+</option>
+                                <option value="-" <?php echo (($row['price_operation'] ?? '+') === '-') ? 'selected' : ''; ?>>-</option>
+                            </select>
+                            <?php $valModifier = (string)($row['price_modifier'] ?? ''); ?>
+                            <input type="number" min="0" step="0.01" name="attribute_price_modifier[]" class="form-control attribute-price-modifier" placeholder="Націнка" style="max-width:160px; <?php echo $isSelectable ? '' : 'display:none;'; ?>" value="<?php echo ($valModifier === '0' || $valModifier === '0.00') ? '' : htmlspecialchars($valModifier); ?>">
+                            <input type="number" min="0" step="1" name="attribute_stock_quantity[]" class="form-control attribute-stock-quantity" placeholder="Кількість на складі" style="max-width:180px; <?php echo $isSelectable ? '' : 'display:none;'; ?>" value="<?php echo htmlspecialchars((string) ($row['stock_quantity'] ?? '')); ?>">
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
 
-            <div style="margin-top: 1rem;">
-                <button type="button" id="add-attribute-row" class="btn btn-outline" style="border: 1px solid #ddd; color: #2563eb;">
-                    <i class="fas fa-plus"></i> Додати характеристику
-                </button>
-            </div>
+        <div style="margin-top: 1.5rem;">
+            <button type="button" id="add-attribute-row" class="btn btn-outline" style="border: 1px solid #ddd; color: #2563eb;">
+                <i class="fas fa-plus"></i> Додати характеристику
+            </button>
         </div>
     </div>
+</div>
 
     <div class="card">
         <div class="card-header">
@@ -359,29 +364,41 @@
         function createRow(attributeId = '', value = '', isSelectable = false, priceOperation = '+', priceModifier = '0', stockQuantity = '') {
             const row = document.createElement('div');
             row.className = 'attribute-row';
-            row.style.display = 'grid';
-            row.style.gridTemplateColumns = '1fr 1fr 180px auto';
-            row.style.gap = '0.75rem';
+            
+            // Налаштовуємо зовнішній вигляд блоку (картка з рамкою)
+            row.style.border = '1px solid #e2e8f0';
+            row.style.padding = '1rem';
+            row.style.borderRadius = '8px';
+            row.style.marginBottom = '1rem';
+            row.style.display = 'block'; 
+
+            // Перевірка на нуль: якщо ціна "0", робимо поле порожнім, щоб було видно placeholder
+            const displayModifier = (priceModifier == '0' || priceModifier == '0.00') ? '' : escapeHtml(priceModifier);
 
             row.innerHTML = `
-                <select name="attribute_id[]" class="form-control attribute-id-select">${buildAttributeOptions(attributeId)}</select>
-                <div class="attribute-value-wrap"></div>
-                <div class="attribute-selectable-wrap" style="display:flex; align-items:center; gap:0.5rem; justify-content:flex-start;">
+                <!-- ПЕРШИЙ РЯДОК: Характеристика та Значення -->
+                <div style="display:grid; grid-template-columns: 1fr 1fr auto; gap: 0.75rem; margin-bottom: 0.75rem;">
+                    <select name="attribute_id[]" class="form-control attribute-id-select">${buildAttributeOptions(attributeId)}</select>
+                    <div class="attribute-value-wrap"></div>
+                    <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;" title="Видалити">
+                        <i class="fas fa-trash" aria-hidden="true"></i>
+                    </button>
+                </div>
+
+                <!-- ДРУГИЙ РЯДОК: Опція вибору, Ціна та Склад -->
+                <div class="attribute-selectable-wrap" style="display:flex; align-items:center; gap:0.75rem; flex-wrap: wrap;">
                     <input type="hidden" name="attribute_is_selectable[]" class="attribute-is-selectable-hidden" value="${isSelectable ? '1' : '0'}">
-                    <label style="display:flex; align-items:center; gap:0.5rem; margin:0; cursor:pointer;">
+                    <label style="display:flex; align-items:center; gap:0.5rem; margin:0; cursor:pointer; min-width: 150px;">
                         <input type="checkbox" class="attribute-is-selectable-checkbox" value="1" ${isSelectable ? 'checked' : ''}>
-                        <span>Опція вибору</span>
+                        <span style="font-weight: 500;">Опція вибору</span>
                     </label>
                     <select name="attribute_price_operation[]" class="form-control attribute-price-operation" style="max-width:70px; ${isSelectable ? '' : 'display:none;'}">
                         <option value="+" ${priceOperation === '+' ? 'selected' : ''}>+</option>
                         <option value="-" ${priceOperation === '-' ? 'selected' : ''}>-</option>
                     </select>
-                    <input type="number" min="0" step="0.01" name="attribute_price_modifier[]" class="form-control attribute-price-modifier" placeholder="Націнка" style="max-width:120px; ${isSelectable ? '' : 'display:none;'}" value="${escapeHtml(priceModifier)}">
-                    <input type="number" min="0" step="1" name="attribute_stock_quantity[]" class="form-control attribute-stock-quantity" placeholder="Склад" style="max-width:120px; ${isSelectable ? '' : 'display:none;'}" value="${escapeHtml(stockQuantity)}">
+                    <input type="number" min="0" step="0.01" name="attribute_price_modifier[]" class="form-control attribute-price-modifier" placeholder="Націнка" style="max-width:160px; ${isSelectable ? '' : 'display:none;'}" value="${displayModifier}">
+                    <input type="number" min="0" step="1" name="attribute_stock_quantity[]" class="form-control attribute-stock-quantity" placeholder="Кількість на складі" style="max-width:180px; ${isSelectable ? '' : 'display:none;'}" value="${escapeHtml(stockQuantity)}">
                 </div>
-                <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;" title="Видалити">
-                <i class="fas fa-trash" aria-hidden="true"></i>
-                </button>
             `;
 
             renderValueInput(row, attributeId, value);
