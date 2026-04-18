@@ -21,6 +21,22 @@ class Product extends Model
     }
 
     /**
+     * Отримати видимий товар за slug.
+     *
+     * @param string $slug
+     * @return array|null
+     */
+    public static function findVisibleBySlug($slug)
+    {
+        $result = self::query(
+            "SELECT * FROM " . static::$table . " WHERE slug = ? AND is_visible = 1 LIMIT 1",
+            [$slug]
+        );
+
+        return !empty($result) ? $result[0] : null;
+    }
+
+    /**
      * Отримати товар за ID
      * 
      * @param int $id
@@ -29,6 +45,22 @@ class Product extends Model
     public static function findById($id)
     {
         $result = self::query("SELECT * FROM " . static::$table . " WHERE id = ?", [$id]);
+        return !empty($result) ? $result[0] : null;
+    }
+
+    /**
+     * Отримати видимий товар за ID.
+     *
+     * @param int $id
+     * @return array|null
+     */
+    public static function findVisibleById($id)
+    {
+        $result = self::query(
+            "SELECT * FROM " . static::$table . " WHERE id = ? AND is_visible = 1",
+            [(int) $id]
+        );
+
         return !empty($result) ? $result[0] : null;
     }
 
@@ -102,7 +134,7 @@ class Product extends Model
         if ($categoryId) {
             $items = self::query(
                 "SELECT * FROM " . static::$table . "
-                 WHERE category_id = ? AND id != ?
+                 WHERE category_id = ? AND id != ? AND is_visible = 1
                  ORDER BY updated_at DESC, id DESC
                  LIMIT " . $limit,
                 [$categoryId, $productId]
@@ -115,7 +147,7 @@ class Product extends Model
 
         return self::query(
             "SELECT * FROM " . static::$table . "
-             WHERE id != ?
+             WHERE id != ? AND is_visible = 1
              ORDER BY updated_at DESC, id DESC
              LIMIT " . $limit,
             [$productId]
@@ -243,6 +275,7 @@ class Product extends Model
      */
     public static function delete($id)
     {
+        self::execute("DELETE FROM product_attribute_values WHERE product_id = ?", [(int) $id]);
         return self::execute("DELETE FROM " . self::$table . " WHERE id = ?", [$id]);
     }
 

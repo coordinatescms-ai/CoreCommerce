@@ -37,7 +37,11 @@ class CartController
         $this->validateCsrfOrAbort();
 
         $quantity = isset($_POST['quantity']) ? (int)$_POST['quantity'] : 1;
-        $result = Cart::add($id, $quantity);
+        $selectedOptionIds = $_POST['selected_option_ids'] ?? [];
+        if (!is_array($selectedOptionIds)) {
+            $selectedOptionIds = [];
+        }
+        $result = Cart::add($id, $quantity, $selectedOptionIds);
 
         if ($result['success']) {
             $_SESSION['success'] = __('product_added_to_cart');
@@ -56,10 +60,10 @@ class CartController
     {
         $this->validateCsrfOrAbort();
 
-        $productId = (int)$_POST['product_id'];
+        $cartItemId = (int)($_POST['cart_item_id'] ?? 0);
         $quantity = (int)$_POST['quantity'];
 
-        $result = Cart::updateQuantity($productId, $quantity);
+        $result = Cart::updateQuantity($cartItemId, $quantity);
 
         if (!$result['success']) {
             $_SESSION['error'] = __($result['message']);

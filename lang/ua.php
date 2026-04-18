@@ -134,6 +134,7 @@ return [
     'cart_cleared' => 'Кошик очищено!',
     'product_not_found' => 'Товар не знайдено!',
     'not_enough_stock' => 'Недостатньо товару на складі!',
+    'selected_option_not_available' => 'Обрана опція товару недоступна.',
     'cart_is_empty' => 'Ваш кошик порожній.',
     'continue_shopping' => 'Продовжити покупки',
     'product' => 'Товар',
