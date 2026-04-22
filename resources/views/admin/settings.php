@@ -7,6 +7,8 @@
         <div id="settings-tabs" style="display:flex; gap:0.5rem; flex-wrap:wrap;">
             <button type="button" class="btn btn-outline settings-tab-btn active" data-tab="general">Загальні</button>
             <button type="button" class="btn btn-outline settings-tab-btn" data-tab="media">Мультимедіа</button>
+            <button type="button" class="btn btn-outline settings-tab-btn" data-tab="shipping">Доставка</button>
+            <button type="button" class="btn btn-outline settings-tab-btn" data-tab="payment">Оплата</button>
         </div>
     </div>
 </div>
@@ -54,15 +56,20 @@
             });
     }
 
-    tabsRoot.addEventListener('click', function (event) {
-        const button = event.target.closest('.settings-tab-btn');
-        if (!button) {
-            return;
-        }
+        tabsRoot.addEventListener('click', function (event) {
+            const button = event.target.closest('.settings-tab-btn');
+            if (!button) {
+                return;
+            }
 
-        loadTab(button.dataset.tab || 'general');
-    });
+            loadTab(button.dataset.tab || 'general');
+        });
 
-    loadTab('general');
-})();
+        // Знаходимо рядок ?tab=... у посиланні
+        const urlParams = new URLSearchParams(window.location.search);
+        const tabToLoad = urlParams.get('tab') || 'general';
+
+        // Замість loadTab('general') викликаємо:
+        loadTab(tabToLoad);
+        })();
 </script>

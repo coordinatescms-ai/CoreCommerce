@@ -48,7 +48,7 @@ class AdminController
             ORDER BY o.created_at DESC
             LIMIT 5
         ");
-        $recentOrders = $stmt->fetchAll();
+        $recentOrders = $stmt->fetchAll(\PDO::FETCH_ASSOC);
     } catch (\Exception $e) {
         $recentOrders = [];
     }
@@ -149,7 +149,7 @@ class AdminController
             break;
         }
 
-        $db_data = $stmt->fetchAll();
+        $db_data = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
         foreach ($db_data as $row) {
             if ($period == 'year') {
@@ -227,61 +227,98 @@ LIMIT 5");
 
     public function settingsTab($tab)
     {
-        $this->checkAdmin();
+    $this->checkAdmin();
+    $tab = trim((string) $tab);
 
-        $settings = Setting::getAllGrouped();
-        $themesDir = __DIR__ . '/../../resources/themes';
-        $themes = is_dir($themesDir) ? array_values(array_diff(scandir($themesDir), ['.', '..'])) : [];
-
-        $tab = trim((string) $tab);
-        if ($tab === 'media') {
+    // Використовуємо switch для зручного перемикання
+    switch ($tab) {
+        case 'media':
+            $settings = Setting::getAllGrouped();
             View::renderPartial('admin/settings/tabs/media', ['settings' => $settings]);
-            return;
-        }
+            break;
 
-        View::renderPartial('admin/settings/tabs/general', ['settings' => $settings, 'themes' => $themes]);
+        case 'shipping':
+            // Отримуємо всі методи з типом shipping
+            $methods = Setting::getShopMethods('shipping');
+            View::renderPartial('admin/settings/tabs/shipping', ['methods' => $methods]);
+            break;
+
+        case 'payment':
+            // Отримуємо методи оплати з таблиці shop_methods
+            $methods = Setting::getShopMethods('payment');
+    
+            // Рендеримо частковий шаблон вкладки оплати
+            View::renderPartial('admin/settings/tabs/payment', [
+                'methods' => $methods
+            ]);
+            break;
+
+        case 'general':
+        default:
+            $settings = Setting::getAllGrouped();
+            $themesDir = __DIR__ . '/../../resources/themes';
+            $themes = is_dir($themesDir) ? array_values(array_diff(scandir($themesDir), ['.', '..'])) : [];
+            View::renderPartial('admin/settings/tabs/general', [
+                'settings' => $settings, 
+                'themes' => $themes
+            ]);
+            break;
+    }
     }
 
     public function saveSettings()
     {
-        $this->checkAdmin();
+    $this->checkAdmin();
 
-        if (!Csrf::isValid()) {
-            $_SESSION['error'] = 'CSRF token validation failed';
-            header('Location: /admin/settings');
-            exit;
-        }
+    // Визначаємо вкладку відразу, щоб знати, куди повертати при помилці
+    $currentTab = $_POST['current_tab'] ?? 'general';
+    $redirectUrl = '/admin/settings?tab=' . urlencode($currentTab);
 
-        $settingsToUpdate = $_POST['settings'] ?? [];
-        if (!is_array($settingsToUpdate)) {
-            $settingsToUpdate = [];
-        }
-
-        [$settingsToUpdate, $validationError] = $this->validateAndNormalizeSettings($settingsToUpdate);
-        if ($validationError !== null) {
-            $_SESSION['error'] = $validationError;
-            header('Location: /admin/settings');
-            exit;
-        }
-
-        $watermarkUploadError = $this->processWatermarkUpload($settingsToUpdate);
-        if ($watermarkUploadError !== null) {
-            $_SESSION['error'] = $watermarkUploadError;
-            header('Location: /admin/settings');
-            exit;
-        }
-
-        $metadata = $this->settingsMetadata();
-        foreach ($settingsToUpdate as $key => $value) {
-            $group = $metadata[$key]['group'] ?? 'general';
-            $type = $metadata[$key]['type'] ?? 'text';
-            Setting::setWithMeta((string) $key, (string) $value, $group, $type);
-        }
-
-        $_SESSION['success'] = __('settings_saved_successfully');
-        header('Location: /admin/settings');
+    if (!Csrf::isValid()) {
+        $_SESSION['error'] = 'CSRF token validation failed';
+        header('Location: ' . $redirectUrl); // Повертаємо на ту ж вкладку
         exit;
     }
+
+    $settingsToUpdate = $_POST['settings'] ?? [];
+    if (!is_array($settingsToUpdate)) {
+        $settingsToUpdate = [];
+    }
+
+    [$settingsToUpdate, $validationError] = $this->validateAndNormalizeSettings($settingsToUpdate);
+    if ($validationError !== null) {
+        $_SESSION['error'] = $validationError;
+        header('Location: ' . $redirectUrl); // Повертаємо на ту ж вкладку
+        exit;
+    }
+
+    $watermarkUploadError = $this->processWatermarkUpload($settingsToUpdate);
+    if ($watermarkUploadError !== null) {
+        $_SESSION['error'] = $watermarkUploadError;
+        header('Location: ' . $redirectUrl); // Повертаємо на ту ж вкладку
+        exit;
+    }
+
+    $metadata = $this->settingsMetadata();
+    foreach ($settingsToUpdate as $key => $value) {
+        $group = $metadata[$key]['group'] ?? 'general';
+        $type = $metadata[$key]['type'] ?? 'text';
+        Setting::setWithMeta((string) $key, (string) $value, $group, $type);
+    }
+
+    // 2. Нове збереження для доставки та оплати (таблиця shop_methods)
+    if (isset($_POST['methods']) && is_array($_POST['methods'])) {
+        foreach ($_POST['methods'] as $id => $data) {
+            // Викликаємо метод з Setting.php, який ми створили раніше
+            Setting::updateShopMethod((int)$id, $data);
+        }
+    }
+
+    $_SESSION['success'] = __('settings_saved_successfully');
+    header('Location: ' . $redirectUrl); // Успішне повернення
+    exit;
+    }
+
 
     private function validateAndNormalizeSettings(array $settings): array
     {
@@ -402,7 +439,6 @@ LIMIT 5");
             'smtp_pass' => ['group' => 'general', 'type' => 'text'],
             'smtp_port' => ['group' => 'general', 'type' => 'text'],
             'smtr' => ['group' => 'general', 'type' => 'text'],
-            'nova_poshta_api_key' => ['group' => 'general', 'type' => 'text'],
         ];
     }
 }

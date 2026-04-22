@@ -1,5 +1,7 @@
 <form action="/admin/settings/save" method="POST" enctype="multipart/form-data">
     <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf']); ?>">
+    <!-- Це поле вкаже контролеру куди повернутися -->
+    <input type="hidden" name="current_tab" value="media">
 
     <div class="card">
         <div class="card-header">
