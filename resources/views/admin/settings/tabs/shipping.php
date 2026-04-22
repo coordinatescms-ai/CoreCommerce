@@ -1,3 +1,13 @@
+<div class="mb-4 text-end">
+    <form action="/admin/settings/methods/add" method="POST" style="display:inline;">
+        <input type="hidden" name="csrf" value="<?= \App\Core\Http\Csrf::token(); ?>">
+        <input type="hidden" name="type" value="shipping">
+        <button type="submit" class="btn btn-success">
+            <i class="fas fa-plus"></i> Додати спосіб доставки
+        </button>
+    </form>
+</div>
+
 <form action="/admin/settings/save" method="POST">
     <input type="hidden" name="csrf" value="<?= \App\Core\Http\Csrf::token(); ?>">
     <input type="hidden" name="current_tab" value="shipping">
@@ -10,6 +20,15 @@
         <div class="card mb-4 shadow-sm border-0">
             <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
                 <h5 class="mb-0 text-primary"><?= htmlspecialchars($method['name']) ?></h5>
+
+                <a href="#" onclick="if(confirm('Видалити цей метод?')) { document.getElementById('delete-form-<?= $method['id'] ?>').submit(); } return false;" class="btn btn-sm btn-outline-danger">
+                    Видалити
+                </a>
+
+                <form id="delete-form-<?= $method['id'] ?>" action="/admin/settings/methods/delete/<?= $method['id'] ?>" method="POST" style="display:none;">
+                    <input type="hidden" name="csrf" value="<?= \App\Core\Http\Csrf::token(); ?>">
+                    <input type="hidden" name="type" value="shipping">
+                </form>
                 <div class="form-check form-switch">
                     <input type="hidden" name="methods[<?= $method['id'] ?>][is_active]" value="0">
                     <input class="form-check-input" type="checkbox" name="methods[<?= $method['id'] ?>][is_active]" value="1" <?= $method['is_active'] ? 'checked' : '' ?>>
@@ -74,6 +93,10 @@
             </div>
         </div>
     <?php endforeach; ?>
-    <button type="submit" class="btn btn-primary">Зберегти всі зміни</button>
+        <div style="margin-bottom: 2rem; display: flex; justify-content: flex-end;">
+        <button type="submit" class="btn btn-primary btn-lg" style="padding: 0.75rem 2rem; font-size: 1rem;">
+            <i class="fas fa-save"></i> Зберегти всі зміни
+        </button>
+    </div>
 </form>
 

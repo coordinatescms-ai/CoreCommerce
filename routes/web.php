@@ -69,6 +69,8 @@ $router->get('/admin', [AdminController::class, 'dashboard']);
 $router->get('/admin/settings', [AdminController::class, 'settings']);
 $router->post('/admin/settings/save', [AdminController::class, 'saveSettings']);
 $router->get('/admin/settings/tab/{tab}', [AdminController::class, 'settingsTab']);
+$router->post('/admin/settings/methods/add', [AdminController::class, 'addMethod']);
+$router->post('/admin/settings/methods/delete/{id}', [AdminController::class, 'deleteMethod']);
 
 // Перегляд аналітики продажів в адмінці
 $router->get('/admin/analytics/{period}', [AdminController::class, 'analytics']);
