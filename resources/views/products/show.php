@@ -118,6 +118,15 @@ foreach (($breadcrumbs ?? []) as $crumb) {
         $expandedCategoryIds[] = (int) $crumb['id'];
     }
 }
+
+$isFavorite = false;
+if (isset($_SESSION['user']['id'])) {
+    $check = \App\Core\Database\DB::query(
+        "SELECT 1 FROM favorites WHERE user_id = ? AND product_id = ?", 
+        [(int)$_SESSION['user']['id'], (int)$product['id']]
+    )->fetch();
+    $isFavorite = (bool)$check;
+}
 ?>
 
 <section class="pdp" data-category-page>
@@ -228,7 +237,13 @@ foreach (($breadcrumbs ?? []) as $crumb) {
                             <input type="number" name="quantity" value="1" min="1" max="<?= (int)($product['stock'] ?? 0) ?>" class="form-control me-2" style="width: 80px;">
                             <button type="submit" class="pdp-btn pdp-btn-primary"><?= __('add_to_cart') ?></button>
                         </form>
-                        <button type="button" class="pdp-btn pdp-btn-ghost"><?= __('wishlist') ?></button>
+                        <button type="button" 
+                            class="pdp-btn pdp-btn-ghost <?= $isFavorite ? 'active' : '' ?>" 
+                            id="wishlist-btn">
+                            <span class="wishlist-text">
+                                <?= $isFavorite ? '❤️ ' . __('wishlist') : __('wishlist') ?>
+                            </span>
+                            </button>
                     </div>
                     <div class="mt-2 small text-muted">
                         <?= __('in_stock') ?>: <?= (int)($product['stock'] ?? 0) ?>
@@ -686,6 +701,79 @@ foreach (($breadcrumbs ?? []) as $crumb) {
     font-weight: 700;
 }
 
+#auth-popup {
+    /* Тепер позиція зверху задається динамічно через JS */
+    position: fixed;
+    right: 20px;
+    z-index: 1000;
+    
+    /* Оформлення вікна */
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    padding: 18px;
+    border-radius: 10px;
+    min-width: 280px;
+    
+    /* Анімація появи (плавне випадання зверху) */
+    animation: slideDown 0.3s ease-out;
+}
+
+.auth-popup-content p {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    color: #333;
+    line-height: 1.4;
+}
+
+.auth-links {
+    display: flex;
+    gap: 15px;
+}
+
+.btn-link {
+    font-weight: 700;
+    color: #007bff;
+    text-decoration: none;
+    font-size: 15px;
+}
+
+.btn-link:hover {
+    text-decoration: underline;
+}
+
+.close-popup {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: #bbb;
+    line-height: 1;
+}
+
+.close-popup:hover {
+    color: #333;
+}
+
+/* Ефект появи */
+@keyframes slideDown {
+    from { 
+        opacity: 0; 
+        transform: translateY(-20px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+.pdp-btn-ghost.active {
+    color: #e74c3c; /* Червоний колір тексту */
+    border-color: #e74c3c; /* Червона рамка */
+}
+
 @media (max-width: 1024px) {
     .pdp-layout {
         grid-template-columns: 1fr;
@@ -712,6 +800,99 @@ foreach (($breadcrumbs ?? []) as $crumb) {
 </style>
 
 <script>
+    // 1. Отримуємо дані з PHP
+    const isLoggedIn = <?php echo isset($_SESSION['user']) ? 1 : 0; ?>;
+    const productId = <?php echo (int)$product['id']; ?>;
+    
+    // Знаходимо кнопку та її текстовий контейнер
+    const wishlistBtn = document.querySelector('.pdp-btn-ghost');
+    // Зберігаємо початковий переклад (наприклад, "Wishlist" або "В обране") 
+    // щоб знати, що написати, коли товар буде видалено
+    const originalText = wishlistBtn.innerText.replace('❤️ ', '').trim();
+
+    wishlistBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+
+        // 2. Перевірка авторизації
+        if (isLoggedIn === 0) {
+            showLoginPopup();
+            return;
+        }
+
+        const btn = this;
+        btn.disabled = true; // Блокуємо кнопку на час запиту
+
+        // 3. Підготовка даних для відправки
+        const formData = new FormData();
+        formData.append('product_id', productId);
+
+        // 4. Відправка запиту на контролер
+        fetch('/favorites/toggle', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'added') {
+                // Товар додано: додаємо клас та сердечко
+                btn.classList.add('active');
+                btn.innerHTML = '❤️ ' + originalText;
+            } else if (data.status === 'removed') {
+                // Товар видалено: прибираємо клас та сердечко
+                btn.classList.remove('active');
+                btn.innerHTML = originalText;
+            } else {
+                alert(data.message || 'Сталася помилка');
+            }
+        })
+        .catch(error => {
+            console.error('Помилка AJAX:', error);
+            alert('Не вдалося з’єднатися з сервером');
+        })
+        .finally(() => {
+            btn.disabled = false; // Розблоковуємо кнопку
+        });
+    });
+
+    // Функція показу попапа для гостей
+    function showLoginPopup() {
+        if (document.getElementById('auth-popup')) return;
+
+        const popup = document.createElement('div');
+        popup.id = 'auth-popup';
+        
+        const header = document.querySelector('header') || document.querySelector('.main-header'); 
+        const headerHeight = header ? header.offsetHeight : 0;
+
+        popup.style.cssText = `
+            position: fixed;
+            top: ${headerHeight + 10}px;
+            right: 20px;
+            background: white;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            z-index: 1000;
+            border-radius: 8px;
+            border-left: 4px solid #e74c3c;
+        `;
+
+        popup.innerHTML = `
+            <div class="auth-popup-content">
+                <p style="margin: 0 0 15px 0;">Щоб додати в обране, увійдіть у профіль</p>
+                <div style="display: flex; gap: 10px;">
+                    <a href="/login" style="color: #e74c3c; text-decoration: none; font-weight: bold;">Увійти</a>
+                    <a href="/register" style="color: #666; text-decoration: none;">Реєстрація</a>
+                </div>
+                <button onclick="this.closest('#auth-popup').remove()" 
+                        style="position: absolute; top: 5px; right: 10px; border: none; background: none; cursor: pointer; font-size: 20px;">
+                        &times;
+                </button>
+            </div>
+        `;
+        document.body.appendChild(popup);
+        setTimeout(() => { if(popup) popup.remove(); }, 5000);
+    }
+
 (() => {
     const mainImage = document.getElementById('pdp-main-image');
     if (mainImage) {

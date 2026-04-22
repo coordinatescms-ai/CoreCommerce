@@ -1,5 +1,6 @@
 <form action="/admin/settings/save" method="POST" enctype="multipart/form-data">
     <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf']); ?>">
+    <input type="hidden" name="current_tab" value="general">
 
     <div class="card">
         <div class="card-header">
@@ -97,18 +98,6 @@
             <label>Пароль</label>
             <input type="password" id="smtp_pass" name="settings[smtp_pass]" value="<?php echo htmlspecialchars(get_setting('smtp_pass', '')); ?>">
         </div>
-    </div>
-</div>
-
-<!-- Секція Доставка -->
-<div class="settings-card">
-    <div class="card-header">
-        <h3><i class="fa-solid fa-truck"></i> Інтеграція з Новою Поштою</h3>
-    </div>
-    <div class="input-group">
-        <label>API Ключ Нової Пошти</label>
-        <input type="text" id="nova_poshta_api_key" name="settings[nova_poshta_api_key]" value="<?php echo htmlspecialchars(get_setting('nova_poshta_api_key', '')); ?>">
-        <small class="hint">Потрібен для автоматичного створення ТТН та вибору відділень.</small>
     </div>
 </div>
 

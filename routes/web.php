@@ -56,6 +56,7 @@ $router->post('/reset-password',[AuthController::class,'resetPassword']);
 
 // Профіль користувача
 $router->get('/profile', [AuthController::class, 'showProfile']);
+$router->post('/favorites/toggle', [ProductController::class, 'toggleFavorite']);
 
 // Соціальна автентифікація
 $router->get('/auth/google', [SocialAuthController::class, 'redirectToGoogle']);

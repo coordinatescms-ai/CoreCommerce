@@ -68,6 +68,39 @@ class ProductController
     }
 
     /**
+     * Добавити товар в обране
+     */
+    public function toggleFavorite() {
+    header('Content-Type: application/json');
+
+    if (!isset($_SESSION['user']['id'])) {
+        echo json_encode(['status' => 'error', 'message' => 'Авторизуйтесь']);
+        exit;
+    }
+
+    $userId = (int)$_SESSION['user']['id'];
+    $productId = (int)($_POST['product_id'] ?? 0);
+
+    try {
+        // Перевіряємо, чи вже є в обраному
+        $check = DB::query("SELECT 1 FROM favorites WHERE user_id = ? AND product_id = ?", [$userId, $productId])->fetch();
+
+        if ($check) {
+            // Видаляємо
+            DB::execute("DELETE FROM favorites WHERE user_id = ? AND product_id = ?", [$userId, $productId]);
+            echo json_encode(['status' => 'removed', 'message' => 'Видалено']);
+        } else {
+            // Додаємо
+            DB::execute("INSERT INTO favorites (user_id, product_id) VALUES (?, ?)", [$userId, $productId]);
+            echo json_encode(['status' => 'added', 'message' => 'Додано']);
+        }
+    } catch (\Exception $e) {
+        echo json_encode(['status' => 'error', 'message' => 'Помилка бази даних']);
+    }
+    exit;
+}
+
+    /**
      * Показати список товарів
      */
     public function index()
