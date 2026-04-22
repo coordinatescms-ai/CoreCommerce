@@ -319,6 +319,51 @@ LIMIT 5");
     exit;
     }
 
+    public function addMethod()
+    {
+    $this->checkAdmin();
+    
+    $type = $_POST['type'] ?? 'shipping'; // 'shipping' або 'payment'
+    
+    // Повертаємо твій масив даних — він важливий для коректного створення запису
+    $data = [
+        'type'        => $type,
+        'code'        => 'custom_' . time(),
+        'name'        => ($type === 'shipping') ? 'Новий метод доставки' : 'Новий метод оплати',
+        'description' => 'Опис методу для клієнта',
+        'is_active'   => 0,
+        'sort_order'  => 10,
+        'settings'    => json_encode([])
+    ];
+
+    // Використовуємо твій метод execute. ВАЖЛИВО: порядок знаків ? має збігатися з array_values($data)
+    Setting::execute(
+        "INSERT INTO shop_methods (`type`, `code`, `name`, `description`, `is_active`, `sort_order`, `settings`) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        array_values($data)
+    );
+
+    // Вказуємо правильну назву вкладки для редіректу
+    $tab = ($type === 'shipping') ? 'shipping' : 'payment';
+
+    $_SESSION['success'] = 'Метод додано. Тепер налаштуйте його.';
+    header('Location: /admin/settings?tab=' . $tab);
+    exit;
+    }
+
+    public function deleteMethod($id)
+    {
+    $this->checkAdmin();
+    
+    // Визначаємо вкладку на основі типу методу, що видаляється
+    $type = $_POST['type'] ?? 'shipping'; 
+    $tab = ($type === 'shipping') ? 'shipping' : 'payment';
+
+    Setting::execute("DELETE FROM shop_methods WHERE id = ?", [(int)$id]);
+    
+    $_SESSION['success'] = 'Метод видалено';
+    header('Location: /admin/settings?tab=' . $tab);
+    exit;
+    }
 
     private function validateAndNormalizeSettings(array $settings): array
     {
