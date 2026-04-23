@@ -25,10 +25,20 @@
         <section class="checkout-card">
             <h2>Доставка</h2>
             <div class="radio-group">
-                <label><input type="radio" name="delivery_method" value="nova_poshta" checked> Нова Пошта</label>
-                <label><input type="radio" name="delivery_method" value="courier"> Кур'єр</label>
+                <?php foreach ($deliveryMethods as $idx => $method): ?>
+                    <label>
+                        <input
+                            type="radio"
+                            name="delivery_id"
+                            value="<?= (int) $method['id'] ?>"
+                            data-code="<?= htmlspecialchars((string) ($method['code'] ?? '')) ?>"
+                            <?= $idx === 0 ? 'checked' : '' ?>
+                        >
+                        <?= htmlspecialchars((string) $method['name']) ?>
+                    </label>
+                <?php endforeach; ?>
             </div>
-            <small class="field-error" data-error-for="delivery_method"></small>
+            <small class="field-error" data-error-for="delivery_id"></small>
 
             <div id="delivery-np-fields" class="delivery-block">
                 <label class="field-label" for="delivery_city">Місто</label>
@@ -54,10 +64,19 @@
         <section class="checkout-card">
             <h2>Оплата</h2>
             <div class="radio-group">
-                <label><input type="radio" name="payment_method" value="card" checked> Карткою онлайн</label>
-                <label><input type="radio" name="payment_method" value="cod"> При отриманні</label>
+                <?php foreach ($paymentMethods as $idx => $method): ?>
+                    <label>
+                        <input
+                            type="radio"
+                            name="payment_id"
+                            value="<?= (int) $method['id'] ?>"
+                            <?= $idx === 0 ? 'checked' : '' ?>
+                        >
+                        <?= htmlspecialchars((string) $method['name']) ?>
+                    </label>
+                <?php endforeach; ?>
             </div>
-            <small class="field-error" data-error-for="payment_method"></small>
+            <small class="field-error" data-error-for="payment_id"></small>
 
             <label class="field-label" for="comment">Коментар до замовлення</label>
             <textarea id="comment" name="comment" rows="4" placeholder="За потреби додайте коментар"></textarea>
