@@ -28,6 +28,21 @@ class AdminOrderController
         }
     }
 
+    private function respondJson(array $payload, int $statusCode = 200): void
+    {
+        http_response_code($statusCode);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($payload, JSON_UNESCAPED_UNICODE);
+    }
+
+    private function getJsonPayload(): array
+    {
+        $rawInput = file_get_contents('php://input') ?: '';
+        $payload = json_decode($rawInput, true);
+
+        return is_array($payload) ? $payload : $_POST;
+    }
+
     public function index(): void
     {
         $this->checkAdmin();
@@ -40,12 +55,13 @@ class AdminOrderController
         ];
 
         $orders = DB::query(
-            'SELECT id, customer_name, total, status, created_at FROM orders ORDER BY created_at DESC'
+            'SELECT id, customer_name, customer_phone, total, status, delivery_method, payment_method, created_at FROM orders ORDER BY created_at DESC'
         )->fetchAll(\PDO::FETCH_ASSOC);
 
         View::render('admin/orders/index', [
             'kanbanColumns' => $kanbanColumns,
             'orders' => $orders,
+            'allStatuses' => $this->allowedStatuses,
         ], 'admin');
     }
 
@@ -53,39 +69,28 @@ class AdminOrderController
     {
         $this->checkAdmin();
 
-        header('Content-Type: application/json; charset=utf-8');
-
         if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
-            http_response_code(405);
-            echo json_encode(['success' => false, 'message' => 'Метод не підтримується']);
+            $this->respondJson(['success' => false, 'message' => 'Метод не підтримується'], 405);
             return;
         }
 
-        $rawInput = file_get_contents('php://input') ?: '';
-        $payload = json_decode($rawInput, true);
-        if (!is_array($payload)) {
-            $payload = $_POST;
-        }
-
+        $payload = $this->getJsonPayload();
         $orderId = (int) ($payload['order_id'] ?? 0);
         $newStatus = trim((string) ($payload['status'] ?? ''));
         $ttnCode = trim((string) ($payload['ttn_code'] ?? ''));
 
         if ($orderId <= 0 || $newStatus === '') {
-            http_response_code(422);
-            echo json_encode(['success' => false, 'message' => 'Некоректні дані']);
+            $this->respondJson(['success' => false, 'message' => 'Некоректні дані'], 422);
             return;
         }
 
         if (!in_array($newStatus, $this->allowedStatuses, true)) {
-            http_response_code(422);
-            echo json_encode(['success' => false, 'message' => 'Невідомий статус']);
+            $this->respondJson(['success' => false, 'message' => 'Невідомий статус'], 422);
             return;
         }
 
         if ($newStatus === 'shipped' && $ttnCode === '') {
-            http_response_code(422);
-            echo json_encode(['success' => false, 'message' => 'Для статусу "Відправлено" вкажіть ТТН']);
+            $this->respondJson(['success' => false, 'message' => 'Для статусу "Відправлено" вкажіть ТТН'], 422);
             return;
         }
 
@@ -101,7 +106,7 @@ class AdminOrderController
             $currentStatus = (string) ($order['status'] ?? 'new');
             if ($currentStatus === $newStatus) {
                 DB::$pdo->commit();
-                echo json_encode(['success' => true, 'message' => 'Статус не змінено', 'status' => $currentStatus]);
+                $this->respondJson(['success' => true, 'message' => 'Статус не змінено', 'status' => $currentStatus]);
                 return;
             }
 
@@ -125,19 +130,10 @@ class AdminOrderController
                 DB::query('UPDATE orders SET status = ? WHERE id = ?', [$newStatus, $orderId]);
             }
 
-            DB::query(
-                'INSERT INTO order_status_history (order_id, old_status, new_status, ttn_code, changed_by, changed_at) VALUES (?, ?, ?, ?, ?, NOW())',
-                [
-                    $orderId,
-                    $currentStatus,
-                    $newStatus,
-                    $ttnCode !== '' ? $ttnCode : null,
-                    isset($_SESSION['user']['id']) ? (int) $_SESSION['user']['id'] : null,
-                ]
-            );
+            $this->insertStatusHistory($orderId, $currentStatus, $newStatus, $ttnCode !== '' ? $ttnCode : null);
 
             DB::$pdo->commit();
-            echo json_encode([
+            $this->respondJson([
                 'success' => true,
                 'message' => 'Статус оновлено',
                 'status' => $newStatus,
@@ -148,17 +144,337 @@ class AdminOrderController
                 DB::$pdo->rollBack();
             }
 
-            $message = $e->getMessage();
-            if (stripos($message, 'There is no active transaction') !== false) {
-                $message = 'Не вдалося завершити оновлення статусу. Спробуйте ще раз.';
+            $this->respondJson([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function orderDetails(array $params): void
+    {
+        $this->checkAdmin();
+
+        $orderId = (int) ($params['id'] ?? 0);
+        if ($orderId <= 0) {
+            $this->respondJson(['success' => false, 'message' => 'Некоректний ID замовлення'], 422);
+            return;
+        }
+
+        $this->ensureStatusHistoryTable();
+
+        $order = DB::query('SELECT * FROM orders WHERE id = ?', [$orderId])->fetch(\PDO::FETCH_ASSOC);
+        if (!$order) {
+            $this->respondJson(['success' => false, 'message' => 'Замовлення не знайдено'], 404);
+            return;
+        }
+
+        $items = DB::query(
+            'SELECT oi.id, oi.product_id, oi.qty, oi.price, p.name AS product_name, p.stock
+             FROM order_items oi
+             LEFT JOIN products p ON p.id = oi.product_id
+             WHERE oi.order_id = ?
+             ORDER BY oi.id ASC',
+            [$orderId]
+        )->fetchAll(\PDO::FETCH_ASSOC);
+
+        $history = DB::query(
+            'SELECT id, old_status, new_status, ttn_code, changed_by, changed_at
+             FROM order_status_history
+             WHERE order_id = ?
+             ORDER BY changed_at DESC, id DESC',
+            [$orderId]
+        )->fetchAll(\PDO::FETCH_ASSOC);
+
+        $total = 0.0;
+        foreach ($items as $item) {
+            $total += ((float) ($item['price'] ?? 0)) * ((int) ($item['qty'] ?? 0));
+        }
+
+        $this->respondJson([
+            'success' => true,
+            'order' => $order,
+            'items' => $items,
+            'history' => $history,
+            'computed_total' => round($total, 2),
+            'allowed_statuses' => $this->allowedStatuses,
+        ]);
+    }
+
+    public function saveOrder(): void
+    {
+        $this->checkAdmin();
+
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+            $this->respondJson(['success' => false, 'message' => 'Метод не підтримується'], 405);
+            return;
+        }
+
+        $payload = $this->getJsonPayload();
+
+        try {
+            $normalized = $this->normalizeOrderInput($payload);
+            $this->ensureStatusHistoryTable();
+
+            DB::$pdo->beginTransaction();
+
+            $isUpdate = $normalized['id'] > 0;
+            $oldStatus = null;
+            if ($isUpdate) {
+                $currentOrder = DB::query('SELECT status FROM orders WHERE id = ? FOR UPDATE', [$normalized['id']])->fetch(\PDO::FETCH_ASSOC);
+                if (!$currentOrder) {
+                    throw new \InvalidArgumentException('Замовлення для редагування не знайдено');
+                }
+
+                $oldStatus = (string) ($currentOrder['status'] ?? 'new');
+
+                DB::query(
+                    'UPDATE orders SET customer_name = ?, customer_phone = ?, customer_email = ?,
+                     delivery_method = ?, delivery_city = ?, delivery_warehouse = ?, delivery_address = ?,
+                     payment_method = ?, comment = ?, status = ?, total = ? WHERE id = ?',
+                    [
+                        $normalized['customer_name'],
+                        $normalized['customer_phone'],
+                        $normalized['customer_email'],
+                        $normalized['delivery_method'],
+                        $normalized['delivery_city'],
+                        $normalized['delivery_warehouse'],
+                        $normalized['delivery_address'],
+                        $normalized['payment_method'],
+                        $normalized['comment'],
+                        $normalized['status'],
+                        $normalized['total'],
+                        $normalized['id'],
+                    ]
+                );
+
+                DB::query('DELETE FROM order_items WHERE order_id = ?', [$normalized['id']]);
+                $orderId = $normalized['id'];
+            } else {
+                DB::query(
+                    'INSERT INTO orders (user_id, total, customer_name, customer_phone, customer_email, delivery_method,
+                     delivery_city, delivery_warehouse, delivery_address, payment_method, status, comment, created_at)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())',
+                    [
+                        null,
+                        $normalized['total'],
+                        $normalized['customer_name'],
+                        $normalized['customer_phone'],
+                        $normalized['customer_email'],
+                        $normalized['delivery_method'],
+                        $normalized['delivery_city'],
+                        $normalized['delivery_warehouse'],
+                        $normalized['delivery_address'],
+                        $normalized['payment_method'],
+                        $normalized['status'],
+                        $normalized['comment'],
+                    ]
+                );
+
+                $orderId = (int) DB::$pdo->lastInsertId();
+                $oldStatus = null;
             }
 
-            http_response_code(500);
-            echo json_encode([
-                'success' => false,
-                'message' => $message,
+            foreach ($normalized['items'] as $item) {
+                DB::query(
+                    'INSERT INTO order_items (order_id, product_id, qty, price, selected_options) VALUES (?, ?, ?, ?, NULL)',
+                    [$orderId, $item['product_id'], $item['qty'], $item['price']]
+                );
+            }
+
+            if ($oldStatus !== $normalized['status']) {
+                $this->insertStatusHistory($orderId, $oldStatus, $normalized['status'], null);
+            }
+
+            DB::$pdo->commit();
+
+            $this->respondJson([
+                'success' => true,
+                'message' => $isUpdate ? 'Замовлення оновлено' : 'Замовлення створено',
+                'order_id' => $orderId,
             ]);
+        } catch (\InvalidArgumentException $e) {
+            if (DB::$pdo->inTransaction()) {
+                DB::$pdo->rollBack();
+            }
+            $this->respondJson(['success' => false, 'message' => $e->getMessage()], 422);
+        } catch (\Throwable $e) {
+            if (DB::$pdo->inTransaction()) {
+                DB::$pdo->rollBack();
+            }
+            $this->respondJson(['success' => false, 'message' => $e->getMessage()], 500);
         }
+    }
+
+    public function syncLogistics(): void
+    {
+        $this->checkAdmin();
+
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+            $this->respondJson(['success' => false, 'message' => 'Метод не підтримується'], 405);
+            return;
+        }
+
+        if (!$this->hasTtnCodeColumn()) {
+            $this->respondJson(['success' => true, 'updated' => [], 'message' => 'Колонка ttn_code відсутня']);
+            return;
+        }
+
+        try {
+            $this->ensureStatusHistoryTable();
+            $shippedOrders = DB::query(
+                'SELECT id, status, ttn_code FROM orders WHERE status = ? AND ttn_code IS NOT NULL AND ttn_code <> ""',
+                ['shipped']
+            )->fetchAll(\PDO::FETCH_ASSOC);
+
+            $updated = [];
+            DB::$pdo->beginTransaction();
+            foreach ($shippedOrders as $order) {
+                $carrierStatus = $this->mockCarrierStatus((string) $order['ttn_code']);
+                $nextStatus = $carrierStatus === 'received' ? 'completed' : 'shipped';
+
+                if ($nextStatus !== ($order['status'] ?? '')) {
+                    DB::query('UPDATE orders SET status = ? WHERE id = ?', [$nextStatus, (int) $order['id']]);
+                    $this->insertStatusHistory((int) $order['id'], (string) $order['status'], $nextStatus, (string) $order['ttn_code']);
+
+                    $updated[] = [
+                        'order_id' => (int) $order['id'],
+                        'from' => (string) $order['status'],
+                        'to' => $nextStatus,
+                        'carrier_status' => $carrierStatus,
+                    ];
+                }
+            }
+            DB::$pdo->commit();
+
+            $this->respondJson([
+                'success' => true,
+                'updated' => $updated,
+                'message' => empty($updated) ? 'Нових змін статусів не знайдено' : 'Статуси оновлено',
+            ]);
+        } catch (\Throwable $e) {
+            if (DB::$pdo->inTransaction()) {
+                DB::$pdo->rollBack();
+            }
+            $this->respondJson(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    private function normalizeOrderInput(array $payload): array
+    {
+        $id = (int) ($payload['id'] ?? 0);
+        $customerName = trim((string) ($payload['customer_name'] ?? ''));
+        $customerPhone = trim((string) ($payload['customer_phone'] ?? ''));
+        $customerEmail = trim((string) ($payload['customer_email'] ?? ''));
+        $deliveryMethod = trim((string) ($payload['delivery_method'] ?? ''));
+        $deliveryCity = trim((string) ($payload['delivery_city'] ?? ''));
+        $deliveryWarehouse = trim((string) ($payload['delivery_warehouse'] ?? ''));
+        $deliveryAddress = trim((string) ($payload['delivery_address'] ?? ''));
+        $paymentMethod = trim((string) ($payload['payment_method'] ?? ''));
+        $comment = trim((string) ($payload['comment'] ?? ''));
+        $status = trim((string) ($payload['status'] ?? 'new'));
+
+        if ($customerName === '' || mb_strlen($customerName) < 2) {
+            throw new \InvalidArgumentException('Вкажіть коректне імʼя клієнта');
+        }
+
+        if (!preg_match('/^[0-9+\-()\s]{8,20}$/', $customerPhone)) {
+            throw new \InvalidArgumentException('Вкажіть коректний номер телефону');
+        }
+
+        if ($customerEmail !== '' && filter_var($customerEmail, FILTER_VALIDATE_EMAIL) === false) {
+            throw new \InvalidArgumentException('Невірний формат email');
+        }
+
+        if (!in_array($status, $this->allowedStatuses, true)) {
+            throw new \InvalidArgumentException('Невідомий статус замовлення');
+        }
+
+        $itemsPayload = $payload['items'] ?? [];
+        if (!is_array($itemsPayload) || count($itemsPayload) === 0) {
+            throw new \InvalidArgumentException('Додайте хоча б один товар');
+        }
+
+        $normalizedItems = [];
+        $total = 0.0;
+
+        foreach ($itemsPayload as $index => $item) {
+            if (!is_array($item)) {
+                throw new \InvalidArgumentException('Помилка формату товарів у рядку ' . ($index + 1));
+            }
+
+            $productId = (int) ($item['product_id'] ?? 0);
+            $qty = (int) ($item['qty'] ?? 0);
+
+            if ($productId <= 0 || $qty <= 0) {
+                throw new \InvalidArgumentException('Некоректні дані товару у рядку ' . ($index + 1));
+            }
+
+            $product = DB::query('SELECT id, price FROM products WHERE id = ?', [$productId])->fetch(\PDO::FETCH_ASSOC);
+            if (!$product) {
+                throw new \InvalidArgumentException('Товар ID ' . $productId . ' не знайдено');
+            }
+
+            $price = isset($item['price']) ? (float) $item['price'] : (float) ($product['price'] ?? 0);
+            if ($price < 0) {
+                throw new \InvalidArgumentException('Ціна не може бути відʼємною');
+            }
+
+            $normalizedItems[] = [
+                'product_id' => $productId,
+                'qty' => $qty,
+                'price' => round($price, 2),
+            ];
+
+            $total += $qty * $price;
+        }
+
+        return [
+            'id' => $id,
+            'customer_name' => $customerName,
+            'customer_phone' => $customerPhone,
+            'customer_email' => $customerEmail,
+            'delivery_method' => $deliveryMethod,
+            'delivery_city' => $deliveryCity,
+            'delivery_warehouse' => $deliveryWarehouse,
+            'delivery_address' => $deliveryAddress,
+            'payment_method' => $paymentMethod,
+            'comment' => $comment,
+            'status' => $status,
+            'items' => $normalizedItems,
+            'total' => round($total, 2),
+        ];
+    }
+
+    private function mockCarrierStatus(string $ttnCode): string
+    {
+        $normalized = preg_replace('/\s+/', '', mb_strtolower($ttnCode));
+        $hash = abs(crc32($normalized));
+        $bucket = $hash % 3;
+
+        if ($bucket === 0) {
+            return 'received';
+        }
+
+        if ($bucket === 1) {
+            return 'in_transit';
+        }
+
+        return 'sorted_at_hub';
+    }
+
+    private function insertStatusHistory(int $orderId, ?string $oldStatus, string $newStatus, ?string $ttnCode): void
+    {
+        DB::query(
+            'INSERT INTO order_status_history (order_id, old_status, new_status, ttn_code, changed_by, changed_at) VALUES (?, ?, ?, ?, ?, NOW())',
+            [
+                $orderId,
+                $oldStatus,
+                $newStatus,
+                $ttnCode,
+                isset($_SESSION['user']['id']) ? (int) $_SESSION['user']['id'] : null,
+            ]
+        );
     }
 
     private function reserveOrderItems(int $orderId): void

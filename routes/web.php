@@ -78,6 +78,9 @@ $router->get('/admin/analytics/{period}', [AdminController::class, 'analytics'])
 // Управління замовленнями в адмінці
 $router->get('/admin/orders', [AdminOrderController::class, 'index']);
 $router->post('/admin/orders/update-status', [AdminOrderController::class, 'updateStatus']);
+$router->get('/admin/orders/details/{id}', [AdminOrderController::class, 'orderDetails']);
+$router->post('/admin/orders/save', [AdminOrderController::class, 'saveOrder']);
+$router->post('/admin/orders/sync-logistics', [AdminOrderController::class, 'syncLogistics']);
 
 // Управління товарами в адмінці
 $router->get('/admin/products', [AdminProductController::class, 'index']);
