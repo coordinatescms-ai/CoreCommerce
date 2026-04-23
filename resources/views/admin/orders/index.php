@@ -105,8 +105,8 @@ $statusLabels = [
                             <td><?= htmlspecialchars((string)($row['customer_phone'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></td>
                             <td><?= number_format((float)($row['total'] ?? 0), 2, '.', ' ') ?> ₴</td>
                             <td><?= htmlspecialchars((string)($statusLabels[$row['status']] ?? $row['status'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></td>
-                            <td><?= htmlspecialchars((string)($row['payment_method'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></td>
-                            <td><?= htmlspecialchars((string)($row['delivery_method'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></td>
+                            <td><?= htmlspecialchars((string)($row['payment_method_name'] ?? $row['payment_method'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></td>
+                            <td><?= htmlspecialchars((string)($row['delivery_method_name'] ?? $row['delivery_method'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></td>
                             <td><?= htmlspecialchars((string)($row['created_at'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></td>
                         </tr>
                     <?php endforeach; ?>
@@ -223,8 +223,8 @@ $statusLabels = [
         document.getElementById('customerPhone').value = data.order.customer_phone || '';
         document.getElementById('customerEmail').value = data.order.customer_email || '';
         document.getElementById('orderStatus').value = data.order.status || 'new';
-        document.getElementById('deliveryMethod').value = data.order.delivery_method || '';
-        document.getElementById('paymentMethod').value = data.order.payment_method || '';
+        document.getElementById('deliveryMethod').value = data.order.delivery_method_name || data.order.delivery_method || '';
+        document.getElementById('paymentMethod').value = data.order.payment_method_name || data.order.payment_method || '';
         document.getElementById('deliveryCity').value = data.order.delivery_city || '';
         document.getElementById('deliveryWarehouse').value = data.order.delivery_warehouse || '';
         document.getElementById('deliveryAddress').value = data.order.delivery_address || '';
@@ -324,7 +324,7 @@ $statusLabels = [
     });
 
     const updateOrderStatus = async (orderId, status, ttnCode = '') => {
-        const response = await fetch('/update_status.php', {
+        const response = await fetch('/admin/orders/update-status', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
             body: JSON.stringify({ order_id: Number(orderId), status, ttn_code: ttnCode })
