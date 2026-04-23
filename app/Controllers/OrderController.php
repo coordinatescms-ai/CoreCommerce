@@ -6,6 +6,7 @@ use App\Core\Database\DB;
 use App\Core\Http\Csrf;
 use App\Core\View\View;
 use App\Models\Cart;
+use App\Models\Setting;
 
 class OrderController
 {
@@ -92,11 +93,26 @@ class OrderController
             return $sum + ($item['price'] * $item['quantity']);
         }, 0.0);
 
+        $deliveryMethods = Setting::getShopMethods('shipping');
+        $paymentMethods = Setting::getShopMethods('payment');
+
+        $deliveryMethods = array_values(array_filter($deliveryMethods, static function ($method): bool {
+            return (int) ($method['is_active'] ?? 0) === 1;
+        }));
+        $paymentMethods = array_values(array_filter($paymentMethods, static function ($method): bool {
+            return (int) ($method['is_active'] ?? 0) === 1;
+        }));
+
+        $deliveryMethods = array_map([$this, 'normalizeShopMethod'], $deliveryMethods);
+        $paymentMethods = array_map([$this, 'normalizeShopMethod'], $paymentMethods);
+
         return View::render('checkout/index', [
             'items' => $items,
             'total' => $total,
             'csrf' => Csrf::token(),
             'user' => $_SESSION['user'] ?? null,
+            'deliveryMethods' => $deliveryMethods,
+            'paymentMethods' => $paymentMethods,
         ]);
     }
 
@@ -182,18 +198,20 @@ class OrderController
             }
 
             DB::query(
-                'INSERT INTO orders (user_id, total, customer_name, customer_phone, customer_email, delivery_method, delivery_city, delivery_warehouse, delivery_address, payment_method, comment, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())',
+                'INSERT INTO orders (user_id, total, customer_name, customer_phone, customer_email, delivery_method, delivery_city, delivery_warehouse, delivery_address, payment_method, payment_id, delivery_id, comment, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())',
                 [
                     isset($_SESSION['user']['id']) ? (int) $_SESSION['user']['id'] : null,
                     $total,
                     $payload['full_name'],
                     $payload['phone'],
                     $payload['email'],
-                    $payload['delivery_method'],
+                    $payload['delivery_method_code'],
                     $payload['delivery_city'],
                     $payload['delivery_warehouse'],
                     $payload['delivery_address'],
-                    $payload['payment_method'],
+                    $payload['payment_method_code'],
+                    $payload['payment_id'],
+                    $payload['delivery_id'],
                     $payload['comment'],
                 ]
             );
@@ -255,17 +273,20 @@ class OrderController
         $clean['phone'] = trim(strip_tags((string) ($input['phone'] ?? '')));
         $email = trim((string) ($input['email'] ?? ''));
         $clean['email'] = filter_var($email, FILTER_SANITIZE_EMAIL);
-        $clean['delivery_method'] = trim(strip_tags((string) ($input['delivery_method'] ?? '')));
+        $clean['delivery_id'] = (int) ($input['delivery_id'] ?? 0);
         $clean['delivery_city'] = trim(strip_tags((string) ($input['delivery_city'] ?? '')));
         $clean['delivery_warehouse'] = trim(strip_tags((string) ($input['delivery_warehouse'] ?? '')));
         $clean['delivery_address'] = trim(strip_tags((string) ($input['delivery_address'] ?? '')));
-        $clean['payment_method'] = trim(strip_tags((string) ($input['payment_method'] ?? '')));
+        $clean['payment_id'] = (int) ($input['payment_id'] ?? 0);
         $clean['comment'] = trim(strip_tags((string) ($input['comment'] ?? '')));
+        $clean['delivery_method_code'] = '';
+        $clean['payment_method_code'] = '';
+        $clean['delivery_method_settings'] = [];
 
         return $clean;
     }
 
-    private function validatePayload(array $payload): array
+    private function validatePayload(array &$payload): array
     {
         $errors = [];
 
@@ -281,17 +302,22 @@ class OrderController
             $errors['email'] = 'Вкажіть коректний Email.';
         }
 
-        $deliveryMethods = ['nova_poshta', 'courier'];
-        if (!in_array($payload['delivery_method'], $deliveryMethods, true)) {
-            $errors['delivery_method'] = 'Оберіть спосіб доставки.';
+        $deliveryMethod = $this->getActiveShopMethodById('shipping', (int) $payload['delivery_id']);
+        if ($deliveryMethod === null) {
+            $errors['delivery_id'] = 'Оберіть спосіб доставки.';
+        } else {
+            $payload['delivery_method_code'] = (string) ($deliveryMethod['code'] ?? '');
+            $payload['delivery_method_settings'] = $this->decodeSettings($deliveryMethod['settings'] ?? null);
         }
 
-        $paymentMethods = ['card', 'cod'];
-        if (!in_array($payload['payment_method'], $paymentMethods, true)) {
-            $errors['payment_method'] = 'Оберіть спосіб оплати.';
+        $paymentMethod = $this->getActiveShopMethodById('payment', (int) $payload['payment_id']);
+        if ($paymentMethod === null) {
+            $errors['payment_id'] = 'Оберіть спосіб оплати.';
+        } else {
+            $payload['payment_method_code'] = (string) ($paymentMethod['code'] ?? '');
         }
 
-        if ($payload['delivery_method'] === 'nova_poshta') {
+        if (($payload['delivery_method_code'] ?? '') === 'nova_poshta') {
             if ($payload['delivery_city'] === '') {
                 $errors['delivery_city'] = 'Оберіть місто Нової Пошти.';
             }
@@ -301,11 +327,45 @@ class OrderController
             }
         }
 
-        if ($payload['delivery_method'] === 'courier' && $payload['delivery_address'] === '') {
+        if (($payload['delivery_method_code'] ?? '') === 'courier' && $payload['delivery_address'] === '') {
             $errors['delivery_address'] = 'Вкажіть адресу для курʼєра.';
         }
 
         return $errors;
+    }
+
+    private function getActiveShopMethodById(string $type, int $id): ?array
+    {
+        if ($id <= 0) {
+            return null;
+        }
+
+        $method = DB::query(
+            'SELECT * FROM shop_methods WHERE id = ? AND type = ? AND is_active = 1 LIMIT 1',
+            [$id, $type]
+        )->fetch(\PDO::FETCH_ASSOC);
+
+        return $method ?: null;
+    }
+
+    private function normalizeShopMethod(array $method): array
+    {
+        $method['settings'] = $this->decodeSettings($method['settings'] ?? null);
+        return $method;
+    }
+
+    private function decodeSettings($settings): array
+    {
+        if ($settings === null || $settings === '') {
+            return [];
+        }
+
+        if (is_array($settings)) {
+            return $settings;
+        }
+
+        $decoded = json_decode((string) $settings, true);
+        return is_array($decoded) ? $decoded : [];
     }
 
     private function loadAndLockProducts(array $ids): array

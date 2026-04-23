@@ -4,8 +4,14 @@ declare(strict_types=1);
 
 header('Content-Type: application/json; charset=utf-8');
 
-const NOVA_POSHTA_API_KEY = 'REPLACE_WITH_REAL_KEY';
 const NOVA_POSHTA_API_URL = 'https://api.novaposhta.ua/v2.0/json/';
+
+require __DIR__ . '/../vendor/autoload.php';
+
+use App\Core\Database\DB;
+
+$config = require __DIR__ . '/../config/database.php';
+DB::connect($config['dsn'], $config['user'], $config['pass']);
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -25,13 +31,18 @@ if (!is_array($payload)) {
 $action = (string) ($payload['action'] ?? '');
 
 try {
+    $apiKey = loadNovaPoshtaApiKey();
+    if ($apiKey === '') {
+        throw new RuntimeException('API ключ Нової Пошти не налаштований.');
+    }
+
     if ($action === 'cities') {
         $query = trim((string) ($payload['query'] ?? ''));
         if (mb_strlen($query) < 3) {
             throw new RuntimeException('Мінімум 3 символи для пошуку міста');
         }
 
-        $result = npApiRequest('Address', 'getCities', ['FindByString' => $query, 'Limit' => 20]);
+        $result = npApiRequest($apiKey, 'Address', 'getCities', ['FindByString' => $query, 'Limit' => 20]);
         echo json_encode(['success' => true, 'data' => $result]);
         exit;
     }
@@ -42,7 +53,7 @@ try {
             throw new RuntimeException('Необхідно передати cityRef');
         }
 
-        $result = npApiRequest('Address', 'getWarehouses', ['CityRef' => $cityRef, 'Limit' => 200]);
+        $result = npApiRequest($apiKey, 'Address', 'getWarehouses', ['CityRef' => $cityRef, 'Limit' => 200]);
         echo json_encode(['success' => true, 'data' => $result]);
         exit;
     }
@@ -54,10 +65,10 @@ try {
     exit;
 }
 
-function npApiRequest(string $modelName, string $calledMethod, array $methodProperties): array
+function npApiRequest(string $apiKey, string $modelName, string $calledMethod, array $methodProperties): array
 {
     $requestBody = [
-        'apiKey' => NOVA_POSHTA_API_KEY,
+        'apiKey' => $apiKey,
         'modelName' => $modelName,
         'calledMethod' => $calledMethod,
         'methodProperties' => $methodProperties,
@@ -94,4 +105,26 @@ function npApiRequest(string $modelName, string $calledMethod, array $methodProp
     }
 
     return $decoded['data'] ?? [];
+}
+
+function loadNovaPoshtaApiKey(): string
+{
+    $method = DB::query(
+        "SELECT settings
+         FROM shop_methods
+         WHERE type = 'shipping' AND code = 'nova_poshta' AND is_active = 1
+         ORDER BY sort_order ASC, id ASC
+         LIMIT 1"
+    )->fetch(\PDO::FETCH_ASSOC);
+
+    if (!$method) {
+        return '';
+    }
+
+    $settings = json_decode((string) ($method['settings'] ?? ''), true);
+    if (!is_array($settings)) {
+        return '';
+    }
+
+    return trim((string) ($settings['api_key'] ?? ''));
 }
