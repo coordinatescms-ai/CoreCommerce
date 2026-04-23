@@ -6,7 +6,7 @@
 
     const statusBar = document.getElementById('checkout-status');
     const submitButton = document.getElementById('checkout-submit');
-    const deliveryRadios = form.querySelectorAll('input[name="delivery_method"]');
+    const deliveryRadios = form.querySelectorAll('input[name="delivery_id"]');
     const npFields = document.getElementById('delivery-np-fields');
     const courierFields = document.getElementById('delivery-courier-fields');
     const cityInput = document.getElementById('delivery_city');
@@ -65,27 +65,40 @@
             return;
         }
 
+        if (field.name === 'delivery_id') {
+            setFieldError(field.name, value ? '' : 'Оберіть спосіб доставки.');
+            return;
+        }
+
+        if (field.name === 'payment_id') {
+            setFieldError(field.name, value ? '' : 'Оберіть спосіб оплати.');
+            return;
+        }
+
         if (field.name === 'delivery_city') {
-            const isNp = form.querySelector('input[name="delivery_method"]:checked')?.value === 'nova_poshta';
+            const code = form.querySelector('input[name="delivery_id"]:checked')?.dataset.code;
+            const isNp = code === 'nova_poshta';
             setFieldError(field.name, !isNp || value ? '' : 'Оберіть місто Нової Пошти.');
             return;
         }
 
         if (field.name === 'delivery_warehouse') {
-            const isNp = form.querySelector('input[name="delivery_method"]:checked')?.value === 'nova_poshta';
+            const code = form.querySelector('input[name="delivery_id"]:checked')?.dataset.code;
+            const isNp = code === 'nova_poshta';
             setFieldError(field.name, !isNp || value ? '' : 'Оберіть відділення Нової Пошти.');
             return;
         }
 
         if (field.name === 'delivery_address') {
-            const isCourier = form.querySelector('input[name="delivery_method"]:checked')?.value === 'courier';
+            const code = form.querySelector('input[name="delivery_id"]:checked')?.dataset.code;
+            const isCourier = code === 'courier';
             setFieldError(field.name, !isCourier || value ? '' : 'Вкажіть адресу для курʼєра.');
         }
     };
 
     const toggleDeliveryFields = () => {
-        const method = form.querySelector('input[name="delivery_method"]:checked')?.value;
-        const isNp = method === 'nova_poshta';
+        const code = form.querySelector('input[name="delivery_id"]:checked')?.dataset.code;
+        const isNp = code === 'nova_poshta';
 
         npFields.hidden = !isNp;
         courierFields.hidden = isNp;
