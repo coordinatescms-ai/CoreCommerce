@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Core\Database\DB;
 use App\Core\View\View;
+use App\Models\Setting;
 
 class AdminOrderController
 {
@@ -57,6 +58,8 @@ class AdminOrderController
         $orders = DB::query(
             'SELECT id, customer_name, customer_phone, total, status, delivery_method, payment_method, created_at FROM orders ORDER BY created_at DESC'
         )->fetchAll(\PDO::FETCH_ASSOC);
+
+        $orders = $this->attachMethodNames($orders);
 
         View::render('admin/orders/index', [
             'kanbanColumns' => $kanbanColumns,
@@ -151,11 +154,11 @@ class AdminOrderController
         }
     }
 
-    public function orderDetails(array $params): void
+    public function orderDetails($id): void
     {
         $this->checkAdmin();
 
-        $orderId = (int) ($params['id'] ?? 0);
+        $orderId = (int) $id;
         if ($orderId <= 0) {
             $this->respondJson(['success' => false, 'message' => 'Некоректний ID замовлення'], 422);
             return;
@@ -168,6 +171,8 @@ class AdminOrderController
             $this->respondJson(['success' => false, 'message' => 'Замовлення не знайдено'], 404);
             return;
         }
+
+        $order = $this->attachMethodNamesToOrder($order);
 
         $items = DB::query(
             'SELECT oi.id, oi.product_id, oi.qty, oi.price, p.name AS product_name, p.stock
@@ -199,6 +204,49 @@ class AdminOrderController
             'computed_total' => round($total, 2),
             'allowed_statuses' => $this->allowedStatuses,
         ]);
+    }
+
+    private function attachMethodNames(array $orders): array
+    {
+        if (empty($orders)) {
+            return $orders;
+        }
+
+        $shippingMethods = Setting::getShopMethods('shipping');
+        $paymentMethods = Setting::getShopMethods('payment');
+
+        $shippingMap = [];
+        foreach ($shippingMethods as $method) {
+            $code = (string) ($method['code'] ?? '');
+            if ($code !== '') {
+                $shippingMap[$code] = (string) ($method['name'] ?? $code);
+            }
+        }
+
+        $paymentMap = [];
+        foreach ($paymentMethods as $method) {
+            $code = (string) ($method['code'] ?? '');
+            if ($code !== '') {
+                $paymentMap[$code] = (string) ($method['name'] ?? $code);
+            }
+        }
+
+        foreach ($orders as &$order) {
+            $deliveryCode = (string) ($order['delivery_method'] ?? '');
+            $paymentCode = (string) ($order['payment_method'] ?? '');
+
+            $order['delivery_method_name'] = $shippingMap[$deliveryCode] ?? $deliveryCode;
+            $order['payment_method_name'] = $paymentMap[$paymentCode] ?? $paymentCode;
+        }
+        unset($order);
+
+        return $orders;
+    }
+
+    private function attachMethodNamesToOrder(array $order): array
+    {
+        $ordersWithNames = $this->attachMethodNames([$order]);
+        return $ordersWithNames[0] ?? $order;
     }
 
     public function saveOrder(): void
