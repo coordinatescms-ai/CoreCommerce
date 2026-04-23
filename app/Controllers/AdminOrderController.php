@@ -175,13 +175,19 @@ class AdminOrderController
         $order = $this->attachMethodNamesToOrder($order);
 
         $items = DB::query(
-            'SELECT oi.id, oi.product_id, oi.qty, oi.price, p.name AS product_name, p.stock
+            'SELECT oi.id, oi.product_id, oi.qty, oi.price, oi.selected_options, p.name AS product_name, p.stock
              FROM order_items oi
              LEFT JOIN products p ON p.id = oi.product_id
              WHERE oi.order_id = ?
              ORDER BY oi.id ASC',
             [$orderId]
         )->fetchAll(\PDO::FETCH_ASSOC);
+
+        foreach ($items as &$item) {
+            $decodedOptions = json_decode((string) ($item['selected_options'] ?? ''), true);
+            $item['selected_options'] = is_array($decodedOptions) ? $decodedOptions : [];
+        }
+        unset($item);
 
         $history = DB::query(
             'SELECT id, old_status, new_status, ttn_code, changed_by, changed_at
@@ -325,8 +331,14 @@ class AdminOrderController
 
             foreach ($normalized['items'] as $item) {
                 DB::query(
-                    'INSERT INTO order_items (order_id, product_id, qty, price, selected_options) VALUES (?, ?, ?, ?, NULL)',
-                    [$orderId, $item['product_id'], $item['qty'], $item['price']]
+                    'INSERT INTO order_items (order_id, product_id, qty, price, selected_options) VALUES (?, ?, ?, ?, ?)',
+                    [
+                        $orderId,
+                        $item['product_id'],
+                        $item['qty'],
+                        $item['price'],
+                        json_encode($item['selected_options'], JSON_UNESCAPED_UNICODE),
+                    ]
                 );
             }
 
@@ -472,6 +484,7 @@ class AdminOrderController
                 'product_id' => $productId,
                 'qty' => $qty,
                 'price' => round($price, 2),
+                'selected_options' => $this->normalizeSelectedOptions($item['selected_options'] ?? []),
             ];
 
             $total += $qty * $price;
@@ -588,5 +601,38 @@ class AdminOrderController
 
         $this->hasTtnCodeColumn = ((int) $statement->fetchColumn()) > 0;
         return $this->hasTtnCodeColumn;
+    }
+
+    private function normalizeSelectedOptions($selectedOptions): array
+    {
+        if (is_string($selectedOptions) && $selectedOptions !== '') {
+            $decoded = json_decode($selectedOptions, true);
+            $selectedOptions = is_array($decoded) ? $decoded : [];
+        }
+
+        if (!is_array($selectedOptions)) {
+            return [];
+        }
+
+        $normalized = [];
+        foreach ($selectedOptions as $option) {
+            if (!is_array($option)) {
+                continue;
+            }
+
+            $name = trim((string) ($option['name'] ?? ''));
+            $value = trim((string) ($option['value'] ?? ''));
+
+            if ($name === '' && $value === '') {
+                continue;
+            }
+
+            $normalized[] = [
+                'name' => $name,
+                'value' => $value,
+            ];
+        }
+
+        return $normalized;
     }
 }
