@@ -139,7 +139,7 @@ $statusLabels = [
             <div class="modal-section">
                 <h3>Товари</h3>
                 <table class="modal-items-table" id="orderItemsTable">
-                    <thead><tr><th>Product ID</th><th>Назва</th><th>К-сть</th><th>Ціна</th><th></th></tr></thead>
+                    <thead><tr><th>Product ID</th><th>Назва</th><th>Опції</th><th>К-сть</th><th>Ціна</th><th></th></tr></thead>
                     <tbody></tbody>
                 </table>
                 <button type="button" class="btn secondary" id="addItemRowBtn">+ Додати товар</button>
@@ -199,11 +199,24 @@ $statusLabels = [
         document.getElementById('orderComputedTotal').textContent = money(total);
     };
 
+    const formatSelectedOptions = (selectedOptions = []) => {
+        if (!Array.isArray(selectedOptions) || selectedOptions.length === 0) return '—';
+        return selectedOptions
+            .map((option) => `${option?.name || '—'}: ${option?.value || '—'}`)
+            .join(', ');
+    };
+
     const addItemRow = (item = {}) => {
+        const selectedOptions = Array.isArray(item.selected_options) ? item.selected_options : [];
+        const selectedOptionsJson = JSON.stringify(selectedOptions);
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td><input required name="item_product_id[]" type="number" min="1" value="${item.product_id || ''}"></td>
             <td>${item.product_name || '—'}</td>
+            <td>
+                <span>${formatSelectedOptions(selectedOptions)}</span>
+                <input type="hidden" name="item_selected_options[]" value='${selectedOptionsJson.replace(/'/g, '&#39;')}'>
+            </td>
             <td><input required name="item_qty[]" type="number" min="1" value="${item.qty || 1}"></td>
             <td><input required name="item_price[]" type="number" min="0" step="0.01" value="${item.price || 0}"></td>
             <td><button type="button" class="btn secondary js-remove-item">Видалити</button></td>
@@ -278,7 +291,8 @@ $statusLabels = [
             items.push({
                 product_id: Number(row.querySelector('[name="item_product_id[]"]').value || 0),
                 qty: Number(row.querySelector('[name="item_qty[]"]').value || 0),
-                price: Number(row.querySelector('[name="item_price[]"]').value || 0)
+                price: Number(row.querySelector('[name="item_price[]"]').value || 0),
+                selected_options: JSON.parse(row.querySelector('[name="item_selected_options[]"]').value || '[]')
             });
         });
 
