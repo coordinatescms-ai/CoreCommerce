@@ -16,6 +16,7 @@ use App\Controllers\SocialAuthController;
 use App\Controllers\AdminController;
 use App\Controllers\AdminUserController;
 use App\Controllers\AdminOrderController;
+use App\Controllers\AdminContentController;
 
 $router = new Router();
 
@@ -71,6 +72,11 @@ $router->post('/admin/settings/save', [AdminController::class, 'saveSettings']);
 $router->get('/admin/settings/tab/{tab}', [AdminController::class, 'settingsTab']);
 $router->post('/admin/settings/methods/add', [AdminController::class, 'addMethod']);
 $router->post('/admin/settings/methods/delete/{id}', [AdminController::class, 'deleteMethod']);
+
+// Управління контентом в адмінці
+$router->get('/admin/content', [AdminContentController::class, 'index']);
+$router->get('/admin/content/create', [AdminContentController::class, 'create']);
+$router->post('/admin/content/store', [AdminContentController::class, 'store']);
 
 // Перегляд аналітики продажів в адмінці
 $router->get('/admin/analytics/{period}', [AdminController::class, 'analytics']);

@@ -252,6 +252,9 @@
             <a href="/admin/themes" class="menu-item">
                 <i class="fas fa-adjust"></i> Теми
             </a>
+            <a href="/admin/content" class="menu-item">
+                <i class="fas fa-file-lines"></i> Контент
+            </a>
             <a href="/admin/settings" class="menu-item <?php echo $request_uri === '/admin/settings' ? 'active' : ''; ?>">
                 <i class="fas fa-cog"></i> Налаштування
             </a>
