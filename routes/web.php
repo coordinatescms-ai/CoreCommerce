@@ -122,6 +122,11 @@ $router->get('/admin/themes', [AdminThemeController::class, 'index']);
 $router->get('/admin/users', [AdminUserController::class, 'index']);
 $router->get('/admin/users/edit/{id}', [AdminUserController::class, 'edit']);
 $router->post('/admin/users/update/{id}', [AdminUserController::class, 'update']);
+$router->get('/admin/users/live-cart/{id}', [AdminUserController::class, 'liveCart']);
+$router->post('/admin/users/bonus/{id}', [AdminUserController::class, 'updateBonus']);
+$router->post('/admin/users/block/{id}', [AdminUserController::class, 'updateBlockStatus']);
+$router->post('/admin/users/subscription/{id}', [AdminUserController::class, 'updateSubscription']);
+$router->post('/admin/users/send-email/{id}', [AdminUserController::class, 'sendEmail']);
 $router->delete('/admin/users/delete/{id}', [AdminUserController::class, 'delete']);
 
 return $router;
