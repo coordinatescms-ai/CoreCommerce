@@ -124,10 +124,11 @@ class CrmUserService
     public static function getLocations(int $userId): array
     {
         $rows = DB::query(
-            "SELECT DISTINCT delivery_address
+            "SELECT delivery_address
              FROM orders
              WHERE user_id = ? AND delivery_address IS NOT NULL AND delivery_address <> ''
-             ORDER BY created_at DESC",
+             GROUP BY delivery_address
+             ORDER BY MAX(created_at) DESC",
             [$userId]
         )->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
