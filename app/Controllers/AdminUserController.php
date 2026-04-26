@@ -2,8 +2,10 @@
 
 namespace App\Controllers;
 
-use App\Core\View\View;
 use App\Core\Http\Csrf;
+use App\Core\Mail\MailService;
+use App\Core\View\View;
+use App\Models\CrmUserService;
 use App\Models\User;
 
 class AdminUserController
@@ -19,6 +21,23 @@ class AdminUserController
     {
         if (empty($_SESSION['user']) || ($_SESSION['user']['role'] ?? '') !== 'admin') {
             header('Location: /login');
+            exit;
+        }
+    }
+
+    private function jsonResponse(array $payload, int $statusCode = 200): void
+    {
+        http_response_code($statusCode);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($payload, JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    private function requireReason(string $reason): void
+    {
+        if (mb_strlen(trim($reason)) < 5) {
+            $_SESSION['error'] = 'Причина зміни обовʼязкова (мінімум 5 символів).';
+            header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? '/admin/users'));
             exit;
         }
     }
@@ -48,7 +67,7 @@ class AdminUserController
         }
 
         $roles = User::getRoles();
-        $crmData = $this->buildMockCrmData($user);
+        $crmData = $this->buildCrmData($user);
 
         View::render('admin/users/edit', [
             'user' => $user,
@@ -58,60 +77,45 @@ class AdminUserController
         ], 'admin');
     }
 
-    private function buildMockCrmData(array $user): array
+    private function buildCrmData(array $user): array
     {
+        CrmUserService::ensureSchema();
+
+        $userId = (int) ($user['id'] ?? 0);
         $fullName = trim((string) (($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')));
-        $registeredAt = (string) ($user['created_at'] ?? '');
 
         return [
             'profile' => [
                 'full_name' => $fullName !== '' ? $fullName : __('crm_unknown_name'),
-                'registered_at' => $registeredAt,
+                'registered_at' => (string) ($user['created_at'] ?? ''),
             ],
-            'locations' => [
-                'primary' => __('crm_mock_primary_address'),
-                'additional' => [
-                    __('crm_mock_additional_address_1'),
-                    __('crm_mock_additional_address_2'),
-                ],
-            ],
-            'group' => 'regular',
+            'locations' => CrmUserService::getLocations($userId),
+            'group' => $this->resolveUserGroupSlug((int) ($user['role_id'] ?? 0)),
             'security' => [
                 'is_blocked' => ((int) ($user['is_active'] ?? 1)) === 0,
             ],
-            'stats' => [
-                'orders_count' => 12,
-                'ltv' => 28750.40,
-                'average_check' => 2395.87,
-                'last_order_at' => '2026-04-21 18:40:00',
-            ],
-            'orders' => [
-                ['id' => 1408, 'date' => '2026-04-21', 'total' => 4899.00, 'status' => __('crm_order_status_completed')],
-                ['id' => 1382, 'date' => '2026-04-09', 'total' => 1650.00, 'status' => __('crm_order_status_shipped')],
-                ['id' => 1337, 'date' => '2026-03-30', 'total' => 923.00, 'status' => __('crm_order_status_processing')],
-            ],
-            'live_cart' => [
-                ['product' => __('crm_mock_product_1'), 'qty' => 1, 'price' => 2199.00],
-                ['product' => __('crm_mock_product_2'), 'qty' => 2, 'price' => 349.00],
-            ],
-            'wishlist' => [
-                __('crm_mock_wishlist_1'),
-                __('crm_mock_wishlist_2'),
-                __('crm_mock_wishlist_3'),
-            ],
-            'activity_log' => [
-                __('crm_mock_activity_login'),
-                __('crm_mock_activity_viewed'),
-                __('crm_mock_activity_cart_add'),
-            ],
+            'stats' => CrmUserService::getUserStats($userId),
+            'orders' => CrmUserService::getOrders($userId, 20),
+            'live_cart' => CrmUserService::getLiveCart($userId),
+            'wishlist' => CrmUserService::getWishlist($userId),
+            'activity_log' => CrmUserService::getActivity($userId, 30),
             'bonus' => [
-                'balance' => 420,
+                'balance' => CrmUserService::getBonusBalance($userId),
             ],
             'subscriptions' => [
-                'marketing_email' => true,
-                'marketing_sms' => false,
+                'marketing_email' => CrmUserService::getMarketingEmailSubscription($userId),
             ],
         ];
+    }
+
+    private function resolveUserGroupSlug(int $roleId): string
+    {
+        $roleMap = [
+            2 => 'vip',
+            4 => 'wholesale',
+        ];
+
+        return $roleMap[$roleId] ?? 'regular';
     }
 
     public function update($id)
@@ -132,6 +136,7 @@ class AdminUserController
         $phone = trim((string) ($_POST['phone'] ?? ''));
         $roleId = (int) ($_POST['role_id'] ?? 0);
         $password = (string) ($_POST['password'] ?? '');
+        $groupReason = trim((string) ($_POST['group_reason'] ?? ''));
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $_SESSION['error'] = 'Введіть коректний email.';
@@ -152,6 +157,12 @@ class AdminUserController
             exit;
         }
 
+        if ($roleId !== (int) ($user['role_id'] ?? 0) && mb_strlen($groupReason) < 5) {
+            $_SESSION['error'] = 'Для зміни групи користувача вкажіть причину (мінімум 5 символів).';
+            header('Location: /admin/users/edit/' . $userId);
+            exit;
+        }
+
         $updateData = [
             'email' => $email,
             'phone' => $phone !== '' ? $phone : null,
@@ -159,6 +170,17 @@ class AdminUserController
         ];
 
         User::update($userId, $updateData);
+
+        if ($roleId !== (int) ($user['role_id'] ?? 0)) {
+            CrmUserService::recordAudit(
+                $userId,
+                (int) ($_SESSION['user']['id'] ?? 0),
+                'group_change',
+                $groupReason,
+                (string) ($user['role_id'] ?? ''),
+                (string) $roleId
+            );
+        }
 
         if ($password !== '') {
             if (mb_strlen($password) < 8) {
@@ -170,8 +192,129 @@ class AdminUserController
         }
 
         $_SESSION['success'] = 'Дані користувача оновлено.';
-        header('Location: /admin/users');
+        header('Location: /admin/users/edit/' . $userId);
         exit;
+    }
+
+    public function updateBonus($id)
+    {
+        $this->checkAdmin();
+        $this->validateCsrfOrAbort();
+
+        $userId = (int) $id;
+        $delta = (int) ($_POST['delta'] ?? 0);
+        $reason = trim((string) ($_POST['reason'] ?? ''));
+
+        if ($delta === 0 || mb_strlen($reason) < 5) {
+            $this->jsonResponse(['success' => false, 'message' => 'Вкажіть коректну зміну бонусів та причину (мінімум 5 символів).'], 422);
+        }
+
+        $newBalance = CrmUserService::adjustBonus($userId, (int) ($_SESSION['user']['id'] ?? 0), $delta, $reason);
+
+        $this->jsonResponse([
+            'success' => true,
+            'balance' => $newBalance,
+        ]);
+    }
+
+    public function updateBlockStatus($id)
+    {
+        $this->checkAdmin();
+        $this->validateCsrfOrAbort();
+
+        $userId = (int) $id;
+        $isBlocked = (int) ($_POST['is_blocked'] ?? 0) === 1;
+        $reason = trim((string) ($_POST['reason'] ?? ''));
+
+        if (mb_strlen($reason) < 5) {
+            $this->jsonResponse(['success' => false, 'message' => 'Причина для бану/розбану обовʼязкова (мінімум 5 символів).'], 422);
+        }
+
+        $targetUser = User::findById($userId);
+        if (!$targetUser) {
+            $this->jsonResponse(['success' => false, 'message' => 'Користувача не знайдено.'], 404);
+        }
+
+        User::setActive($userId, !$isBlocked);
+        CrmUserService::recordAudit(
+            $userId,
+            (int) ($_SESSION['user']['id'] ?? 0),
+            $isBlocked ? 'ban' : 'unban',
+            $reason,
+            (string) ((int) ($targetUser['is_active'] ?? 1)),
+            $isBlocked ? '0' : '1'
+        );
+
+        CrmUserService::recordActivity(
+            $userId,
+            $isBlocked ? 'ban' : 'unban',
+            $isBlocked ? 'Користувача заблоковано адміністратором' : 'Користувача розблоковано адміністратором'
+        );
+
+        $this->jsonResponse(['success' => true]);
+    }
+
+    public function updateSubscription($id)
+    {
+        $this->checkAdmin();
+        $this->validateCsrfOrAbort();
+
+        $userId = (int) $id;
+        $marketingEmail = (int) ($_POST['marketing_email'] ?? 0) === 1;
+
+        CrmUserService::setMarketingEmailSubscription($userId, $marketingEmail);
+
+        CrmUserService::recordActivity(
+            $userId,
+            'subscription_update',
+            $marketingEmail ? 'Увімкнено email-розсилку' : 'Вимкнено email-розсилку'
+        );
+
+        $this->jsonResponse(['success' => true]);
+    }
+
+    public function sendEmail($id)
+    {
+        $this->checkAdmin();
+        $this->validateCsrfOrAbort();
+
+        $userId = (int) $id;
+        $user = User::findById($userId);
+
+        if (!$user) {
+            $this->jsonResponse(['success' => false, 'message' => 'Користувача не знайдено.'], 404);
+        }
+
+        $subject = trim((string) ($_POST['subject'] ?? ''));
+        $message = trim((string) ($_POST['message'] ?? ''));
+
+        if ($subject === '' || $message === '') {
+            $this->jsonResponse(['success' => false, 'message' => 'Тема та текст листа є обовʼязковими.'], 422);
+        }
+
+        $mailService = new MailService();
+        $sent = $mailService->send((string) $user['email'], $subject, nl2br(htmlspecialchars($message, ENT_QUOTES, 'UTF-8')));
+
+        if (!$sent) {
+            $this->jsonResponse(['success' => false, 'message' => 'Не вдалося відправити лист. Перевірте SMTP налаштування.'], 500);
+        }
+
+        CrmUserService::recordActivity($userId, 'email_sent', 'Адміністратор надіслав email: ' . $subject);
+
+        $this->jsonResponse(['success' => true]);
+    }
+
+    public function liveCart($id)
+    {
+        $this->checkAdmin();
+
+        $userId = (int) $id;
+        $items = CrmUserService::getLiveCart($userId);
+
+        $this->jsonResponse([
+            'success' => true,
+            'items' => $items,
+        ]);
     }
 
     public function delete($id)

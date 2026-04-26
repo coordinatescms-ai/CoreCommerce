@@ -7,6 +7,7 @@ use App\Core\Http\Csrf;
 use App\Core\View\View;
 use App\Models\Cart;
 use App\Models\Setting;
+use App\Models\CrmUserService;
 
 class OrderController
 {
@@ -243,6 +244,10 @@ class OrderController
             }
 
             DB::$pdo->commit();
+
+            if (!empty($_SESSION['user']['id'])) {
+                CrmUserService::recordActivity((int) $_SESSION['user']['id'], 'order_created', 'Оформив замовлення #' . $orderId);
+            }
 
             // Очищаємо кошик у БД (поточний scope: user_id або session_id)
             Cart::clear();

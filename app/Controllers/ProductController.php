@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\ProductAttributeValue;
 use App\Models\ProductImage;
+use App\Models\CrmUserService;
 use App\Services\SlugHelper;
 use App\Services\ProductFilterService;
 
@@ -189,6 +190,10 @@ class ProductController
         }
 
         $similarProducts = Product::getSimilar((int) $product['id'], isset($product['category_id']) ? (int) $product['category_id'] : null, 4);
+
+        if (!empty($_SESSION['user']['id'])) {
+            CrmUserService::recordActivity((int) $_SESSION['user']['id'], 'product_view', 'Перегляд товару: ' . (string) ($product['name'] ?? ''));
+        }
 
         return View::render('products/show', [
             'product' => $product,
