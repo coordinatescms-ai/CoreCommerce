@@ -30,6 +30,29 @@ class View
             $data['footerPages'] = $pageModel->getPublished();
         }
 
+        if ($layout === 'theme') {
+            $page = is_array($data['seo'] ?? null)
+                ? $data['seo']
+                : (is_array($data['page'] ?? null) ? $data['page'] : []);
+            $siteName = trim((string) get_setting('site_name', 'Мій Магазин'));
+
+            $resolvedTitle = trim((string) ($page['meta_title'] ?? ($page['title'] ?? '')));
+            if ($resolvedTitle === '') {
+                $resolvedTitle = $siteName !== '' ? $siteName : 'Мій Магазин';
+            }
+
+            $resolvedDescription = trim((string) ($page['meta_description'] ?? ''));
+
+            $page['meta_title'] = $resolvedTitle;
+            if ($resolvedDescription === '') {
+                unset($page['meta_description']);
+            } else {
+                $page['meta_description'] = $resolvedDescription;
+            }
+
+            $data['pageSeo'] = $page;
+        }
+
         // Екстрактуємо дані для доступу як змінні
         extract($data);
         

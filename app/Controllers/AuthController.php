@@ -379,6 +379,11 @@ class AuthController
         }
 
         $user = User::findById($_SESSION['user']['id']);
-        View::render('auth/profile', ['user' => $user]);
+        View::render('auth/profile', [
+            'user' => $user,
+            'seo' => [
+                'meta_title' => __('profile'),
+            ],
+        ]);
     }
 }
