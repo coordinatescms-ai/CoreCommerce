@@ -32,7 +32,10 @@ class CartController
         return View::render('cart.index', [
             'items' => $items,
             'total' => $total,
-            'csrf' => Csrf::token()
+            'csrf' => Csrf::token(),
+            'seo' => [
+                'meta_title' => __('cart'),
+            ],
         ]);
     }
 

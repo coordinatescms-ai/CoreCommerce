@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= isset($page['meta_title']) && !empty($page['meta_title']) ? htmlspecialchars($page['meta_title']) : htmlspecialchars($page['title'] ?? 'Мій Магазин') ?></title>
-    <?php if (!empty($page['meta_description'])): ?>
-        <meta name="description" content="<?= htmlspecialchars($page['meta_description']) ?>">
+    <title><?= htmlspecialchars((string) ($pageSeo['meta_title'] ?? 'Мій Магазин')) ?></title>
+    <?php if (!empty($pageSeo['meta_description'])): ?>
+        <meta name="description" content="<?= htmlspecialchars((string) $pageSeo['meta_description']) ?>">
     <?php endif; ?>
     <link rel="stylesheet" href="<?php echo class_exists('App\\Core\\View\\View') ? \App\Core\View\View::getThemeStyle() : '/resources/themes/modern/style.css'; ?>">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Segoe+UI:wght@400;500;600&display=swap" rel="stylesheet">

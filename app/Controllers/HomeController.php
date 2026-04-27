@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Core\View\View;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Setting;
 
 class HomeController
 {
@@ -57,6 +58,10 @@ class HomeController
             'popularCategories' => $popularCategories,
             'newArrivals' => $newArrivals,
             'recommendedProducts' => $recommendedProducts,
+            'seo' => [
+                'meta_title' => Setting::get('site_name', ''),
+                'meta_description' => Setting::get('site_description', ''),
+            ],
         ]);
     }
 }
