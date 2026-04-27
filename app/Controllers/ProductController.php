@@ -9,11 +9,68 @@ use App\Models\Category;
 use App\Models\ProductAttributeValue;
 use App\Models\ProductImage;
 use App\Models\CrmUserService;
+use App\Models\Setting;
 use App\Services\SlugHelper;
 use App\Services\ProductFilterService;
 
 class ProductController
 {
+    private function renderProductSeoTemplate(string $template, array $product, ?array $category): string
+    {
+        $template = trim($template);
+        if ($template === '') {
+            return '';
+        }
+
+        $replacements = [
+            '{name}' => (string) ($product['name'] ?? ''),
+            '{price}' => (string) ($product['price'] ?? ''),
+            '{category}' => (string) ($category['name'] ?? ''),
+        ];
+
+        return trim(strtr($template, $replacements));
+    }
+
+    private function resolveCategorySeoPage(array $category, ?array $seoSettings): array
+    {
+        $metaTitle = trim((string) ($category['meta_title'] ?? ''));
+        $metaDescription = trim((string) ($category['meta_description'] ?? ''));
+
+        if ($metaTitle === '') {
+            $metaTitle = trim((string) ($seoSettings['title'] ?? ''));
+        }
+
+        if ($metaDescription === '') {
+            $metaDescription = trim((string) ($seoSettings['description'] ?? ''));
+        }
+
+        return [
+            'meta_title' => $metaTitle,
+            'meta_description' => $metaDescription,
+        ];
+    }
+
+    private function resolveProductSeoPage(array $product, ?array $category): array
+    {
+        $metaTitle = trim((string) ($product['meta_title'] ?? ''));
+        $metaDescription = trim((string) ($product['meta_description'] ?? ''));
+
+        if ($metaTitle === '') {
+            $metaTitleTemplate = (string) Setting::get('seo_title_template', '');
+            $metaTitle = $this->renderProductSeoTemplate($metaTitleTemplate, $product, $category);
+        }
+
+        if ($metaDescription === '') {
+            $metaDescriptionTemplate = (string) Setting::get('seo_desc_template', '');
+            $metaDescription = $this->renderProductSeoTemplate($metaDescriptionTemplate, $product, $category);
+        }
+
+        return [
+            'meta_title' => $metaTitle,
+            'meta_description' => $metaDescription,
+        ];
+    }
+
     /**
      * Підготувати дані сторінки категорії.
      *
@@ -38,6 +95,8 @@ class ProductController
         $priceRange = ProductFilterService::getPriceRange($category['id']);
         $breadcrumbs = Category::getBreadcrumbs($category['id']);
 
+        $seoSettings = Category::getSeoSettings($category['id']);
+
         return [
             'category' => $category,
             'products' => $products,
@@ -50,7 +109,8 @@ class ProductController
             'breadcrumbs' => $breadcrumbs,
             'categoryTree' => Category::getTree(),
             'childCategories' => Category::getChildren($category['id']),
-            'seoSettings' => Category::getSeoSettings($category['id'])
+            'seoSettings' => $seoSettings,
+            'seo' => $this->resolveCategorySeoPage($category, $seoSettings),
         ];
     }
 
@@ -205,7 +265,8 @@ class ProductController
             'galleryImages' => $galleryImages,
             'seoSettings' => $seoSettings,
             'similarProducts' => $similarProducts,
-            'categoryTree' => Category::getTree()
+            'categoryTree' => Category::getTree(),
+            'seo' => $this->resolveProductSeoPage($product, $category),
         ]);
     }
 
