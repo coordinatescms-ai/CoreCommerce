@@ -67,15 +67,25 @@
             font-family: 'Poppins', sans-serif;
             text-decoration: none;
             color: white;
+            min-width: 0;
         }
 
         .nav-brand-logo {
             max-height: 36px;
+            max-width: 140px;
             width: auto;
             display: block;
             border-radius: 6px;
             background: rgba(255, 255, 255, 0.1);
             padding: 2px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .nav-brand span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .nav-links {
@@ -563,11 +573,10 @@
                 <span><?php echo htmlspecialchars((string) get_setting('site_name', 'Мій Магазин')); ?></span>
             </a>
             <div class="nav-links">
-                <a href="/"><?php echo function_exists('__') ? __('home') : 'Home'; ?></a>
                 <a href="/products"><?php echo function_exists('__') ? __('products') : 'Products'; ?></a>
-                <a href="/cart">    <svg xmlns="http://w3.org" height="20" width="22" viewBox="0 0 576 512" fill="white" style="margin-right: 10px;">
-      <path d="M0 24C0 10.7 10.7 0 24 0H69.5c22 0 41.5 12.8 50.6 32h411c26.3 0 45.5 25 38.6 50.4l-41 152.3c-8.5 31.4-37 53.3-69.5 53.3H170.7l5.4 28.5c2.2 11.3 12.1 19.5 23.6 19.5H488c13.3 0 24 10.7 24 24s-10.7 24-24 24H199.7c-34.6 0-64.3-24.6-70.7-58.5L77.4 54.5c-.7-3.8-4-6.5-7.9-6.5H24C10.7 48 0 37.3 0 24zM128 464a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zm336-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z""")/>>
-    </svg><?php echo function_exists('__') ? __('cart') : 'Cart'; ?></a>
+                <a href="/cart"><svg xmlns="http://www.w3.org/2000/svg" height="20" width="22" viewBox="0 0 576 512" fill="white" style="margin-right: 10px; vertical-align: middle;">
+                    <path d="M0 24C0 10.7 10.7 0 24 0H69.5c22 0 41.5 12.8 50.6 32h411c26.3 0 45.5 25 38.6 50.4l-41 152.3c-8.5 31.4-37 53.3-69.5 53.3H170.7l5.4 28.5c2.2 11.3 12.1 19.5 23.6 19.5H488c13.3 0 24 10.7 24 24s-10.7 24-24 24H199.7c-34.6 0-64.3-24.6-70.7-58.5L77.4 54.5c-.7-3.8-4-6.5-7.9-6.5H24C10.7 48 0 37.3 0 24zM128 464a48 48 0 1 1 96 0 48 48 0 1 1-96 0zm336-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"/>
+                </svg><?php echo function_exists('__') ? __('cart') : 'Cart'; ?></a>
                 <div class="nav-dropdown" data-nav-dropdown>
                     <button class="nav-dropdown-toggle" type="button" aria-expanded="false" aria-controls="modern-nav-categories">
                         <?= __('categories') ?>
