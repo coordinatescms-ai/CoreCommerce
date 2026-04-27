@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MySite</title>
+    <title><?= isset($page['meta_title']) && !empty($page['meta_title']) ? htmlspecialchars($page['meta_title']) : htmlspecialchars($page['title'] ?? 'Мій Магазин') ?></title>
+    <?php if (!empty($page['meta_description'])): ?>
+        <meta name="description" content="<?= htmlspecialchars($page['meta_description']) ?>">
+    <?php endif; ?>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; }
@@ -149,6 +152,11 @@
         </main>
     </div>
     <footer>
+    <div class="footer-links">
+        <?php foreach ($footerPages as $page): ?>
+            <a href="/<?= $page['slug'] ?>"><?= htmlspecialchars($page['title']) ?></a>
+        <?php endforeach; ?>
+    </div>
         <p>&copy; 2024 MySite. <?= __('all_rights_reserved') ?? 'All rights reserved.' ?></p>
     </footer>
     <script>

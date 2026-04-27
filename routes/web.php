@@ -17,6 +17,7 @@ use App\Controllers\AdminController;
 use App\Controllers\AdminUserController;
 use App\Controllers\AdminOrderController;
 use App\Controllers\AdminContentController;
+use App\Controllers\PageController;
 
 $router = new Router();
 
@@ -77,6 +78,13 @@ $router->post('/admin/settings/methods/delete/{id}', [AdminController::class, 'd
 $router->get('/admin/content', [AdminContentController::class, 'index']);
 $router->get('/admin/content/create', [AdminContentController::class, 'create']);
 $router->post('/admin/content/store', [AdminContentController::class, 'store']);
+// Сторінка редагування
+$router->get('/admin/content/edit/{id}', [AdminContentController::class, 'edit']);
+// Збереження оновлень
+$router->post('/admin/content/update/{id}', [AdminContentController::class, 'update']);
+// Видалення (краще робити через POST або DELETE для безпеки)
+$router->post('/admin/content/delete/{id}', [AdminContentController::class, 'delete']);
+$router->post('/admin/content/upload', [AdminContentController::class, 'uploadImage']);
 
 // Перегляд аналітики продажів в адмінці
 $router->get('/admin/analytics/{period}', [AdminController::class, 'analytics']);
@@ -128,5 +136,8 @@ $router->post('/admin/users/block/{id}', [AdminUserController::class, 'updateBlo
 $router->post('/admin/users/subscription/{id}', [AdminUserController::class, 'updateSubscription']);
 $router->post('/admin/users/send-email/{id}', [AdminUserController::class, 'sendEmail']);
 $router->delete('/admin/users/delete/{id}', [AdminUserController::class, 'delete']);
+
+//Статичні сторінки
+$router->get('/{slug}', [\App\Controllers\PageController::class, 'show']);
 
 return $router;
