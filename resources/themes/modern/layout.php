@@ -59,11 +59,23 @@
         }
 
         .nav-brand {
-            font-size: 1.5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+            font-size: 1.2rem;
             font-weight: 700;
             font-family: 'Poppins', sans-serif;
             text-decoration: none;
             color: white;
+        }
+
+        .nav-brand-logo {
+            max-height: 36px;
+            width: auto;
+            display: block;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px;
         }
 
         .nav-links {
@@ -543,6 +555,13 @@
     ?>
     <header>
         <nav>
+            <?php $headerLogo = trim((string) get_setting('active_logotype', '')); ?>
+            <a href="/" class="nav-brand">
+                <?php if ($headerLogo !== ''): ?>
+                    <img src="<?php echo htmlspecialchars($headerLogo); ?>" alt="<?php echo htmlspecialchars((string) get_setting('site_name', 'Мій Магазин')); ?>" class="nav-brand-logo">
+                <?php endif; ?>
+                <span><?php echo htmlspecialchars((string) get_setting('site_name', 'Мій Магазин')); ?></span>
+            </a>
             <div class="nav-links">
                 <a href="/"><?php echo function_exists('__') ? __('home') : 'Home'; ?></a>
                 <a href="/products"><?php echo function_exists('__') ? __('products') : 'Products'; ?></a>

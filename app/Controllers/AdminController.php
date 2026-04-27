@@ -300,6 +300,13 @@ LIMIT 5");
         exit;
     }
 
+    $logotypeUploadError = $this->processLogotypeUpload($settingsToUpdate);
+    if ($logotypeUploadError !== null) {
+        $_SESSION['error'] = $logotypeUploadError;
+        header('Location: ' . $redirectUrl);
+        exit;
+    }
+
     $metadata = $this->settingsMetadata();
     foreach ($settingsToUpdate as $key => $value) {
         $group = $metadata[$key]['group'] ?? 'general';
@@ -482,9 +489,70 @@ LIMIT 5");
             'seo_title_template' => ['group' => 'seo', 'type' => 'text'],
             'seo_desc_template' => ['group' => 'seo', 'type' => 'textarea'],
             'site_timezone' => ['group' => 'general', 'type' => 'text'],
+            'active_logotype' => ['group' => 'general', 'type' => 'text'],
             'smtp_pass' => ['group' => 'general', 'type' => 'text'],
             'smtp_port' => ['group' => 'general', 'type' => 'text'],
             'smtr' => ['group' => 'general', 'type' => 'text'],
         ];
+    }
+
+    private function processLogotypeUpload(array &$settings): ?string
+    {
+        if (empty($_FILES['logotype_file']) || !is_array($_FILES['logotype_file'])) {
+            return null;
+        }
+
+        $file = $_FILES['logotype_file'];
+        if (($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+            return null;
+        }
+
+        if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+            return 'Помилка завантаження логотипу.';
+        }
+
+        $size = (int) ($file['size'] ?? 0);
+        if ($size <= 0 || $size > 1048576) {
+            return 'Логотип має бути розміром до 1MB.';
+        }
+
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime = $finfo ? finfo_file($finfo, (string) ($file['tmp_name'] ?? '')) : false;
+        if ($finfo) {
+            finfo_close($finfo);
+        }
+
+        $allowedMimes = [
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/webp' => 'webp',
+        ];
+
+        if (!isset($allowedMimes[$mime])) {
+            return 'Логотип має бути у форматі JPG, PNG або WEBP.';
+        }
+
+        $dir = __DIR__ . '/../../public/uploads/logotypes/';
+        if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
+            return 'Не вдалося створити папку для логотипів.';
+        }
+
+        $currentPath = trim((string) get_setting('active_logotype', ''));
+        if ($currentPath !== '' && strpos($currentPath, '/uploads/logotypes/') === 0) {
+            $oldFullPath = __DIR__ . '/../../public' . $currentPath;
+            if (is_file($oldFullPath)) {
+                @unlink($oldFullPath);
+            }
+        }
+
+        $filename = str_replace('.', '', uniqid('logotype_', true)) . '.' . $allowedMimes[$mime];
+        $target = $dir . $filename;
+
+        if (!move_uploaded_file((string) ($file['tmp_name'] ?? ''), $target)) {
+            return 'Не вдалося зберегти логотип.';
+        }
+
+        $settings['active_logotype'] = '/uploads/logotypes/' . $filename;
+        return null;
     }
 }

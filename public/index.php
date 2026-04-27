@@ -9,10 +9,18 @@ use App\Core\Http\Request;
 use App\Core\Database\DB;
 use App\Core\Plugin\PluginManager;
 use App\Models\User;
+use App\Models\Setting;
 
 // 2. Встановлення з'єднання з базою даних
 $config = require __DIR__.'/../config/database.php';
 DB::connect($config['dsn'], $config['user'], $config['pass']);
+
+// 2.1 Встановлення часового поясу сайту з налаштувань
+$siteTimezone = trim((string) Setting::get('site_timezone', 'UTC'));
+if ($siteTimezone === '' || !in_array($siteTimezone, timezone_identifiers_list(), true)) {
+    $siteTimezone = 'UTC';
+}
+date_default_timezone_set($siteTimezone);
 
 // 3. Ініціалізація CSRF токена
 if (empty($_SESSION['csrf'])) {
