@@ -13,6 +13,9 @@
         nav { background: #f4f4f4; padding: 1rem; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
         nav a { margin-right: 1rem; text-decoration: none; color: #333; }
         nav a:hover { color: #007bff; }
+        .nav-brand { display: inline-flex; align-items: center; gap: 0.45rem; margin-right: 1rem; text-decoration: none; color: #333; font-weight: 700; }
+        .nav-brand:hover { color: #007bff; text-decoration: none; }
+        .nav-brand-logo { max-height: 34px; width: auto; display: block; border-radius: 4px; }
         .nav-links { display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem; }
         .nav-links > a { margin-right: 0; }
         .nav-separator { color: #999; margin: 0 0.2rem; }
@@ -109,6 +112,13 @@
     ?>
     <nav>
         <div class="nav-links">
+            <?php $headerLogo = trim((string) get_setting('active_logotype', '')); ?>
+            <a href="/" class="nav-brand">
+                <?php if ($headerLogo !== ''): ?>
+                    <img src="<?= htmlspecialchars($headerLogo) ?>" alt="<?= htmlspecialchars((string) get_setting('site_name', 'Мій Магазин')) ?>" class="nav-brand-logo">
+                <?php endif; ?>
+                <span><?= htmlspecialchars((string) get_setting('site_name', 'Мій Магазин')) ?></span>
+            </a>
             <a href="/"><?= __('home') ?></a> | 
             <a href="/products"><?= __('products') ?></a> | 
             <a href="/cart"><?= __('cart') ?></a> |
