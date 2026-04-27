@@ -26,6 +26,17 @@
                 <label for="maintenance_message">Повідомлення при закритті</label>
                 <textarea name="settings[maintenance_message]" id="maintenance_message" class="form-control" rows="2"><?php echo htmlspecialchars(get_setting('maintenance_message', '')); ?></textarea>
             </div>
+            <div class="form-group">
+                <label for="logotype_file">Логотип магазину</label>
+                <input type="file" name="logotype_file" id="logotype_file" class="form-control" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+                <small style="display:block; margin-top: 0.35rem; color: #6b7280;">Дозволені формати: JPG, PNG, WEBP. Максимум: 1MB.</small>
+                <?php $activeLogotype = trim((string) get_setting('active_logotype', '')); ?>
+                <?php if ($activeLogotype !== ''): ?>
+                    <div style="margin-top: 0.5rem;">
+                        <img src="<?php echo htmlspecialchars($activeLogotype); ?>" alt="Поточний логотип" style="max-height: 60px; width: auto; border: 1px solid #ddd; border-radius: 6px; padding: 4px; background: #fff;">
+                    </div>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
 
