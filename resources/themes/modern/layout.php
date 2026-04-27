@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MySite - Modern Theme</title>
+    <title><?= isset($page['meta_title']) && !empty($page['meta_title']) ? htmlspecialchars($page['meta_title']) : htmlspecialchars($page['title'] ?? 'Мій Магазин') ?></title>
+    <?php if (!empty($page['meta_description'])): ?>
+        <meta name="description" content="<?= htmlspecialchars($page['meta_description']) ?>">
+    <?php endif; ?>
     <link rel="stylesheet" href="<?php echo class_exists('App\\Core\\View\\View') ? \App\Core\View\View::getThemeStyle() : '/resources/themes/modern/style.css'; ?>">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Segoe+UI:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
@@ -592,7 +595,12 @@
     </div>
 
     <footer>
-        <p>&copy; 2024 MySite. <?php echo function_exists('__') ? (__('all_rights_reserved') ?? 'All rights reserved.') : 'All rights reserved.'; ?></p>
+    <div class="footer-links">
+        <?php foreach ($footerPages as $page): ?>
+            <a href="/<?= $page['slug'] ?>"><?= htmlspecialchars($page['title']) ?></a>
+        <?php endforeach; ?>
+    </div>
+        <p>&copy; 2026 MySite. <?php echo function_exists('__') ? (__('all_rights_reserved') ?? 'All rights reserved.') : 'All rights reserved.'; ?></p>
     </footer>
     <script>
         (() => {

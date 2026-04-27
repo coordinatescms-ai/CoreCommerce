@@ -7,6 +7,7 @@ use App\Core\Http\Csrf;
 use App\Models\User;
 use App\Models\Setting;
 use App\Core\Database\DB;
+use App\Models\Page;
 
 class AdminController
 {

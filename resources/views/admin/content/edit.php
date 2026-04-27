@@ -1,40 +1,40 @@
 <div class="admin-container">
-    <h2>Додати нову сторінку</h2>
+    <h2>Редагувати сторінку</h2>
     
-    <form action="/admin/content/store" method="POST" id="content-form">
+    <form action="/admin/content/update/<?= $page['id'] ?>" method="POST" id="content-form">
         <div class="form-group" style="margin-bottom: 15px;">
             <label>Заголовок сторінки:</label>
-            <input type="text" name="title" id="title" class="form-control" style="width: 100%; padding: 8px;" required placeholder="Наприклад: Про нас">
+            <input type="text" name="title" id="title" class="form-control" style="width: 100%; padding: 8px;" 
+                   value="<?= htmlspecialchars($page['title']) ?>" required>
         </div>
 
         <div class="form-group" style="margin-bottom: 15px;">
             <label>URL-адреса (slug):</label>
-            <input type="text" name="slug" id="slug" class="form-control" style="width: 100%; padding: 8px;" required placeholder="pro-nas">
+            <input type="text" name="slug" id="slug" class="form-control" style="width: 100%; padding: 8px;" 
+                   value="<?= htmlspecialchars($page['slug']) ?>" required>
         </div>
 
         <div class="form-group" style="margin-bottom: 15px;">
             <label>Контент:</label>
-            <!-- Панель кнопок -->
             <div class="editor-toolbar" style="background: #eee; border: 1px solid #ccc; border-bottom: none; padding: 8px;">
                 <button type="button" class="ed-btn" onclick="runCmd('bold')"><b>B</b></button>
                 <button type="button" class="ed-btn" onclick="runCmd('italic')"><i>I</i></button>
                 <button type="button" class="ed-btn" onclick="runCmd('insertUnorderedList')">• Список</button>
                 <button type="button" class="ed-btn" onclick="runCmd('formatBlock', 'h2')">H2</button>
                 <button type="button" class="ed-btn" onclick="runCmd('formatBlock', 'p')">P</button>
-                <button type="button" class="ed-btn" onclick="runCmd('createLink', prompt('Введіть URL:'))">🔗 Посилання</button>
+                <button type="button" class="ed-btn" onclick="runCmd('createLink', prompt('URL:'))">🔗</button>
                 <!-- Кнопка викликає клік по прихованому інпуту -->
                 <button type="button" class="ed-btn" onclick="document.getElementById('image-upload').click()" title="Завантажити фото">🖼️ Фото</button>
                 <!-- Важливо: type="file", а не checkbox! -->
-                <input type="file" id="image-upload" style="display:none" accept="image/*" onchange="uploadEditorImage(this)">
+                <input type="file" id="image-upload" style="display:none" accept="image/*" onchange="uploadEditorImage(this)">         
             </div>
 
-            <!-- Візуальний редактор -->
+            <!-- Візуальний редактор з існуючим контентом -->
             <div id="visual-editor" contenteditable="true" 
                  style="border: 1px solid #ccc; min-height: 300px; padding: 15px; background: #fff; outline: none; overflow-y: auto;">
-                <p><br></p>
+                <?= $page['content'] ?>
             </div>
 
-            <!-- Приховане поле для PHP -->
             <input type="hidden" name="content" id="real-content">
         </div>
 
@@ -48,22 +48,22 @@
                 <label>Meta Description (опис для пошуку):</label>
                 <textarea name="meta_description" class="form-control" rows="3" style="width: 100%; padding: 8px;"><?= htmlspecialchars($page['meta_description'] ?? '') ?></textarea>
             </div>
-        </div>       
+        </div>        
 
         <div class="form-group" style="margin-bottom: 15px;">
             <label>Порядок сортування:</label>
-            <input type="number" name="sort_order" value="0" class="form-control" style="width: 100px; padding: 8px;">
+            <input type="number" name="sort_order" value="<?= $page['sort_order'] ?? 0 ?>" class="form-control" style="width: 100px; padding: 8px;">
             <small>Чим менше число, тим лівіше буде сторінка у футері.</small>
         </div>
 
         <div class="form-group" style="margin-bottom: 15px;">
             <label>
-                <input type="checkbox" name="is_active" value="1" checked> Опублікувати сторінку
+                <input type="checkbox" name="is_active" value="1" <?= $page['is_active'] ? 'checked' : '' ?>> Опубліковано
             </label>
         </div>
 
         <div class="form-actions">
-            <button type="submit" class="btn-save" style="background: #2ecc71; color: white; padding: 10px 20px; border: none; cursor: pointer;">Зберегти сторінку</button>
+            <button type="submit" class="btn-save" style="background: #3498db; color: white; padding: 10px 20px; border: none; cursor: pointer;">Оновити дані</button>
             <a href="/admin/content" style="margin-left: 10px;">Скасувати</a>
         </div>
     </form>
@@ -74,7 +74,6 @@
     .ed-btn:hover { background: #ddd; }
     #visual-editor ul { list-style-type: disc !important; padding-left: 40px !important; margin: 1em 0 !important; }
     #visual-editor li { display: list-item !important; }
-    #visual-editor h2 { font-size: 1.5em; margin: 10px 0; }
 </style>
 
 <script>
@@ -127,16 +126,6 @@ function runCmd(cmd, val = null) {
     document.execCommand(cmd, false, val);
 }
 
-// Транслітерація для Slug
-document.getElementById('title').addEventListener('input', function() {
-    const cyrillic = {'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ё':'e','ж':'zh','з':'z','и':'i','й':'y','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','х':'h','ц':'ts','ч':'ch','ш':'sh','щ':'shch','ъ':'','ы':'y','ь':'','э':'e','ю':'yu','я':'ya','і':'i','ї':'yi','є':'ye','ґ':'g'};
-    let text = this.value.toLowerCase();
-    let slug = text.split('').map(char => cyrillic[char] || char).join('');
-    slug = slug.replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');
-    document.getElementById('slug').value = slug;
-});
-
-// Підготовка контенту перед відправкою
 document.getElementById('content-form').onsubmit = function() {
     document.getElementById('real-content').value = document.getElementById('visual-editor').innerHTML;
     return true;

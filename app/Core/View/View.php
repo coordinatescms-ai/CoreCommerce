@@ -15,10 +15,19 @@ class View
      * @param string $layout Тип макета: 'theme' (frontend) або 'admin'
      * @return void
      */
+    
     public static function render($view, $data = [], $layout = 'theme')
     {
+        // Додаємо категорії для хедера, якщо їх немає
         if (!array_key_exists('headerCategories', $data)) {
             $data['headerCategories'] = Category::getTree();
+        }
+
+        // ДОДАЄМО СТОРІНКИ ДЛЯ ФУТЕРА
+        // Робимо це тільки для 'theme' (frontend), щоб не навантажувати адмінку
+        if ($layout === 'theme' && !array_key_exists('footerPages', $data)) {
+            $pageModel = new \App\Models\Page();
+            $data['footerPages'] = $pageModel->getPublished();
         }
 
         // Екстрактуємо дані для доступу як змінні
@@ -27,12 +36,12 @@ class View
         // Знаходимо файл шаблону
         $view_path = __DIR__ . '/../../../resources/views/' . str_replace('.', '/', $view) . '.php';
         
-        // Перевіряємо, чи існує файл
+        // ... (решта вашого коду без змін) ...
+        
         if (!file_exists($view_path)) {
             throw new \Exception("View file not found: {$view_path}");
         }
         
-        // Буферизуємо вихід шаблону
         ob_start();
         include $view_path;
         $content = ob_get_clean();
@@ -40,22 +49,17 @@ class View
         if ($layout === 'admin') {
             $layout_path = __DIR__ . '/../../../resources/views/layouts/admin.php';
         } else {
-            // Для frontend залишаємо поточний шлях через активну тему
             $active_theme = ThemeManager::getActiveTheme();
             $layout_path = ThemeManager::getLayoutPath($active_theme);
         }
         
-        // Перевіряємо, чи існує файл макета
         if (!file_exists($layout_path)) {
             throw new \Exception("Layout file not found: {$layout_path}");
         }
         
-        // Включаємо вибраний макет
         include $layout_path;
     }
     
-
-
     public static function renderPartial($view, $data = [])
     {
         extract($data);
