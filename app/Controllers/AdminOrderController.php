@@ -20,6 +20,7 @@ class AdminOrderController
     ];
 
     private ?bool $hasTtnCodeColumn = null;
+    private ?array $activeShippingMethodsByCode = null;
 
     private function checkAdmin(): void
     {
@@ -383,14 +384,22 @@ class AdminOrderController
         try {
             $this->ensureStatusHistoryTable();
             $shippedOrders = DB::query(
-                'SELECT id, status, ttn_code FROM orders WHERE status = ? AND ttn_code IS NOT NULL AND ttn_code <> ""',
+                'SELECT id, status, ttn_code, delivery_method, customer_phone
+                 FROM orders
+                 WHERE status = ? AND ttn_code IS NOT NULL AND ttn_code <> ""',
                 ['shipped']
             )->fetchAll(\PDO::FETCH_ASSOC);
 
             $updated = [];
+            $skipped = 0;
             DB::$pdo->beginTransaction();
             foreach ($shippedOrders as $order) {
-                $carrierStatus = $this->mockCarrierStatus((string) $order['ttn_code']);
+                $carrierStatus = $this->fetchCarrierStatusForOrder($order);
+                if ($carrierStatus === null) {
+                    $skipped++;
+                    continue;
+                }
+
                 $nextStatus = $carrierStatus === 'received' ? 'completed' : 'shipped';
 
                 if ($nextStatus !== ($order['status'] ?? '')) {
@@ -410,7 +419,10 @@ class AdminOrderController
             $this->respondJson([
                 'success' => true,
                 'updated' => $updated,
-                'message' => empty($updated) ? 'Нових змін статусів не знайдено' : 'Статуси оновлено',
+                'message' => empty($updated)
+                    ? ($skipped > 0 ? 'Змін не знайдено. Частину ТТН пропущено через неактивну або неналаштовану службу доставки' : 'Нових змін статусів не знайдено')
+                    : 'Статуси оновлено',
+                'skipped' => $skipped,
             ]);
         } catch (\Throwable $e) {
             if (DB::$pdo->inTransaction()) {
@@ -507,21 +519,98 @@ class AdminOrderController
         ];
     }
 
-    private function mockCarrierStatus(string $ttnCode): string
+    private function fetchCarrierStatusForOrder(array $order): ?string
     {
-        $normalized = preg_replace('/\s+/', '', mb_strtolower($ttnCode));
-        $hash = abs(crc32($normalized));
-        $bucket = $hash % 3;
+        $deliveryCode = trim((string) ($order['delivery_method'] ?? ''));
+        $ttnCode = trim((string) ($order['ttn_code'] ?? ''));
+        $customerPhone = (string) ($order['customer_phone'] ?? '');
 
-        if ($bucket === 0) {
+        if ($deliveryCode === '' || $ttnCode === '') {
+            return null;
+        }
+
+        $method = $this->getActiveShippingMethodByCode($deliveryCode);
+        if ($method === null) {
+            return null;
+        }
+
+        if ($deliveryCode === 'nova_poshta') {
+            return $this->fetchNovaPoshtaStatus($method, $ttnCode, $customerPhone);
+        }
+
+        return null;
+    }
+
+    private function fetchNovaPoshtaStatus(array $method, string $ttnCode, string $phone): ?string
+    {
+        $settings = $this->decodeMethodSettings($method['settings'] ?? null);
+        $apiKey = trim((string) ($settings['api_key'] ?? ''));
+        if ($apiKey === '') {
+            return null;
+        }
+
+        $normalizedPhone = preg_replace('/\D+/', '', $phone);
+        $payload = [
+            'apiKey' => $apiKey,
+            'modelName' => 'TrackingDocument',
+            'calledMethod' => 'getStatusDocuments',
+            'methodProperties' => [
+                'Documents' => [[
+                    'DocumentNumber' => $ttnCode,
+                    'Phone' => $normalizedPhone ?: '',
+                ]],
+            ],
+        ];
+
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'POST',
+                'header' => "Content-Type: application/json\r\n",
+                'content' => json_encode($payload, JSON_UNESCAPED_UNICODE),
+                'timeout' => 10,
+                'ignore_errors' => true,
+            ],
+        ]);
+
+        $responseBody = @file_get_contents('https://api.novaposhta.ua/v2.0/json/', false, $context);
+        if (!is_string($responseBody) || $responseBody === '') {
+            return null;
+        }
+
+        $response = json_decode($responseBody, true);
+        if (!is_array($response) || empty($response['success'])) {
+            return null;
+        }
+
+        $first = $response['data'][0] ?? null;
+        if (!is_array($first)) {
+            return null;
+        }
+
+        return $this->mapCarrierStatusToInternal(
+            (string) ($first['Status'] ?? ''),
+            (string) ($first['StatusCode'] ?? '')
+        );
+    }
+
+    private function mapCarrierStatusToInternal(string $status, string $statusCode): string
+    {
+        $normalized = mb_strtolower(trim($status));
+
+        if (in_array($statusCode, ['9', '10', '11'], true)) {
             return 'received';
         }
 
-        if ($bucket === 1) {
-            return 'in_transit';
+        if ($normalized !== '') {
+            $receivedMarkers = ['отриман', 'вручено', 'доставлен', 'видано', 'получен'];
+            foreach ($receivedMarkers as $marker) {
+                if (mb_strpos($normalized, $marker) !== false) {
+                    return 'received';
+                }
+            }
         }
 
-        return 'sorted_at_hub';
+        return 'in_transit';
     }
 
     private function insertStatusHistory(int $orderId, ?string $oldStatus, string $newStatus, ?string $ttnCode): void
@@ -601,6 +690,43 @@ class AdminOrderController
 
         $this->hasTtnCodeColumn = ((int) $statement->fetchColumn()) > 0;
         return $this->hasTtnCodeColumn;
+    }
+
+    private function getActiveShippingMethodByCode(string $code): ?array
+    {
+        if ($this->activeShippingMethodsByCode === null) {
+            $this->activeShippingMethodsByCode = [];
+            $methods = Setting::getShopMethods('shipping');
+
+            foreach ($methods as $method) {
+                if ((int) ($method['is_active'] ?? 0) !== 1) {
+                    continue;
+                }
+
+                $methodCode = trim((string) ($method['code'] ?? ''));
+                if ($methodCode === '') {
+                    continue;
+                }
+
+                $this->activeShippingMethodsByCode[$methodCode] = $method;
+            }
+        }
+
+        return $this->activeShippingMethodsByCode[$code] ?? null;
+    }
+
+    private function decodeMethodSettings($settings): array
+    {
+        if (is_array($settings)) {
+            return $settings;
+        }
+
+        if ($settings === null || $settings === '') {
+            return [];
+        }
+
+        $decoded = json_decode((string) $settings, true);
+        return is_array($decoded) ? $decoded : [];
     }
 
     private function normalizeSelectedOptions($selectedOptions): array
