@@ -60,6 +60,7 @@ class AdminContentController
         }
 
         if ($pageModel->create($data)) {
+            $this->cleanupImages(); // Видаляємо сміття
             header('Location: /admin/content?success=1');
             exit;
         }
@@ -70,7 +71,7 @@ class AdminContentController
     
         $pageModel = new \App\Models\Page();
         $pageModel->delete($id);
-
+        $this->cleanupImages(); // Видаляємо сміття
         header('Location: /admin/content?deleted=1');
         exit;
     }
@@ -109,9 +110,39 @@ class AdminContentController
     
         // Оновлюємо через модель (метод update я давав вище)
         if ($pageModel->update($id, $data)) {
+             $this->cleanupImages(); // Видаляємо сміття
             header('Location: /admin/content?updated=1');
         exit;
         }
+    }
+
+    private function cleanupImages()
+    {
+        $pageModel = new \App\Models\Page();
+        $allPages = $pageModel->getAll();
+    
+        // 1. Збираємо всі посилання на картинки, які є в базі даних
+        $usedImages = [];
+        foreach ($allPages as $page) {
+            preg_match_all('/src="\/uploads\/pages\/([^"]+)"/', $page['content'], $matches);
+            if (!empty($matches[1])) {
+                $usedImages = array_merge($usedImages, $matches[1]);
+            }
+        }
+        $usedImages = array_unique($usedImages);
+
+        // 2. Отримуємо список усіх реальних файлів у папці
+        $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/uploads/pages/';
+        if (!is_dir($uploadDir)) return;
+    
+        $files = scandir($uploadDir);
+    
+        // 3. Видаляємо файли, яких немає в списку використаних
+        foreach ($files as $file) {
+            if ($file !== '.' && $file !== '..' && !in_array($file, $usedImages)) {
+                unlink($uploadDir . $file);
+            }
+       }
     }
 
 public function uploadImage()
