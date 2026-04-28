@@ -74,6 +74,13 @@
     .ed-btn:hover { background: #ddd; }
     #visual-editor ul { list-style-type: disc !important; padding-left: 40px !important; margin: 1em 0 !important; }
     #visual-editor li { display: list-item !important; }
+    #visual-editor img {
+        cursor: nwse-resize;
+        transition: outline 0.2s;
+    }
+    #visual-editor img:hover {
+        outline: 3px solid #3498db;
+    }
 </style>
 
 <script>
@@ -130,5 +137,16 @@ document.getElementById('content-form').onsubmit = function() {
     document.getElementById('real-content').value = document.getElementById('visual-editor').innerHTML;
     return true;
 };
+
+// Слухач кліку по картинці всередині редактора
+document.getElementById('visual-editor').addEventListener('click', function(e) {
+    if (e.target.tagName === 'IMG') {
+        let newWidth = prompt('Введіть ширину картинки у % або px (наприклад, 50% або 300px):', e.target.style.width || '100%');
+        if (newWidth !== null) {
+            e.target.style.width = newWidth;
+            e.target.style.height = 'auto'; // зберігаємо пропорції
+        }
+    }
+});
 </script>
 
