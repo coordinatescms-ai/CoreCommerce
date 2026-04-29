@@ -58,6 +58,10 @@ $router->post('/reset-password',[AuthController::class,'resetPassword']);
 
 // Профіль користувача
 $router->get('/profile', [AuthController::class, 'showProfile']);
+$router->get('/profile/orders', [AuthController::class, 'showOrders']);
+$router->get('/profile/favorites', [AuthController::class, 'showFavorites']);
+$router->get('/profile/edit', [AuthController::class, 'showProfileEdit']);
+$router->post('/profile/edit', [AuthController::class, 'updateProfile']);
 $router->post('/favorites/toggle', [ProductController::class, 'toggleFavorite']);
 
 // Соціальна автентифікація
