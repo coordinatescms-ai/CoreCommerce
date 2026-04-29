@@ -179,34 +179,20 @@ class AdminController
         }
 
         $stmt = DB::query("SELECT 
-    p.id, 
-    p.name, 
-    SUM(oi.qty) as total_qty, 
-    SUM(oi.price * oi.qty) as total_revenue
-FROM order_items oi
-JOIN orders o ON oi.order_id = o.id
-JOIN products p ON oi.product_id = p.id
-WHERE o.created_at >= DATE_SUB(NOW(), $interval) 
-  AND o.status != 'canceled'
-GROUP BY p.id, p.name
-ORDER BY total_revenue DESC
-LIMIT 5");
+            p.id, 
+            p.name, 
+            SUM(oi.qty) as total_qty, 
+            SUM(oi.price * oi.qty) as total_revenue
+            FROM order_items oi
+            JOIN orders o ON oi.order_id = o.id
+            JOIN products p ON oi.product_id = p.id
+            WHERE o.created_at >= DATE_SUB(NOW(), $interval) 
+            AND o.status != 'canceled'
+            GROUP BY p.id, p.name
+            ORDER BY total_revenue DESC
+            LIMIT 5");
 
         $popular_products = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        // 1. ПІДСТАВЛЯЄМО ДАНІ (Тимчасово замість SQL)
-        $popular_products = [
-            ['id' => 1, 'name' => 'Тестовий товар №1', 'total_qty' => 10, 'total_revenue' => 5000.00],
-            ['id' => 2, 'name' => 'Популярний гаджет', 'total_qty' => 5, 'total_revenue' => 12500.50]
-        ];   
-
-        // Дані для таблиці (PHP використовує їх у foreach)
-        // Це для прикладу, в майбутньому видалити цих два рядка
-        $labels = ['Пн', 'Вв', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'];
-        $values = [12500, 18200, 14000, 25000, 21000, 32000, 28500];
-        // Це для прикладу, в майбутньому видалити цей рядок
-        $counts = [5, 8, 4, 12, 7, 15, 10];
-        $title_text = "Демонстраційний звіт (Тестові дані)";
 
         $stmt = DB::query("
             SELECT id, name, stock, price 
@@ -269,17 +255,17 @@ LIMIT 5");
 
     public function saveSettings()
     {
-    $this->checkAdmin();
+        $this->checkAdmin();
 
-    // Визначаємо вкладку відразу, щоб знати, куди повертати при помилці
-    $currentTab = $_POST['current_tab'] ?? 'general';
-    $redirectUrl = '/admin/settings?tab=' . urlencode($currentTab);
+        // Визначаємо вкладку відразу, щоб знати, куди повертати при помилці
+        $currentTab = $_POST['current_tab'] ?? 'general';
+        $redirectUrl = '/admin/settings?tab=' . urlencode($currentTab);
 
-    if (!Csrf::isValid()) {
-        $_SESSION['error'] = 'CSRF token validation failed';
-        header('Location: ' . $redirectUrl); // Повертаємо на ту ж вкладку
-        exit;
-    }
+        if (!Csrf::isValid()) {
+            $_SESSION['error'] = 'CSRF token validation failed';
+            header('Location: ' . $redirectUrl); // Повертаємо на ту ж вкладку
+            exit;
+        }
 
     $settingsToUpdate = $_POST['settings'] ?? [];
     if (!is_array($settingsToUpdate)) {

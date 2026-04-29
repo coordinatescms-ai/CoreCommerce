@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: MySQL-8.0:3306
--- Час створення: Квт 27 2026 р., 17:38
+-- Час створення: Квт 29 2026 р., 16:33
 -- Версія сервера: 8.0.44
 -- Версія PHP: 8.3.29
 
@@ -177,7 +177,7 @@ CREATE TABLE `categories` (
 --
 
 INSERT INTO `categories` (`id`, `name`, `parent_id`, `slug`, `description`, `sort_order`, `image`, `is_active`, `meta_title`, `meta_description`, `meta_keywords`, `created_at`, `updated_at`) VALUES
-(1, 'Смартфони', NULL, 'smartfoni', 'Категорія смартфони', 0, NULL, 1, 'Купити Смартфони', 'Великий вибір смартфонів!', NULL, '2026-04-04 07:47:51', '2026-04-04 07:47:51'),
+(1, 'Смартфони', NULL, 'smartfoni', 'Категорія смартфони', 0, NULL, 1, 'Купити Смартфони', 'Великий вибір смартфонів!', NULL, '2026-04-04 07:47:51', '2026-04-27 15:48:21'),
 (2, 'iPhone', 1, 'iphone', 'Смартфони iPhone! Смартфони iPhone! Смартфони iPhone! Смартфони iPhone! Смартфони iPhone! Смартфони iPhone!', 0, NULL, 1, 'Смартфони iPhone!', 'Смартфони iPhone! Смартфони iPhone!', NULL, '2026-04-04 15:31:02', '2026-04-04 15:31:02'),
 (3, 'Телевізори', NULL, 'televzori', 'Телевізори Телевізори Телевізори Телевізори! Телевізори Телевізори Телевізори Телевізори! Телевізори Телевізори Телевізори Телевізори!', 0, NULL, 1, 'Телевізори Телевізори Телевізори Телевізори!', 'Телевізори Телевізори Телевізори Телевізори!', NULL, '2026-04-04 21:23:11', '2026-04-04 21:23:11');
 
@@ -260,7 +260,16 @@ CREATE TABLE `crm_user_activity_logs` (
 
 INSERT INTO `crm_user_activity_logs` (`id`, `user_id`, `event_type`, `description`, `meta`, `created_at`) VALUES
 (1, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-26 15:24:32'),
-(2, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-27 15:33:34');
+(2, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-27 15:33:34'),
+(3, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-27 16:18:24'),
+(4, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-27 16:38:29'),
+(5, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-04-27 16:38:55'),
+(6, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-04-27 17:12:35'),
+(7, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-27 17:16:30'),
+(8, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-27 17:24:19'),
+(9, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-27 17:25:33'),
+(10, 2, 'subscription_update', 'Увімкнено email-розсилку', NULL, '2026-04-28 16:08:08'),
+(11, 2, 'subscription_update', 'Вимкнено email-розсилку', NULL, '2026-04-28 16:08:09');
 
 -- --------------------------------------------------------
 
@@ -285,6 +294,13 @@ CREATE TABLE `crm_user_subscriptions` (
   `marketing_email` tinyint(1) NOT NULL DEFAULT '0',
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Дамп даних таблиці `crm_user_subscriptions`
+--
+
+INSERT INTO `crm_user_subscriptions` (`user_id`, `marketing_email`, `updated_at`) VALUES
+(2, 0, '2026-04-28 16:08:09');
 
 -- --------------------------------------------------------
 
@@ -354,6 +370,7 @@ CREATE TABLE `orders` (
   `delivery_address` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `payment_method` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `status` varchar(50) COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'new',
+  `ttn_code` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `payment_id` int DEFAULT NULL,
   `delivery_id` int DEFAULT NULL,
   `comment` text COLLATE utf8mb4_general_ci,
@@ -364,10 +381,10 @@ CREATE TABLE `orders` (
 -- Дамп даних таблиці `orders`
 --
 
-INSERT INTO `orders` (`id`, `user_id`, `total`, `customer_name`, `customer_phone`, `customer_email`, `delivery_method`, `delivery_city`, `delivery_warehouse`, `delivery_address`, `payment_method`, `status`, `payment_id`, `delivery_id`, `comment`, `created_at`) VALUES
-(1, 2, 3199.00, 'Василь Присяжнюк', '+380967445693', 'systemmaster@meta.ua', 'courier', '', '', 'с.Ольгопіль', 'cod', 'new', NULL, NULL, '', '2026-04-18 14:43:34'),
-(2, 2, 2050.00, 'Василь Присяжнюк', '+380967445693', 'systemmaster@meta.ua', 'self_pickup', '', '', '', 'cash', 'new', 3, 2, '', '2026-04-23 09:40:30'),
-(3, 2, 2200.00, 'Василь Присяжнюк', '+380967445693', 'systemmaster@meta.ua', 'self_pickup', 'Ольгопіль', '', '', 'cash', 'new', 3, 2, '', '2026-04-23 16:36:08');
+INSERT INTO `orders` (`id`, `user_id`, `total`, `customer_name`, `customer_phone`, `customer_email`, `delivery_method`, `delivery_city`, `delivery_warehouse`, `delivery_address`, `payment_method`, `status`, `ttn_code`, `payment_id`, `delivery_id`, `comment`, `created_at`) VALUES
+(1, 2, 3199.00, 'Василь Присяжнюк', '+380967445693', 'systemmaster@meta.ua', 'courier', '', '', 'с.Ольгопіль', 'cod', 'new', NULL, NULL, NULL, '', '2026-04-18 14:43:34'),
+(2, 2, 2050.00, 'Василь Присяжнюк', '+380967445693', 'systemmaster@meta.ua', 'self_pickup', '', '', '', 'cash', 'completed', '135790', 3, 2, '', '2026-04-23 09:40:30'),
+(3, 2, 2200.00, 'Василь Присяжнюк', '+380967445693', 'systemmaster@meta.ua', 'self_pickup', 'Ольгопіль', '', '', 'cash', 'shipped', '123456', 3, 2, '', '2026-04-23 16:36:08');
 
 -- --------------------------------------------------------
 
@@ -428,7 +445,10 @@ INSERT INTO `order_status_history` (`id`, `order_id`, `old_status`, `new_status`
 (11, 1, 'new', 'confirmed', NULL, 2, '2026-04-18 15:50:38'),
 (12, 1, 'confirmed', 'new', NULL, 2, '2026-04-18 15:51:14'),
 (13, 2, 'new', 'confirmed', NULL, 2, '2026-04-23 10:26:04'),
-(14, 2, 'confirmed', 'new', NULL, 2, '2026-04-23 10:26:06');
+(14, 2, 'confirmed', 'new', NULL, 2, '2026-04-23 10:26:06'),
+(15, 3, 'new', 'shipped', '123456', 2, '2026-04-28 16:15:24'),
+(16, 2, 'new', 'shipped', '135790', 2, '2026-04-28 16:30:46'),
+(17, 2, 'shipped', 'completed', '135790', 2, '2026-04-28 16:30:55');
 
 -- --------------------------------------------------------
 
@@ -486,7 +506,7 @@ CREATE TABLE `products` (
 
 INSERT INTO `products` (`id`, `is_visible`, `category_id`, `name`, `description`, `image`, `slug`, `meta_title`, `meta_description`, `meta_keywords`, `price`, `stock`, `created_at`, `updated_at`) VALUES
 (1, 1, 2, 'iPhone 13', 'Крутий смартфон, по дуже низьким цінам! Доступна ціна за круту якість!', '/uploads/products/gallery/original/product_69e6092591658980274602.jpg', 'iphone-13', '', '', NULL, 999.00, 6, '2026-03-30 07:45:12', '2026-04-20 11:08:21'),
-(2, 1, 3, 'Сіомі', 'Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі!', '/uploads/products/gallery/original/product_69e608b6ddae3707094810.webp', 'siomi', '', '', NULL, 2050.00, 2, '2026-04-05 08:11:57', '2026-04-23 16:36:08');
+(2, 1, 3, 'Сіомі', 'Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі!', '/uploads/products/gallery/original/product_69e608b6ddae3707094810.webp', 'siomi', 'Сіомі крутий продукт', '', NULL, 2050.00, 2, '2026-04-05 08:11:57', '2026-04-27 15:59:34');
 
 -- --------------------------------------------------------
 
@@ -509,7 +529,7 @@ CREATE TABLE `product_attributes` (
 --
 
 INSERT INTO `product_attributes` (`id`, `product_id`, `attribute_id`, `value`, `attribute_option_id`, `created_at`, `updated_at`) VALUES
-(8, 2, 4, 'Китай', 31, '2026-04-20 11:06:32', '2026-04-20 11:06:32');
+(9, 2, 4, 'Китай', 31, '2026-04-27 15:59:35', '2026-04-27 15:59:35');
 
 -- --------------------------------------------------------
 
@@ -530,7 +550,7 @@ CREATE TABLE `product_attribute_values` (
 --
 
 INSERT INTO `product_attribute_values` (`id`, `product_id`, `attribute_id`, `value_text`, `is_selectable`) VALUES
-(7, 2, 4, 'Китай', 1);
+(8, 2, 4, 'Китай', 1);
 
 -- --------------------------------------------------------
 
@@ -582,9 +602,10 @@ CREATE TABLE `seo_settings` (
 --
 
 INSERT INTO `seo_settings` (`id`, `entity_type`, `entity_id`, `title`, `description`, `keywords`, `og_title`, `og_description`, `og_image`, `canonical_url`, `robots_meta`, `created_at`, `updated_at`) VALUES
-(1, 'category', 1, 'Купити Смартфони', 'Великий вибір смартфонів!', NULL, NULL, NULL, NULL, NULL, NULL, '2026-04-04 07:47:51', '2026-04-04 07:47:51'),
+(1, 'category', 1, 'Купити Смартфони', 'Великий вибір смартфонів!', NULL, NULL, NULL, NULL, NULL, NULL, '2026-04-04 07:47:51', '2026-04-27 15:48:21'),
 (2, 'category', 2, 'Смартфони iPhone!', 'Смартфони iPhone! Смартфони iPhone!', NULL, NULL, NULL, NULL, NULL, NULL, '2026-04-04 15:31:02', '2026-04-04 15:31:02'),
-(3, 'category', 3, 'Телевізори Телевізори Телевізори Телевізори!', 'Телевізори Телевізори Телевізори Телевізори!', NULL, NULL, NULL, NULL, NULL, NULL, '2026-04-04 21:23:11', '2026-04-04 21:23:11');
+(3, 'category', 3, 'Телевізори Телевізори Телевізори Телевізори!', 'Телевізори Телевізори Телевізори Телевізори!', NULL, NULL, NULL, NULL, NULL, NULL, '2026-04-04 21:23:11', '2026-04-04 21:23:11'),
+(4, 'product', 2, 'Сіомі крутий продукт', '', NULL, NULL, NULL, NULL, NULL, NULL, '2026-04-27 15:59:34', '2026-04-27 15:59:34');
 
 -- --------------------------------------------------------
 
@@ -606,25 +627,26 @@ CREATE TABLE `settings` (
 --
 
 INSERT INTO `settings` (`key`, `value`, `group`, `type`, `created_at`, `updated_at`) VALUES
-('active_theme', 'modern', 'appearance', 'select', '2026-04-03 08:17:13', '2026-04-22 16:11:14'),
-('contact_email', 'admin@mysite.test', 'contact', 'text', '2026-04-03 08:17:13', '2026-04-22 16:11:14'),
-('contact_phone', '+380 00 000 00 00', 'contact', 'text', '2026-04-03 08:17:13', '2026-04-22 16:11:14'),
-('default_currency', 'UAH', 'localization', 'select', '2026-04-03 08:17:13', '2026-04-22 16:11:13'),
-('default_language', 'ua', 'localization', 'select', '2026-04-03 08:17:13', '2026-04-22 16:11:13'),
-('email', 'admin@mysite.test', 'general', 'text', '2026-04-12 16:35:40', '2026-04-22 16:11:13'),
-('maintenance_message', 'Вибачте, магазин тимчасово закритий на технічне обслуговування.', 'general', 'textarea', '2026-04-03 08:17:13', '2026-04-22 16:11:13'),
-('media_apply_watermark', '0', 'media', 'checkbox', '2026-04-13 09:12:17', '2026-04-22 16:11:14'),
-('media_auto_webp', '0', 'media', 'checkbox', '2026-04-13 09:12:17', '2026-04-22 16:11:14'),
-('media_watermark_position', 'bottom-right', 'media', 'select', '2026-04-13 09:12:17', '2026-04-22 16:11:14'),
-('seo_desc_template', 'Пропонуємо {name} за найкращою ціною {price} грн. Категорія: {category}. Доставка по Україні!', 'seo', 'textarea', '2026-04-13 08:34:14', '2026-04-22 16:11:14'),
-('seo_title_template', '{name} купити за {price} грн у магазині MyStore', 'seo', 'text', '2026-04-13 08:34:14', '2026-04-22 16:11:14'),
-('site_description', 'Найкращий інтернет-магазин на PHP', 'general', 'textarea', '2026-04-03 08:17:13', '2026-04-22 16:11:13'),
-('site_name', 'MySite', 'general', 'text', '2026-04-03 08:17:13', '2026-04-22 16:11:13'),
-('site_timezone', 'Europe/Kiev', 'general', 'text', '2026-04-12 16:52:37', '2026-04-22 16:11:13'),
-('smtp_pass', 'password123', 'general', 'text', '2026-04-12 16:47:28', '2026-04-22 16:11:13'),
-('smtp_port', '587', 'general', 'text', '2026-04-12 16:42:48', '2026-04-22 16:11:13'),
-('smtr', '//gmail.com', 'general', 'text', '2026-04-12 16:28:35', '2026-04-22 16:11:13'),
-('store_status', 'open', 'general', 'select', '2026-04-03 08:17:13', '2026-04-22 16:11:13');
+('active_logotype', '/uploads/logotypes/logotype_69ef99d44d2d0241246888.jpg', 'general', 'text', '2026-04-27 16:44:28', '2026-04-27 17:16:05'),
+('active_theme', 'modern', 'appearance', 'select', '2026-04-03 08:17:13', '2026-04-27 17:16:04'),
+('contact_email', 'admin@mysite.test', 'contact', 'text', '2026-04-03 08:17:13', '2026-04-27 17:16:04'),
+('contact_phone', '+380 00 000 00 00', 'contact', 'text', '2026-04-03 08:17:13', '2026-04-27 17:16:04'),
+('default_currency', 'UAH', 'localization', 'select', '2026-04-03 08:17:13', '2026-04-27 17:16:04'),
+('default_language', 'ua', 'localization', 'select', '2026-04-03 08:17:13', '2026-04-27 17:16:04'),
+('email', 'admin@mysite.test', 'general', 'text', '2026-04-12 16:35:40', '2026-04-27 17:16:04'),
+('maintenance_message', 'Вибачте, магазин тимчасово закритий на технічне обслуговування.', 'general', 'textarea', '2026-04-03 08:17:13', '2026-04-27 17:16:04'),
+('media_apply_watermark', '0', 'media', 'checkbox', '2026-04-13 09:12:17', '2026-04-27 17:16:04'),
+('media_auto_webp', '0', 'media', 'checkbox', '2026-04-13 09:12:17', '2026-04-27 17:16:04'),
+('media_watermark_position', 'bottom-right', 'media', 'select', '2026-04-13 09:12:17', '2026-04-27 17:16:04'),
+('seo_desc_template', 'Пропонуємо {name} за найкращою ціною {price} грн. Категорія: {category}. Доставка по Україні!', 'seo', 'textarea', '2026-04-13 08:34:14', '2026-04-27 17:16:04'),
+('seo_title_template', '{name} купити за {price} грн у магазині MyStore', 'seo', 'text', '2026-04-13 08:34:14', '2026-04-27 17:16:04'),
+('site_description', 'Найкращий інтернет-магазин на PHP', 'general', 'textarea', '2026-04-03 08:17:13', '2026-04-27 17:16:04'),
+('site_name', 'MySite', 'general', 'text', '2026-04-03 08:17:13', '2026-04-27 17:16:04'),
+('site_timezone', 'Europe/Kiev', 'general', 'text', '2026-04-12 16:52:37', '2026-04-27 17:16:04'),
+('smtp_pass', 'password123', 'general', 'text', '2026-04-12 16:47:28', '2026-04-27 17:16:04'),
+('smtp_port', '587', 'general', 'text', '2026-04-12 16:42:48', '2026-04-27 17:16:04'),
+('smtr', '//gmail.com', 'general', 'text', '2026-04-12 16:28:35', '2026-04-27 17:16:04'),
+('store_status', 'open', 'general', 'select', '2026-04-03 08:17:13', '2026-04-27 17:16:04');
 
 -- --------------------------------------------------------
 
@@ -723,7 +745,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `email`, `password`, `first_name`, `last_name`, `phone`, `avatar`, `role_id`, `is_active`, `email_verified`, `email_verified_at`, `last_login`, `password_reset_token`, `password_reset_expires`, `remember_token`, `created_at`, `updated_at`) VALUES
-(2, 'systemmaster@meta.ua', '$2y$12$knhVn0wIOYbnqx3TRccf1OrGmEGu3JWSZsbLQ/c9tvLrmZElAaU86', 'Василь', 'Присяжнюк', NULL, NULL, 1, 1, 0, NULL, '2026-04-27 15:32:12', NULL, NULL, 'cbb001e6da426d9548d27caacbc6f0c29757dcc231187574284a73efcb440cab', '2026-03-31 09:57:24', '2026-04-27 15:32:12');
+(2, 'systemmaster@meta.ua', '$2y$12$knhVn0wIOYbnqx3TRccf1OrGmEGu3JWSZsbLQ/c9tvLrmZElAaU86', 'Василь', 'Присяжнюк', NULL, NULL, 1, 1, 0, NULL, '2026-04-29 12:06:04', NULL, NULL, 'cbb001e6da426d9548d27caacbc6f0c29757dcc231187574284a73efcb440cab', '2026-03-31 09:57:24', '2026-04-29 12:06:04');
 
 -- --------------------------------------------------------
 
@@ -861,7 +883,8 @@ ALTER TABLE `login_logs`
 --
 ALTER TABLE `orders`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_orders_created_at` (`created_at`);
+  ADD KEY `idx_orders_created_at` (`created_at`),
+  ADD KEY `idx_orders_status_ttn` (`status`,`ttn_code`);
 
 --
 -- Індекси таблиці `order_items`
@@ -1029,7 +1052,7 @@ ALTER TABLE `crm_user_action_audit`
 -- AUTO_INCREMENT для таблиці `crm_user_activity_logs`
 --
 ALTER TABLE `crm_user_activity_logs`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT для таблиці `filter_history`
@@ -1059,7 +1082,7 @@ ALTER TABLE `order_items`
 -- AUTO_INCREMENT для таблиці `order_status_history`
 --
 ALTER TABLE `order_status_history`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT для таблиці `pages`
@@ -1077,13 +1100,13 @@ ALTER TABLE `products`
 -- AUTO_INCREMENT для таблиці `product_attributes`
 --
 ALTER TABLE `product_attributes`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT для таблиці `product_attribute_values`
 --
 ALTER TABLE `product_attribute_values`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT для таблиці `product_images`
@@ -1095,13 +1118,13 @@ ALTER TABLE `product_images`
 -- AUTO_INCREMENT для таблиці `seo_settings`
 --
 ALTER TABLE `seo_settings`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT для таблиці `shop_methods`
 --
 ALTER TABLE `shop_methods`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT для таблиці `slug_history`
