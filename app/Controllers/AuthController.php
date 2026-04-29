@@ -455,7 +455,8 @@ class AuthController
     {
         $userId = $this->requireAuth();
         $user = User::findById($userId);
-        $favorites = User::query("SELECT p.id, p.name, p.slug, p.price, p.image FROM favorites f INNER JOIN products p ON p.id = f.product_id WHERE f.user_id = ? ORDER BY f.id DESC", [$userId]);
+        $favorites = User::query("SELECT p.id, p.name, p.slug, p.price, p.image FROM favorites f INNER JOIN 
+        products p ON p.id = f.product_id WHERE f.user_id = ? ORDER BY f.created_at DESC", [$userId]);
 
         View::render('auth/profile', [
             'user' => $user,
