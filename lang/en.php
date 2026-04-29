@@ -210,4 +210,17 @@ return [
     'crm_mock_activity_login' => 'Last login: 2026-04-25 10:15',
     'crm_mock_activity_viewed' => 'Viewed: "Smartphones" category',
     'crm_mock_activity_cart_add' => 'Added to cart: Smartphone Pro X',
+
+    'profile_my_orders' => 'My orders',
+    'profile_favorites' => 'Favorites',
+    'profile_edit' => 'Edit',
+    'profile_admin_panel' => 'Admin panel',
+    'profile_no_orders' => 'No orders yet.',
+    'profile_no_favorites' => 'No favorite products yet.',
+    'profile_invalid_first_name' => 'Invalid first name.',
+    'profile_invalid_last_name' => 'Invalid last name.',
+    'profile_invalid_phone' => 'Invalid phone number.',
+    'profile_invalid_email' => 'Invalid email.',
+    'profile_updated_successfully' => 'Profile updated successfully.',
+    'csrf_token_invalid' => 'Invalid CSRF token.',
 ];
