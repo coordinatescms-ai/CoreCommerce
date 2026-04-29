@@ -202,6 +202,8 @@ return [
     'crm_order_status_completed' => 'Завершено',
     'crm_order_status_shipped' => 'Відправлено',
     'crm_order_status_processing' => 'В обробці',
+    'crm_order_status_new' => 'Нове',
+    'crm_order_status_cancelled' => 'Скасовано',
     'crm_mock_product_1' => 'Смартфон Pro X',
     'crm_mock_product_2' => 'Чохол силіконовий',
     'crm_mock_wishlist_1' => 'Бездротові навушники AirSound',
