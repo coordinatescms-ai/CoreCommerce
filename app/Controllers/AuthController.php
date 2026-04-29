@@ -373,17 +373,117 @@ class AuthController
      */
     public function showProfile()
     {
-        if (empty($_SESSION['user'])) {
-            header('Location: /login');
-            exit;
-        }
+        $userId = $this->requireAuth();
+        $user = User::findById($userId);
 
-        $user = User::findById($_SESSION['user']['id']);
         View::render('auth/profile', [
             'user' => $user,
+            'activeTab' => 'edit',
             'seo' => [
                 'meta_title' => __('profile'),
             ],
         ]);
     }
+
+    private function requireAuth(): int
+    {
+        if (empty($_SESSION['user']['id'])) {
+            header('Location: /login');
+            exit;
+        }
+
+        return (int) $_SESSION['user']['id'];
+    }
+
+    public function showOrders()
+    {
+        $userId = $this->requireAuth();
+        $user = User::findById($userId);
+        $orders = User::query("SELECT id, total, status, created_at FROM orders WHERE user_id = ? ORDER BY created_at DESC", [$userId]);
+
+        View::render('auth/profile', [
+            'user' => $user,
+            'orders' => $orders,
+            'activeTab' => 'orders',
+            'seo' => ['meta_title' => __('profile')],
+        ]);
+    }
+
+    public function showFavorites()
+    {
+        $userId = $this->requireAuth();
+        $user = User::findById($userId);
+        $favorites = User::query("SELECT p.id, p.name, p.slug, p.price, p.main_image FROM favorites f INNER JOIN products p ON p.id = f.product_id WHERE f.user_id = ? ORDER BY f.id DESC", [$userId]);
+
+        View::render('auth/profile', [
+            'user' => $user,
+            'favorites' => $favorites,
+            'activeTab' => 'favorites',
+            'seo' => ['meta_title' => __('profile')],
+        ]);
+    }
+
+    public function showProfileEdit()
+    {
+        $userId = $this->requireAuth();
+        $user = User::findById($userId);
+
+        View::render('auth/profile', [
+            'user' => $user,
+            'activeTab' => 'edit',
+            'seo' => ['meta_title' => __('profile')],
+        ]);
+    }
+
+    public function updateProfile()
+    {
+        $userId = $this->requireAuth();
+
+        if (!Csrf::isValid()) {
+            http_response_code(419);
+            $_SESSION['error'] = __('csrf_token_invalid');
+            header('Location: /profile/edit');
+            exit;
+        }
+
+        $firstName = trim(strip_tags((string) ($_POST['first_name'] ?? '')));
+        $lastName = trim(strip_tags((string) ($_POST['last_name'] ?? '')));
+        $phone = trim(strip_tags((string) ($_POST['phone'] ?? '')));
+        $emailRaw = trim((string) ($_POST['email'] ?? ''));
+        $email = filter_var($emailRaw, FILTER_SANITIZE_EMAIL);
+
+        $errors = [];
+        if ($firstName === '' || mb_strlen($firstName) > 100) { $errors[] = __('profile_invalid_first_name'); }
+        if ($lastName === '' || mb_strlen($lastName) > 100) { $errors[] = __('profile_invalid_last_name'); }
+        if (!preg_match('/^[\d\+\(\)\-\s]{10,20}$/', $phone)) { $errors[] = __('profile_invalid_phone'); }
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) { $errors[] = __('profile_invalid_email'); }
+
+        $existing = User::findByEmail($email);
+        if ($existing && (int) $existing['id'] !== $userId) {
+            $errors[] = __('email_already_registered');
+        }
+
+        if (!empty($errors)) {
+            $_SESSION['errors'] = $errors;
+            header('Location: /profile/edit');
+            exit;
+        }
+
+        User::update($userId, [
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'phone' => $phone,
+            'email' => $email,
+        ]);
+
+        $_SESSION['user']['first_name'] = $firstName;
+        $_SESSION['user']['last_name'] = $lastName;
+        $_SESSION['user']['email'] = $email;
+
+        $_SESSION['success'] = __('profile_updated_successfully');
+        header('Location: /profile/edit');
+        exit;
+    }
+
 }
+

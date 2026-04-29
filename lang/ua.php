@@ -210,4 +210,17 @@ return [
     'crm_mock_activity_login' => 'Останній вхід: 25.04.2026 10:15',
     'crm_mock_activity_viewed' => 'Переглядав(ла): Категорія "Смартфони"',
     'crm_mock_activity_cart_add' => 'Додав(ла) у кошик: Смартфон Pro X',
+
+    'profile_my_orders' => 'Мої замовлення',
+    'profile_favorites' => 'Обране',
+    'profile_edit' => 'Редагувати',
+    'profile_admin_panel' => 'Адмін панель',
+    'profile_no_orders' => 'Замовлень поки немає.',
+    'profile_no_favorites' => 'Обраних товарів поки немає.',
+    'profile_invalid_first_name' => 'Некоректне ім\'я.',
+    'profile_invalid_last_name' => 'Некоректне прізвище.',
+    'profile_invalid_phone' => 'Некоректний номер телефону.',
+    'profile_invalid_email' => 'Некоректний email.',
+    'profile_updated_successfully' => 'Профіль успішно оновлено.',
+    'csrf_token_invalid' => 'CSRF токен недійсний.',
 ];
