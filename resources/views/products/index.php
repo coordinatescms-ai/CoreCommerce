@@ -5,6 +5,51 @@
     </div>
 </div>
 
+<?php
+if (!function_exists('renderCategoryAccordionTree')) {
+    function renderCategoryAccordionTree(array $items, int $depth = 0): void
+    {
+        if (empty($items)) {
+            return;
+        }
+
+        echo '<ul class="products-category-list">';
+
+        foreach ($items as $item) {
+            $children = $item['children'] ?? [];
+            $hasChildren = !empty($children);
+            $padding = 12 + ($depth * 16);
+
+            echo '<li class="products-category-item">';
+            echo '<div class="products-category-row" style="padding-left:' . $padding . 'px">';
+            echo '<a href="/category/' . htmlspecialchars((string) ($item['slug'] ?? '')) . '" class="products-category-link">';
+            echo htmlspecialchars((string) ($item['name'] ?? ''));
+            echo '</a>';
+
+            if ($hasChildren) {
+                echo '<button type="button" class="products-category-toggle" data-accordion-trigger aria-expanded="false" aria-label="Toggle subcategories">';
+                echo '<svg class="products-category-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">';
+                echo '<path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>';
+                echo '</svg>';
+                echo '</button>';
+            }
+
+            echo '</div>';
+
+            if ($hasChildren) {
+                echo '<div class="products-category-panel" data-accordion-panel style="max-height:0; opacity:.4;">';
+                renderCategoryAccordionTree($children, $depth + 1);
+                echo '</div>';
+            }
+
+            echo '</li>';
+        }
+
+        echo '</ul>';
+    }
+}
+?>
+
 <div style="display:grid; grid-template-columns: 300px 1fr; gap: 1.25rem; align-items: start;">
     <aside>
         <div style="border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1rem; background: #fff;">
@@ -12,15 +57,9 @@
             <?php if (empty($categories ?? [])): ?>
                 <p style="margin: 0; color: #64748b;"><?= __('categories_not_found') ?></p>
             <?php else: ?>
-                <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem;">
-                    <?php foreach (($categories ?? []) as $category): ?>
-                        <li>
-                            <a href="/category/<?= htmlspecialchars($category['slug']) ?>" style="text-decoration: none; color: #111827;">
-                                <?= htmlspecialchars($category['name']) ?>
-                            </a>
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
+                <div class="products-category-nav">
+                    <?php renderCategoryAccordionTree(($categories ?? [])); ?>
+                </div>
             <?php endif; ?>
         </div>
     </aside>
@@ -78,3 +117,27 @@
     }
 }
 </style>
+
+<style>
+.products-category-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.25rem;}
+.products-category-row{display:flex;align-items:center;justify-content:space-between;gap:.25rem;}
+.products-category-link{text-decoration:none;color:#111827;padding:.35rem 0;display:block;flex:1;}
+.products-category-toggle{border:0;background:transparent;cursor:pointer;color:#64748b;padding:.25rem;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;}
+.products-category-toggle:hover{background:#f1f5f9;color:#0f172a;}
+.products-category-icon{width:16px;height:16px;transition:transform .2s ease;}
+.products-category-icon.is-open{transform:rotate(90deg);}
+.products-category-panel{overflow:hidden;transition:max-height .22s ease, opacity .22s ease;}
+</style>
+<script>
+document.querySelectorAll('[data-accordion-trigger]').forEach((trigger)=>{
+  trigger.addEventListener('click', ()=>{
+    const panel = trigger.parentElement?.parentElement?.querySelector(':scope > [data-accordion-panel]');
+    const icon = trigger.querySelector('.products-category-icon');
+    if(!panel) return;
+    const isOpen = trigger.getAttribute('aria-expanded') === 'true';
+    trigger.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+    icon?.classList.toggle('is-open', !isOpen);
+    if (isOpen){panel.style.maxHeight='0';panel.style.opacity='0.4';} else {panel.style.maxHeight=panel.scrollHeight + 'px';panel.style.opacity='1';}
+  });
+});
+</script>
