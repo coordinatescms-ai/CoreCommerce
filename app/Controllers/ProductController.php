@@ -166,22 +166,65 @@ class ProductController
      */
     public function index()
     {
-        $filters = ProductFilterService::parseFiltersFromUrl($_GET);
-        $filters['limit'] = (int) ($_GET['limit'] ?? 12);
-        $filters['sort_by'] = $_GET['sort_by'] ?? 'created_at';
-        $filters['sort_order'] = $_GET['sort_order'] ?? 'DESC';
-
+        $limit = 12;
         $page = max(1, (int) ($_GET['page'] ?? 1));
-        $filters['offset'] = ($page - 1) * $filters['limit'];
+        $offset = ($page - 1) * $limit;
 
-        $products = ProductFilterService::filter($filters);
-        $total = ProductFilterService::count($filters);
-        $pages = max(1, (int) ceil($total / $filters['limit']));
+        $totalPopularByOrders = (int) (DB::query(
+            "SELECT COUNT(DISTINCT p.id) AS total
+             FROM products p
+             INNER JOIN order_items oi ON oi.product_id = p.id
+             WHERE p.is_visible = 1"
+        )->fetch()['total'] ?? 0);
 
-        // Отримати категорії для навігації
+        if ($totalPopularByOrders > 0) {
+            $products = Product::query(
+                "SELECT p.*, SUM(oi.qty) AS popularity_score
+                 FROM products p
+                 INNER JOIN order_items oi ON oi.product_id = p.id
+                 WHERE p.is_visible = 1
+                 GROUP BY p.id
+                 ORDER BY popularity_score DESC, p.id DESC
+                 LIMIT {$limit} OFFSET {$offset}"
+            ) ?? [];
+            $total = $totalPopularByOrders;
+        } else {
+            $total = (int) (DB::query(
+                "SELECT COUNT(DISTINCT p.id) AS total
+                 FROM products p
+                 INNER JOIN favorites f ON f.product_id = p.id
+                 WHERE p.is_visible = 1"
+            )->fetch()['total'] ?? 0);
+
+            $products = Product::query(
+                "SELECT p.*, COUNT(f.id) AS popularity_score
+                 FROM products p
+                 INNER JOIN favorites f ON f.product_id = p.id
+                 WHERE p.is_visible = 1
+                 GROUP BY p.id
+                 ORDER BY popularity_score DESC, p.id DESC
+                 LIMIT {$limit} OFFSET {$offset}"
+            ) ?? [];
+        }
+
+        if (empty($products)) {
+            $total = (int) (DB::query(
+                "SELECT COUNT(*) AS total
+                 FROM products
+                 WHERE is_visible = 1"
+            )->fetch()['total'] ?? 0);
+
+            $products = Product::query(
+                "SELECT *
+                 FROM products
+                 WHERE is_visible = 1
+                 ORDER BY id DESC
+                 LIMIT {$limit} OFFSET {$offset}"
+            ) ?? [];
+        }
+
+        $pages = max(1, (int) ceil($total / $limit));
         $categories = Category::getTree();
-        $filterOptions = ProductFilterService::getCatalogFilterOptions();
-        $priceRange = ProductFilterService::getGlobalPriceRange();
 
         return View::render('products/index', [
             'products' => $products,
@@ -189,10 +232,7 @@ class ProductController
             'total' => $total,
             'page' => $page,
             'pages' => $pages,
-            'limit' => $filters['limit'],
-            'filterOptions' => $filterOptions,
-            'priceRange' => $priceRange,
-            'currentFilters' => $filters
+            'limit' => $limit,
         ]);
     }
 
