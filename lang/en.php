@@ -202,6 +202,8 @@ return [
     'crm_order_status_completed' => 'Completed',
     'crm_order_status_shipped' => 'Shipped',
     'crm_order_status_processing' => 'Processing',
+    'crm_order_status_new' => 'New',
+    'crm_order_status_cancelled' => 'Cancelled',
     'crm_mock_product_1' => 'Smartphone Pro X',
     'crm_mock_product_2' => 'Silicone case',
     'crm_mock_wishlist_1' => 'Wireless earbuds AirSound',

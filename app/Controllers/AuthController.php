@@ -400,6 +400,48 @@ class AuthController
         $userId = $this->requireAuth();
         $user = User::findById($userId);
         $orders = User::query("SELECT id, total, status, created_at FROM orders WHERE user_id = ? ORDER BY created_at DESC", [$userId]);
+        $orderIds = array_map(static fn(array $order): int => (int) ($order['id'] ?? 0), $orders);
+        $orderIds = array_values(array_filter($orderIds, static fn(int $id): bool => $id > 0));
+
+        $orderItemsByOrderId = [];
+        if (!empty($orderIds)) {
+            $placeholders = implode(',', array_fill(0, count($orderIds), '?'));
+            $items = User::query(
+                "SELECT oi.order_id, oi.qty, oi.price, p.name AS product_name
+                 FROM order_items oi
+                 INNER JOIN products p ON p.id = oi.product_id
+                 WHERE oi.order_id IN ($placeholders)
+                 ORDER BY oi.id ASC",
+                $orderIds
+            );
+
+            foreach ($items as $item) {
+                $orderId = (int) ($item['order_id'] ?? 0);
+                if ($orderId <= 0) {
+                    continue;
+                }
+                if (!isset($orderItemsByOrderId[$orderId])) {
+                    $orderItemsByOrderId[$orderId] = [];
+                }
+                $orderItemsByOrderId[$orderId][] = $item;
+            }
+        }
+
+        $statusLabels = [
+            'new' => __('crm_order_status_new'),
+            'processing' => __('crm_order_status_processing'),
+            'shipped' => __('crm_order_status_shipped'),
+            'completed' => __('crm_order_status_completed'),
+            'cancelled' => __('crm_order_status_cancelled'),
+            'canceled' => __('crm_order_status_cancelled'),
+        ];
+
+        foreach ($orders as &$order) {
+            $statusCode = (string) ($order['status'] ?? '');
+            $order['status_label'] = $statusLabels[$statusCode] ?? $statusCode;
+            $order['items'] = $orderItemsByOrderId[(int) ($order['id'] ?? 0)] ?? [];
+        }
+        unset($order);
 
         View::render('auth/profile', [
             'user' => $user,
@@ -413,7 +455,7 @@ class AuthController
     {
         $userId = $this->requireAuth();
         $user = User::findById($userId);
-        $favorites = User::query("SELECT p.id, p.name, p.slug, p.price, p.main_image FROM favorites f INNER JOIN products p ON p.id = f.product_id WHERE f.user_id = ? ORDER BY f.id DESC", [$userId]);
+        $favorites = User::query("SELECT p.id, p.name, p.slug, p.price, p.image FROM favorites f INNER JOIN products p ON p.id = f.product_id WHERE f.user_id = ? ORDER BY f.id DESC", [$userId]);
 
         View::render('auth/profile', [
             'user' => $user,
@@ -486,4 +528,3 @@ class AuthController
     }
 
 }
-
