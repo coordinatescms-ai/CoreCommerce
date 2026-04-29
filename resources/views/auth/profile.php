@@ -23,9 +23,46 @@
 
             <?php if (($activeTab ?? '') === 'orders'): ?>
                 <h2><?php echo __('profile_my_orders'); ?></h2>
-                <?php if (!empty($orders)): foreach ($orders as $order): ?>
-                    <div>#<?php echo (int) $order['id']; ?> — <?php echo htmlspecialchars((string) $order['status']); ?> — <?php echo number_format((float) $order['total'], 2); ?></div>
-                <?php endforeach; else: ?>
+                <?php if (!empty($orders)): ?>
+                    <div style="overflow-x:auto;">
+                        <table style="width:100%; border-collapse: collapse; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                            <thead>
+                                <tr style="background:#f8fafc;">
+                                    <th style="text-align:left; padding:10px; border-bottom:1px solid #e5e7eb;">№ замовлення</th>
+                                    <th style="text-align:left; padding:10px; border-bottom:1px solid #e5e7eb;">Дата</th>
+                                    <th style="text-align:left; padding:10px; border-bottom:1px solid #e5e7eb;">Товари</th>
+                                    <th style="text-align:left; padding:10px; border-bottom:1px solid #e5e7eb;">Сума</th>
+                                    <th style="text-align:left; padding:10px; border-bottom:1px solid #e5e7eb;">Статус</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($orders as $order): ?>
+                                    <tr>
+                                        <td style="padding:10px; border-bottom:1px solid #f1f5f9;">#<?php echo (int) ($order['id'] ?? 0); ?></td>
+                                        <td style="padding:10px; border-bottom:1px solid #f1f5f9;"><?php echo htmlspecialchars((string) ($order['created_at'] ?? '')); ?></td>
+                                        <td style="padding:10px; border-bottom:1px solid #f1f5f9;">
+                                            <?php if (!empty($order['items'])): ?>
+                                                <ul style="margin:0; padding-left:18px;">
+                                                    <?php foreach ((array) $order['items'] as $item): ?>
+                                                        <li>
+                                                            <?php echo htmlspecialchars((string) ($item['product_name'] ?? '')); ?>
+                                                            — <?php echo (int) ($item['qty'] ?? 0); ?> шт.
+                                                            × <?php echo number_format((float) ($item['price'] ?? 0), 2, '.', ' '); ?>
+                                                        </li>
+                                                    <?php endforeach; ?>
+                                                </ul>
+                                            <?php else: ?>
+                                                <span style="color:#6b7280;">—</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td style="padding:10px; border-bottom:1px solid #f1f5f9;"><?php echo number_format((float) ($order['total'] ?? 0), 2, '.', ' '); ?></td>
+                                        <td style="padding:10px; border-bottom:1px solid #f1f5f9;"><?php echo htmlspecialchars((string) ($order['status_label'] ?? $order['status'] ?? '')); ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php else: ?>
                     <p><?php echo __('profile_no_orders'); ?></p>
                 <?php endif; ?>
             <?php elseif (($activeTab ?? '') === 'favorites'): ?>
