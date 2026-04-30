@@ -87,6 +87,7 @@ class AuthController
 
         // Оновити час останнього входу
         User::updateLastLogin($user['id']);
+        do_action('auth.success', $user);
 
         $_SESSION['success'] = __('login_successful');
         header('Location: /');

@@ -534,6 +534,7 @@
             }
         }
     </style>
+    <?php do_action('theme.head'); ?>
 </head>
 <body>
     <?php
@@ -629,6 +630,7 @@
         <?php endforeach; ?>
     </div>
         <p>&copy; 2026 MySite. <?php echo function_exists('__') ? (__('all_rights_reserved') ?? 'All rights reserved.') : 'All rights reserved.'; ?></p>
+        <?php do_action('theme.footer'); ?>
     </footer>
     <script>
         (() => {

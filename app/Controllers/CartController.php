@@ -51,6 +51,8 @@ class CartController
 
         $result = Cart::add($id, $quantity, $selectedOptionIds);
 
+        do_action('cart.add_item', (int) $id, (int) $quantity, $selectedOptionIds);
+
         if ($result['success']) {
             $product = Product::findVisibleById((int) $id);
             $this->logUserActivity('cart_add', 'Додав у кошик: ' . (string) ($product['name'] ?? ('ID ' . (int) $id)));
