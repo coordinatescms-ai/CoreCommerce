@@ -18,6 +18,7 @@ use App\Controllers\AdminUserController;
 use App\Controllers\AdminOrderController;
 use App\Controllers\AdminContentController;
 use App\Controllers\PageController;
+use App\Controllers\AdminPluginController;
 
 $router = new Router();
 
@@ -129,6 +130,11 @@ $router->delete('/admin/attributes/delete/{id}', [AdminAttributeController::clas
 
 // Управління темами в адмінці
 $router->get('/admin/themes', [AdminThemeController::class, 'index']);
+
+// Управління плагінами в адмінці
+$router->get('/admin/plugins', [AdminPluginController::class, 'index']);
+$router->post('/admin/plugins/toggle', [AdminPluginController::class, 'toggle']);
+$router->post('/admin/plugins/upload', [AdminPluginController::class, 'upload']);
 
 // Управління користувачами в адмінці
 $router->get('/admin/users', [AdminUserController::class, 'index']);
