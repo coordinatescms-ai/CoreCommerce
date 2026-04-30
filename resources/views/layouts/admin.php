@@ -247,7 +247,7 @@
             <a href="/admin/users" class="menu-item <?php echo strpos($request_uri, '/admin/users') === 0 ? 'active' : ''; ?>">
                 <i class="fas fa-users"></i> Користувачі
             </a>
-            <a href="/admin/plugins" class="menu-item">
+            <a href="/admin/plugins" class="menu-item <?php echo strpos($request_uri, '/admin/plugins') === 0 ? 'active' : ''; ?>">
                 <i class="fas fa-plug"></i> Плагіни
             </a>
             <a href="/admin/themes" class="menu-item">
