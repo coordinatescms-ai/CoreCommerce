@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: MySQL-8.0:3306
--- Час створення: Квт 29 2026 р., 16:33
+-- Час створення: Квт 30 2026 р., 19:40
 -- Версія сервера: 8.0.44
 -- Версія PHP: 8.3.29
 
@@ -269,7 +269,40 @@ INSERT INTO `crm_user_activity_logs` (`id`, `user_id`, `event_type`, `descriptio
 (8, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-27 17:24:19'),
 (9, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-27 17:25:33'),
 (10, 2, 'subscription_update', 'Увімкнено email-розсилку', NULL, '2026-04-28 16:08:08'),
-(11, 2, 'subscription_update', 'Вимкнено email-розсилку', NULL, '2026-04-28 16:08:09');
+(11, 2, 'subscription_update', 'Вимкнено email-розсилку', NULL, '2026-04-28 16:08:09'),
+(12, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 15:30:17'),
+(13, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 15:30:50'),
+(14, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 15:32:26'),
+(15, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 15:40:34'),
+(16, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 15:47:40'),
+(17, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 15:51:39'),
+(18, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 16:02:36'),
+(19, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 16:03:09'),
+(20, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 16:05:32'),
+(21, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 16:12:53'),
+(22, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 16:28:33'),
+(23, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 16:28:34'),
+(24, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 16:28:35'),
+(25, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 16:28:35'),
+(26, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 16:28:36'),
+(27, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 16:28:36'),
+(28, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 16:28:36'),
+(29, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 16:28:37'),
+(30, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 16:28:37'),
+(31, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 16:28:37'),
+(32, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 16:28:37'),
+(33, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 16:28:37'),
+(34, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 16:28:37'),
+(35, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 16:28:38'),
+(36, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 16:28:38'),
+(37, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 16:28:38'),
+(38, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 16:28:38'),
+(39, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 16:28:39'),
+(40, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 16:28:39'),
+(41, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 16:28:39'),
+(42, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 16:28:39'),
+(43, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 16:28:39'),
+(44, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-30 16:36:52');
 
 -- --------------------------------------------------------
 
@@ -476,6 +509,30 @@ CREATE TABLE `pages` (
 INSERT INTO `pages` (`id`, `title`, `slug`, `content`, `meta_title`, `meta_description`, `is_active`, `sort_order`, `created_at`, `updated_at`) VALUES
 (1, 'Про нас', 'pro-nas', '\r\n                \r\n                \r\n                \r\n                \r\n                \r\n                \r\n                \r\n                \r\n                \r\n                <b>Про насіфч фчфічфічфіч&nbsp;&nbsp;</b>Про нас&nbsp;Про нас&nbsp;Про нас&nbsp;Про насм<div><div><ul><li>фЧФчФЧсфі</li><li>фісфісіфсіфсіф</li></ul>ссфісфісфісфіс сіфсіфс <a href=\"null\">фсфісіфс</a></div><div><br></div><div><img src=\"/uploads/pages/img_69ef222b92b294.15759830.jpg\" style=\"max-width: 100%; height: auto; display: block; margin: 10px 0px;\"></div>                                                                                                </div>                        ', 'Про сайт', 'Про сайт Про сайт Про сайт Про сайт! Про сайт Про сайт Про сайт Про сайт! Про сайт Про сайт Про сайт Про сайт! Про сайт Про сайт Про сайт Про сайт!', 1, 0, '2026-04-26 14:12:53', '2026-04-27 08:48:33'),
 (3, 'Доставка', 'dostavka', '\r\n                \r\n                <p>Доставка&nbsp;Доставка&nbsp;Доставка&nbsp;Доставка! Доставка&nbsp;Доставка&nbsp;Доставка&nbsp;Доставка! Доставка&nbsp;Доставка&nbsp;Доставка&nbsp;Доставка!</p><p>Доставка&nbsp;Доставка&nbsp;Доставка&nbsp;Доставка! Доставка&nbsp;Доставка&nbsp;Доставка&nbsp;Доставка!</p><p>Доставка&nbsp;Доставка&nbsp;Доставка&nbsp;Доставка!</p>\r\n                        ', NULL, NULL, 1, 1, '2026-04-27 08:05:34', '2026-04-27 08:06:37');
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблиці `plugins`
+--
+
+CREATE TABLE `plugins` (
+  `id` int UNSIGNED NOT NULL,
+  `name` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `slug` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `main_file` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT '0',
+  `version` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '1.0.0',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Дамп даних таблиці `plugins`
+--
+
+INSERT INTO `plugins` (`id`, `name`, `slug`, `main_file`, `is_active`, `version`, `created_at`, `updated_at`) VALUES
+(1, 'TestPlugin', 'TestPlugin', 'D:\\OSPanel\\home\\mysite.test/plugins/TestPlugin/plugin.php', 0, '1.0.0', '2026-04-30 19:25:51', '2026-04-30 19:25:51');
 
 -- --------------------------------------------------------
 
@@ -745,7 +802,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `email`, `password`, `first_name`, `last_name`, `phone`, `avatar`, `role_id`, `is_active`, `email_verified`, `email_verified_at`, `last_login`, `password_reset_token`, `password_reset_expires`, `remember_token`, `created_at`, `updated_at`) VALUES
-(2, 'systemmaster@meta.ua', '$2y$12$knhVn0wIOYbnqx3TRccf1OrGmEGu3JWSZsbLQ/c9tvLrmZElAaU86', 'Василь', 'Присяжнюк', NULL, NULL, 1, 1, 0, NULL, '2026-04-29 12:06:04', NULL, NULL, 'cbb001e6da426d9548d27caacbc6f0c29757dcc231187574284a73efcb440cab', '2026-03-31 09:57:24', '2026-04-29 12:06:04');
+(2, 'systemmaster@meta.ua', '$2y$12$knhVn0wIOYbnqx3TRccf1OrGmEGu3JWSZsbLQ/c9tvLrmZElAaU86', 'Василь', 'Присяжнюк', NULL, NULL, 1, 1, 0, NULL, '2026-04-30 16:36:38', NULL, NULL, 'cbb001e6da426d9548d27caacbc6f0c29757dcc231187574284a73efcb440cab', '2026-03-31 09:57:24', '2026-04-30 16:36:38');
 
 -- --------------------------------------------------------
 
@@ -907,6 +964,14 @@ ALTER TABLE `pages`
   ADD UNIQUE KEY `slug` (`slug`);
 
 --
+-- Індекси таблиці `plugins`
+--
+ALTER TABLE `plugins`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `slug` (`slug`),
+  ADD KEY `idx_plugins_active` (`is_active`);
+
+--
 -- Індекси таблиці `products`
 --
 ALTER TABLE `products`
@@ -1052,7 +1117,7 @@ ALTER TABLE `crm_user_action_audit`
 -- AUTO_INCREMENT для таблиці `crm_user_activity_logs`
 --
 ALTER TABLE `crm_user_activity_logs`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=45;
 
 --
 -- AUTO_INCREMENT для таблиці `filter_history`
@@ -1089,6 +1154,12 @@ ALTER TABLE `order_status_history`
 --
 ALTER TABLE `pages`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT для таблиці `plugins`
+--
+ALTER TABLE `plugins`
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT для таблиці `products`
