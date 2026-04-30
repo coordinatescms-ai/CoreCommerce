@@ -43,7 +43,8 @@ class View
 
             $resolvedDescription = trim((string) ($page['meta_description'] ?? ''));
 
-            $page['meta_title'] = $resolvedTitle;
+            $resolvedTitle = apply_filters('page.title', $resolvedTitle, $page);
+            $page['meta_title'] = (string) $resolvedTitle;
             if ($resolvedDescription === '') {
                 unset($page['meta_description']);
             } else {

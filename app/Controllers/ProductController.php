@@ -291,6 +291,9 @@ class ProductController
 
         $similarProducts = Product::getSimilar((int) $product['id'], isset($product['category_id']) ? (int) $product['category_id'] : null, 4);
 
+        $product['price'] = apply_filters('product.price', (float) ($product['price'] ?? 0), $product);
+        $product['description'] = (string) apply_filters('product.description', (string) ($product['description'] ?? ''), (int) $product['id']);
+
         if (!empty($_SESSION['user']['id'])) {
             CrmUserService::recordActivity((int) $_SESSION['user']['id'], 'product_view', 'Перегляд товару: ' . (string) ($product['name'] ?? ''));
         }

@@ -248,6 +248,8 @@ if (isset($_SESSION['user']['id'])) {
                     <div class="mt-2 small text-muted">
                         <?= __('in_stock') ?>: <?= (int)($product['stock'] ?? 0) ?>
                     </div>
+
+                    <?php do_action('product.summary.after', $product); ?>
                 </div>
             </div>
 

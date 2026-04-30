@@ -24,5 +24,6 @@ DB::query("INSERT INTO order_items(order_id,product_id,qty,price) VALUES(?,?,?,?
 }
 
 $_SESSION['cart']=[];
+do_action('order.placed', ['order_id' => (int) $orderId, 'user_id' => (int) $user['id'], 'total' => (float) $total]);
 return "Order placed";
 }}
