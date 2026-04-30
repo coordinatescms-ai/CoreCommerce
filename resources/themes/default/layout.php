@@ -81,6 +81,7 @@
             .language-selector { justify-content: center; }
         }
     </style>
+    <?php do_action('theme.head'); ?>
 </head>
 <body>
     <?php
@@ -168,6 +169,7 @@
         <?php endforeach; ?>
     </div>
         <p>&copy; 2024 MySite. <?= __('all_rights_reserved') ?? 'All rights reserved.' ?></p>
+        <?php do_action('theme.footer'); ?>
     </footer>
     <script>
         (() => {

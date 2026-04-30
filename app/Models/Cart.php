@@ -340,7 +340,15 @@ class Cart
                 $optionPrice = max(0.0, (float) ($option['price'] ?? 0));
                 $priceDelta += (($option['op'] ?? '+') === '-') ? -$optionPrice : $optionPrice;
             }
-            $finalPrice = max(0.0, $price + $priceDelta);
+            $baseFinalPrice = max(0.0, $price + $priceDelta);
+            $finalPrice = (float) apply_filters('cart.item.price', $baseFinalPrice, [
+                'cart_item_id' => (int) $row['cart_item_id'],
+                'product_id' => (int) $row['product_id'],
+                'quantity' => $qty,
+                'selected_options' => $selectedOptions,
+                'base_price' => $baseFinalPrice,
+            ]);
+            $finalPrice = max(0.0, $finalPrice);
 
             if ($stock > 0 && $qty > $stock) {
                 $qty = $stock;
