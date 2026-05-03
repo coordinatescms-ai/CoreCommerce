@@ -46,7 +46,7 @@
         </div>
         <div class="stat-info">
             <h3>Продажі</h3>
-            <p><?php echo number_format($stats['total_sales'], 2); ?> грн</p>
+            <p><?php echo number_format($stats['total_sales'], 2); ?></p>
         </div>
     </div>
 </div>
