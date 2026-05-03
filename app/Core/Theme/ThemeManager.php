@@ -13,6 +13,11 @@ class ThemeManager
      * Активна тема
      */
     private static $active_theme = null;
+
+    /**
+     * Тема для попереднього перегляду
+     */
+    private static $preview_theme = null;
     
     /**
      * Кешовані теми
@@ -31,6 +36,16 @@ class ThemeManager
      */
     public static function getActiveTheme()
     {
+        // Пріоритет 1: Тема для попереднього перегляду (тільки для поточного запиту)
+        if (self::$preview_theme !== null) {
+            return self::$preview_theme;
+        }
+
+        // Пріоритет 2: Тема з сесії для тривалого попереднього перегляду
+        if (!empty($_SESSION['preview_theme'])) {
+            return $_SESSION['preview_theme'];
+        }
+
         if (self::$active_theme !== null) {
             return self::$active_theme;
         }
@@ -88,6 +103,9 @@ class ThemeManager
             return false;
         }
         
+        // Очищаємо попередній перегляд при зміні основної теми
+        unset($_SESSION['preview_theme']);
+        
         $_SESSION['theme'] = $theme;
         setcookie('theme', $theme, time() + (365 * 24 * 60 * 60), '/', '', false, true);
         self::$active_theme = $theme;
@@ -96,6 +114,26 @@ class ThemeManager
         self::updateThemeConfig($theme);
         
         return true;
+    }
+
+    /**
+     * Встановити тему для попереднього перегляду
+     */
+    public static function setPreviewTheme($theme_id)
+    {
+        if (self::themeExists($theme_id)) {
+            $_SESSION['preview_theme'] = $theme_id;
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Скасувати попередній перегляд
+     */
+    public static function cancelPreview()
+    {
+        unset($_SESSION['preview_theme']);
     }
     
     /**
@@ -203,6 +241,12 @@ class ThemeManager
             return $layout_path;
         }
         
+        // Підтримка дочірніх тем
+        $info = self::getThemeInfo($theme);
+        if (!empty($info['parent']) && $info['parent'] !== $theme) {
+            return self::getLayoutPath($info['parent']);
+        }
+        
         // Якщо файл не існує, повертаємо шлях до default теми
         return self::$themes_dir . '/default/layout.php';
     }
@@ -238,6 +282,12 @@ class ThemeManager
         
         if (file_exists($style_path)) {
             return '/resources/themes/' . $theme . '/style.css';
+        }
+
+        // Підтримка дочірніх тем
+        $info = self::getThemeInfo($theme);
+        if (!empty($info['parent']) && $info['parent'] !== $theme) {
+            return self::getStylePath($info['parent']);
         }
         
         return '/resources/themes/default/style.css';
@@ -289,6 +339,127 @@ class ThemeManager
         $content = '<?php return ' . var_export($config, true) . ';';
         
         return file_put_contents($config_file, $content) !== false;
+    }
+
+    /**
+     * Оновити theme.json конкретної теми
+     * 
+     * @param string $theme_id
+     * @param array $data
+     * @return bool
+     */
+    public static function updateThemeMetadata($theme_id, array $data)
+    {
+        $config_file = self::$themes_dir . '/' . $theme_id . '/theme.json';
+        if (!file_exists($config_file)) {
+            return false;
+        }
+
+        $current_config = json_decode(file_get_contents($config_file), true) ?: [];
+        $new_config = array_merge($current_config, $data);
+        
+        return file_put_contents($config_file, json_encode($new_config, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) !== false;
+    }
+
+    /**
+     * Видалити тему
+     * 
+     * @param string $theme_id
+     * @return bool
+     */
+    public static function deleteTheme($theme_id)
+    {
+        if ($theme_id === 'default' || $theme_id === self::getActiveTheme()) {
+            return false;
+        }
+
+        $theme_path = self::$themes_dir . '/' . $theme_id;
+        if (!is_dir($theme_path)) {
+            return false;
+        }
+
+        return self::recursiveRmdir($theme_path);
+    }
+
+    /**
+     * Рекурсивне видалення директорії
+     */
+    private static function recursiveRmdir($dir)
+    {
+        $files = array_diff(scandir($dir), ['.', '..']);
+        foreach ($files as $file) {
+            (is_dir("$dir/$file")) ? self::recursiveRmdir("$dir/$file") : unlink("$dir/$file");
+        }
+        return rmdir($dir);
+    }
+
+    /**
+     * Завантажити тему з ZIP архіву
+     * 
+     * @param array $file Елемент масиву $_FILES
+     * @return string|bool Повертає ID теми або false
+     */
+    public static function uploadTheme($file)
+    {
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            return false;
+        }
+
+        $zip = new \ZipArchive();
+        if ($zip->open($file['tmp_name']) !== true) {
+            return false;
+        }
+
+        // Шукаємо theme.json для визначення ID теми
+        $theme_id = null;
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $filename = $zip->getNameIndex($i);
+            if (basename($filename) === 'theme.json') {
+                $content = $zip->getFromIndex($i);
+                $data = json_decode($content, true);
+                if (isset($data['id'])) {
+                    $theme_id = $data['id'];
+                    break;
+                }
+            }
+        }
+
+        if (!$theme_id) {
+            // Якщо theme.json не знайдено, використовуємо назву архіву
+            $theme_id = str_replace('.zip', '', strtolower(basename($file['name'])));
+        }
+
+        $extract_path = self::$themes_dir . '/' . $theme_id;
+        if (is_dir($extract_path)) {
+            // Тема вже існує - можна або видати помилку, або перезаписати
+            // Для безпеки додамо префікс
+            $theme_id .= '_' . time();
+            $extract_path = self::$themes_dir . '/' . $theme_id;
+        }
+
+        mkdir($extract_path, 0755, true);
+        
+        // Перевіряємо, чи запакована тема в папку всередині архіву
+        $first_file = $zip->getNameIndex(0);
+        $has_root_dir = (strpos($first_file, '/') !== false);
+
+        if ($has_root_dir) {
+            // Складніша логіка розпакування, якщо є коренева папка в ZIP
+            $root_dir = explode('/', $first_file)[0];
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $name = $zip->getNameIndex($i);
+                if (strpos($name, $root_dir . '/') === 0) {
+                    $zip->extractTo(self::$themes_dir, $name);
+                }
+            }
+            // Перейменовуємо розпаковану папку в наш theme_id
+            rename(self::$themes_dir . '/' . $root_dir, $extract_path);
+        } else {
+            $zip->extractTo($extract_path);
+        }
+
+        $zip->close();
+        return $theme_id;
     }
     
     /**

@@ -298,6 +298,11 @@ class AdminController
         $group = $metadata[$key]['group'] ?? 'general';
         $type = $metadata[$key]['type'] ?? 'text';
         Setting::setWithMeta((string) $key, (string) $value, $group, $type);
+        
+        // Якщо змінюється активна тема, синхронізуємо з ThemeManager
+        if ($key === 'active_theme') {
+            \App\Core\Theme\ThemeManager::setActiveTheme($value);
+        }
     }
 
     // 2. Нове збереження для доставки та оплати (таблиця shop_methods)

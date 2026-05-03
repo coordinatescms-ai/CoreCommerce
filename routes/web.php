@@ -130,6 +130,13 @@ $router->delete('/admin/attributes/delete/{id}', [AdminAttributeController::clas
 
 // Управління темами в адмінці
 $router->get('/admin/themes', [AdminThemeController::class, 'index']);
+$router->get('/admin/theme/switch/{theme}', [AdminThemeController::class, 'switch']);
+$router->post('/admin/themes/upload', [AdminThemeController::class, 'upload']);
+$router->get('/admin/themes/edit/{id}', [AdminThemeController::class, 'edit']);
+$router->post('/admin/themes/update/{id}', [AdminThemeController::class, 'update']);
+$router->post('/admin/themes/delete/{id}', [AdminThemeController::class, 'delete']);
+$router->get('/admin/themes/preview/{id}', [AdminThemeController::class, 'preview']);
+$router->get('/admin/themes/cancel-preview', [AdminThemeController::class, 'cancelPreview']);
 
 // Управління плагінами в адмінці
 $router->get('/admin/plugins', [AdminPluginController::class, 'index']);

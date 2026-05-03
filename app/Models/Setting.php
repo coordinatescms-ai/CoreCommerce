@@ -82,6 +82,58 @@ class Setting extends Model
             [$name, $description, $isActive, $isTestMode, $sortOrder, $settingsJson, $id]
         );
     }
+
+    /**
+     * Отримати кількість замовлень
+     * 
+     * @return int
+     */
+    public static function count_order()
+    {
+        $result = self::query("SELECT COUNT(*) as count FROM orders");
+        return !empty($result) ? $result[0]['count'] : 0;
+    }
+
+    /**
+     * Отримати кількість товару
+     * 
+     * @return int
+     */
+    public static function count_products()
+    {
+        $result = self::query("SELECT COUNT(*) as count FROM products");
+        return !empty($result) ? $result[0]['count'] : 0;
+    }
+
+        /**
+     * Отримати суми замовлень зі статусом 'completed'
+     * 
+     * @return int
+     */
+    public static function total_sales()
+    {
+        $result = self::query("SELECT SUM(total) as total_sum FROM orders WHERE 
+            status = ?", ['completed']);
+
+        //return $result['total_sum'] ?? 0;
+        return !empty($result) ? $result[0]['total_sum'] : 0;
+    }
+
+    /**
+     * Отримати 5 замовлень зі статусом 'new'
+     * 
+     * @return int
+     */
+    public static function order_new()
+    {
+        $result = self::query(
+            "SELECT id, customer_name, created_at, total, status 
+            FROM orders 
+            WHERE status = ? 
+            ORDER BY created_at DESC 
+            LIMIT 5", ['new']);
+        return !empty($result) ? $result[0]['total_sum'] : 0;
+    }
 }
 
 
