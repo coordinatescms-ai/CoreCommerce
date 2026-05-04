@@ -287,7 +287,7 @@ if (isset($_SESSION['user']['id'])) {
                 <label for="pdp-review-rating">Рейтинг (1-5, тільки для основного):</label>
                 <input type="number" name="rating" id="pdp-review-rating" min="1" max="5" value="5">
 
-                <label for="pdp-review-body">Текст відгуку:</label>
+                <div id="pdp-reply-target" style="display:none;margin:6px 0;color:#2563eb;font-weight:600;"></div><label for="pdp-review-body">Текст відгуку:</label>
                 <textarea
                     name="body"
                     id="pdp-review-body"
@@ -297,7 +297,7 @@ if (isset($_SESSION['user']['id'])) {
                     placeholder="Напишіть відгук"
                 ></textarea>
 
-                <button type="submit" class="pdp-btn pdp-btn-primary">Додати</button>
+                <div style="display:flex;gap:8px;align-items:center;"><button type="submit" class="pdp-btn pdp-btn-primary">Додати</button><button type="button" id="pdp-cancel-reply" class="pdp-btn pdp-btn-ghost" style="display:none;">Скасувати відповідь</button></div>
             </form>
         <?php else: ?>
             <p>Лише зареєстровані користувачі можуть залишати відгуки.</p>
@@ -1052,6 +1052,8 @@ if (isset($_SESSION['user']['id'])) {
         const listEl = document.getElementById('pdp-reviews-list');
         const moreBtn = document.getElementById('pdp-reviews-more-btn');
         const form = document.getElementById('pdp-review-form');
+        const replyTarget = document.getElementById('pdp-reply-target');
+        const cancelReplyBtn = document.getElementById('pdp-cancel-reply');
         let page = 1;
 
         const escapeHtml = (str) => String(str ?? '')
@@ -1060,6 +1062,15 @@ if (isset($_SESSION['user']['id'])) {
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#039;');
+
+        const resetReplyMode = () => {
+            const parentIdEl = document.getElementById('pdp-review-parent-id');
+            const ratingEl = document.getElementById('pdp-review-rating');
+            if (parentIdEl) parentIdEl.value = '';
+            if (ratingEl) ratingEl.value = '5';
+            if (replyTarget) { replyTarget.textContent = ''; replyTarget.style.display = 'none'; }
+            if (cancelReplyBtn) cancelReplyBtn.style.display = 'none';
+        };
 
         const renderReview = (item) => {
             const replies = (item.replies || []).map((r) => `
@@ -1074,7 +1085,7 @@ if (isset($_SESSION['user']['id'])) {
                     <div><b>${escapeHtml(item.author_name)}</b> · ${escapeHtml(item.created_at)}</div>
                     <div>Рейтинг: ${item.rating !== null ? escapeHtml(item.rating) : '-'}</div>
                     <div>${escapeHtml(item.body)}</div>
-                    ${form ? `<button class="pdp-reply-btn pdp-btn pdp-btn-ghost" data-id="${escapeHtml(item.id)}">Відповісти</button>` : ''}
+                    ${form ? `<button class="pdp-reply-btn pdp-btn pdp-btn-ghost" data-id="${escapeHtml(item.id)}" data-author="${escapeHtml(item.author_name)}">Відповісти</button>` : ''}
                     <div class="pdp-review-replies">${replies}</div>
                 </div>
             `;
@@ -1114,8 +1125,13 @@ if (isset($_SESSION['user']['id'])) {
 
                 if (parentIdEl) parentIdEl.value = btn.dataset.id || '';
                 if (ratingEl) ratingEl.value = '';
+                if (replyTarget) { replyTarget.textContent = `Відповідь на ${btn.dataset.author || 'користувача'}`; replyTarget.style.display = 'block'; }
+                if (cancelReplyBtn) cancelReplyBtn.style.display = 'inline-block';
+                form?.scrollIntoView({behavior:'smooth', block:'center'});
             });
         }
+
+        if (cancelReplyBtn) { cancelReplyBtn.addEventListener('click', resetReplyMode); }
 
         if (form) {
             form.addEventListener('submit', async (e) => {
@@ -1142,8 +1158,7 @@ if (isset($_SESSION['user']['id'])) {
                     const ratingEl = document.getElementById('pdp-review-rating');
                     const bodyEl = document.getElementById('pdp-review-body');
 
-                    if (parentIdEl) parentIdEl.value = '';
-                    if (ratingEl) ratingEl.value = '5';
+                    resetReplyMode();
                     if (bodyEl) bodyEl.value = '';
 
                     loadReviews();

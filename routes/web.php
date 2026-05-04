@@ -80,6 +80,9 @@ $router->post('/admin/settings/save', [AdminController::class, 'saveSettings']);
 $router->get('/admin/settings/tab/{tab}', [AdminController::class, 'settingsTab']);
 $router->post('/admin/settings/methods/add', [AdminController::class, 'addMethod']);
 $router->post('/admin/settings/methods/delete/{id}', [AdminController::class, 'deleteMethod']);
+$router->post('/admin/reviews/update/{id}', [AdminController::class, 'updateReview']);
+$router->post('/admin/reviews/delete/{id}', [AdminController::class, 'deleteReview']);
+$router->post('/admin/reviews/toggle/{id}', [AdminController::class, 'toggleReviewVisibility']);
 
 // Управління контентом в адмінці
 $router->get('/admin/content', [AdminContentController::class, 'index']);
