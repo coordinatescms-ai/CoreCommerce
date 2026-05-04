@@ -1012,9 +1012,17 @@ if (isset($_SESSION['user']['id'])) {
         const form = document.getElementById('review-form');
         let page = 1;
 
+        const escapeHtml = (value) => String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+
         const renderReview = (item) => {
-            const replies = (item.replies || []).map((r) => `<div class="review-item"><div><b>${r.author_name}</b> · ${r.created_at}</div><div>${r.body}</div></div>`).join('');
-            return `<div class="review-item"><div><b>${item.author_name}</b> · ${item.created_at}</div><div>Рейтинг: ${item.rating ?? '-'}</div><div>${item.body}</div><button class="reply-btn pdp-btn pdp-btn-ghost" data-id="${item.id}">Відповісти</button><div class="review-replies">${replies}</div></div>`;
+            const replies = (item.replies || []).map((r) => `<div class="review-item"><div><b>${escapeHtml(r.author_name)}</b> · ${escapeHtml(r.created_at)}</div><div>${escapeHtml(r.body)}</div></div>`).join('');
+            const safeRating = Number.isFinite(Number(item.rating)) ? Number(item.rating) : '-';
+            return `<div class="review-item"><div><b>${escapeHtml(item.author_name)}</b> · ${escapeHtml(item.created_at)}</div><div>Рейтинг: ${safeRating}</div><div>${escapeHtml(item.body)}</div><button class="reply-btn pdp-btn pdp-btn-ghost" data-id="${Number(item.id) || 0}">Відповісти</button><div class="review-replies">${replies}</div></div>`;
         };
 
         const loadReviews = async () => {
