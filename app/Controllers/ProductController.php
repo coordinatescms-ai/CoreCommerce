@@ -402,7 +402,7 @@ class ProductController
             return;
         }
 
-        if (!\App\Core\Security\Csrf::isValid()) {
+        if (!\App\Core\Http\Csrf::isValid()) {
             http_response_code(422);
             echo json_encode(['success' => false, 'message' => 'Невірний CSRF токен']);
             return;
