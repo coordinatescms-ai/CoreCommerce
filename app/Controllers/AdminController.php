@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Setting;
 use App\Core\Database\DB;
 use App\Models\Page;
+use App\Models\Review;
 
 class AdminController
 {
@@ -240,7 +241,21 @@ class AdminController
             ]);
             break;
         case 'reviews':
-            View::renderPartial('admin/settings/tabs/reviews', []);
+            $filters = [
+                'product' => trim((string) ($_GET['product'] ?? '')),
+                'author' => trim((string) ($_GET['author'] ?? '')),
+                'status' => (string) ($_GET['status'] ?? ''),
+            ];
+            $page = max(1, (int) ($_GET['page'] ?? 1));
+            $limit = 20;
+            $offset = ($page - 1) * $limit;
+            $result = Review::getAdminList($filters, $limit, $offset);
+            View::renderPartial('admin/settings/tabs/reviews', [
+                'reviews' => $result['rows'],
+                'filters' => $filters,
+                'page' => $page,
+                'pages' => max(1, (int) ceil($result['total'] / $limit)),
+            ]);
             break;
 
         case 'general':
@@ -365,6 +380,44 @@ class AdminController
     $_SESSION['success'] = 'Метод видалено';
     header('Location: /admin/settings?tab=' . $tab);
     exit;
+    }
+
+    public function updateReview(int $id)
+    {
+        $this->checkAdmin();
+        if (!Csrf::isValid()) { http_response_code(422); $_SESSION['error'] = 'CSRF token validation failed'; header('Location: /admin/settings?tab=reviews'); exit; }
+
+        $body = trim((string) ($_POST['body'] ?? ''));
+        if ($body === '' || mb_strlen($body) < 3 || mb_strlen($body) > Review::MAX_BODY_LENGTH) {
+            $_SESSION['error'] = 'Текст від 3 до 2000 символів.';
+            header('Location: /admin/settings?tab=reviews');
+            exit;
+        }
+        Review::updateBody($id, $body);
+        $_SESSION['success'] = 'Відгук оновлено';
+        header('Location: /admin/settings?tab=reviews');
+        exit;
+    }
+
+    public function deleteReview(int $id)
+    {
+        $this->checkAdmin();
+        if (!Csrf::isValid()) { http_response_code(422); $_SESSION['error'] = 'CSRF token validation failed'; header('Location: /admin/settings?tab=reviews'); exit; }
+        Review::deleteById($id);
+        $_SESSION['success'] = 'Відгук видалено';
+        header('Location: /admin/settings?tab=reviews');
+        exit;
+    }
+
+    public function toggleReviewVisibility(int $id)
+    {
+        $this->checkAdmin();
+        if (!Csrf::isValid()) { http_response_code(422); $_SESSION['error'] = 'CSRF token validation failed'; header('Location: /admin/settings?tab=reviews'); exit; }
+        $visible = !empty($_POST['is_visible']) ? 1 : 0;
+        Review::setVisibility($id, $visible);
+        $_SESSION['success'] = $visible ? 'Відгук розблоковано' : 'Відгук заблоковано';
+        header('Location: /admin/settings?tab=reviews');
+        exit;
     }
 
     private function validateAndNormalizeSettings(array $settings): array
