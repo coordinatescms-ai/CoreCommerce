@@ -6,6 +6,8 @@ use App\Core\Database\DB;
 
 class Review
 {
+    public const MAX_BODY_LENGTH = 2000;
+
     public static function create(array $data): int
     {
         DB::execute(
@@ -63,5 +65,55 @@ class Review
     public static function countRootsByProduct(int $productId): int
     {
         return (int) (DB::query('SELECT COUNT(*) AS total FROM product_reviews WHERE product_id = ? AND parent_id IS NULL AND is_visible = 1', [$productId])->fetch()['total'] ?? 0);
+    }
+
+    public static function getAdminList(array $filters, int $limit, int $offset): array
+    {
+        $where = [];
+        $params = [];
+
+        if (!empty($filters['product'])) {
+            $where[] = 'p.name LIKE ?';
+            $params[] = '%' . $filters['product'] . '%';
+        }
+        if (!empty($filters['author'])) {
+            $where[] = 'r.author_name LIKE ?';
+            $params[] = '%' . $filters['author'] . '%';
+        }
+        if ($filters['status'] !== '' && $filters['status'] !== null) {
+            $where[] = 'r.is_visible = ?';
+            $params[] = (int) $filters['status'];
+        }
+
+        $whereSql = $where ? ('WHERE ' . implode(' AND ', $where)) : '';
+
+        $sql = "SELECT r.*, p.name AS product_name, u.email AS user_email, parent.author_name AS parent_author
+                FROM product_reviews r
+                LEFT JOIN products p ON p.id = r.product_id
+                LEFT JOIN users u ON u.id = r.user_id
+                LEFT JOIN product_reviews parent ON parent.id = r.parent_id
+                $whereSql
+                ORDER BY r.created_at DESC
+                LIMIT ? OFFSET ?";
+
+        $rows = DB::query($sql, array_merge($params, [$limit, $offset]))->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+
+        $countRow = DB::query("SELECT COUNT(*) AS total FROM product_reviews r LEFT JOIN products p ON p.id = r.product_id $whereSql", $params)->fetch(\PDO::FETCH_ASSOC);
+        return ['rows' => $rows, 'total' => (int) ($countRow['total'] ?? 0)];
+    }
+
+    public static function updateBody(int $id, string $body): void
+    {
+        DB::execute('UPDATE product_reviews SET body = ?, updated_at = NOW() WHERE id = ?', [$body, $id]);
+    }
+
+    public static function setVisibility(int $id, int $visible): void
+    {
+        DB::execute('UPDATE product_reviews SET is_visible = ?, updated_at = NOW() WHERE id = ?', [$visible, $id]);
+    }
+
+    public static function deleteById(int $id): void
+    {
+        DB::execute('DELETE FROM product_reviews WHERE id = ?', [$id]);
     }
 }

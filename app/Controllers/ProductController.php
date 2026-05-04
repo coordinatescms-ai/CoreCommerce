@@ -451,7 +451,7 @@ class ProductController
             'parent_id' => $parentId,
             'rating' => $parentId === null ? $rating : null,
             'author_name' => $authorName,
-            'body' => htmlspecialchars($body, ENT_QUOTES, 'UTF-8'),
+            'body' => $body,
         ]);
 
         if ($parentId !== null) {
