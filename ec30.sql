@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: MySQL-8.0:3306
--- Час створення: Трв 04 2026 р., 15:42
+-- Час створення: Трв 04 2026 р., 17:27
 -- Версія сервера: 8.0.44
 -- Версія PHP: 8.3.29
 
@@ -305,7 +305,17 @@ INSERT INTO `crm_user_activity_logs` (`id`, `user_id`, `event_type`, `descriptio
 (44, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-30 16:36:52'),
 (45, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-01 07:15:05'),
 (46, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-02 15:28:13'),
-(47, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-04 12:37:46');
+(47, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-04 12:37:46'),
+(48, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-04 14:18:37'),
+(49, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-04 14:19:04'),
+(50, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-04 14:22:03'),
+(51, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-04 14:22:33'),
+(52, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-04 14:22:39'),
+(53, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-04 14:28:04'),
+(54, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-04 14:29:08'),
+(55, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-04 14:34:12'),
+(56, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-04 14:52:52'),
+(57, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-04 15:00:17');
 
 -- --------------------------------------------------------
 
@@ -634,6 +644,35 @@ INSERT INTO `product_images` (`id`, `product_id`, `image_path`, `sort_order`, `c
 (6, 2, '/uploads/products/gallery/original/product_69e608b6ddae3707094810.webp', 1, '2026-04-20 11:06:31'),
 (7, 1, '/uploads/products/gallery/original/product_69e6092591658980274602.jpg', 1, '2026-04-20 11:08:21'),
 (8, 1, '/uploads/products/gallery/original/product_69e6093776cb2485391237.jpg', 2, '2026-04-20 11:08:39');
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблиці `product_reviews`
+--
+
+CREATE TABLE `product_reviews` (
+  `id` int NOT NULL,
+  `product_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `parent_id` int DEFAULT NULL,
+  `rating` tinyint UNSIGNED DEFAULT NULL,
+  `author_name` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `body` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `is_visible` tinyint(1) NOT NULL DEFAULT '1',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Дамп даних таблиці `product_reviews`
+--
+
+INSERT INTO `product_reviews` (`id`, `product_id`, `user_id`, `parent_id`, `rating`, `author_name`, `body`, `is_visible`, `created_at`, `updated_at`) VALUES
+(1, 2, 2, NULL, 5, 'Василь Присяжнюк', 'Відгук, Відгук, Відгук, Відгук, Відгук, Відгук, Відгук, Відгук!', 1, '2026-05-04 15:02:06', '2026-05-04 15:02:06'),
+(2, 2, 2, 1, NULL, 'Василь Присяжнюк', 'іііійійій цвйцв цвйцвй', 1, '2026-05-04 15:06:20', '2026-05-04 15:06:20'),
+(3, 2, 2, 1, NULL, 'Василь Присяжнюк', 'ФІі іійі', 1, '2026-05-04 15:06:45', '2026-05-04 15:06:45'),
+(4, 2, 2, NULL, 5, 'Василь Присяжнюк', 'йійійі йійі', 1, '2026-05-04 15:06:53', '2026-05-04 15:06:53');
 
 -- --------------------------------------------------------
 
@@ -1012,6 +1051,15 @@ ALTER TABLE `product_images`
   ADD KEY `idx_product_images_sort_order` (`sort_order`);
 
 --
+-- Індекси таблиці `product_reviews`
+--
+ALTER TABLE `product_reviews`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_reviews_product_parent_created` (`product_id`,`parent_id`,`created_at`),
+  ADD KEY `idx_reviews_user` (`user_id`),
+  ADD KEY `fk_reviews_parent` (`parent_id`);
+
+--
 -- Індекси таблиці `seo_settings`
 --
 ALTER TABLE `seo_settings`
@@ -1121,7 +1169,7 @@ ALTER TABLE `crm_user_action_audit`
 -- AUTO_INCREMENT для таблиці `crm_user_activity_logs`
 --
 ALTER TABLE `crm_user_activity_logs`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
 
 --
 -- AUTO_INCREMENT для таблиці `filter_history`
@@ -1188,6 +1236,12 @@ ALTER TABLE `product_attribute_values`
 --
 ALTER TABLE `product_images`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+
+--
+-- AUTO_INCREMENT для таблиці `product_reviews`
+--
+ALTER TABLE `product_reviews`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT для таблиці `seo_settings`
@@ -1326,6 +1380,14 @@ ALTER TABLE `product_attributes`
 --
 ALTER TABLE `product_images`
   ADD CONSTRAINT `fk_product_images_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE;
+
+--
+-- Обмеження зовнішнього ключа таблиці `product_reviews`
+--
+ALTER TABLE `product_reviews`
+  ADD CONSTRAINT `fk_reviews_parent` FOREIGN KEY (`parent_id`) REFERENCES `product_reviews` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_reviews_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_reviews_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
 -- Обмеження зовнішнього ключа таблиці `slug_history`
