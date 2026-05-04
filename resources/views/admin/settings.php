@@ -9,6 +9,7 @@
             <button type="button" class="btn btn-outline settings-tab-btn" data-tab="media">Мультимедіа</button>
             <button type="button" class="btn btn-outline settings-tab-btn" data-tab="shipping">Доставка</button>
             <button type="button" class="btn btn-outline settings-tab-btn" data-tab="payment">Оплата</button>
+            <button type="button" class="btn btn-outline settings-tab-btn" data-tab="reviews">Відгуки</button>
         </div>
     </div>
 </div>

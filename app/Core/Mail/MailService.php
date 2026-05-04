@@ -4,6 +4,7 @@ namespace App\Core\Mail;
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+use App\Models\Setting;
 
 class MailService
 {
@@ -11,7 +12,16 @@ class MailService
 
     public function __construct()
     {
-        $this->config = require __DIR__ . '/../../../config/mail.php';
+        $config = require __DIR__ . '/../../../config/mail.php';
+        $this->config = [
+            'host' => (string) Setting::get('smtp_host', $config['host'] ?? ''),
+            'port' => (int) Setting::get('smtp_port', (string) ($config['port'] ?? 587)),
+            'username' => (string) Setting::get('smtp_username', $config['username'] ?? ''),
+            'password' => (string) Setting::get('smtp_pass', $config['password'] ?? ''),
+            'encryption' => (string) Setting::get('smtp_encryption', $config['encryption'] ?? 'tls'),
+            'from_email' => (string) Setting::get('smtp_from_email', $config['from_email'] ?? ''),
+            'from_name' => (string) Setting::get('smtp_from_name', $config['from_name'] ?? ''),
+        ];
     }
 
     /**
