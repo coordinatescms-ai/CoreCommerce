@@ -25,6 +25,8 @@ $router = new Router();
 $router->get('/',[HomeController::class,'index']);
 $router->get('/products',[ProductController::class,'index']);
 $router->get('/product/{slug}',[ProductController::class,'show']);
+$router->get('/product/{slug}/reviews',[ProductController::class,'reviews']);
+$router->post('/product/{slug}/reviews',[ProductController::class,'addReview']);
 $router->get('/category/{slug}/filter',[ProductController::class,'filterCategory']);
 $router->get('/category/{slug}',[ProductController::class,'showCategory']);
 

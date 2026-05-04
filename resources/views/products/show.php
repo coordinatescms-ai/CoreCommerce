@@ -278,7 +278,21 @@ if (isset($_SESSION['user']['id'])) {
 
                 <details>
                     <summary><?= __('reviews') ?></summary>
-                    <p><?= __('reviews_empty') ?></p>
+                    <div id="reviews-panel" data-product-slug="<?= htmlspecialchars($product['slug']) ?>">
+                        <?php if (!empty($_SESSION['user']['id'])): ?>
+                            <form id="review-form" style="margin: 12px 0;">
+                                <input type="hidden" name="csrf" value="<?= htmlspecialchars(\App\Core\Security\Csrf::token()) ?>">
+                                <input type="hidden" name="parent_id" id="review-parent-id" value="">
+                                <label>Рейтинг (1-5, тільки для основного): <input type="number" name="rating" id="review-rating" min="1" max="5" value="5"></label>
+                                <textarea name="body" id="review-body" rows="3" required maxlength="2000" placeholder="Напишіть відгук"></textarea>
+                                <button type="submit" class="pdp-btn pdp-btn-primary">Додати</button>
+                            </form>
+                        <?php else: ?>
+                            <p>Лише зареєстровані користувачі можуть залишати відгуки.</p>
+                        <?php endif; ?>
+                        <div id="reviews-list"></div>
+                        <button id="reviews-more-btn" class="pdp-btn pdp-btn-ghost" type="button" style="display:none; margin-top:10px;">Показати ще</button>
+                    </div>
                 </details>
 
                 <details>
@@ -321,6 +335,8 @@ if (isset($_SESSION['user']['id'])) {
     --pdp-border: #dbe3ef;
     --pdp-muted: #64748b;
 }
+.review-item { border:1px solid #e2e8f0; border-radius:8px; padding:10px; margin-top:10px; background:#fff; }
+.review-replies { margin-left:24px; }
 
 .pdp-layout {
     display: grid;
@@ -985,6 +1001,50 @@ if (isset($_SESSION['user']['id'])) {
                 hidden.setAttribute('data-dynamic-option', '1');
                 buyForm.appendChild(hidden);
             });
+        });
+    }
+
+    const reviewsPanel = document.getElementById('reviews-panel');
+    if (reviewsPanel) {
+        const slug = reviewsPanel.dataset.productSlug;
+        const listEl = document.getElementById('reviews-list');
+        const moreBtn = document.getElementById('reviews-more-btn');
+        const form = document.getElementById('review-form');
+        let page = 1;
+
+        const renderReview = (item) => {
+            const replies = (item.replies || []).map((r) => `<div class="review-item"><div><b>${r.author_name}</b> · ${r.created_at}</div><div>${r.body}</div></div>`).join('');
+            return `<div class="review-item"><div><b>${item.author_name}</b> · ${item.created_at}</div><div>Рейтинг: ${item.rating ?? '-'}</div><div>${item.body}</div><button class="reply-btn pdp-btn pdp-btn-ghost" data-id="${item.id}">Відповісти</button><div class="review-replies">${replies}</div></div>`;
+        };
+
+        const loadReviews = async () => {
+            const res = await fetch(`/product/${encodeURIComponent(slug)}/reviews?page=${page}`, {headers: {'X-Requested-With': 'XMLHttpRequest'}});
+            const data = await res.json();
+            if (!data.success) return;
+            listEl.insertAdjacentHTML('beforeend', data.items.map(renderReview).join(''));
+            moreBtn.style.display = data.has_more ? 'inline-block' : 'none';
+        };
+
+        loadReviews();
+        if (moreBtn) moreBtn.addEventListener('click', () => { page += 1; loadReviews(); });
+        if (listEl) listEl.addEventListener('click', (e) => {
+            const btn = e.target.closest('.reply-btn');
+            if (!btn) return;
+            document.getElementById('review-parent-id').value = btn.dataset.id;
+            document.getElementById('review-rating').value = '';
+        });
+        if (form) form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fd = new FormData(form);
+            const res = await fetch(`/product/${encodeURIComponent(slug)}/reviews`, {method: 'POST', body: fd, headers: {'X-Requested-With': 'XMLHttpRequest'}});
+            const data = await res.json();
+            if (!data.success) { alert(data.message || 'Помилка'); return; }
+            listEl.innerHTML = '';
+            page = 1;
+            document.getElementById('review-parent-id').value = '';
+            document.getElementById('review-rating').value = '5';
+            document.getElementById('review-body').value = '';
+            loadReviews();
         });
     }
 })();
