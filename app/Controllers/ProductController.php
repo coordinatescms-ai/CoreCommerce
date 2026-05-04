@@ -12,6 +12,8 @@ use App\Models\CrmUserService;
 use App\Models\Setting;
 use App\Services\SlugHelper;
 use App\Services\ProductFilterService;
+use App\Models\Review;
+use App\Core\Mail\MailService;
 
 class ProductController
 {
@@ -366,5 +368,104 @@ class ProductController
     public function filterCategory($slug)
     {
         return $this->showCategory($slug);
+    }
+
+    public function reviews($slug)
+    {
+        $product = Product::findVisibleBySlug($slug);
+        if (!$product) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'message' => 'Товар не знайдено']);
+            return;
+        }
+
+        header('Content-Type: application/json; charset=utf-8');
+        $page = max(1, (int) ($_GET['page'] ?? 1));
+        $limit = 10;
+        $offset = ($page - 1) * $limit;
+        $items = Review::getThreadedByProduct((int) $product['id'], $limit, $offset);
+        $total = Review::countRootsByProduct((int) $product['id']);
+
+        echo json_encode([
+            'success' => true,
+            'items' => $items,
+            'has_more' => $total > ($offset + count($items)),
+        ]);
+    }
+
+    public function addReview($slug)
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        if (empty($_SESSION['user']['id'])) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'message' => 'Потрібна авторизація']);
+            return;
+        }
+
+        if (!\App\Core\Security\Csrf::isValid()) {
+            http_response_code(422);
+            echo json_encode(['success' => false, 'message' => 'Невірний CSRF токен']);
+            return;
+        }
+
+        $product = Product::findVisibleBySlug($slug);
+        if (!$product) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'message' => 'Товар не знайдено']);
+            return;
+        }
+
+        $parentId = isset($_POST['parent_id']) && $_POST['parent_id'] !== '' ? (int) $_POST['parent_id'] : null;
+        $rating = isset($_POST['rating']) && $_POST['rating'] !== '' ? (int) $_POST['rating'] : null;
+        $body = trim((string) ($_POST['body'] ?? ''));
+
+        if ($body === '' || mb_strlen($body) < 3 || mb_strlen($body) > 2000) {
+            http_response_code(422);
+            echo json_encode(['success' => false, 'message' => 'Текст від 3 до 2000 символів']);
+            return;
+        }
+
+        if ($parentId === null && ($rating === null || $rating < 1 || $rating > 5)) {
+            http_response_code(422);
+            echo json_encode(['success' => false, 'message' => 'Оцінка від 1 до 5 обовʼязкова']);
+            return;
+        }
+
+        if ($parentId !== null) {
+            $parent = Review::findById($parentId);
+            if (!$parent || (int) $parent['product_id'] !== (int) $product['id'] || !empty($parent['parent_id'])) {
+                http_response_code(422);
+                echo json_encode(['success' => false, 'message' => 'Некоректний батьківський коментар']);
+                return;
+            }
+        }
+
+        $authorName = trim((string) (($_SESSION['user']['first_name'] ?? '') . ' ' . ($_SESSION['user']['last_name'] ?? '')));
+        if ($authorName === '') {
+            $authorName = (string) ($_SESSION['user']['email'] ?? 'User');
+        }
+
+        $id = Review::create([
+            'product_id' => (int) $product['id'],
+            'user_id' => (int) $_SESSION['user']['id'],
+            'parent_id' => $parentId,
+            'rating' => $parentId === null ? $rating : null,
+            'author_name' => $authorName,
+            'body' => htmlspecialchars($body, ENT_QUOTES, 'UTF-8'),
+        ]);
+
+        if ($parentId !== null) {
+            $parent = Review::findById($parentId);
+            if ($parent && (int) $parent['user_id'] !== (int) $_SESSION['user']['id']) {
+                $author = \App\Models\User::findById((int) $parent['user_id']);
+                if (!empty($author['email'])) {
+                    $mail = new MailService();
+                    $link = 'http://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/product/' . $slug;
+                    $mail->send((string) $author['email'], 'Нова відповідь на ваш відгук', 'Вам відповіли на відгук до товару <b>' . htmlspecialchars((string) $product['name']) . '</b>.<br><a href="' . $link . '">Переглянути</a>');
+                }
+            }
+        }
+
+        echo json_encode(['success' => true, 'id' => $id]);
     }
 }

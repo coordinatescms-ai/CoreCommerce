@@ -239,6 +239,9 @@ class AdminController
                 'methods' => $methods
             ]);
             break;
+        case 'reviews':
+            View::renderPartial('admin/settings/tabs/reviews', []);
+            break;
 
         case 'general':
         default:
