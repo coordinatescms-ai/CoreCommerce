@@ -134,7 +134,7 @@ if (isset($_SESSION['user']['id'])) {
         <ol>
             <li>
                 <a class="breadcrumb-link breadcrumb-link-home" href="/">
-                    <svg class="breadcrumb-home-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <svg class="breadcrumb-home-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true" width="16" height="16">
                         <path d="M3 10.5L12 3L21 10.5V20A1 1 0 0 1 20 21H4A1 1 0 0 1 3 20V10.5Z" stroke="currentColor" stroke-width="1.8"/>
                     </svg>
                     <span><?= __('breadcrumb_home') ?></span>
@@ -384,6 +384,19 @@ if (isset($_SESSION['user']['id'])) {
 .breadcrumb-home-icon {
     width: 16px;
     height: 16px;
+}
+
+.category-breadcrumbs .breadcrumb-home-icon {
+    flex: 0 0 16px;
+    min-width: 16px;
+    max-width: 16px;
+    min-height: 16px;
+    max-height: 16px;
+    display: block;
+}
+
+.category-breadcrumbs .breadcrumb-home-icon path {
+    vector-effect: non-scaling-stroke;
 }
 
 .breadcrumb-divider {
