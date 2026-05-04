@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: MySQL-8.0:3306
--- Час створення: Квт 30 2026 р., 19:40
+-- Час створення: Трв 04 2026 р., 15:42
 -- Версія сервера: 8.0.44
 -- Версія PHP: 8.3.29
 
@@ -302,7 +302,10 @@ INSERT INTO `crm_user_activity_logs` (`id`, `user_id`, `event_type`, `descriptio
 (41, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 16:28:39'),
 (42, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 16:28:39'),
 (43, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-29 16:28:39'),
-(44, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-30 16:36:52');
+(44, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-04-30 16:36:52'),
+(45, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-01 07:15:05'),
+(46, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-02 15:28:13'),
+(47, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-04 12:37:46');
 
 -- --------------------------------------------------------
 
@@ -532,7 +535,7 @@ CREATE TABLE `plugins` (
 --
 
 INSERT INTO `plugins` (`id`, `name`, `slug`, `main_file`, `is_active`, `version`, `created_at`, `updated_at`) VALUES
-(1, 'TestPlugin', 'TestPlugin', 'D:\\OSPanel\\home\\mysite.test/plugins/TestPlugin/plugin.php', 0, '1.0.0', '2026-04-30 19:25:51', '2026-04-30 19:25:51');
+(1, 'TestPlugin', 'TestPlugin', 'D:\\OSPanel\\home\\mysite.test/plugins/TestPlugin/plugin.php', 0, '1.0.0', '2026-04-30 19:25:51', '2026-05-02 17:25:42');
 
 -- --------------------------------------------------------
 
@@ -691,6 +694,7 @@ INSERT INTO `settings` (`key`, `value`, `group`, `type`, `created_at`, `updated_
 ('default_currency', 'UAH', 'localization', 'select', '2026-04-03 08:17:13', '2026-04-27 17:16:04'),
 ('default_language', 'ua', 'localization', 'select', '2026-04-03 08:17:13', '2026-04-27 17:16:04'),
 ('email', 'admin@mysite.test', 'general', 'text', '2026-04-12 16:35:40', '2026-04-27 17:16:04'),
+('force_https', '0', 'general', 'checkbox', '2026-05-01 17:21:57', '2026-05-01 17:21:57'),
 ('maintenance_message', 'Вибачте, магазин тимчасово закритий на технічне обслуговування.', 'general', 'textarea', '2026-04-03 08:17:13', '2026-04-27 17:16:04'),
 ('media_apply_watermark', '0', 'media', 'checkbox', '2026-04-13 09:12:17', '2026-04-27 17:16:04'),
 ('media_auto_webp', '0', 'media', 'checkbox', '2026-04-13 09:12:17', '2026-04-27 17:16:04'),
@@ -802,7 +806,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `email`, `password`, `first_name`, `last_name`, `phone`, `avatar`, `role_id`, `is_active`, `email_verified`, `email_verified_at`, `last_login`, `password_reset_token`, `password_reset_expires`, `remember_token`, `created_at`, `updated_at`) VALUES
-(2, 'systemmaster@meta.ua', '$2y$12$knhVn0wIOYbnqx3TRccf1OrGmEGu3JWSZsbLQ/c9tvLrmZElAaU86', 'Василь', 'Присяжнюк', NULL, NULL, 1, 1, 0, NULL, '2026-04-30 16:36:38', NULL, NULL, 'cbb001e6da426d9548d27caacbc6f0c29757dcc231187574284a73efcb440cab', '2026-03-31 09:57:24', '2026-04-30 16:36:38');
+(2, 'systemmaster@meta.ua', '$2y$12$knhVn0wIOYbnqx3TRccf1OrGmEGu3JWSZsbLQ/c9tvLrmZElAaU86', 'Василь', 'Присяжнюк', NULL, NULL, 1, 1, 0, NULL, '2026-05-04 13:41:53', NULL, NULL, 'cbb001e6da426d9548d27caacbc6f0c29757dcc231187574284a73efcb440cab', '2026-03-31 09:57:24', '2026-05-04 13:41:53');
 
 -- --------------------------------------------------------
 
@@ -1117,7 +1121,7 @@ ALTER TABLE `crm_user_action_audit`
 -- AUTO_INCREMENT для таблиці `crm_user_activity_logs`
 --
 ALTER TABLE `crm_user_activity_logs`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=45;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
 
 --
 -- AUTO_INCREMENT для таблиці `filter_history`
