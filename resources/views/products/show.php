@@ -134,7 +134,7 @@ if (isset($_SESSION['user']['id'])) {
         <ol>
             <li>
                 <a class="breadcrumb-link breadcrumb-link-home" href="/">
-                    <svg class="breadcrumb-home-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <svg class="breadcrumb-home-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true" width="16" height="16">
                         <path d="M3 10.5L12 3L21 10.5V20A1 1 0 0 1 20 21H4A1 1 0 0 1 3 20V10.5Z" stroke="currentColor" stroke-width="1.8"/>
                     </svg>
                     <span><?= __('breadcrumb_home') ?></span>
@@ -384,6 +384,19 @@ if (isset($_SESSION['user']['id'])) {
 .breadcrumb-home-icon {
     width: 16px;
     height: 16px;
+}
+
+.category-breadcrumbs .breadcrumb-home-icon {
+    flex: 0 0 16px;
+    min-width: 16px;
+    max-width: 16px;
+    min-height: 16px;
+    max-height: 16px;
+    display: block;
+}
+
+.category-breadcrumbs .breadcrumb-home-icon path {
+    vector-effect: non-scaling-stroke;
 }
 
 .breadcrumb-divider {
@@ -1012,9 +1025,17 @@ if (isset($_SESSION['user']['id'])) {
         const form = document.getElementById('review-form');
         let page = 1;
 
+        const escapeHtml = (value) => String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+
         const renderReview = (item) => {
-            const replies = (item.replies || []).map((r) => `<div class="review-item"><div><b>${r.author_name}</b> · ${r.created_at}</div><div>${r.body}</div></div>`).join('');
-            return `<div class="review-item"><div><b>${item.author_name}</b> · ${item.created_at}</div><div>Рейтинг: ${item.rating ?? '-'}</div><div>${item.body}</div><button class="reply-btn pdp-btn pdp-btn-ghost" data-id="${item.id}">Відповісти</button><div class="review-replies">${replies}</div></div>`;
+            const replies = (item.replies || []).map((r) => `<div class="review-item"><div><b>${escapeHtml(r.author_name)}</b> · ${escapeHtml(r.created_at)}</div><div>${escapeHtml(r.body)}</div></div>`).join('');
+            const safeRating = Number.isFinite(Number(item.rating)) ? Number(item.rating) : '-';
+            return `<div class="review-item"><div><b>${escapeHtml(item.author_name)}</b> · ${escapeHtml(item.created_at)}</div><div>Рейтинг: ${safeRating}</div><div>${escapeHtml(item.body)}</div><button class="reply-btn pdp-btn pdp-btn-ghost" data-id="${Number(item.id) || 0}">Відповісти</button><div class="review-replies">${replies}</div></div>`;
         };
 
         const loadReviews = async () => {
