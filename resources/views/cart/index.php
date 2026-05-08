@@ -4,7 +4,7 @@
     <?php if (empty($items)) : ?>
         <div style="text-align: center; padding: 40px; background: #fff; border-radius: 10px; border: 1px solid #ddd;">
             <p><?php echo __('cart_is_empty'); ?></p>
-            <a href="/products" class="btn btn-primary"><?php echo __('continue_shopping'); ?></a>
+            <a href="<?php echo htmlspecialchars($continueShoppingUrl ?? '/products'); ?>" class="btn btn-primary"><?php echo __('continue_shopping'); ?></a>
         </div>
     <?php else : ?>
         <div style="display: flex !important; flex-wrap: wrap !important; gap: 30px !important; align-items: flex-start !important;">
@@ -78,7 +78,7 @@
                 <?php endforeach; ?>
 
                 <div style="display: flex; justify-content: space-between; margin-top: 15px;">
-                    <a href="/products" style="text-decoration: none; color: #007bff; font-weight: 600; font-size: 14px;">← <?php echo __('continue_shopping'); ?></a>
+                    <a href="<?php echo htmlspecialchars($continueShoppingUrl ?? '/products'); ?>" style="text-decoration: none; color: #007bff; font-weight: 600; font-size: 14px;">← <?php echo __('continue_shopping'); ?></a>
                     <form action="/cart/clear" method="POST">
                         <input type="hidden" name="_method" value="DELETE"><input type="hidden" name="csrf" value="<?php echo $csrf; ?>">
                         <button type="submit" style="background: none; border: none; color: #dc3545; cursor: pointer; font-size: 14px;"><?php echo __('clear_cart'); ?></button>
@@ -116,7 +116,6 @@
         </div>
     <?php endif; ?>
 </div>
-
 
 
 
