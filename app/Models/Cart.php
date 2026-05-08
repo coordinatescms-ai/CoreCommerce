@@ -381,6 +381,17 @@ class Cart
         return $total;
     }
 
+    public static function getItemsCount(): int
+    {
+        $scope = self::scope();
+        $row = DB::query(
+            "SELECT COALESCE(SUM(c.quantity), 0) AS qty FROM " . self::TABLE . " c WHERE {$scope['where']}",
+            $scope['params']
+        )->fetch(PDO::FETCH_ASSOC);
+
+        return max(0, (int) ($row['qty'] ?? 0));
+    }
+
     /**
      * Перенести гостьовий кошик на user_id після логіну.
      * Викликається: Cart::migrate($oldSessionId, $userId)

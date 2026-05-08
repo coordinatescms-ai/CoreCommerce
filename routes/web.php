@@ -33,6 +33,7 @@ $router->get('/category/{slug}',[ProductController::class,'showCategory']);
 
 // Кошик
 $router->get('/cart',[CartController::class,'index']);
+$router->get('/cart/count',[CartController::class,'count']);
 $router->post('/cart/add/{id}',[CartController::class,'add']);
 $router->post('/cart/update',[CartController::class,'update']);
 $router->delete('/cart/remove/{id}',[CartController::class,'remove']);

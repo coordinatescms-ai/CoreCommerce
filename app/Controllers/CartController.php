@@ -10,6 +10,8 @@ use App\Models\Product;
 
 class CartController
 {
+    private const FALLBACK_CONTINUE_SHOPPING_URL = '/products';
+
     private function validateCsrfOrAbort()
     {
         Csrf::abortIfInvalid('CSRF token mismatch');
@@ -28,10 +30,12 @@ class CartController
     {
         $items = Cart::getItems();
         $total = Cart::getTotal();
+        $continueShoppingUrl = $this->resolveContinueShoppingUrl();
 
         return View::render('cart.index', [
             'items' => $items,
             'total' => $total,
+            'continueShoppingUrl' => $continueShoppingUrl,
             'csrf' => Csrf::token(),
             'seo' => [
                 'meta_title' => __('cart'),
@@ -54,6 +58,7 @@ class CartController
         do_action('cart.add_item', (int) $id, (int) $quantity, $selectedOptionIds);
 
         if ($result['success']) {
+            $this->storeLastShoppingUrl();
             $product = Product::findVisibleById((int) $id);
             $this->logUserActivity('cart_add', 'Додав у кошик: ' . (string) ($product['name'] ?? ('ID ' . (int) $id)));
             $_SESSION['success'] = __('product_added_to_cart');
@@ -61,7 +66,27 @@ class CartController
             $_SESSION['error'] = __($result['message']);
         }
 
+        if ($this->isAjaxRequest()) {
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode([
+                'success' => (bool) $result['success'],
+                'message' => __($result['success'] ? 'product_added_to_cart' : (string) $result['message']),
+                'count' => Cart::getItemsCount(),
+            ], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+
         header('Location: /cart');
+        exit;
+    }
+
+    public function count()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode([
+            'success' => true,
+            'count' => Cart::getItemsCount(),
+        ], JSON_UNESCAPED_UNICODE);
         exit;
     }
 
@@ -107,5 +132,46 @@ class CartController
 
         header('Location: /cart');
         exit;
+    }
+
+    private function isAjaxRequest(): bool
+    {
+        return strtolower((string) ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '')) === 'xmlhttprequest';
+    }
+
+    private function storeLastShoppingUrl(): void
+    {
+        $candidateUrl = trim((string) ($_POST['return_url'] ?? ($_SERVER['HTTP_REFERER'] ?? '')));
+        if ($candidateUrl === '') {
+            return;
+        }
+
+        $parsed = parse_url($candidateUrl);
+        $path = (string) ($parsed['path'] ?? '');
+        $allowedPrefixes = ['/product/', '/category/'];
+        $isAllowed = false;
+        foreach ($allowedPrefixes as $prefix) {
+            if (str_starts_with($path, $prefix)) {
+                $isAllowed = true;
+                break;
+            }
+        }
+
+        if (!$isAllowed) {
+            return;
+        }
+
+        $query = isset($parsed['query']) ? '?' . $parsed['query'] : '';
+        $_SESSION['cart_continue_shopping_url'] = $path . $query;
+    }
+
+    private function resolveContinueShoppingUrl(): string
+    {
+        $url = trim((string) ($_SESSION['cart_continue_shopping_url'] ?? ''));
+        if ($url === '' || !str_starts_with($url, '/')) {
+            return self::FALLBACK_CONTINUE_SHOPPING_URL;
+        }
+
+        return $url;
     }
 }

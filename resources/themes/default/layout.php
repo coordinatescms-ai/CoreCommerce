@@ -16,7 +16,9 @@
         .nav-brand { display: inline-flex; align-items: center; gap: 0.45rem; margin-right: 1rem; text-decoration: none; color: #333; font-weight: 700; }
         .nav-brand:hover { color: #007bff; text-decoration: none; }
         .nav-brand-logo { max-height: 34px; width: auto; display: block; border-radius: 4px; }
-        .nav-links { display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem; }
+        .nav-links { display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem; flex: 1; }
+        .nav-cart-link { margin-left: auto; display: inline-flex; align-items: center; gap: 0.35rem; }
+        .cart-counter { display: inline-flex; min-width: 20px; height: 20px; border-radius: 999px; align-items: center; justify-content: center; background: #007bff; color: #fff; font-size: 11px; font-weight: 700; padding: 0 6px; line-height: 1; }
         .nav-links > a { margin-right: 0; }
         .nav-separator { color: #999; margin: 0 0.2rem; }
         .nav-dropdown { position: relative; }
@@ -121,8 +123,7 @@
                 <span><?= htmlspecialchars((string) get_setting('site_name', 'Мій Магазин')) ?></span>
             </a>
             <a href="/"><?= __('home') ?></a> | 
-            <a href="/products"><?= __('products') ?></a> | 
-            <a href="/cart"><?= __('cart') ?></a> |
+            <a href="/products"><?= __('products') ?></a> |
             <div class="nav-dropdown" data-nav-dropdown>
                 <button class="nav-dropdown-toggle" type="button" aria-expanded="false" aria-controls="default-nav-categories">
                     <?= __('categories') ?>
@@ -145,6 +146,8 @@
                 <a href="/login"><?= __('login') ?></a> |
                 <a href="/register"><?= __('register') ?></a>
             <?php endif; ?>
+            <span class="nav-separator">|</span>
+            <a href="/cart" class="nav-cart-link" data-cart-link><?= __('cart') ?><span class="cart-counter" data-cart-count>0</span></a>
         </div>
         <div class="language-selector">
             <span><?= __('language') ?>:</span>
@@ -187,6 +190,28 @@
                     const isOpen = dropdown.classList.toggle('is-open');
                     button.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
                 });
+            });
+        })();
+
+        (() => {
+            const badge = document.querySelector('[data-cart-count]');
+            if (!badge) return;
+
+            const syncCartCount = async () => {
+                try {
+                    const response = await fetch('/cart/count', {headers: {'X-Requested-With': 'XMLHttpRequest'}});
+                    if (!response.ok) return;
+                    const payload = await response.json();
+                    badge.textContent = String(payload.count ?? 0);
+                } catch (e) {
+                    // noop
+                }
+            };
+
+            syncCartCount();
+            setInterval(syncCartCount, 15000);
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) syncCartCount();
             });
         })();
     </script>
