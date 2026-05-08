@@ -234,6 +234,7 @@ if (isset($_SESSION['user']['id'])) {
                     <div class="pdp-actions">
                         <form action="/cart/add/<?= (int) $product['id'] ?>" method="POST" class="d-flex align-items-center">
                             <input type="hidden" name="csrf" value="<?= $_SESSION['csrf'] ?? '' ?>">
+                            <input type="hidden" name="return_url" value="<?= htmlspecialchars($_SERVER['REQUEST_URI'] ?? '/products') ?>">
                             <input type="number" name="quantity" value="1" min="1" max="<?= (int)($product['stock'] ?? 0) ?>" class="form-control me-2" style="width: 80px;">
                             <button type="submit" class="pdp-btn pdp-btn-primary"><?= __('add_to_cart') ?></button>
                         </form>
