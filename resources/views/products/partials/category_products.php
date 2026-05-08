@@ -33,6 +33,7 @@ $category = $category ?? null;
 
                     <form action="/cart/add/<?= (int) $product['id'] ?>" method="POST">
                         <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
+                        <input type="hidden" name="return_url" value="<?= htmlspecialchars($_SERVER['REQUEST_URI'] ?? '/products') ?>">
                         <button type="submit" class="btn btn-primary"><?= __('add_to_cart') ?></button>
                     </form>
                 </div>
