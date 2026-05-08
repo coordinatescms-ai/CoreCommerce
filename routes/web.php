@@ -19,6 +19,7 @@ use App\Controllers\AdminOrderController;
 use App\Controllers\AdminContentController;
 use App\Controllers\PageController;
 use App\Controllers\AdminPluginController;
+use App\Controllers\UpdateController;
 
 $router = new Router();
 
@@ -158,6 +159,15 @@ $router->post('/admin/users/block/{id}', [AdminUserController::class, 'updateBlo
 $router->post('/admin/users/subscription/{id}', [AdminUserController::class, 'updateSubscription']);
 $router->post('/admin/users/send-email/{id}', [AdminUserController::class, 'sendEmail']);
 $router->delete('/admin/users/delete/{id}', [AdminUserController::class, 'delete']);
+
+// Модуль оновлення
+$router->get('/admin/update/check', [UpdateController::class, 'check']);
+$router->post('/admin/update/init', [UpdateController::class, 'init']);
+$router->post('/admin/update/backup', [UpdateController::class, 'backup']);
+$router->post('/admin/update/download', [UpdateController::class, 'download']);
+$router->post('/admin/update/extract', [UpdateController::class, 'extract']);
+$router->post('/admin/update/database', [UpdateController::class, 'database']);
+$router->post('/admin/update/finish', [UpdateController::class, 'finish']);
 
 //Статичні сторінки
 $router->get('/{slug}', [\App\Controllers\PageController::class, 'show']);

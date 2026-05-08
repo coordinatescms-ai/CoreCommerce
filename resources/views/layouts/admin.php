@@ -6,6 +6,7 @@
     <title>Admin Panel - <?php echo htmlspecialchars($site_name ?? 'MySite'); ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="/js/chart.umd.js"></script>
+    <script src="/js/updater.js" defer></script>
     
     <style>
         :root {
