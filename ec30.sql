@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: MySQL-8.0:3306
--- Час створення: Трв 04 2026 р., 17:27
+-- Час створення: Трв 08 2026 р., 08:25
 -- Версія сервера: 8.0.44
 -- Версія PHP: 8.3.29
 
@@ -315,7 +315,23 @@ INSERT INTO `crm_user_activity_logs` (`id`, `user_id`, `event_type`, `descriptio
 (54, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-04 14:29:08'),
 (55, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-04 14:34:12'),
 (56, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-04 14:52:52'),
-(57, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-04 15:00:17');
+(57, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-04 15:00:17'),
+(58, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-04 15:32:57'),
+(59, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-04 15:35:51'),
+(60, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-04 15:36:07'),
+(61, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-04 15:39:34'),
+(62, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-04 15:39:51'),
+(63, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-04 15:42:43'),
+(64, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-05 17:55:35'),
+(65, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-05 17:56:25'),
+(66, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-06 06:58:08'),
+(67, 2, 'cart_add', 'Додав у кошик: Сіомі', NULL, '2026-05-07 15:17:39'),
+(68, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-07 15:18:23'),
+(69, 2, 'cart_add', 'Додав у кошик: iPhone 13', NULL, '2026-05-07 15:18:27'),
+(70, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-07 15:18:33'),
+(71, 2, 'cart_add', 'Додав у кошик: Сіомі', NULL, '2026-05-07 15:18:41'),
+(72, 2, 'cart_remove', 'Видалив товар із кошика', NULL, '2026-05-07 15:33:34'),
+(73, 2, 'cart_remove', 'Видалив товар із кошика', NULL, '2026-05-07 15:33:35');
 
 -- --------------------------------------------------------
 
@@ -656,12 +672,12 @@ CREATE TABLE `product_reviews` (
   `product_id` int NOT NULL,
   `user_id` int NOT NULL,
   `parent_id` int DEFAULT NULL,
-  `rating` tinyint UNSIGNED DEFAULT NULL,
-  `author_name` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `body` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `rating` tinyint DEFAULT NULL,
+  `author_name` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `body` text COLLATE utf8mb4_unicode_ci NOT NULL,
   `is_visible` tinyint(1) NOT NULL DEFAULT '1',
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -669,10 +685,41 @@ CREATE TABLE `product_reviews` (
 --
 
 INSERT INTO `product_reviews` (`id`, `product_id`, `user_id`, `parent_id`, `rating`, `author_name`, `body`, `is_visible`, `created_at`, `updated_at`) VALUES
-(1, 2, 2, NULL, 5, 'Василь Присяжнюк', 'Відгук, Відгук, Відгук, Відгук, Відгук, Відгук, Відгук, Відгук!', 1, '2026-05-04 15:02:06', '2026-05-04 15:02:06'),
-(2, 2, 2, 1, NULL, 'Василь Присяжнюк', 'іііійійій цвйцв цвйцвй', 1, '2026-05-04 15:06:20', '2026-05-04 15:06:20'),
-(3, 2, 2, 1, NULL, 'Василь Присяжнюк', 'ФІі іійі', 1, '2026-05-04 15:06:45', '2026-05-04 15:06:45'),
-(4, 2, 2, NULL, 5, 'Василь Присяжнюк', 'йійійі йійі', 1, '2026-05-04 15:06:53', '2026-05-04 15:06:53');
+(1, 2, 2, NULL, 5, 'Василь Присяжнюк', 'Текст відгуку, Текст відгуку, Текст відгуку, Текст відгуку!\r\nТекст відгуку1', 1, '2026-05-04 17:33:26', '2026-05-04 17:33:26'),
+(2, 1, 2, NULL, 5, 'Василь Присяжнюк', 'Схожі товари Схожі товари Схожі товари!', 1, '2026-05-04 17:39:47', '2026-05-04 17:39:47'),
+(3, 2, 2, 1, NULL, 'Василь Присяжнюк', 'йййййййййййййййй ййййййййййййййййййййййййй йййййййййй1!!!!!!', 1, '2026-05-04 17:42:09', '2026-05-04 17:42:09');
+
+--
+-- Тригери `product_reviews`
+--
+DELIMITER $$
+CREATE TRIGGER `trg_reviews_validate_insert` BEFORE INSERT ON `product_reviews` FOR EACH ROW BEGIN
+  IF NEW.parent_id IS NULL THEN
+    IF NEW.rating IS NULL OR NEW.rating < 1 OR NEW.rating > 5 THEN
+      SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Root review rating must be between 1 and 5';
+    END IF;
+  ELSE
+    IF NEW.rating IS NOT NULL THEN
+      SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Reply review must not have rating';
+    END IF;
+  END IF;
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `trg_reviews_validate_update` BEFORE UPDATE ON `product_reviews` FOR EACH ROW BEGIN
+  IF NEW.parent_id IS NULL THEN
+    IF NEW.rating IS NULL OR NEW.rating < 1 OR NEW.rating > 5 THEN
+      SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Root review rating must be between 1 and 5';
+    END IF;
+  ELSE
+    IF NEW.rating IS NOT NULL THEN
+      SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Reply review must not have rating';
+    END IF;
+  END IF;
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -845,7 +892,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `email`, `password`, `first_name`, `last_name`, `phone`, `avatar`, `role_id`, `is_active`, `email_verified`, `email_verified_at`, `last_login`, `password_reset_token`, `password_reset_expires`, `remember_token`, `created_at`, `updated_at`) VALUES
-(2, 'systemmaster@meta.ua', '$2y$12$knhVn0wIOYbnqx3TRccf1OrGmEGu3JWSZsbLQ/c9tvLrmZElAaU86', 'Василь', 'Присяжнюк', NULL, NULL, 1, 1, 0, NULL, '2026-05-04 13:41:53', NULL, NULL, 'cbb001e6da426d9548d27caacbc6f0c29757dcc231187574284a73efcb440cab', '2026-03-31 09:57:24', '2026-05-04 13:41:53');
+(2, 'systemmaster@meta.ua', '$2y$12$knhVn0wIOYbnqx3TRccf1OrGmEGu3JWSZsbLQ/c9tvLrmZElAaU86', 'Василь', 'Присяжнюк', NULL, NULL, 1, 1, 0, NULL, '2026-05-07 15:13:17', NULL, NULL, 'cbb001e6da426d9548d27caacbc6f0c29757dcc231187574284a73efcb440cab', '2026-03-31 09:57:24', '2026-05-07 15:13:17');
 
 -- --------------------------------------------------------
 
@@ -1139,7 +1186,7 @@ ALTER TABLE `attribute_options`
 -- AUTO_INCREMENT для таблиці `cart`
 --
 ALTER TABLE `cart`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT для таблиці `categories`
@@ -1169,7 +1216,7 @@ ALTER TABLE `crm_user_action_audit`
 -- AUTO_INCREMENT для таблиці `crm_user_activity_logs`
 --
 ALTER TABLE `crm_user_activity_logs`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=74;
 
 --
 -- AUTO_INCREMENT для таблиці `filter_history`
@@ -1241,7 +1288,7 @@ ALTER TABLE `product_images`
 -- AUTO_INCREMENT для таблиці `product_reviews`
 --
 ALTER TABLE `product_reviews`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT для таблиці `seo_settings`

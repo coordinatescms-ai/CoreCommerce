@@ -258,6 +258,13 @@ class AdminController
             ]);
             break;
 
+        case 'update':
+            $config = require __DIR__ . '/../../config/updater.php';
+            View::renderPartial('admin/settings/tabs/update', [
+                'current_version' => $config['current_version']
+            ]);
+            break;
+
         case 'general':
         default:
             $settings = Setting::getAllGrouped();

@@ -11,7 +11,13 @@ use App\Core\Plugin\PluginManager;
 use App\Models\User;
 use App\Models\Setting;
 
-// 2. Встановлення з'єднання з базою даних
+// 2. Перевірка режиму обслуговування (Maintenance Mode)
+if (file_exists(__DIR__ . '/../storage/maintenance.flag') && strpos($_SERVER['REQUEST_URI'], '/admin') === false) {
+    http_response_code(503);
+    die("<h1>Сайт на оновленні</h1><p>Будь ласка, зачекайте кілька хвилин. Ми оновлюємо систему для вашої зручності.</p>");
+}
+
+// 3. Встановлення з'єднання з базою даних
 $config = require __DIR__.'/../config/database.php';
 DB::connect($config['dsn'], $config['user'], $config['pass']);
 
