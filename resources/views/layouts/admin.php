@@ -263,6 +263,9 @@
             <a href="/admin/analytics/week" class="menu-item <?php echo $request_uri === '/admin/settings' ? 'active' : ''; ?>">
                 <i class="fas fa-chart-line"></i> Аналітика
             </a>
+            <a href="/admin/stocks" class="menu-item <?php echo strpos($request_uri, '/admin/stocks') === 0 ? 'active' : ''; ?>">
+                <i class="fas fa-warehouse"></i> Склад
+            </a>
         </nav>
     </aside>
 
