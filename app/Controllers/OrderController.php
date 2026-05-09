@@ -8,6 +8,7 @@ use App\Core\View\View;
 use App\Models\Cart;
 use App\Models\Setting;
 use App\Models\CrmUserService;
+use App\Services\StockServiceFactory;
 
 class OrderController
 {
@@ -186,8 +187,14 @@ class OrderController
                     throw new \RuntimeException('Один із товарів більше не існує.');
                 }
 
-                if ((int) $product['stock'] < $quantity) {
-                    throw new \RuntimeException('Недостатньо залишків для товару: ' . $product['name']);
+                $sku = (string) ($product['sku'] ?? '');
+                if ($sku === '') {
+                    throw new \RuntimeException('У товару відсутній SKU: ' . $product['name']);
+                }
+
+                $stockService = StockServiceFactory::make();
+                if ($quantity > $stockService->getAvailableQuantity($sku)) {
+                    throw new \RuntimeException('Немає в наявності: ' . $product['name']);
                 }
 
                 $optionStockLimit = $this->resolveOptionStockLimit($productId, (array) ($item['selected_options'] ?? []));
@@ -233,13 +240,9 @@ class OrderController
                     [$orderId, $productId, $selectedOptionsJson, $quantity, $price]
                 );
 
-                $updateStatement = DB::query(
-                    'UPDATE products SET stock = stock - ? WHERE id = ? AND stock >= ?',
-                    [$quantity, $productId, $quantity]
-                );
-
-                if ($updateStatement->rowCount() !== 1) {
-                    throw new \RuntimeException('Не вдалося оновити залишки для товару ID ' . $productId);
+                $sku = (string) ($lockedMap[$productId]['sku'] ?? '');
+                if (!$stockService->reserve($sku, $quantity)) {
+                    throw new \RuntimeException('Немає в наявності');
                 }
             }
 

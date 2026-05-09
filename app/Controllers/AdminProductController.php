@@ -526,7 +526,8 @@ class AdminProductController
             'category_id' => !empty($_POST['category_id']) ? (int)$_POST['category_id'] : null,
             'description' => trim((string) ($_POST['description'] ?? '')),
             'meta_title' => trim((string) ($_POST['meta_title'] ?? '')),
-            'meta_description' => trim((string) ($_POST['meta_description'] ?? ''))
+            'meta_description' => trim((string) ($_POST['meta_description'] ?? '')),
+            'sku' => trim((string) ($_POST['sku'] ?? ''))
         ];
         $attributePairError = $this->validateAttributePairs();
         if ($attributePairError !== null) {
@@ -534,6 +535,16 @@ class AdminProductController
             $_SESSION['error'] = $attributePairError;
             header('Location: /admin/products/create');
             exit;
+        }
+
+        if ($data['sku'] !== '') {
+            $exists = \App\Core\Database\DB::query('SELECT id FROM products WHERE sku = ? LIMIT 1', [$data['sku']])->fetch();
+            if ($exists) {
+                $this->flashProductFormData($data, $attributeRows);
+                $_SESSION['error'] = 'SKU вже використовується іншим товаром.';
+                header('Location: /admin/products/create');
+                exit;
+            }
         }
 
         $validationError = $this->validateProductPayload($data);
@@ -545,11 +556,18 @@ class AdminProductController
         }
 
         $data['price'] = (float) str_replace(',', '.', (string) $data['price']);
+
+
         $data['image'] = null;
 
         $productId = Product::create($data);
 
         if ($productId) {
+            if ($data['sku'] === '') {
+                $generatedSku = 'SKU-' . str_pad((string) $productId, 6, '0', STR_PAD_LEFT);
+                Product::update((int) $productId, ['sku' => $generatedSku]);
+                $data['sku'] = $generatedSku;
+            }
             if (!$this->validateAttributesForCategory($data['category_id'], $attributeRows)) {
                 Product::delete((int) $productId);
                 $this->flashProductFormData($data, $attributeRows);
@@ -607,6 +625,7 @@ class AdminProductController
             $product['description'] = $formData['description'] ?? $product['description'];
             $product['meta_title'] = $formData['meta_title'] ?? $product['meta_title'];
             $product['meta_description'] = $formData['meta_description'] ?? $product['meta_description'];
+            $product['sku'] = $formData['sku'] ?? ($product['sku'] ?? '');
         }
 
         $existingAttributes = !empty($formData['attributes'])
@@ -642,7 +661,8 @@ class AdminProductController
             'category_id' => !empty($_POST['category_id']) ? (int)$_POST['category_id'] : null,
             'description' => trim((string) ($_POST['description'] ?? '')),
             'meta_title' => trim((string) ($_POST['meta_title'] ?? '')),
-            'meta_description' => trim((string) ($_POST['meta_description'] ?? ''))
+            'meta_description' => trim((string) ($_POST['meta_description'] ?? '')),
+            'sku' => trim((string) ($_POST['sku'] ?? ''))
         ];
 
         $attributeRows = $this->collectAttributeRows();
@@ -663,6 +683,16 @@ class AdminProductController
         }
 
         $data['price'] = (float) str_replace(',', '.', (string) $data['price']);
+
+        if ($data['sku'] !== '') {
+            $exists = \App\Core\Database\DB::query('SELECT id FROM products WHERE sku = ? AND id != ? LIMIT 1', [$data['sku'], (int) $id])->fetch();
+            if ($exists) {
+                $this->flashProductFormData($data, $attributeRows);
+                $_SESSION['error'] = 'SKU вже використовується іншим товаром.';
+                header('Location: /admin/products/edit/' . $id);
+                exit;
+            }
+        }
 
         $existingGallery = ProductImage::getByProduct((int) $id);
         $existingById = [];
