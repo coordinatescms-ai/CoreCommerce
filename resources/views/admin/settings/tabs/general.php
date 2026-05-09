@@ -164,6 +164,58 @@
         </div>
     </div>
 
+
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-user-shield"></i> Соціальний вхід
+        </div>
+        <div class="card-body">
+            <h4 style="margin-top:0;">Google</h4>
+            <div class="form-group">
+                <label for="google_auth_enabled">Статус</label>
+                <select name="settings[google_auth_enabled]" id="google_auth_enabled" class="form-control">
+                    <option value="0" <?php echo get_setting('google_auth_enabled', '0') === '0' ? 'selected' : ''; ?>>Вимкнено</option>
+                    <option value="1" <?php echo get_setting('google_auth_enabled', '0') === '1' ? 'selected' : ''; ?>>Увімкнено</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="google_client_id">Client ID</label>
+                <input type="text" name="settings[google_client_id]" id="google_client_id" class="form-control" value="<?php echo htmlspecialchars(get_setting('google_client_id', '')); ?>">
+            </div>
+            <div class="form-group">
+                <label for="google_client_secret">Client Secret</label>
+                <input type="password" name="settings[google_client_secret]" id="google_client_secret" class="form-control" value="<?php echo htmlspecialchars(get_setting('google_client_secret', '')); ?>">
+            </div>
+            <div class="form-group">
+                <label for="google_redirect_url">Redirect URL</label>
+                <input type="url" name="settings[google_redirect_url]" id="google_redirect_url" class="form-control" value="<?php echo htmlspecialchars(get_setting('google_redirect_url', '')); ?>">
+            </div>
+
+            <hr style="margin:1.25rem 0;">
+
+            <h4>Facebook</h4>
+            <div class="form-group">
+                <label for="facebook_auth_enabled">Статус</label>
+                <select name="settings[facebook_auth_enabled]" id="facebook_auth_enabled" class="form-control">
+                    <option value="0" <?php echo get_setting('facebook_auth_enabled', '0') === '0' ? 'selected' : ''; ?>>Вимкнено</option>
+                    <option value="1" <?php echo get_setting('facebook_auth_enabled', '0') === '1' ? 'selected' : ''; ?>>Увімкнено</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="facebook_client_id">Client ID</label>
+                <input type="text" name="settings[facebook_client_id]" id="facebook_client_id" class="form-control" value="<?php echo htmlspecialchars(get_setting('facebook_client_id', '')); ?>">
+            </div>
+            <div class="form-group">
+                <label for="facebook_client_secret">Client Secret</label>
+                <input type="password" name="settings[facebook_client_secret]" id="facebook_client_secret" class="form-control" value="<?php echo htmlspecialchars(get_setting('facebook_client_secret', '')); ?>">
+            </div>
+            <div class="form-group">
+                <label for="facebook_redirect_url">Redirect URL</label>
+                <input type="url" name="settings[facebook_redirect_url]" id="facebook_redirect_url" class="form-control" value="<?php echo htmlspecialchars(get_setting('facebook_redirect_url', '')); ?>">
+            </div>
+        </div>
+    </div>
+
     <div style="margin-bottom: 2rem; display: flex; justify-content: flex-end;">
         <button type="submit" class="btn btn-primary btn-lg" style="padding: 0.75rem 2rem; font-size: 1rem;">
             <i class="fas fa-save"></i> Зберегти всі налаштування
