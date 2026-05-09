@@ -20,6 +20,7 @@ use App\Controllers\AdminContentController;
 use App\Controllers\PageController;
 use App\Controllers\AdminPluginController;
 use App\Controllers\UpdateController;
+use App\Controllers\StockController;
 
 $router = new Router();
 
@@ -170,6 +171,10 @@ $router->post('/admin/update/extract', [UpdateController::class, 'extract']);
 $router->post('/admin/update/database', [UpdateController::class, 'database']);
 $router->post('/admin/update/finish', [UpdateController::class, 'finish']);
 
+
+$router->get('/admin/stocks', [StockController::class, 'index']);
+$router->post('/admin/stocks/adjust', [StockController::class, 'adjust']);
+$router->post('/api/stock/sync', [StockController::class, 'syncApi']);
 //Статичні сторінки
 $router->get('/{slug}', [\App\Controllers\PageController::class, 'show']);
 

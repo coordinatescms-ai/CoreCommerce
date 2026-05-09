@@ -13,4 +13,7 @@ return [
         'client_secret' => $_ENV['FACEBOOK_CLIENT_SECRET'] ?? '',
         'redirect' => $_ENV['FACEBOOK_REDIRECT_URL'] ?? '',
     ],
+    'stock' => [
+        'source' => $_ENV['STOCK_SOURCE'] ?? 'local',
+    ],
 ];
