@@ -21,7 +21,7 @@ class StockController
     {
         $this->checkAdmin();
 
-        $products = DB::query('SELECT p.id, p.name, p.sku, COALESCE(ps.quantity,0) as quantity, COALESCE(ps.reserved,0) as reserved FROM products p LEFT JOIN product_stocks ps ON ps.sku = p.sku ORDER BY p.id DESC')->fetchAll();
+        $products = DB::query('SELECT p.id, p.name, p.sku, COALESCE(ps.quantity,0) as quantity, COALESCE(ps.reserved,0) as reserved FROM products p LEFT JOIN product_stocks ps ON ps.sku COLLATE utf8mb4_general_ci = p.sku COLLATE utf8mb4_general_ci ORDER BY p.id DESC')->fetchAll();
         $logs = DB::query('SELECT sku, event_type, qty, comment, created_at FROM inventory_log ORDER BY id DESC LIMIT 10')->fetchAll();
 
         View::render('admin/stocks/index', [
