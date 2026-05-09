@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Core\Database\DB;
 use App\Core\View\View;
 use App\Models\Setting;
+use App\Services\StockServiceFactory;
 
 class AdminOrderController
 {
@@ -114,14 +115,14 @@ class AdminOrderController
                 return;
             }
 
-            if ($currentStatus !== 'processing' && $newStatus === 'processing') {
-                $this->reserveOrderItems($orderId);
+            if ($newStatus === 'completed' && $currentStatus !== 'completed') {
+                $this->completeOrderItems($orderId);
             }
 
             if (!in_array($currentStatus, ['cancelled', 'returned'], true)
                 && in_array($newStatus, ['cancelled', 'returned'], true)
             ) {
-                $this->returnOrderItemsToStock($orderId);
+                $this->releaseOrderReserve($orderId);
             }
 
             if ($this->hasTtnCodeColumn()) {
@@ -627,38 +628,36 @@ class AdminOrderController
         );
     }
 
-    private function reserveOrderItems(int $orderId): void
+    private function releaseOrderReserve(int $orderId): void
     {
-        $items = DB::query('SELECT product_id, qty FROM order_items WHERE order_id = ?', [$orderId])->fetchAll(\PDO::FETCH_ASSOC);
+        $items = DB::query('SELECT oi.qty, p.sku FROM order_items oi INNER JOIN products p ON p.id = oi.product_id WHERE oi.order_id = ?', [$orderId])->fetchAll(\PDO::FETCH_ASSOC);
+        $stockService = StockServiceFactory::make();
 
         foreach ($items as $item) {
-            $productId = (int) ($item['product_id'] ?? 0);
             $qty = max(0, (int) ($item['qty'] ?? 0));
-
-            if ($productId <= 0 || $qty <= 0) {
-                continue;
-            }
-
-            $statement = DB::query('UPDATE products SET stock = stock - ? WHERE id = ? AND stock >= ?', [$qty, $productId, $qty]);
-            if ($statement->rowCount() !== 1) {
-                throw new \RuntimeException('Недостатньо залишків для резервування товару ID ' . $productId);
+            $sku = (string) ($item['sku'] ?? '');
+            if ($qty > 0 && $sku !== '') {
+                $stockService->releaseReserve($sku, $qty);
             }
         }
     }
 
-    private function returnOrderItemsToStock(int $orderId): void
+    private function completeOrderItems(int $orderId): void
     {
-        $items = DB::query('SELECT product_id, qty FROM order_items WHERE order_id = ?', [$orderId])->fetchAll(\PDO::FETCH_ASSOC);
+        $items = DB::query('SELECT oi.qty, p.sku FROM order_items oi INNER JOIN products p ON p.id = oi.product_id WHERE oi.order_id = ?', [$orderId])->fetchAll(\PDO::FETCH_ASSOC);
+        $stockService = StockServiceFactory::make();
 
         foreach ($items as $item) {
-            $productId = (int) ($item['product_id'] ?? 0);
             $qty = max(0, (int) ($item['qty'] ?? 0));
-
-            if ($productId <= 0 || $qty <= 0) {
+            $sku = (string) ($item['sku'] ?? '');
+            if ($qty <= 0 || $sku === '') {
                 continue;
             }
 
-            DB::query('UPDATE products SET stock = stock + ? WHERE id = ?', [$qty, $productId]);
+            if (!$stockService->removeStock($sku, $qty, 'Списання по замовленню #' . $orderId)) {
+                throw new \RuntimeException('Недостатньо залишків для SKU ' . $sku);
+            }
+            $stockService->releaseReserve($sku, $qty);
         }
     }
 

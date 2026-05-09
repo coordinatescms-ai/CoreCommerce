@@ -17,6 +17,11 @@
                 <label for="name">Назва товару <span style="color:#dc2626;">*</span></label>
                 <input type="text" name="name" id="name" class="form-control" required value="<?php echo htmlspecialchars($product['name']); ?>">
             </div>
+
+            <div class="form-group">
+                <label for="sku">SKU (артикул)</label>
+                <input type="text" name="sku" id="sku" class="form-control" placeholder="Автогенерація: SKU-000001" value="<?php echo htmlspecialchars($formData['sku'] ?? ($product['sku'] ?? '')); ?>">
+            </div>
             <div class="form-group">
                 <label for="slug">Slug (URL посилання)</label>
                 <input type="text" name="slug" id="slug" class="form-control" required value="<?php echo htmlspecialchars($product['slug']); ?>">
