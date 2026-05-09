@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: MySQL-8.0:3306
--- Час створення: Трв 09 2026 р., 18:57
+-- Час створення: Трв 09 2026 р., 19:35
 -- Версія сервера: 8.0.44
 -- Версія PHP: 8.3.29
 
@@ -415,12 +415,11 @@ CREATE TABLE `filter_history` (
 
 CREATE TABLE `inventory_log` (
   `id` int NOT NULL,
-  `product_id` int NOT NULL,
-  `operation_type` enum('in','out','reserve','cancel_reserve','adjustment') NOT NULL,
-  `quantity` decimal(15,3) NOT NULL,
-  `reference_id` int DEFAULT NULL,
+  `sku` varchar(64) NOT NULL,
+  `event_type` varchar(32) NOT NULL,
+  `qty` int NOT NULL,
   `comment` varchar(255) DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
@@ -586,7 +585,7 @@ CREATE TABLE `plugins` (
 --
 
 INSERT INTO `plugins` (`id`, `name`, `slug`, `main_file`, `is_active`, `version`, `created_at`, `updated_at`) VALUES
-(1, 'TestPlugin', 'TestPlugin', 'D:\\OSPanel\\home\\mysite.test/plugins/TestPlugin/plugin.php', 0, '1.0.0', '2026-04-30 19:25:51', '2026-05-02 17:25:42');
+(1, 'TestPlugin', 'TestPlugin', 'D:\\OSPanel\\home\\mysite.test/plugins/TestPlugin/plugin.php', 0, '1.0.0', '2026-04-30 19:25:51', '2026-05-09 19:32:33');
 
 -- --------------------------------------------------------
 
@@ -596,7 +595,7 @@ INSERT INTO `plugins` (`id`, `name`, `slug`, `main_file`, `is_active`, `version`
 
 CREATE TABLE `products` (
   `id` int NOT NULL,
-  `sku` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `sku` varchar(64) COLLATE utf8mb4_general_ci NOT NULL,
   `is_visible` tinyint(1) DEFAULT '1',
   `category_id` int DEFAULT NULL,
   `name` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
@@ -617,8 +616,8 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`id`, `sku`, `is_visible`, `category_id`, `name`, `description`, `image`, `slug`, `meta_title`, `meta_description`, `meta_keywords`, `price`, `stock`, `created_at`, `updated_at`) VALUES
-(1, 'ID-1', 1, 2, 'iPhone 13', 'Крутий смартфон, по дуже низьким цінам! Доступна ціна за круту якість!', '/uploads/products/gallery/original/product_69e6092591658980274602.jpg', 'iphone-13', '', '', NULL, 999.00, 6, '2026-03-30 07:45:12', '2026-05-09 16:25:47'),
-(2, 'ID-2', 1, 3, 'Сіомі', 'Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі!', '/uploads/products/gallery/original/product_69e608b6ddae3707094810.webp', 'siomi', 'Сіомі крутий продукт', '', NULL, 2050.00, 2, '2026-04-05 08:11:57', '2026-05-09 16:25:47');
+(1, 'ID-1', 1, 2, 'iPhone 13', 'Крутий смартфон, по дуже низьким цінам! Доступна ціна за круту якість!', '/uploads/products/gallery/original/product_69e6092591658980274602.jpg', 'iphone-13', '', '', NULL, 999.00, 6, '2026-03-30 07:45:12', '2026-05-09 17:26:10'),
+(2, 'ID-2', 1, 3, 'Сіомі', 'Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі!', '/uploads/products/gallery/original/product_69e608b6ddae3707094810.webp', 'siomi', 'Сіомі крутий продукт', '', NULL, 2050.00, 2, '2026-04-05 08:11:57', '2026-05-09 17:26:10');
 
 -- --------------------------------------------------------
 
@@ -755,11 +754,9 @@ DELIMITER ;
 
 CREATE TABLE `product_stocks` (
   `id` int NOT NULL,
-  `product_id` int NOT NULL,
-  `sku` varchar(100) NOT NULL,
-  `quantity` decimal(15,3) DEFAULT '0.000',
-  `reserved` decimal(15,3) DEFAULT '0.000',
-  `warehouse_id` int DEFAULT '1',
+  `sku` varchar(64) NOT NULL,
+  `quantity` int NOT NULL DEFAULT '0',
+  `reserved` int NOT NULL DEFAULT '0',
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -901,11 +898,9 @@ CREATE TABLE `slug_history` (
 
 CREATE TABLE `stock_documents` (
   `id` int NOT NULL,
-  `doc_number` varchar(50) DEFAULT NULL,
-  `type` enum('incoming','outgoing') NOT NULL,
-  `status` enum('draft','completed') DEFAULT 'draft',
-  `total_amount` decimal(15,2) DEFAULT '0.00',
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+  `doc_type` varchar(32) NOT NULL,
+  `comment` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
@@ -957,7 +952,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `email`, `password`, `first_name`, `last_name`, `phone`, `avatar`, `role_id`, `is_active`, `email_verified`, `email_verified_at`, `last_login`, `password_reset_token`, `password_reset_expires`, `remember_token`, `created_at`, `updated_at`) VALUES
-(2, 'systemmaster@meta.ua', '$2y$12$knhVn0wIOYbnqx3TRccf1OrGmEGu3JWSZsbLQ/c9tvLrmZElAaU86', 'Василь', 'Присяжнюк', NULL, NULL, 1, 1, 0, NULL, '2026-05-09 12:52:53', NULL, NULL, 'cbb001e6da426d9548d27caacbc6f0c29757dcc231187574284a73efcb440cab', '2026-03-31 09:57:24', '2026-05-09 12:52:53');
+(2, 'systemmaster@meta.ua', '$2y$12$knhVn0wIOYbnqx3TRccf1OrGmEGu3JWSZsbLQ/c9tvLrmZElAaU86', 'Василь', 'Присяжнюк', NULL, NULL, 1, 1, 0, NULL, '2026-05-09 17:27:12', NULL, NULL, 'cbb001e6da426d9548d27caacbc6f0c29757dcc231187574284a73efcb440cab', '2026-03-31 09:57:24', '2026-05-09 17:27:12');
 
 -- --------------------------------------------------------
 
@@ -1087,8 +1082,7 @@ ALTER TABLE `filter_history`
 --
 ALTER TABLE `inventory_log`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `product_id` (`product_id`),
-  ADD KEY `operation_type` (`operation_type`);
+  ADD KEY `idx_inventory_log_sku` (`sku`);
 
 --
 -- Індекси таблиці `login_logs`
@@ -1139,7 +1133,7 @@ ALTER TABLE `plugins`
 --
 ALTER TABLE `products`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `idx_products_sku` (`sku`),
+  ADD UNIQUE KEY `uniq_products_sku` (`sku`),
   ADD UNIQUE KEY `idx_slug` (`slug`),
   ADD KEY `idx_products_category` (`category_id`),
   ADD KEY `idx_products_price` (`price`),
@@ -1185,9 +1179,7 @@ ALTER TABLE `product_reviews`
 --
 ALTER TABLE `product_stocks`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `sku` (`sku`),
-  ADD KEY `product_id` (`product_id`),
-  ADD KEY `sku_2` (`sku`);
+  ADD UNIQUE KEY `uniq_product_stocks_sku` (`sku`);
 
 --
 -- Індекси таблиці `seo_settings`
