@@ -547,6 +547,14 @@ class AdminController
             'smtp_pass' => ['group' => 'general', 'type' => 'text'],
             'smtp_port' => ['group' => 'general', 'type' => 'text'],
             'smtr' => ['group' => 'general', 'type' => 'text'],
+            'google_client_id' => ['group' => 'social_auth', 'type' => 'text'],
+            'google_client_secret' => ['group' => 'social_auth', 'type' => 'text'],
+            'google_redirect_url' => ['group' => 'social_auth', 'type' => 'text'],
+            'google_auth_enabled' => ['group' => 'social_auth', 'type' => 'checkbox'],
+            'facebook_client_id' => ['group' => 'social_auth', 'type' => 'text'],
+            'facebook_client_secret' => ['group' => 'social_auth', 'type' => 'text'],
+            'facebook_redirect_url' => ['group' => 'social_auth', 'type' => 'text'],
+            'facebook_auth_enabled' => ['group' => 'social_auth', 'type' => 'checkbox'],
         ];
     }
 

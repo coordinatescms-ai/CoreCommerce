@@ -145,15 +145,18 @@ class AuthController
             exit;
         }
 
-        // Створити користувача (деактивованим до підтвердження email)
-        $token = bin2hex(random_bytes(32));
+        $isFirstRegistration = User::count() === 0;
+
+        // Створити користувача: перший (адмін) одразу активний, інші — через підтвердження email
+        $token = $isFirstRegistration ? null : bin2hex(random_bytes(32));
         $result = User::create([
             'email' => $email,
             'password' => $password,
             'first_name' => $first_name,
             'last_name' => $last_name,
-            'is_active' => 0,
-            'email_verified' => 0,
+            'is_active' => $isFirstRegistration ? 1 : 0,
+            'email_verified' => $isFirstRegistration ? 1 : 0,
+            'email_verified_at' => $isFirstRegistration ? date('Y-m-d H:i:s') : null,
             'password_reset_token' => $token, // Використовуємо це поле тимчасово для верифікації
         ]);
 
@@ -163,13 +166,19 @@ class AuthController
             exit;
         }
 
+        if ($isFirstRegistration) {
+            $_SESSION['success'] = __('registration_successful');
+            header('Location: /login');
+            exit;
+        }
+
         // Відправити лист підтвердження
         $confirmation_link = "http://" . $_SERVER['HTTP_HOST'] . "/verify-email/" . $token;
         $body = $this->mailService->renderTemplate('registration_confirmation', [
             'first_name' => $first_name,
             'confirmation_link' => $confirmation_link
         ]);
-        
+
         $this->mailService->send($email, 'Підтвердження реєстрації - MySite', $body);
 
         $_SESSION['success'] = __('registration_successful_check_email');
