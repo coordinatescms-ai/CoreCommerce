@@ -270,7 +270,7 @@ if (isset($_SESSION['user']['id'])) {
                         <?php endforeach; ?>
                     <?php endif; ?>
 
-                    <?php if (!empty($productDescription)): ?>
+                    <?php if (empty($groupedDetailAttributes) && !empty($productDescription)): ?>
                         <p><?= nl2br(htmlspecialchars($productDescription)) ?></p>
                     <?php elseif (empty($groupedDetailAttributes)): ?>
                         <p>Детальні характеристики відсутні.</p>

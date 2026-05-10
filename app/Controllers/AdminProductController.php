@@ -229,6 +229,7 @@ class AdminProductController
 
             ProductAttribute::setValue((int) $productId, (int) $attributeId, $normalizedValue, $optionId, [
                 'sku' => $optionSku,
+                'is_selectable' => $isSelectable,
                 'price_modifier' => $isSelectable ? (float) ($row['price_modifier'] ?? 0) : 0.0,
                 'price_operation' => $isSelectable && (($row['price_operation'] ?? '+') === '-') ? '-' : '+',
                 'stock_quantity' => $isSelectable && isset($row['stock_quantity']) ? (int) $row['stock_quantity'] : null,
