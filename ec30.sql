@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: MySQL-8.0:3306
--- Час створення: Трв 10 2026 р., 14:31
+-- Час створення: Трв 10 2026 р., 15:34
 -- Версія сервера: 8.0.44
 -- Версія PHP: 8.3.29
 
@@ -199,7 +199,8 @@ CREATE TABLE `category_attributes` (
 --
 
 INSERT INTO `category_attributes` (`id`, `category_id`, `attribute_id`, `is_required`, `sort_order`, `created_at`) VALUES
-(19, 3, 4, 0, 0, '2026-05-10 11:55:08');
+(20, 3, 4, 0, 0, '2026-05-10 13:01:02'),
+(21, 3, 3, 0, 0, '2026-05-10 13:06:03');
 
 -- --------------------------------------------------------
 
@@ -369,7 +370,16 @@ INSERT INTO `crm_user_activity_logs` (`id`, `user_id`, `event_type`, `descriptio
 (110, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-10 11:45:52'),
 (111, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-10 11:48:23'),
 (112, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-10 11:53:53'),
-(113, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-10 11:55:14');
+(113, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-10 11:55:14'),
+(114, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-10 12:47:56'),
+(115, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-10 12:51:00'),
+(116, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-10 12:52:36'),
+(117, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-10 12:55:13'),
+(118, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-10 12:56:28'),
+(119, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-10 13:03:41'),
+(120, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-10 13:05:32'),
+(121, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-10 13:05:38'),
+(122, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-10 13:07:15');
 
 -- --------------------------------------------------------
 
@@ -671,6 +681,7 @@ CREATE TABLE `product_attributes` (
   `price_modifier` decimal(10,2) NOT NULL DEFAULT '0.00',
   `price_operation` enum('+','-') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '+',
   `stock_quantity` int DEFAULT NULL,
+  `is_selectable` tinyint(1) NOT NULL DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -679,8 +690,9 @@ CREATE TABLE `product_attributes` (
 -- Дамп даних таблиці `product_attributes`
 --
 
-INSERT INTO `product_attributes` (`id`, `sku`, `product_id`, `attribute_id`, `value`, `attribute_option_id`, `price_modifier`, `price_operation`, `stock_quantity`, `created_at`, `updated_at`) VALUES
-(16, NULL, 2, 4, 'Китай', NULL, 0.00, '+', NULL, '2026-05-10 11:04:09', '2026-05-10 11:53:45');
+INSERT INTO `product_attributes` (`id`, `sku`, `product_id`, `attribute_id`, `value`, `attribute_option_id`, `price_modifier`, `price_operation`, `stock_quantity`, `is_selectable`, `created_at`, `updated_at`) VALUES
+(27, NULL, 2, 3, 'Поліестер', 69, 0.00, '+', NULL, 0, '2026-05-10 13:09:14', '2026-05-10 13:09:14'),
+(28, 'ID-2-100', 2, 4, 'Китай', 100, 150.00, '+', 5, 1, '2026-05-10 13:09:14', '2026-05-10 13:34:32');
 
 -- --------------------------------------------------------
 
@@ -786,7 +798,8 @@ CREATE TABLE `product_stocks` (
 --
 
 INSERT INTO `product_stocks` (`id`, `product_id`, `option_id`, `sku`, `quantity`, `reserved`, `updated_at`) VALUES
-(1, 1, NULL, 'ID-1', 4, 0, '2026-05-10 12:19:24');
+(1, 1, NULL, 'ID-1', 4, 0, '2026-05-10 12:19:24'),
+(7, 2, 100, 'ID-2-100', 5, 0, '2026-05-10 13:09:15');
 
 -- --------------------------------------------------------
 
@@ -1304,7 +1317,7 @@ ALTER TABLE `categories`
 -- AUTO_INCREMENT для таблиці `category_attributes`
 --
 ALTER TABLE `category_attributes`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT для таблиці `category_filters`
@@ -1322,7 +1335,7 @@ ALTER TABLE `crm_user_action_audit`
 -- AUTO_INCREMENT для таблиці `crm_user_activity_logs`
 --
 ALTER TABLE `crm_user_activity_logs`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=114;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=123;
 
 --
 -- AUTO_INCREMENT для таблиці `filter_history`
@@ -1382,7 +1395,7 @@ ALTER TABLE `products`
 -- AUTO_INCREMENT для таблиці `product_attributes`
 --
 ALTER TABLE `product_attributes`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT для таблиці `product_images`
@@ -1400,7 +1413,7 @@ ALTER TABLE `product_reviews`
 -- AUTO_INCREMENT для таблиці `product_stocks`
 --
 ALTER TABLE `product_stocks`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT для таблиці `seo_settings`
