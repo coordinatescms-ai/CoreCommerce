@@ -142,7 +142,7 @@ class Cart
         $placeholders = implode(',', array_fill(0, count($optionIds), '?'));
         $rows = DB::query(
             "SELECT pa.product_id, pa.attribute_id, pa.attribute_option_id,
-                    a.name AS attribute_name, ao.name AS option_name, ao.price_modifier, ao.price_operation, ao.stock_quantity
+                    a.name AS attribute_name, ao.name AS option_name, pa.price_modifier, pa.price_operation, pa.stock_quantity
              FROM product_attributes pa
              INNER JOIN attributes a ON a.id = pa.attribute_id
              INNER JOIN attribute_options ao ON ao.id = pa.attribute_option_id

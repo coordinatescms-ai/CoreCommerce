@@ -75,14 +75,46 @@ class AdminAttributeController
         }
 
         $options = $this->parseOptionLines();
-        Attribute::deleteAllOptions($attributeId);
+        $existingOptions = Attribute::getOptions($attributeId);
+        $existingByKey = [];
+        foreach ($existingOptions as $existingOption) {
+            $key = mb_strtolower(trim((string) ($existingOption['name'] ?? '')), 'UTF-8');
+            if ($key !== '') {
+                $existingByKey[$key] = $existingOption;
+            }
+        }
 
+        $keepIds = [];
         foreach ($options as $index => $optionValue) {
-            Attribute::createOption($attributeId, [
+            $key = mb_strtolower(trim((string) $optionValue), 'UTF-8');
+            if ($key !== '' && isset($existingByKey[$key])) {
+                $optionId = (int) ($existingByKey[$key]['id'] ?? 0);
+                if ($optionId > 0) {
+                    Attribute::updateOption($optionId, [
+                        'name' => $optionValue,
+                        'value' => $optionValue,
+                        'sort_order' => $index + 1,
+                    ]);
+                    $keepIds[$optionId] = true;
+                    continue;
+                }
+            }
+
+            $newId = Attribute::createOption($attributeId, [
                 'name' => $optionValue,
                 'value' => $optionValue,
                 'sort_order' => $index + 1,
             ]);
+            if ($newId) {
+                $keepIds[(int) $newId] = true;
+            }
+        }
+
+        foreach ($existingOptions as $existingOption) {
+            $optionId = (int) ($existingOption['id'] ?? 0);
+            if ($optionId > 0 && !isset($keepIds[$optionId])) {
+                Attribute::deleteOption($optionId);
+            }
         }
     }
 
