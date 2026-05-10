@@ -269,7 +269,7 @@ class ProductController
         $detailAttributes = [];
 
         foreach ($attributes as $attribute) {
-            if (!empty($attribute['attribute_option_id'])) {
+            if (!empty($attribute['is_selectable'])) {
                 $selectableAttributes[] = $attribute;
                 continue;
             }

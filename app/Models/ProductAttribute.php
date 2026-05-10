@@ -82,21 +82,32 @@ class ProductAttribute extends Model
         $priceModifier = isset($extra['price_modifier']) ? (float) $extra['price_modifier'] : 0.0;
         $priceOperation = (($extra['price_operation'] ?? '+') === '-') ? '-' : '+';
         $stockQuantity = array_key_exists('stock_quantity', $extra) ? $extra['stock_quantity'] : null;
+        $isSelectable = !empty($extra['is_selectable']) ? 1 : 0;
 
-        // Перевірити, чи існує запис
-        $existing = self::getValue($productId, $attributeId);
+        // Перевірити, чи існує запис для цієї самої пари "атрибут + значення/опція"
+        $existing = self::query(
+            "SELECT id FROM " . static::$table . "
+             WHERE product_id = ? AND attribute_id = ? AND (
+                 (attribute_option_id IS NOT NULL AND attribute_option_id = ?)
+                 OR
+                 (attribute_option_id IS NULL AND ? IS NULL AND value = ?)
+             )
+             LIMIT 1",
+            [$productId, $attributeId, $optionId, $optionId, $value]
+        );
+        $existingId = !empty($existing) ? (int) ($existing[0]['id'] ?? 0) : 0;
         
-        if ($existing) {
+        if ($existingId > 0) {
             // Оновити
             return self::execute(
-                "UPDATE " . static::$table . " SET value = ?, attribute_option_id = ?, sku = ?, price_modifier = ?, price_operation = ?, stock_quantity = ? WHERE product_id = ? AND attribute_id = ?",
-                [$value, $optionId, $sku, $priceModifier, $priceOperation, $stockQuantity, $productId, $attributeId]
+                "UPDATE " . static::$table . " SET value = ?, attribute_option_id = ?, sku = ?, price_modifier = ?, price_operation = ?, stock_quantity = ?, is_selectable = ? WHERE id = ?",
+                [$value, $optionId, $sku, $priceModifier, $priceOperation, $stockQuantity, $isSelectable, $existingId]
             );
         } else {
             // Вставити
             return self::execute(
-                "INSERT INTO " . static::$table . " (product_id, attribute_id, value, attribute_option_id, sku, price_modifier, price_operation, stock_quantity) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                [$productId, $attributeId, $value, $optionId, $sku, $priceModifier, $priceOperation, $stockQuantity]
+                "INSERT INTO " . static::$table . " (product_id, attribute_id, value, attribute_option_id, sku, price_modifier, price_operation, stock_quantity, is_selectable) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                [$productId, $attributeId, $value, $optionId, $sku, $priceModifier, $priceOperation, $stockQuantity, $isSelectable]
             );
         }
     }
