@@ -8,7 +8,6 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\Attribute;
 use App\Models\ProductAttribute;
-use App\Models\ProductAttributeValue;
 use App\Models\ProductImage;
 use App\Services\SlugHelper;
 use App\Services\ImageManager;
@@ -199,7 +198,10 @@ class AdminProductController
     private function syncProductAttributes($productId, $attributeRows)
     {
         ProductAttribute::deleteAll((int) $productId);
-        ProductAttributeValue::deleteAll((int) $productId);
+        \App\Core\Database\DB::query('DELETE FROM product_stocks WHERE product_id = ? AND option_id IS NOT NULL', [(int) $productId]);
+
+        $product = Product::findById((int) $productId);
+        $baseSku = trim((string) ($product['sku'] ?? ''));
 
         foreach ($attributeRows as $row) {
             $attributeId = (int) ($row['attribute_id'] ?? 0);
@@ -220,16 +222,26 @@ class AdminProductController
             }
 
             $isSelectable = !empty($row['is_selectable']);
-            if ($optionId && $isSelectable) {
-                Attribute::updateOption((int) $optionId, [
-                    'price_modifier' => (float) ($row['price_modifier'] ?? 0),
-                    'price_operation' => (($row['price_operation'] ?? '+') === '-') ? '-' : '+',
-                    'stock_quantity' => isset($row['stock_quantity']) ? (int) $row['stock_quantity'] : null,
-                ]);
+            $optionSku = null;
+            if ($optionId && $isSelectable && $baseSku !== '') {
+                $optionSku = $baseSku . '-' . (int) $optionId;
             }
 
-            ProductAttribute::setValue((int) $productId, (int) $attributeId, $normalizedValue, $optionId);
-            ProductAttributeValue::addValue((int) $productId, (int) $attributeId, $normalizedValue, $isSelectable);
+            ProductAttribute::setValue((int) $productId, (int) $attributeId, $normalizedValue, $optionId, [
+                'sku' => $optionSku,
+                'price_modifier' => $isSelectable ? (float) ($row['price_modifier'] ?? 0) : 0.0,
+                'price_operation' => $isSelectable && (($row['price_operation'] ?? '+') === '-') ? '-' : '+',
+                'stock_quantity' => $isSelectable && isset($row['stock_quantity']) ? (int) $row['stock_quantity'] : null,
+            ]);
+
+            if ($optionId && $isSelectable && $optionSku !== null) {
+                \App\Core\Database\DB::query(
+                    "INSERT INTO product_stocks (product_id, option_id, sku, quantity, reserved, updated_at)
+                     VALUES (?, ?, ?, ?, 0, NOW())
+                     ON DUPLICATE KEY UPDATE product_id = VALUES(product_id), sku = VALUES(sku), quantity = VALUES(quantity), updated_at = NOW()",
+                    [(int) $productId, (int) $optionId, $optionSku, max(0, (int) ($row['stock_quantity'] ?? 0))]
+                );
+            }
         }
     }
 
@@ -630,7 +642,7 @@ class AdminProductController
 
         $existingAttributes = !empty($formData['attributes'])
             ? $formData['attributes']
-            : ProductAttributeValue::getByProduct($id);
+            : ProductAttribute::getByProduct($id);
         $allowedAttributes = [];
         if (!empty($product['category_id'])) {
             $allowedAttributes = $this->enrichAllowedAttributes(
@@ -718,6 +730,7 @@ class AdminProductController
             exit;
         }
 
+        $oldProduct = Product::findById((int) $id);
         if (Product::update($id, $data)) {
             if (!$this->validateAttributesForCategory($data['category_id'], $attributeRows)) {
                 $this->flashProductFormData($data, $attributeRows);
@@ -737,6 +750,9 @@ class AdminProductController
             }
 
             $this->syncProductAttributes((int) $id, $attributeRows);
+            if ($oldProduct && trim((string) ($oldProduct['sku'] ?? '')) !== trim((string) ($data['sku'] ?? ''))) {
+                ProductAttribute::refreshSkuForProduct((int) $id, trim((string) ($data['sku'] ?? '')));
+            }
 
             $primaryImage = $this->resolvePrimaryImageFromGallery((int) $id);
             Product::update((int) $id, ['image' => $primaryImage]);

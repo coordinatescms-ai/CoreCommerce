@@ -38,9 +38,10 @@ class ProductAttribute extends Model
     public static function getByProduct($productId)
     {
         $result = self::query(
-            "SELECT pa.*, a.name as attribute_name, a.slug as attribute_slug, a.type as attribute_type 
+            "SELECT pa.*, a.name as attribute_name, a.slug as attribute_slug, a.type as attribute_type, ao.name as option_name, ao.color_code
              FROM " . static::$table . " pa 
              INNER JOIN attributes a ON pa.attribute_id = a.id 
+             LEFT JOIN attribute_options ao ON ao.id = pa.attribute_option_id
              WHERE pa.product_id = ? 
              ORDER BY a.sort_order, a.name",
             [$productId]
@@ -75,24 +76,51 @@ class ProductAttribute extends Model
      * @param int|null $optionId
      * @return bool
      */
-    public static function setValue($productId, $attributeId, $value, $optionId = null)
+    public static function setValue($productId, $attributeId, $value, $optionId = null, array $extra = [])
     {
+        $sku = $extra['sku'] ?? null;
+        $priceModifier = isset($extra['price_modifier']) ? (float) $extra['price_modifier'] : 0.0;
+        $priceOperation = (($extra['price_operation'] ?? '+') === '-') ? '-' : '+';
+        $stockQuantity = array_key_exists('stock_quantity', $extra) ? $extra['stock_quantity'] : null;
+
         // Перевірити, чи існує запис
         $existing = self::getValue($productId, $attributeId);
         
         if ($existing) {
             // Оновити
             return self::execute(
-                "UPDATE " . static::$table . " SET value = ?, attribute_option_id = ? WHERE product_id = ? AND attribute_id = ?",
-                [$value, $optionId, $productId, $attributeId]
+                "UPDATE " . static::$table . " SET value = ?, attribute_option_id = ?, sku = ?, price_modifier = ?, price_operation = ?, stock_quantity = ? WHERE product_id = ? AND attribute_id = ?",
+                [$value, $optionId, $sku, $priceModifier, $priceOperation, $stockQuantity, $productId, $attributeId]
             );
         } else {
             // Вставити
             return self::execute(
-                "INSERT INTO " . static::$table . " (product_id, attribute_id, value, attribute_option_id) VALUES (?, ?, ?, ?)",
-                [$productId, $attributeId, $value, $optionId]
+                "INSERT INTO " . static::$table . " (product_id, attribute_id, value, attribute_option_id, sku, price_modifier, price_operation, stock_quantity) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                [$productId, $attributeId, $value, $optionId, $sku, $priceModifier, $priceOperation, $stockQuantity]
             );
         }
+    }
+
+    public static function refreshSkuForProduct(int $productId, string $baseSku): void
+    {
+        $baseSku = trim($baseSku);
+        if ($baseSku === '') {
+            self::execute("UPDATE " . static::$table . " SET sku = NULL WHERE product_id = ?", [$productId]);
+            self::execute("UPDATE product_stocks SET sku = NULL WHERE product_id = ?", [$productId]);
+            return;
+        }
+
+        self::execute(
+            "UPDATE " . static::$table . " SET sku = CONCAT(?, '-', attribute_option_id) WHERE product_id = ? AND attribute_option_id IS NOT NULL",
+            [$baseSku, $productId]
+        );
+        self::execute(
+            "UPDATE product_stocks ps
+             INNER JOIN " . static::$table . " pa ON pa.product_id = ps.product_id AND pa.attribute_option_id = ps.option_id
+             SET ps.sku = pa.sku, ps.updated_at = NOW()
+             WHERE ps.product_id = ?",
+            [$productId]
+        );
     }
 
     /**
