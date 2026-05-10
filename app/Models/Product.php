@@ -275,7 +275,6 @@ class Product extends Model
      */
     public static function delete($id)
     {
-        self::execute("DELETE FROM product_attribute_values WHERE product_id = ?", [(int) $id]);
         return self::execute("DELETE FROM " . self::$table . " WHERE id = ?", [$id]);
     }
 

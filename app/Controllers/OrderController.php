@@ -34,9 +34,8 @@ class OrderController
 
         $placeholders = implode(',', array_fill(0, count($optionIds), '?'));
         $rows = DB::query(
-            "SELECT pa.attribute_id, ao.stock_quantity
+            "SELECT pa.attribute_id, pa.stock_quantity
              FROM product_attributes pa
-             INNER JOIN attribute_options ao ON ao.id = pa.attribute_option_id
              WHERE pa.product_id = ? AND pa.attribute_option_id IN ($placeholders)",
             array_merge([$productId], $optionIds)
         )->fetchAll();

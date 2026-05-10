@@ -6,7 +6,7 @@ use App\Core\View\View;
 use App\Core\Database\DB;
 use App\Models\Product;
 use App\Models\Category;
-use App\Models\ProductAttributeValue;
+use App\Models\ProductAttribute;
 use App\Models\ProductImage;
 use App\Models\CrmUserService;
 use App\Models\Setting;
@@ -264,12 +264,12 @@ class ProductController
         }
 
         // Отримати атрибути товару
-        $attributes = ProductAttributeValue::getByProduct($product['id']);
+        $attributes = ProductAttribute::getByProduct($product['id']);
         $selectableAttributes = [];
         $detailAttributes = [];
 
         foreach ($attributes as $attribute) {
-            if (!empty($attribute['is_selectable'])) {
+            if (!empty($attribute['attribute_option_id'])) {
                 $selectableAttributes[] = $attribute;
                 continue;
             }
