@@ -44,3 +44,10 @@ Marketing Tools: Built-in SEO analyzer, discount coupons, and email newsletter s
 ## License
 
 This project is distributed under the MIT License. See the [`LICENSE`](LICENSE) file for details.
+
+
+## Admin: Clear Cache Button
+
+In the admin dashboard (**Панель керування → Стан системи**) there is a **"Почистити кеш"** button.
+It sends a CSRF-protected POST request and clears project cache files only from `storage/cache/*` (including at minimum `active_plugins.json`).
+It also updates `settings.asset_version` so CSS/JS assets can be reloaded with a new `?v=` query parameter in templates (cache busting).

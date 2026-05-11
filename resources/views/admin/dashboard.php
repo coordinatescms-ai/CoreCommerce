@@ -141,6 +141,14 @@
                 </td>
             </tr>
         </table>
+        <div style="margin-top: 1rem;">
+            <form action="/admin/clear-cache" method="POST" style="display:inline;">
+                <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf'] ?? ''); ?>">
+                <button type="submit" class="btn" style="background:#f59e0b;color:#fff;border-color:#d97706;">
+                    <i class="fas fa-broom"></i> Почистити кеш
+                </button>
+            </form>
+        </div>
     </div>
 </div>
 

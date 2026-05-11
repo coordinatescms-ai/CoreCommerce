@@ -214,6 +214,106 @@ class AdminController
             'admin');
     }
 
+
+    public function clearCache()
+    {
+        $this->checkAdmin();
+
+        if (!Csrf::isValid()) {
+            http_response_code(422);
+            $_SESSION['error'] = 'CSRF token validation failed';
+            header('Location: /admin');
+            exit;
+        }
+
+        $cacheDir = dirname(__DIR__, 2) . '/storage/cache';
+        $errors = [];
+        $cleared = [];
+
+        $targets = [
+            $cacheDir . '/active_plugins.json',
+            $cacheDir . '/asset_version',
+        ];
+
+        foreach ($targets as $file) {
+            if (!file_exists($file)) {
+                continue;
+            }
+
+            if (is_file($file)) {
+                if (@unlink($file)) {
+                    $cleared[] = basename($file);
+                } else {
+                    $errors[] = 'Не вдалося видалити файл кешу: ' . basename($file);
+                }
+            }
+        }
+
+        if (is_dir($cacheDir)) {
+            $entries = @scandir($cacheDir);
+            if (is_array($entries)) {
+                foreach ($entries as $entry) {
+                    if ($entry === '.' || $entry === '..') {
+                        continue;
+                    }
+
+                    $path = $cacheDir . '/' . $entry;
+                    if (!is_file($path)) {
+                        continue;
+                    }
+
+                    if (in_array($path, $targets, true)) {
+                        continue;
+                    }
+
+                    if (@unlink($path)) {
+                        $cleared[] = $entry;
+                    } else {
+                        $errors[] = 'Не вдалося видалити файл кешу: ' . $entry;
+                    }
+                }
+            } else {
+                $errors[] = 'Не вдалося прочитати cache-директорію.';
+            }
+        }
+
+        try {
+            Setting::set('asset_version', (string) time(), 'system', 'text');
+            $cleared[] = 'asset_version(setting)';
+        } catch (\Throwable $e) {
+            $errors[] = 'Не вдалося оновити asset version: ' . $e->getMessage();
+        }
+
+        $admin = $_SESSION['user'] ?? [];
+        $adminId = (int) ($admin['id'] ?? 0);
+        $adminEmail = (string) ($admin['email'] ?? 'unknown');
+        $timestamp = date('Y-m-d H:i:s');
+        $logLine = sprintf(
+            "[%s] admin_id=%d admin_email=%s action=clear_cache cleared=%s errors=%s
+",
+            $timestamp,
+            $adminId,
+            $adminEmail,
+            json_encode(array_values(array_unique($cleared)), JSON_UNESCAPED_UNICODE),
+            json_encode($errors, JSON_UNESCAPED_UNICODE)
+        );
+
+        $logDir = dirname(__DIR__, 2) . '/storage/logs';
+        if (!is_dir($logDir)) {
+            @mkdir($logDir, 0775, true);
+        }
+        @file_put_contents($logDir . '/admin_actions.log', $logLine, FILE_APPEND);
+
+        if (empty($errors)) {
+            $_SESSION['success'] = 'Кеш успішно очищено.';
+        } else {
+            $_SESSION['error'] = 'Кеш очищено частково: ' . implode(' ', $errors);
+        }
+
+        header('Location: /admin');
+        exit;
+    }
+
     public function settingsTab($tab)
     {
     $this->checkAdmin();
