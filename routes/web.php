@@ -80,6 +80,7 @@ $router->get('/auth/facebook/callback', [SocialAuthController::class, 'handleFac
 $router->get('/admin', [AdminController::class, 'dashboard']);
 $router->get('/admin/settings', [AdminController::class, 'settings']);
 $router->post('/admin/settings/save', [AdminController::class, 'saveSettings']);
+$router->post('/admin/clear-cache', [AdminController::class, 'clearCache']);
 $router->get('/admin/settings/tab/{tab}', [AdminController::class, 'settingsTab']);
 $router->post('/admin/settings/methods/add', [AdminController::class, 'addMethod']);
 $router->post('/admin/settings/methods/delete/{id}', [AdminController::class, 'deleteMethod']);
