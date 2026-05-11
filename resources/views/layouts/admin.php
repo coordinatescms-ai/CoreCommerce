@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="<?php echo $_SESSION['lang'] ?? 'ua'; ?>">
 <head>
+    <?php $assetVersion = urlencode((string) (get_setting('asset_version', '1'))); ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - <?php echo htmlspecialchars($site_name ?? 'MySite'); ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="/js/chart.umd.js"></script>
-    <script src="/js/updater.js" defer></script>
+    <script src="/js/chart.umd.js?v=<?php echo $assetVersion; ?>"></script>
+    <script src="/js/updater.js?v=<?php echo $assetVersion; ?>" defer></script>
     
     <style>
         :root {
