@@ -83,9 +83,10 @@ class Product extends Model
     public static function allWithCategory()
     {
         return self::query(
-            "SELECT p.*, c.name as category_name
+            "SELECT p.*, c.name as category_name, COALESCE(ps.quantity, 0) AS stock_quantity
              FROM " . static::$table . " p
              LEFT JOIN categories c ON c.id = p.category_id
+             LEFT JOIN product_stocks ps ON ps.sku COLLATE utf8mb4_general_ci = p.sku COLLATE utf8mb4_general_ci AND ps.option_id IS NULL
              ORDER BY p.id DESC"
         ) ?? [];
     }

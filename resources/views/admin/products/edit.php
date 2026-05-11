@@ -18,9 +18,27 @@
                 <input type="text" name="name" id="name" class="form-control" required value="<?php echo htmlspecialchars($product['name']); ?>">
             </div>
 
-            <div class="form-group">
-                <label for="sku">SKU (артикул)</label>
-                <input type="text" name="sku" id="sku" class="form-control" placeholder="Автогенерація: SKU-000001" value="<?php echo htmlspecialchars($formData['sku'] ?? ($product['sku'] ?? '')); ?>">
+            <div style="display:grid; grid-template-columns:2fr 1fr 1fr 2fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="sku">SKU (артикул)</label>
+                    <input type="text" name="sku" id="sku" class="form-control" placeholder="Автогенерація: SKU-000001" value="<?php echo htmlspecialchars($formData['sku'] ?? ($product['sku'] ?? '')); ?>">
+                </div>
+                <div class="form-group">
+                    <label for="stock_qty">Кількість</label>
+                    <input type="number" min="1" step="1" name="stock_qty" id="stock_qty" class="form-control" value="<?php echo htmlspecialchars((string) ($formData['stock_qty'] ?? '')); ?>">
+                </div>
+                <div class="form-group">
+                    <label for="stock_type">Тип</label>
+                    <select name="stock_type" id="stock_type" class="form-control">
+                        <?php $stockType = (string) ($formData['stock_type'] ?? 'add'); ?>
+                        <option value="add" <?php echo $stockType === 'add' ? 'selected' : ''; ?>>Додати</option>
+                        <option value="remove" <?php echo $stockType === 'remove' ? 'selected' : ''; ?>>Списати</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="stock_comment">Коментар</label>
+                    <input type="text" name="stock_comment" id="stock_comment" class="form-control" value="<?php echo htmlspecialchars((string) ($formData['stock_comment'] ?? '')); ?>">
+                </div>
             </div>
             <div class="form-group">
                 <label for="slug">Slug (URL посилання)</label>
