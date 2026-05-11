@@ -7,7 +7,7 @@
     <div class="card-body">
         <form method="POST" action="/admin/stocks/adjust" style="display:grid;grid-template-columns:2fr 1fr 1fr 2fr auto;gap:12px;align-items:end;">
             <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf']); ?>">
-            <div><label>SKU</label><input class="form-control" name="sku" required></div>
+            <div><label>SKU</label><input class="form-control" name="sku" required value="<?php echo htmlspecialchars((string) ($prefillSku ?? '')); ?>"></div>
             <div><label>Кількість</label><input class="form-control" type="number" min="1" name="qty" required></div>
             <div><label>Тип</label><select class="form-control" name="type"><option value="add">Додати</option><option value="remove">Списати</option></select></div>
             <div><label>Коментар</label><input class="form-control" name="comment"></div>
