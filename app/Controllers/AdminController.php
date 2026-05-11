@@ -196,10 +196,11 @@ class AdminController
         $popular_products = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
         $stmt = DB::query("
-            SELECT id, name, stock, price 
-            FROM products 
-            WHERE stock <= 5 
-            ORDER BY stock ASC 
+            SELECT p.id, p.name, COALESCE(ps.quantity, 0) AS stock, p.price
+            FROM products p
+            LEFT JOIN product_stocks ps ON ps.sku COLLATE utf8mb4_general_ci = p.sku COLLATE utf8mb4_general_ci AND ps.option_id IS NULL
+            WHERE COALESCE(ps.quantity, 0) <= 5
+            ORDER BY COALESCE(ps.quantity, 0) ASC
             LIMIT 5");
 
         $low_stock_products = $stmt->fetchAll(\PDO::FETCH_ASSOC);

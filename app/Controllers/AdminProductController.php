@@ -11,6 +11,7 @@ use App\Models\ProductAttribute;
 use App\Models\ProductImage;
 use App\Services\SlugHelper;
 use App\Services\ImageManager;
+use App\Services\StockServiceFactory;
 
 class AdminProductController
 {
@@ -324,6 +325,20 @@ class AdminProductController
         }
     }
 
+    private function applyStockAdjustment(string $sku, int $qty, string $type, string $comment): bool
+    {
+        if ($sku === '' || $qty <= 0) {
+            return true;
+        }
+
+        $service = StockServiceFactory::make();
+        if ($type === 'remove') {
+            return $service->removeStock($sku, $qty, $comment);
+        }
+
+        return $service->addStock($sku, $qty, $comment);
+    }
+
     public function index()
     {
         $this->checkAdmin();
@@ -542,6 +557,8 @@ class AdminProductController
             'meta_description' => trim((string) ($_POST['meta_description'] ?? '')),
             'sku' => trim((string) ($_POST['sku'] ?? ''))
         ];
+        $stockQty = max(0, (int) ($_POST['stock_qty'] ?? 0));
+        $stockComment = trim((string) ($_POST['stock_comment'] ?? ''));
         $attributePairError = $this->validateAttributePairs();
         if ($attributePairError !== null) {
             $this->flashProductFormData($data, $attributeRows);
@@ -599,6 +616,13 @@ class AdminProductController
             }
 
             $this->syncProductAttributes((int) $productId, $attributeRows);
+            if (!$this->applyStockAdjustment((string) $data['sku'], $stockQty, 'add', $stockComment)) {
+                Product::delete((int) $productId);
+                $this->flashProductFormData($data, $attributeRows);
+                $_SESSION['error'] = 'Не вдалося оновити залишки на складі.';
+                header('Location: /admin/products/create');
+                exit;
+            }
 
             $primaryImage = $this->resolvePrimaryImageFromGallery((int) $productId);
             if ($primaryImage !== null) {
@@ -677,6 +701,9 @@ class AdminProductController
             'meta_description' => trim((string) ($_POST['meta_description'] ?? '')),
             'sku' => trim((string) ($_POST['sku'] ?? ''))
         ];
+        $stockQty = max(0, (int) ($_POST['stock_qty'] ?? 0));
+        $stockType = (string) ($_POST['stock_type'] ?? 'add') === 'remove' ? 'remove' : 'add';
+        $stockComment = trim((string) ($_POST['stock_comment'] ?? ''));
 
         $attributeRows = $this->collectAttributeRows();
         $attributePairError = $this->validateAttributePairs();
@@ -753,6 +780,12 @@ class AdminProductController
             $this->syncProductAttributes((int) $id, $attributeRows);
             if ($oldProduct && trim((string) ($oldProduct['sku'] ?? '')) !== trim((string) ($data['sku'] ?? ''))) {
                 ProductAttribute::refreshSkuForProduct((int) $id, trim((string) ($data['sku'] ?? '')));
+            }
+            if (!$this->applyStockAdjustment((string) $data['sku'], $stockQty, $stockType, $stockComment)) {
+                $this->flashProductFormData($data, $attributeRows);
+                $_SESSION['error'] = 'Не вдалося оновити залишки на складі.';
+                header('Location: /admin/products/edit/' . $id);
+                exit;
             }
 
             $primaryImage = $this->resolvePrimaryImageFromGallery((int) $id);
@@ -896,6 +929,10 @@ class AdminProductController
             'description' => (string) ($data['description'] ?? ''),
             'meta_title' => (string) ($data['meta_title'] ?? ''),
             'meta_description' => (string) ($data['meta_description'] ?? ''),
+            'sku' => (string) ($data['sku'] ?? ''),
+            'stock_qty' => (int) ($_POST['stock_qty'] ?? 0),
+            'stock_type' => (string) ($_POST['stock_type'] ?? 'add'),
+            'stock_comment' => (string) ($_POST['stock_comment'] ?? ''),
             'attributes' => array_values($attributeRows),
         ];
     }
