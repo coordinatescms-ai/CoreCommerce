@@ -13,6 +13,7 @@
                     <th style="padding: 1rem;">Товар</th>
                     <th style="padding: 1rem;">Категорія</th>
                     <th style="padding: 1rem;">Ціна</th>
+                    <th style="padding: 1rem;">Кількість</th>
                     <th style="padding: 1rem;">Slug</th>
                     <th style="padding: 1rem; text-align: right;">Дії</th>
                 </tr>
@@ -49,6 +50,11 @@
                         <td style="padding: 1rem; font-weight: 600;">
                             <?php echo number_format((float)$product['price'], 2, ',', ' '); ?> грн
                         </td>
+                        <td style="padding: 1rem;">
+                            <a href="/admin/stocks?sku=<?php echo urlencode((string) ($product['sku'] ?? '')); ?>" style="font-weight:600; color:#2563eb; text-decoration:none;">
+                                <?php echo (int) ($product['stock_quantity'] ?? 0); ?> шт.
+                            </a>
+                        </td>
                         <td style="padding: 1rem; color: #64748b; font-size: 0.85rem;">
                             /product/<?php echo htmlspecialchars($product['slug']); ?>
                         </td>
@@ -81,7 +87,7 @@
                 <?php endforeach; ?>
                 <?php if (empty($products)): ?>
                     <tr>
-                        <td colspan="5" style="padding: 2rem; text-align: center; color: #64748b;">
+                        <td colspan="6" style="padding: 2rem; text-align: center; color: #64748b;">
                             Товарів поки що не створено.
                         </td>
                     </tr>

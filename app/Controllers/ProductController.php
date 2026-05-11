@@ -263,6 +263,12 @@ class ProductController
             return;
         }
 
+        $stockRow = DB::query(
+            'SELECT COALESCE(quantity, 0) AS quantity FROM product_stocks WHERE sku = ? AND option_id IS NULL LIMIT 1',
+            [(string) ($product['sku'] ?? '')]
+        )->fetch();
+        $product['stock'] = (int) ($stockRow['quantity'] ?? 0);
+
         // Отримати атрибути товару
         $attributes = ProductAttribute::getByProduct($product['id']);
         $selectableAttributes = [];
