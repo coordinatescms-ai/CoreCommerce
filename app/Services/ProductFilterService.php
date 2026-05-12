@@ -56,12 +56,19 @@ class ProductFilterService
                 continue;
             }
 
-            $values = is_array($rawFilter) ? $rawFilter : explode(',', (string) $rawFilter);
+            if (is_array($rawFilter) && (($rawFilter['type'] ?? null) === 'match')) {
+                $optionIds = isset($rawFilter['option_ids']) && is_array($rawFilter['option_ids']) ? $rawFilter['option_ids'] : [];
+                $plainValues = isset($rawFilter['values']) && is_array($rawFilter['values']) ? $rawFilter['values'] : [];
+                $values = array_merge($optionIds, $plainValues);
+            } else {
+                $values = is_array($rawFilter) ? $rawFilter : explode(',', (string) $rawFilter);
+            }
+
             $optionIds = [];
             $plainValues = [];
 
             foreach ($values as $value) {
-                if ($value === '' || $value === null) {
+                if ($value === '' || $value === null || is_array($value)) {
                     continue;
                 }
 
