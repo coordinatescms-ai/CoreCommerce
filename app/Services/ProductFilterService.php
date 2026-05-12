@@ -10,12 +10,8 @@ use App\Models\Attribute;
 
 class ProductFilterService
 {
-    /**
-     * Отримати id категорії та всіх дочірніх.
-     *
-     * @param int $categoryId
-     * @return array
-     */
+    private const FILTER_OPTION_PREFIX = 'opt:';
+
     private static function getCategoryWithChildrenIds($categoryId)
     {
         $allCategories = [(int) $categoryId];
@@ -28,539 +24,342 @@ class ProductFilterService
         return array_values(array_unique($allCategories));
     }
 
-    /**
-     * Застосувати фільтри атрибутів до SQL-запиту.
-     *
-     * @param array $filters
-     * @param array $joins
-     * @param array $conditions
-     * @param array $params
-     * @return void
-     */
-    private static function applyAttributeFilters($filters, &$joins, &$conditions, &$params)
-{
-    if (empty($filters['attributes']) || !is_array($filters['attributes'])) {
-        return;
-    }
+    private static function normalizeFilters(array $filters): array
+    {
+        $normalized = [
+            'category_id' => !empty($filters['category_id']) ? (int) $filters['category_id'] : null,
+            'min_price' => isset($filters['min_price']) && $filters['min_price'] !== '' ? (float) $filters['min_price'] : null,
+            'max_price' => isset($filters['max_price']) && $filters['max_price'] !== '' ? (float) $filters['max_price'] : null,
+            'attributes' => [],
+            'sort_by' => $filters['sort_by'] ?? 'name',
+            'sort_order' => strtoupper((string) ($filters['sort_order'] ?? 'ASC')),
+            'limit' => isset($filters['limit']) ? max(1, (int) $filters['limit']) : null,
+            'offset' => isset($filters['offset']) ? max(0, (int) $filters['offset']) : 0,
+        ];
 
-    $attributeIndex = 0;
-
-    foreach ($filters['attributes'] as $attributeId => $attributeFilter) {
-        if ($attributeFilter === '' || $attributeFilter === null || $attributeFilter === []) {
-            continue;
+        if (empty($filters['attributes']) || !is_array($filters['attributes'])) {
+            return $normalized;
         }
 
-        $attributeIndex++;
-        $tableAlias = "pa{$attributeIndex}";
-        $optionAlias = "ao{$attributeIndex}";
-        $joins[] = "INNER JOIN product_attributes {$tableAlias} ON p.id = {$tableAlias}.product_id 
-                    AND {$tableAlias}.attribute_id = ?";
-        $joins[] = "LEFT JOIN attribute_options {$optionAlias} ON {$optionAlias}.id = {$tableAlias}.attribute_option_id";
-        $params[] = (int) $attributeId;
-
-        if (is_array($attributeFilter) && (isset($attributeFilter['min']) || isset($attributeFilter['max']))) {
-            if ($attributeFilter['min'] !== '' && $attributeFilter['min'] !== null) {
-                $conditions[] = "CAST({$tableAlias}.value AS DECIMAL(12,2)) >= ?";
-                $params[] = (float) $attributeFilter['min'];
+        foreach ($filters['attributes'] as $attributeId => $rawFilter) {
+            $attributeId = (int) $attributeId;
+            if ($attributeId <= 0 || $rawFilter === '' || $rawFilter === null || $rawFilter === []) {
+                continue;
             }
 
-            if ($attributeFilter['max'] !== '' && $attributeFilter['max'] !== null) {
-                $conditions[] = "CAST({$tableAlias}.value AS DECIMAL(12,2)) <= ?";
-                $params[] = (float) $attributeFilter['max'];
+            if (is_array($rawFilter) && (array_key_exists('min', $rawFilter) || array_key_exists('max', $rawFilter))) {
+                $min = ($rawFilter['min'] ?? '') !== '' ? (float) $rawFilter['min'] : null;
+                $max = ($rawFilter['max'] ?? '') !== '' ? (float) $rawFilter['max'] : null;
+                if ($min !== null || $max !== null) {
+                    $normalized['attributes'][$attributeId] = ['type' => 'range', 'min' => $min, 'max' => $max];
+                }
+                continue;
             }
 
-            continue;
-        }
+            $values = is_array($rawFilter) ? $rawFilter : explode(',', (string) $rawFilter);
+            $optionIds = [];
+            $plainValues = [];
 
-        $values = is_array($attributeFilter) ? $attributeFilter : [$attributeFilter];
-        $values = array_values(array_filter($values, function ($value) {
-            return $value !== '' && $value !== null;
-        }));
-
-        if (empty($values)) {
-            continue;
-        }
-
-        $optionIds = [];
-        $plainValues = [];
-
-        foreach ($values as $value) {
-            if (is_string($value) && strpos($value, 'opt:') === 0) {
-                $optionId = (int) substr($value, 4);
-                if ($optionId > 0) {
-                    $optionIds[] = $optionId;
+            foreach ($values as $value) {
+                if ($value === '' || $value === null) {
                     continue;
                 }
+
+                if (is_string($value) && strpos($value, self::FILTER_OPTION_PREFIX) === 0) {
+                    $optionId = (int) substr($value, strlen(self::FILTER_OPTION_PREFIX));
+                    if ($optionId > 0) {
+                        $optionIds[] = $optionId;
+                    }
+                    continue;
+                }
+
+                if (is_numeric($value) && ctype_digit((string) $value)) {
+                    $optionIds[] = (int) $value;
+                    continue;
+                }
+
+                $plainValues[] = (string) $value;
             }
 
-            $plainValues[] = $value;
+            $optionIds = array_values(array_unique(array_filter($optionIds, function ($id) {
+                return $id > 0;
+            })));
+            $plainValues = array_values(array_unique(array_filter($plainValues, function ($value) {
+                return trim($value) !== '';
+            })));
+
+            if (!empty($optionIds) || !empty($plainValues)) {
+                $normalized['attributes'][$attributeId] = [
+                    'type' => 'match',
+                    'option_ids' => $optionIds,
+                    'values' => $plainValues,
+                ];
+            }
         }
 
-        $attributeConditions = [];
-
-        if (!empty($optionIds)) {
-            $optionIds = array_values(array_unique(array_map('intval', $optionIds)));
-            $optionPlaceholders = implode(',', array_fill(0, count($optionIds), '?'));
-            $attributeConditions[] = "{$tableAlias}.attribute_option_id IN ($optionPlaceholders)";
-            $params = array_merge($params, $optionIds);
-        }
-
-        if (!empty($plainValues)) {
-            $valuePlaceholders = implode(',', array_fill(0, count($plainValues), '?'));
-            $attributeConditions[] = "{$tableAlias}.value IN ($valuePlaceholders)";
-            $params = array_merge($params, $plainValues);
-
-            $optionNamePlaceholders = implode(',', array_fill(0, count($plainValues), '?'));
-            $attributeConditions[] = "{$optionAlias}.name IN ($optionNamePlaceholders)";
-            $params = array_merge($params, $plainValues);
-
-            $optionValuePlaceholders = implode(',', array_fill(0, count($plainValues), '?'));
-            $attributeConditions[] = "{$optionAlias}.value IN ($optionValuePlaceholders)";
-            $params = array_merge($params, $plainValues);
-        }
-
-        if (!empty($attributeConditions)) {
-            $conditions[] = '(' . implode(' OR ', $attributeConditions) . ')';
-        }
+        return $normalized;
     }
-}
 
-    /**
-     * Отримати відфільтровані товари
-     * 
-     * @param array $filters
-     * @return array
-     */
+    private static function buildBaseProductQuery(array $normalizedFilters): array
+    {
+        $conditions = ['p.is_visible = 1'];
+        $params = [];
+
+        if (!empty($normalizedFilters['category_id'])) {
+            $category = Category::findById($normalizedFilters['category_id']);
+            if ($category) {
+                $categoryIds = self::getCategoryWithChildrenIds($normalizedFilters['category_id']);
+                $placeholders = implode(',', array_fill(0, count($categoryIds), '?'));
+                $conditions[] = "p.category_id IN ($placeholders)";
+                $params = array_merge($params, $categoryIds);
+            }
+        }
+
+        if ($normalizedFilters['min_price'] !== null) {
+            $conditions[] = 'p.price >= ?';
+            $params[] = $normalizedFilters['min_price'];
+        }
+
+        if ($normalizedFilters['max_price'] !== null) {
+            $conditions[] = 'p.price <= ?';
+            $params[] = $normalizedFilters['max_price'];
+        }
+
+        foreach ($normalizedFilters['attributes'] as $attributeId => $attributeFilter) {
+            $existsSql = 'EXISTS (SELECT 1 FROM product_attributes pa WHERE pa.product_id = p.id AND pa.attribute_id = ?';
+            $existsParams = [(int) $attributeId];
+
+            if ($attributeFilter['type'] === 'range') {
+                $existsSql .= " AND pa.value REGEXP '^-?[0-9]+(\\\\.[0-9]+)?$'";
+                if ($attributeFilter['min'] !== null) {
+                    $existsSql .= ' AND CAST(pa.value AS DECIMAL(12,2)) >= ?';
+                    $existsParams[] = $attributeFilter['min'];
+                }
+                if ($attributeFilter['max'] !== null) {
+                    $existsSql .= ' AND CAST(pa.value AS DECIMAL(12,2)) <= ?';
+                    $existsParams[] = $attributeFilter['max'];
+                }
+            } else {
+                $matchConditions = [];
+                if (!empty($attributeFilter['option_ids'])) {
+                    $placeholders = implode(',', array_fill(0, count($attributeFilter['option_ids']), '?'));
+                    $matchConditions[] = "pa.attribute_option_id IN ($placeholders)";
+                    $existsParams = array_merge($existsParams, $attributeFilter['option_ids']);
+                }
+
+                if (!empty($attributeFilter['values'])) {
+                    $placeholders = implode(',', array_fill(0, count($attributeFilter['values']), '?'));
+                    $matchConditions[] = "pa.value IN ($placeholders)";
+                    $existsParams = array_merge($existsParams, $attributeFilter['values']);
+                }
+
+                if (empty($matchConditions)) {
+                    continue;
+                }
+
+                $existsSql .= ' AND (' . implode(' OR ', $matchConditions) . ')';
+            }
+
+            $existsSql .= ')';
+            $conditions[] = $existsSql;
+            $params = array_merge($params, $existsParams);
+        }
+
+        return [
+            'where' => implode(' AND ', $conditions),
+            'params' => $params,
+        ];
+    }
+
     public static function filter($filters = [])
     {
         $db = Database::getInstance();
-        
-        $query = "SELECT DISTINCT p.* FROM products p";
-        $params = [];
-        $joins = [];
-        $conditions = ["p.is_visible = 1"];
+        $normalizedFilters = self::normalizeFilters($filters);
+        $base = self::buildBaseProductQuery($normalizedFilters);
 
-        // Фільтр за категорією
-        if (!empty($filters['category_id'])) {
-            $category = Category::findById($filters['category_id']);
+        $query = 'SELECT p.* FROM products p WHERE ' . $base['where'];
+        $params = $base['params'];
 
-            if ($category) {
-                $allCategories = self::getCategoryWithChildrenIds($filters['category_id']);
-                $placeholders = implode(',', array_fill(0, count($allCategories), '?'));
-                $conditions[] = "p.category_id IN ($placeholders)";
-                $params = array_merge($params, $allCategories);
-            }
-        }
-
-        // Фільтр за ціною
-        if (!empty($filters['min_price'])) {
-            $conditions[] = "p.price >= ?";
-            $params[] = $filters['min_price'];
-        }
-        
-        if (!empty($filters['max_price'])) {
-            $conditions[] = "p.price <= ?";
-            $params[] = $filters['max_price'];
-        }
-
-        // Фільтр за атрибутами
-        self::applyAttributeFilters($filters, $joins, $conditions, $params);
-
-        // Побудувати запит
-        if (!empty($joins)) {
-            $query .= " " . implode(" ", $joins);
-        }
-        
-        if (!empty($conditions)) {
-            $query .= " WHERE " . implode(" AND ", $conditions);
-        }
-
-        // Сортування
-        $sortBy = $filters['sort_by'] ?? 'name';
-        $sortOrder = $filters['sort_order'] ?? 'ASC';
-        
         $allowedSortBy = ['name', 'price', 'created_at', 'popularity'];
         $allowedSortOrder = ['ASC', 'DESC'];
-        
-        if (in_array($sortBy, $allowedSortBy) && in_array($sortOrder, $allowedSortOrder)) {
-            $query .= " ORDER BY p.{$sortBy} {$sortOrder}";
-        } else {
-            $query .= " ORDER BY p.name ASC";
+
+        $sortBy = in_array($normalizedFilters['sort_by'], $allowedSortBy, true) ? $normalizedFilters['sort_by'] : 'name';
+        $sortOrder = in_array($normalizedFilters['sort_order'], $allowedSortOrder, true) ? $normalizedFilters['sort_order'] : 'ASC';
+        $query .= " ORDER BY p.{$sortBy} {$sortOrder}";
+
+        if ($normalizedFilters['limit'] !== null) {
+            $query .= ' LIMIT ? OFFSET ?';
+            $params[] = $normalizedFilters['limit'];
+            $params[] = $normalizedFilters['offset'];
         }
 
-        // Пагінація
-        if (!empty($filters['limit'])) {
-            $offset = $filters['offset'] ?? 0;
-            $query .= " LIMIT ? OFFSET ?";
-            $params[] = $filters['limit'];
-            $params[] = $offset;
-        }
-
-        $result = $db->query($query, $params)->fetchAll(\PDO::FETCH_ASSOC);
-        
-        return $result ?? [];
+        return $db->query($query, $params)->fetchAll(\PDO::FETCH_ASSOC) ?? [];
     }
 
-    /**
-     * Отримати кількість товарів за фільтрами
-     * 
-     * @param array $filters
-     * @return int
-     */
     public static function count($filters = [])
     {
         $db = Database::getInstance();
-        
-        $query = "SELECT COUNT(DISTINCT p.id) as count FROM products p";
-        $params = [];
-        $joins = [];
-        $conditions = ["p.is_visible = 1"];
+        $normalizedFilters = self::normalizeFilters($filters);
+        $base = self::buildBaseProductQuery($normalizedFilters);
 
-        // Фільтр за категорією
-        if (!empty($filters['category_id'])) {
-            $category = Category::findById($filters['category_id']);
-
-            if ($category) {
-                $allCategories = self::getCategoryWithChildrenIds($filters['category_id']);
-                $placeholders = implode(',', array_fill(0, count($allCategories), '?'));
-                $conditions[] = "p.category_id IN ($placeholders)";
-                $params = array_merge($params, $allCategories);
-            }
-        }
-
-        // Фільтр за ціною
-        if (!empty($filters['min_price'])) {
-            $conditions[] = "p.price >= ?";
-            $params[] = $filters['min_price'];
-        }
-        
-        if (!empty($filters['max_price'])) {
-            $conditions[] = "p.price <= ?";
-            $params[] = $filters['max_price'];
-        }
-
-        // Фільтр за атрибутами
-        self::applyAttributeFilters($filters, $joins, $conditions, $params);
-
-        if (!empty($joins)) {
-            $query .= " " . implode(" ", $joins);
-        }
-        
-        if (!empty($conditions)) {
-            $query .= " WHERE " . implode(" AND ", $conditions);
-        }
-
-        $result = $db->query($query, $params)->fetchAll(\PDO::FETCH_ASSOC);
-        
-        return !empty($result) ? $result[0]['count'] : 0;
+        $result = $db->query('SELECT COUNT(*) as count FROM products p WHERE ' . $base['where'], $base['params'])->fetchAll(\PDO::FETCH_ASSOC);
+        return !empty($result) ? (int) $result[0]['count'] : 0;
     }
 
-    /**
-     * Отримати доступні опції фільтра для категорії
-     * 
-     * @param int $categoryId
-     * @param array $currentFilters
-     * @return array
-     */
     public static function getFilterOptions($categoryId, $currentFilters = [])
     {
-        $db = Database::getInstance();
         $category = Category::findById($categoryId);
-        
         if (!$category) {
             return [];
         }
 
         $attributes = Category::getAllowedAttributes($categoryId);
-        $filterOptions = [];
-
         $categoryIds = self::getCategoryWithChildrenIds($categoryId);
+        $baseFilters = self::normalizeFilters($currentFilters);
+        $baseFilters['category_id'] = (int) $categoryId;
 
+        $options = [];
         foreach ($attributes as $attribute) {
-            if (!$attribute['is_filterable']) {
+            if (empty($attribute['is_filterable'])) {
                 continue;
             }
 
-            $filterOptions[$attribute['id']] = [
-                'id' => $attribute['id'],
+            $attributeId = (int) $attribute['id'];
+            $options[$attributeId] = [
+                'id' => $attributeId,
                 'name' => $attribute['name'],
                 'slug' => $attribute['slug'],
                 'type' => $attribute['type'],
-                'options' => []
+                'options' => [],
             ];
 
-            // Отримати доступні значення атрибута для товарів у категорії
             if ($attribute['type'] === 'range') {
-                $range = ProductAttribute::getNumericRangeForCategory($categoryIds, $attribute['id']);
-                $filterOptions[$attribute['id']]['range'] = $range;
+                $options[$attributeId]['range'] = ProductAttribute::getNumericRangeForCategory($categoryIds, $attributeId);
                 continue;
             }
 
-            $values = ProductAttribute::getUniqueValuesForCategory($categoryIds, $attribute['id']);
-
+            $values = ProductAttribute::getUniqueValuesForCategory($categoryIds, $attributeId);
             foreach ($values as $value) {
-    $count = ProductAttribute::getCountInCategory($categoryIds, $attribute['id'], $value['value']);
+                $optionId = isset($value['attribute_option_id']) ? (int) $value['attribute_option_id'] : 0;
+                $rawValue = (string) ($value['value'] ?? '');
 
-    $optionId = isset($value['attribute_option_id']) ? (int) $value['attribute_option_id'] : 0;
-    $filterOptions[$attribute['id']]['options'][] = [
-        'value' => $optionId > 0 ? ('opt:' . $optionId) : $value['value'],
-        'label' => $value['option_name'] ?? $value['value'],
-        'color' => $value['color_code'] ?? null,
-        'count' => $count
-    ];
-}
+                $attributeSpecificFilter = [
+                    $attributeId => [
+                        'type' => 'match',
+                        'option_ids' => $optionId > 0 ? [$optionId] : [],
+                        'values' => $optionId > 0 ? [] : [$rawValue],
+                    ],
+                ];
+
+                $countFilters = $baseFilters;
+                $countFilters['attributes'][$attributeId] = $attributeSpecificFilter[$attributeId];
+                $count = self::count($countFilters);
+
+                $options[$attributeId]['options'][] = [
+                    'value' => $optionId > 0 ? self::FILTER_OPTION_PREFIX . $optionId : $rawValue,
+                    'label' => $optionId > 0 ? (string) ($value['option_name'] ?? $rawValue) : $rawValue,
+                    'color' => $value['color_code'] ?? null,
+                    'count' => $count,
+                ];
+            }
         }
 
-        return $filterOptions;
+        return $options;
     }
 
-    /**
-     * Отримати діапазон цін для категорії
-     * 
-     * @param int $categoryId
-     * @return array
-     */
     public static function getPriceRange($categoryId)
-    {
+    { /* unchanged */
         $db = Database::getInstance();
-        
-        // Отримати категорію та всі дочірні категорії
         $allCategories = [$categoryId];
         $children = Category::getAllChildren($categoryId);
-        
         foreach ($children as $child) {
             $allCategories[] = $child['id'];
         }
-        
         $placeholders = implode(',', array_fill(0, count($allCategories), '?'));
-        
-        $result = $db->query(
-            "SELECT MIN(price) as min_price, MAX(price) as max_price 
-             FROM products 
-             WHERE category_id IN ($placeholders) AND is_visible = 1",
-            $allCategories
-        )->fetchAll(\PDO::FETCH_ASSOC);
-        
+        $result = $db->query("SELECT MIN(price) as min_price, MAX(price) as max_price FROM products WHERE category_id IN ($placeholders) AND is_visible = 1", $allCategories)->fetchAll(\PDO::FETCH_ASSOC);
         if (!empty($result)) {
-            return [
-                'min' => (float) $result[0]['min_price'],
-                'max' => (float) $result[0]['max_price']
-            ];
+            return ['min' => (float) $result[0]['min_price'], 'max' => (float) $result[0]['max_price']];
         }
-        
         return ['min' => 0, 'max' => 0];
     }
 
-    /**
-     * Отримати діапазон цін для всього каталогу.
-     *
-     * @return array{min: float, max: float}
-     */
-    public static function getGlobalPriceRange()
-    {
+    public static function getGlobalPriceRange(){/* unchanged */
         $db = Database::getInstance();
-        $result = $db->query(
-            "SELECT MIN(price) as min_price, MAX(price) as max_price FROM products WHERE is_visible = 1"
-        )->fetchAll(\PDO::FETCH_ASSOC);
-
+        $result = $db->query("SELECT MIN(price) as min_price, MAX(price) as max_price FROM products WHERE is_visible = 1")->fetchAll(\PDO::FETCH_ASSOC);
         if (!empty($result) && $result[0]['min_price'] !== null && $result[0]['max_price'] !== null) {
-            return [
-                'min' => (float) $result[0]['min_price'],
-                'max' => (float) $result[0]['max_price']
-            ];
+            return ['min' => (float) $result[0]['min_price'], 'max' => (float) $result[0]['max_price']];
         }
-
         return ['min' => 0.0, 'max' => 0.0];
     }
 
-    /**
-     * Отримати опції фільтра для всього каталогу на основі існуючих атрибутів у БД.
-     *
-     * @return array
-     */
-    public static function getCatalogFilterOptions()
-    {
-        $attributes = Attribute::all(true);
-        $filterOptions = [];
-
+    public static function getCatalogFilterOptions(){/* unchanged */
+        $attributes = Attribute::all(true); $filterOptions = [];
         foreach ($attributes as $attribute) {
-            $values = Product::query(
-                "SELECT DISTINCT pa.value
-                 FROM product_attributes pa
-                 INNER JOIN products p ON p.id = pa.product_id
-                 WHERE pa.attribute_id = ? AND pa.value IS NOT NULL AND pa.value <> ''
-                 ORDER BY pa.value",
-                [$attribute['id']]
-            ) ?? [];
-
-            if (empty($values)) {
-                continue;
-            }
-
-            $filterOptions[$attribute['id']] = [
-                'id' => $attribute['id'],
-                'name' => $attribute['name'],
-                'slug' => $attribute['slug'],
-                'type' => $attribute['type'],
-                'options' => []
-            ];
-
+            $values = Product::query("SELECT DISTINCT pa.value FROM product_attributes pa INNER JOIN products p ON p.id = pa.product_id WHERE pa.attribute_id = ? AND pa.value IS NOT NULL AND pa.value <> '' ORDER BY pa.value", [$attribute['id']]) ?? [];
+            if (empty($values)) { continue; }
+            $filterOptions[$attribute['id']] = ['id'=>$attribute['id'],'name'=>$attribute['name'],'slug'=>$attribute['slug'],'type'=>$attribute['type'],'options'=>[]];
             foreach ($values as $valueRow) {
                 $value = $valueRow['value'];
-                $countResult = Product::query(
-                    "SELECT COUNT(DISTINCT product_id) as count
-                     FROM product_attributes
-                     WHERE attribute_id = ? AND value = ?",
-                    [$attribute['id'], $value]
-                );
-
-                $filterOptions[$attribute['id']]['options'][] = [
-                    'value' => $value,
-                    'label' => $value,
-                    'count' => (int) ($countResult[0]['count'] ?? 0),
-                    'color' => null,
-                ];
+                $countResult = Product::query("SELECT COUNT(DISTINCT product_id) as count FROM product_attributes WHERE attribute_id = ? AND value = ?", [$attribute['id'], $value]);
+                $filterOptions[$attribute['id']]['options'][] = ['value'=>$value,'label'=>$value,'count'=>(int) ($countResult[0]['count'] ?? 0),'color'=>null];
             }
         }
-
         return $filterOptions;
     }
 
-    /**
-     * Отримати популярні атрибути для категорії
-     * 
-     * @param int $categoryId
-     * @param int $limit
-     * @return array
-     */
-    public static function getPopularAttributes($categoryId, $limit = 5)
-    {
-        $attributes = Category::getAttributes($categoryId);
-        $popular = [];
-
+    public static function getPopularAttributes($categoryId, $limit = 5){/* unchanged */
+        $attributes = Category::getAttributes($categoryId); $popular = [];
         foreach ($attributes as $attribute) {
-            if (!$attribute['is_filterable']) {
-                continue;
-            }
-
+            if (!$attribute['is_filterable']) { continue; }
             $values = ProductAttribute::getUniqueValuesForCategory($categoryId, $attribute['id']);
-            
-            if (!empty($values)) {
-                $popular[] = [
-                    'id' => $attribute['id'],
-                    'name' => $attribute['name'],
-                    'slug' => $attribute['slug'],
-                    'type' => $attribute['type'],
-                    'value_count' => count($values)
-                ];
-            }
+            if (!empty($values)) { $popular[] = ['id'=>$attribute['id'],'name'=>$attribute['name'],'slug'=>$attribute['slug'],'type'=>$attribute['type'],'value_count'=>count($values)]; }
         }
-
-        usort($popular, function($a, $b) {
-            return $b['value_count'] - $a['value_count'];
-        });
-
+        usort($popular, function($a, $b) { return $b['value_count'] - $a['value_count']; });
         return array_slice($popular, 0, $limit);
     }
 
-    /**
-     * Отримати URL для фільтра
-     * 
-     * @param int $categoryId
-     * @param array $filters
-     * @return string
-     */
     public static function getFilterUrl($categoryId, $filters = [])
     {
-        $url = "/category/" . Category::findById($categoryId)['slug'];
-        
-        if (empty($filters)) {
-            return $url;
-        }
-
+        $url = '/category/' . Category::findById($categoryId)['slug'];
+        if (empty($filters)) { return $url; }
         $queryParams = [];
-
-        if (!empty($filters['min_price'])) {
-            $queryParams['min_price'] = $filters['min_price'];
-        }
-
-        if (!empty($filters['max_price'])) {
-            $queryParams['max_price'] = $filters['max_price'];
-        }
-
+        if (!empty($filters['min_price'])) { $queryParams['min_price'] = $filters['min_price']; }
+        if (!empty($filters['max_price'])) { $queryParams['max_price'] = $filters['max_price']; }
         if (!empty($filters['attributes']) && is_array($filters['attributes'])) {
             foreach ($filters['attributes'] as $attributeId => $values) {
-                if (!empty($values)) {
-                    if (is_array($values) && (isset($values['min']) || isset($values['max']))) {
-                        if ($values['min'] !== '' && $values['min'] !== null) {
-                            $queryParams["attr_{$attributeId}_min"] = $values['min'];
-                        }
-
-                        if ($values['max'] !== '' && $values['max'] !== null) {
-                            $queryParams["attr_{$attributeId}_max"] = $values['max'];
-                        }
-
-                        continue;
-                    }
-
-                    if (is_array($values)) {
-                        $queryParams["attr_{$attributeId}"] = implode(',', $values);
-                    } else {
-                        $queryParams["attr_{$attributeId}"] = $values;
-                    }
+                if (empty($values)) { continue; }
+                if (is_array($values) && (isset($values['min']) || isset($values['max']))) {
+                    if ($values['min'] !== '' && $values['min'] !== null) { $queryParams["attr_{$attributeId}_min"] = $values['min']; }
+                    if ($values['max'] !== '' && $values['max'] !== null) { $queryParams["attr_{$attributeId}_max"] = $values['max']; }
+                    continue;
                 }
+                $queryParams["attr_{$attributeId}"] = is_array($values) ? implode(',', $values) : $values;
             }
         }
-
-        if (!empty($queryParams)) {
-            $url .= "?" . http_build_query($queryParams);
-        }
-
-        return $url;
+        return !empty($queryParams) ? ($url . '?' . http_build_query($queryParams)) : $url;
     }
 
-    /**
-     * Розпарсити фільтри з URL параметрів
-     * 
-     * @param array $queryParams
-     * @return array
-     */
     public static function parseFiltersFromUrl($queryParams = [])
     {
         $filters = [];
-
-        if (!empty($queryParams['min_price'])) {
-            $filters['min_price'] = (float) $queryParams['min_price'];
-        }
-
-        if (!empty($queryParams['max_price'])) {
-            $filters['max_price'] = (float) $queryParams['max_price'];
-        }
-
-        // Розпарсити атрибути
+        if (!empty($queryParams['min_price'])) { $filters['min_price'] = (float) $queryParams['min_price']; }
+        if (!empty($queryParams['max_price'])) { $filters['max_price'] = (float) $queryParams['max_price']; }
         $filters['attributes'] = [];
-        
         foreach ($queryParams as $key => $value) {
-            if (strpos($key, 'attr_') === 0) {
-                $attributeId = (int) substr($key, 5);
-                if (substr($key, -4) === '_min' || substr($key, -4) === '_max') {
-                    $bound = substr($key, -3) === 'min' ? 'min' : 'max';
-                    $attributeId = (int) substr($key, 5, -4);
-                    $filters['attributes'][$attributeId][$bound] = is_numeric($value) ? (float) $value : $value;
-                    continue;
-                }
-
-                if (is_array($value)) {
-                    $filters['attributes'][$attributeId] = array_values(array_filter($value, function ($item) {
-                        return $item !== '' && $item !== null;
-                    }));
-                    continue;
-                }
-
-                $filters['attributes'][$attributeId] = explode(',', $value);
+            if (strpos($key, 'attr_') !== 0) { continue; }
+            if (substr($key, -4) === '_min' || substr($key, -4) === '_max') {
+                $bound = substr($key, -3) === 'min' ? 'min' : 'max';
+                $attributeId = (int) substr($key, 5, -4);
+                $filters['attributes'][$attributeId][$bound] = is_numeric($value) ? (float) $value : $value;
+                continue;
+            }
+            $attributeId = (int) substr($key, 5);
+            if (is_array($value)) {
+                $filters['attributes'][$attributeId] = array_values(array_filter($value, fn($item) => $item !== '' && $item !== null));
+            } else {
+                $filters['attributes'][$attributeId] = array_values(array_filter(explode(',', (string) $value), fn($item) => $item !== '' && $item !== null));
             }
         }
-
         return $filters;
     }
 }
