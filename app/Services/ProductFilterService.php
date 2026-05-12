@@ -38,82 +38,92 @@ class ProductFilterService
      * @return void
      */
     private static function applyAttributeFilters($filters, &$joins, &$conditions, &$params)
-    {
-        if (empty($filters['attributes']) || !is_array($filters['attributes'])) {
-            return;
+{
+    if (empty($filters['attributes']) || !is_array($filters['attributes'])) {
+        return;
+    }
+
+    $attributeIndex = 0;
+
+    foreach ($filters['attributes'] as $attributeId => $attributeFilter) {
+        if ($attributeFilter === '' || $attributeFilter === null || $attributeFilter === []) {
+            continue;
         }
 
-        $attributeIndex = 0;
+        $attributeIndex++;
+        $tableAlias = "pa{$attributeIndex}";
+        $optionAlias = "ao{$attributeIndex}";
+        $joins[] = "INNER JOIN product_attributes {$tableAlias} ON p.id = {$tableAlias}.product_id 
+                    AND {$tableAlias}.attribute_id = ?";
+        $joins[] = "LEFT JOIN attribute_options {$optionAlias} ON {$optionAlias}.id = {$tableAlias}.attribute_option_id";
+        $params[] = (int) $attributeId;
 
-        foreach ($filters['attributes'] as $attributeId => $attributeFilter) {
-            if ($attributeFilter === '' || $attributeFilter === null || $attributeFilter === []) {
-                continue;
+        if (is_array($attributeFilter) && (isset($attributeFilter['min']) || isset($attributeFilter['max']))) {
+            if ($attributeFilter['min'] !== '' && $attributeFilter['min'] !== null) {
+                $conditions[] = "CAST({$tableAlias}.value AS DECIMAL(12,2)) >= ?";
+                $params[] = (float) $attributeFilter['min'];
             }
 
-            $attributeIndex++;
-            $tableAlias = "pa{$attributeIndex}";
-            $joins[] = "INNER JOIN product_attributes {$tableAlias} ON p.id = {$tableAlias}.product_id 
-                        AND {$tableAlias}.attribute_id = ?";
-            $params[] = (int) $attributeId;
+            if ($attributeFilter['max'] !== '' && $attributeFilter['max'] !== null) {
+                $conditions[] = "CAST({$tableAlias}.value AS DECIMAL(12,2)) <= ?";
+                $params[] = (float) $attributeFilter['max'];
+            }
 
-            if (is_array($attributeFilter) && (isset($attributeFilter['min']) || isset($attributeFilter['max']))) {
-                if ($attributeFilter['min'] !== '' && $attributeFilter['min'] !== null) {
-                    $conditions[] = "CAST({$tableAlias}.value AS DECIMAL(12,2)) >= ?";
-                    $params[] = (float) $attributeFilter['min'];
+            continue;
+        }
+
+        $values = is_array($attributeFilter) ? $attributeFilter : [$attributeFilter];
+        $values = array_values(array_filter($values, function ($value) {
+            return $value !== '' && $value !== null;
+        }));
+
+        if (empty($values)) {
+            continue;
+        }
+
+        $optionIds = [];
+        $plainValues = [];
+
+        foreach ($values as $value) {
+            if (is_string($value) && strpos($value, 'opt:') === 0) {
+                $optionId = (int) substr($value, 4);
+                if ($optionId > 0) {
+                    $optionIds[] = $optionId;
+                    continue;
                 }
-
-                if ($attributeFilter['max'] !== '' && $attributeFilter['max'] !== null) {
-                    $conditions[] = "CAST({$tableAlias}.value AS DECIMAL(12,2)) <= ?";
-                    $params[] = (float) $attributeFilter['max'];
-                }
-
-                continue;
             }
 
-            $values = is_array($attributeFilter) ? $attributeFilter : [$attributeFilter];
-            $values = array_values(array_filter($values, function ($value) {
-                return $value !== '' && $value !== null;
-            }));
+            $plainValues[] = $value;
+        }
 
-            if (empty($values)) {
-                continue;
-            }
+        $attributeConditions = [];
 
-            $optionIds = [];
-            $plainValues = [];
+        if (!empty($optionIds)) {
+            $optionIds = array_values(array_unique(array_map('intval', $optionIds)));
+            $optionPlaceholders = implode(',', array_fill(0, count($optionIds), '?'));
+            $attributeConditions[] = "{$tableAlias}.attribute_option_id IN ($optionPlaceholders)";
+            $params = array_merge($params, $optionIds);
+        }
 
-            foreach ($values as $value) {
-                if (is_string($value) && strpos($value, 'opt:') === 0) {
-                    $optionId = (int) substr($value, 4);
-                    if ($optionId > 0) {
-                        $optionIds[] = $optionId;
-                        continue;
-                    }
-                }
+        if (!empty($plainValues)) {
+            $valuePlaceholders = implode(',', array_fill(0, count($plainValues), '?'));
+            $attributeConditions[] = "{$tableAlias}.value IN ($valuePlaceholders)";
+            $params = array_merge($params, $plainValues);
 
-                $plainValues[] = $value;
-            }
+            $optionNamePlaceholders = implode(',', array_fill(0, count($plainValues), '?'));
+            $attributeConditions[] = "{$optionAlias}.name IN ($optionNamePlaceholders)";
+            $params = array_merge($params, $plainValues);
 
-            $attributeConditions = [];
+            $optionValuePlaceholders = implode(',', array_fill(0, count($plainValues), '?'));
+            $attributeConditions[] = "{$optionAlias}.value IN ($optionValuePlaceholders)";
+            $params = array_merge($params, $plainValues);
+        }
 
-            if (!empty($optionIds)) {
-                $optionIds = array_values(array_unique(array_map('intval', $optionIds)));
-                $optionPlaceholders = implode(',', array_fill(0, count($optionIds), '?'));
-                $attributeConditions[] = "{$tableAlias}.attribute_option_id IN ($optionPlaceholders)";
-                $params = array_merge($params, $optionIds);
-            }
-
-            if (!empty($plainValues)) {
-                $valuePlaceholders = implode(',', array_fill(0, count($plainValues), '?'));
-                $attributeConditions[] = "{$tableAlias}.value IN ($valuePlaceholders)";
-                $params = array_merge($params, $plainValues);
-            }
-
-            if (!empty($attributeConditions)) {
-                $conditions[] = '(' . implode(' OR ', $attributeConditions) . ')';
-            }
+        if (!empty($attributeConditions)) {
+            $conditions[] = '(' . implode(' OR ', $attributeConditions) . ')';
         }
     }
+}
 
     /**
      * Отримати відфільтровані товари
@@ -289,16 +299,16 @@ class ProductFilterService
             $values = ProductAttribute::getUniqueValuesForCategory($categoryIds, $attribute['id']);
 
             foreach ($values as $value) {
-                $count = ProductAttribute::getCountInCategory($categoryIds, $attribute['id'], $value['value']);
+    $count = ProductAttribute::getCountInCategory($categoryIds, $attribute['id'], $value['value']);
 
-                $optionId = isset($value['attribute_option_id']) ? (int) $value['attribute_option_id'] : 0;
-                $filterOptions[$attribute['id']]['options'][] = [
-                    'value' => $optionId > 0 ? ('opt:' . $optionId) : $value['value'],
-                    'label' => $value['option_name'] ?? $value['value'],
-                    'color' => $value['color_code'] ?? null,
-                    'count' => $count
-                ];
-            }
+    $optionId = isset($value['attribute_option_id']) ? (int) $value['attribute_option_id'] : 0;
+    $filterOptions[$attribute['id']]['options'][] = [
+        'value' => $optionId > 0 ? ('opt:' . $optionId) : $value['value'],
+        'label' => $value['option_name'] ?? $value['value'],
+        'color' => $value['color_code'] ?? null,
+        'count' => $count
+    ];
+}
         }
 
         return $filterOptions;
