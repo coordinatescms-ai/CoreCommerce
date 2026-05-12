@@ -51,3 +51,19 @@ This project is distributed under the MIT License. See the [`LICENSE`](LICENSE) 
 In the admin dashboard (**Панель керування → Стан системи**) there is a **"Почистити кеш"** button.
 It sends a CSRF-protected POST request and clears project cache files only from `storage/cache/*` (including at minimum `active_plugins.json`).
 It also updates `settings.asset_version` so CSS/JS assets can be reloaded with a new `?v=` query parameter in templates (cache busting).
+
+## Category filters pipeline (2026 rewrite)
+
+Category product filtering now uses a strict 3-step pipeline in `App\Services\ProductFilterService`:
+1. **Normalization layer** (`normalizeFilters`) converts raw URL/controller filters into deterministic DTO-like arrays (`match` with `option_ids`/`values`, or `range` with `min`/`max`).
+2. **SQL predicate builder** (`buildBaseProductQuery`) creates safe prepared-statement conditions, using isolated `EXISTS` subqueries per attribute to avoid JOIN explosion and duplicate products.
+3. **Filter options provider** (`getFilterOptions`) builds selectable options with canonical `opt:{attribute_option_id}` values and legacy `value` fallback for historic plain-text rows.
+
+### Matching rules
+- Selectable attributes are matched by `product_attributes.attribute_option_id` (canonical path).
+- Legacy compatibility fallback is preserved by matching `product_attributes.value` for old text-only data.
+- Numeric ranges use `CAST(pa.value AS DECIMAL(12,2))` with numeric guard regex.
+- Multi-select for one attribute works as OR inside one attribute predicate.
+- Multi-attribute filtering works as AND via separate `EXISTS` conditions.
+
+This keeps existing DB schema and URL format (`attr_{id}`, `attr_{id}_min`, `attr_{id}_max`) intact while removing legacy runtime branches based on JOIN alias chains.
