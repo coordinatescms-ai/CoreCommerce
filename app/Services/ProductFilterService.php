@@ -52,8 +52,10 @@ class ProductFilterService
 
             $attributeIndex++;
             $tableAlias = "pa{$attributeIndex}";
+            $optionAlias = "ao{$attributeIndex}";
             $joins[] = "INNER JOIN product_attributes {$tableAlias} ON p.id = {$tableAlias}.product_id 
                         AND {$tableAlias}.attribute_id = ?";
+            $joins[] = "LEFT JOIN attribute_options {$optionAlias} ON {$optionAlias}.id = {$tableAlias}.attribute_option_id";
             $params[] = (int) $attributeId;
 
             if (is_array($attributeFilter) && (isset($attributeFilter['min']) || isset($attributeFilter['max']))) {
@@ -79,9 +81,47 @@ class ProductFilterService
                 continue;
             }
 
-            $valuePlaceholders = implode(',', array_fill(0, count($values), '?'));
-            $conditions[] = "{$tableAlias}.value IN ($valuePlaceholders)";
-            $params = array_merge($params, $values);
+            $optionIds = [];
+            $plainValues = [];
+
+            foreach ($values as $value) {
+                if (is_string($value) && strpos($value, 'opt:') === 0) {
+                    $optionId = (int) substr($value, 4);
+                    if ($optionId > 0) {
+                        $optionIds[] = $optionId;
+                        continue;
+                    }
+                }
+
+                $plainValues[] = $value;
+            }
+
+            $attributeConditions = [];
+
+            if (!empty($optionIds)) {
+                $optionIds = array_values(array_unique(array_map('intval', $optionIds)));
+                $optionPlaceholders = implode(',', array_fill(0, count($optionIds), '?'));
+                $attributeConditions[] = "{$tableAlias}.attribute_option_id IN ($optionPlaceholders)";
+                $params = array_merge($params, $optionIds);
+            }
+
+            if (!empty($plainValues)) {
+                $valuePlaceholders = implode(',', array_fill(0, count($plainValues), '?'));
+                $attributeConditions[] = "{$tableAlias}.value IN ($valuePlaceholders)";
+                $params = array_merge($params, $plainValues);
+
+                $optionNamePlaceholders = implode(',', array_fill(0, count($plainValues), '?'));
+                $attributeConditions[] = "{$optionAlias}.name IN ($optionNamePlaceholders)";
+                $params = array_merge($params, $plainValues);
+
+                $optionValuePlaceholders = implode(',', array_fill(0, count($plainValues), '?'));
+                $attributeConditions[] = "{$optionAlias}.value IN ($optionValuePlaceholders)";
+                $params = array_merge($params, $plainValues);
+            }
+
+            if (!empty($attributeConditions)) {
+                $conditions[] = '(' . implode(' OR ', $attributeConditions) . ')';
+            }
         }
     }
 
@@ -261,8 +301,9 @@ class ProductFilterService
             foreach ($values as $value) {
                 $count = ProductAttribute::getCountInCategory($categoryIds, $attribute['id'], $value['value']);
 
+                $optionId = isset($value['attribute_option_id']) ? (int) $value['attribute_option_id'] : 0;
                 $filterOptions[$attribute['id']]['options'][] = [
-                    'value' => $value['value'],
+                    'value' => $optionId > 0 ? ('opt:' . $optionId) : $value['value'],
                     'label' => $value['option_name'] ?? $value['value'],
                     'color' => $value['color_code'] ?? null,
                     'count' => $count
