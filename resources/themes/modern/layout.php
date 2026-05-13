@@ -199,34 +199,127 @@
             padding-left: 0.9rem;
         }
 
+        /* Основний контейнер */
         .language-selector {
             display: flex;
-            gap: 0.5rem;
+            gap: 1rem;
             align-items: center;
-            flex-wrap: wrap;
         }
 
-        .language-selector span {
-            font-weight: 500;
+        /* Контейнер для випадаючого списку */
+        .lang-dropdown {
+            position: relative;
+            display: inline-block;
         }
 
-        .language-selector a,
-        .language-selector strong {
-            padding: 0.4rem 0.8rem;
-            border-radius: var(--border-radius);
-            text-decoration: none;
+        /* Стиль головної кнопки (поточної мови) */
+        .lang-dropbtn {
+            background-color: rgba(255, 255, 255, 0.15);
             color: white;
+            padding: 0.4rem 0.8rem;
             font-size: 0.9rem;
-            transition: var(--transition);
+            font-weight: 500;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--border-radius, 6px);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: var(--transition, all 0.2s ease);
         }
 
-        .language-selector a:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-        }
+.lang-dropdown:hover .lang-dropbtn {
+    background-color: rgba(255, 255, 255, 0.25);
+}
 
-        .language-selector strong {
-            background-color: rgba(255, 255, 255, 0.3);
-        }
+/* Стрілочка біля мови */
+.lang-dropbtn .arrow {
+    font-size: 0.6rem;
+    transition: transform 0.2s ease;
+}
+
+.lang-dropdown:hover .arrow {
+    transform: rotate(180deg);
+}
+
+/* Випадаюче вікно з іншими мовами */
+.dropdown-menu {
+    display: block;
+    position: absolute;
+    top: 110%;
+    left: 0;
+    min-width: 120px;
+    background-color: rgba(30, 30, 30, 0.85); /* Темний напівпрозорий фон */
+    backdrop-filter: blur(10px); /* Ефект розмиття */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--border-radius, 6px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-5px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 100;
+}
+
+/* Поява списку при наведенні */
+.lang-dropdown:hover .dropdown-menu {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+/* Посилання всередині меню */
+.dropdown-menu a {
+    color: rgba(255, 255, 255, 0.9);
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    display: block;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.dropdown-menu a:first-child {
+    border-radius: var(--border-radius, 6px) var(--border-radius, 6px) 0 0;
+}
+
+.dropdown-menu a:last-child {
+    border-radius: 0 0 var(--border-radius, 6px) var(--border-radius, 6px);
+}
+
+/* Ефект наведення на пункт меню */
+.dropdown-menu a:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: white;
+    padding-left: 1.2rem; /* Легкий зсув вправо для інтерактивності */
+}
+
+/* Стилі для лінка кошика */
+.nav-cart-link {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: var(--border-radius, 6px);
+    text-decoration: none;
+    color: white;
+    font-size: 0.9rem;
+    transition: var(--transition, all 0.2s ease);
+}
+
+.nav-cart-link:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.cart-counter {
+    background-color: #ff4757; /* Яскравий колір для лічильника */
+    color: white;
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 0.1rem 0.4rem;
+    border-radius: 10px;
+    margin-left: 0.2rem;
+}
+
 
         /* Container */
         .container {
@@ -529,8 +622,6 @@
             }
         }
 
-
-
         @media (max-width: 480px) {
             .nav-links {
                 gap: 0.5rem;
@@ -594,10 +685,6 @@
                 <span><?php echo htmlspecialchars((string) get_setting('site_name', 'Мій Магазин')); ?></span>
             </a>
             <div class="nav-links">
-                <a href="/products"><?php echo function_exists('__') ? __('products') : 'Products'; ?></a>
-                <a href="/cart" class="nav-cart-link" data-cart-link><svg xmlns="http://www.w3.org/2000/svg" height="20" width="22" viewBox="0 0 576 512" fill="white" style="margin-right: 0; vertical-align: middle;">
-                    <path d="M0 24C0 10.7 10.7 0 24 0H69.5c22 0 41.5 12.8 50.6 32h411c26.3 0 45.5 25 38.6 50.4l-41 152.3c-8.5 31.4-37 53.3-69.5 53.3H170.7l5.4 28.5c2.2 11.3 12.1 19.5 23.6 19.5H488c13.3 0 24 10.7 24 24s-10.7 24-24 24H199.7c-34.6 0-64.3-24.6-70.7-58.5L77.4 54.5c-.7-3.8-4-6.5-7.9-6.5H24C10.7 48 0 37.3 0 24zM128 464a48 48 0 1 1 96 0 48 48 0 1 1-96 0zm336-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"/>
-                </svg><?php echo function_exists('__') ? __('cart') : 'Cart'; ?><span class="cart-counter" data-cart-count>0</span></a>
                 <div class="nav-dropdown" data-nav-dropdown>
                     <button class="nav-dropdown-toggle" type="button" aria-expanded="false" aria-controls="modern-nav-categories">
                         <?= __('categories') ?>
@@ -609,11 +696,12 @@
                     }
                     ?>
                 </div>
+                <a href="/products"><?php echo function_exists('__') ? __('products') : 'Products'; ?></a>
                 <?php if (!empty($_SESSION['user'])): ?>
-                    <a href="/profile"><?php echo function_exists('__') ? __('profile') : 'Profile'; ?> (<?php echo htmlspecialchars($_SESSION['user']['first_name'] ?? $_SESSION['user']['email']); ?>)</a>
+                    <a href="/profile"><?php // echo function_exists('__') ? __('profile') : 'Profile'; ?> (<?php echo htmlspecialchars($_SESSION['user']['first_name'] ?? $_SESSION['user']['email']); ?>)</a>
                     <form action="/logout" method="POST" style="display:inline;">
                         <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf'] ?? ''); ?>">
-                        <button type="submit" style="border:none; background:none; color:inherit; cursor:pointer; padding:0; text-decoration:underline;">
+                        <button type="submit" style="border:none; background:none; color:inherit; cursor:pointer; padding:0; ">
                             <?php echo function_exists('__') ? __('logout') : 'Logout'; ?>
                         </button>
                     </form>
@@ -623,17 +711,40 @@
                 <?php endif; ?>
             </div>
             <div class="language-selector">
-                <span><?php echo function_exists('__') ? __('language') : 'Language'; ?>:</span>
-                <?php if (function_exists('get_supported_languages')): ?>
-                    <?php foreach (get_supported_languages() as $lang): ?>
-                        <?php if ($lang === get_current_language()): ?>
-                            <strong><?php echo $lang === 'ua' ? (function_exists('__') ? __('ukrainian') : 'Ukrainian') : (function_exists('__') ? __('english') : 'English'); ?></strong>
-                        <?php else: ?>
-                            <a href="/language/<?php echo $lang; ?>"><?php echo $lang === 'ua' ? (function_exists('__') ? __('ukrainian') : 'Ukrainian') : (function_exists('__') ? __('english') : 'English'); ?></a>
-                        <?php endif; ?>
-                    <?php endforeach; ?>
-                <?php endif; ?>
+    <?php if (function_exists('get_supported_languages')): ?>
+        <div class="lang-dropdown">
+            <!-- Кнопка поточної мови -->
+            <button class="lang-dropbtn">
+                <?php 
+                $current = get_current_language();
+                echo $current === 'ua' ? (function_exists('__') ? __('ukrainian') : 'Ukrainian') : (function_exists('__') ? __('english') : 'English'); 
+                ?>
+                <span class="arrow">▼</span>
+            </button>
+            
+            <!-- Список інших мов -->
+            <div class="dropdown-menu">
+                <?php foreach (get_supported_languages() as $lang): ?>
+                    <?php if ($lang !== $current): ?>
+                        <a href="/language/<?php echo $lang; ?>">
+                            <?php echo $lang === 'ua' ? (function_exists('__') ? __('ukrainian') : 'Ukrainian') : (function_exists('__') ? __('english') : 'English'); ?>
+                        </a>
+                    <?php endif; ?>
+                <?php endforeach; ?>
             </div>
+        </div>
+    <?php endif; ?>
+
+    <!-- Кошик залишається на місці -->
+    <a href="/cart" class="nav-cart-link" data-cart-link>
+        <svg xmlns="http://www.w3.org/2000/svg" height="20" width="22" viewBox="0 0 576 512" fill="white" style="margin-right: 0; vertical-align: middle;">
+            <path d="M0 24C0 10.7 10.7 0 24 0H69.5c22 0 41.5 12.8 50.6 32h411c26.3 0 45.5 25 38.6 50.4l-41 152.3c-8.5 31.4-37 53.3-69.5 53.3H170.7l5.4 28.5c2.2 11.3 12.1 19.5 23.6 19.5H488c13.3 0 24 10.7 24 24s-10.7 24-24 24H199.7c-34.6 0-64.3-24.6-70.7-58.5L77.4 54.5c-.7-3.8-4-6.5-7.9-6.5H24C10.7 48 0 37.3 0 24zM128 464a48 48 0 1 1 96 0 48 48 0 1 1-96 0zm336-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"/>
+        </svg>
+        <?php echo function_exists('__') ? __('cart') : 'Cart'; ?>
+        <span class="cart-counter" data-cart-count>0</span>
+    </a>
+</div>
+
         </nav>
     </header>
 

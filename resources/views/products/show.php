@@ -277,42 +277,79 @@ if (isset($_SESSION['user']['id'])) {
                     <?php endif; ?>
                 </details>
 
-                <details>
+                <details class="pdp-reviews-details">
     <summary><?= __('reviews') ?></summary>
+    
     <div id="pdp-reviews-panel" data-product-slug="<?= htmlspecialchars($product['slug']) ?>">
+        
         <?php if (!empty($_SESSION['user']['id'])): ?>
-            <form id="pdp-review-form" style="margin: 12px 0;">
+            <!-- Форма відгуку -->
+            <form id="pdp-review-form">
                 <input type="hidden" name="csrf" value="<?= htmlspecialchars(\App\Core\Http\Csrf::token()) ?>">
                 <input type="hidden" name="parent_id" id="pdp-review-parent-id" value="">
                 
-                <label for="pdp-review-rating">Рейтинг (1-5, тільки для основного):</label>
-                <input type="number" name="rating" id="pdp-review-rating" min="1" max="5" value="5">
+                <div class="pdp-form-header">
+                    <h3 id="pdp-form-title">Залишити відгук</h3>
+                    <div id="pdp-reply-target" style="display:none;"></div>
+                </div>
 
-                <div id="pdp-reply-target" style="display:none;margin:6px 0;color:#2563eb;font-weight:600;"></div><label for="pdp-review-body">Текст відгуку:</label>
-                <textarea
-                    name="body"
-                    id="pdp-review-body"
-                    rows="3"
-                    required
-                    maxlength="2000"
-                    placeholder="Напишіть відгук"
-                ></textarea>
+                <!-- Блок рейтингу зірочками -->
+                <div class="pdp-rating-wrapper">
+                    <label>Ваша оцінка:</label>
+                    <div class="pdp-star-rating">
+                        <?php for ($i = 5; $i >= 1; $i--): ?>
+                            <input type="radio" id="star<?= $i ?>" name="rating" value="<?= $i ?>" <?= $i === 5 ? 'checked' : '' ?>>
+                            <label for="star<?= $i ?>" title="<?= $i ?> зірок">
+                                <svg viewBox="0 0 24 24" width="24" height="24">
+                                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                                </svg>
+                            </label>
+                        <?php endfor; ?>
+                    </div>
+                </div>
 
-                <div style="display:flex;gap:8px;align-items:center;"><button type="submit" class="pdp-btn pdp-btn-primary">Додати</button><button type="button" id="pdp-cancel-reply" class="pdp-btn pdp-btn-ghost" style="display:none;">Скасувати відповідь</button></div>
+                <div class="pdp-input-group">
+                    <label for="pdp-review-body">Текст повідомлення:</label>
+                    <textarea
+                        name="body"
+                        id="pdp-review-body"
+                        rows="4"
+                        required
+                        maxlength="2000"
+                        placeholder="Поділіться враженнями про товар..."
+                    ></textarea>
+                </div>
+
+                <div class="pdp-form-actions">
+                    <button type="submit" class="pdp-btn pdp-btn-primary">
+                        <span>Надіслати відгук</span>
+                    </button>
+                    <button type="button" id="pdp-cancel-reply" class="pdp-btn pdp-btn-ghost" style="display:none;">
+                        Скасувати відповідь
+                    </button>
+                </div>
             </form>
         <?php else: ?>
-            <p>Лише зареєстровані користувачі можуть залишати відгуки.</p>
+            <div class="pdp-auth-prompt">
+                <p>Лише зареєстровані користувачі можуть залишати відгуки. <a href="/login">Увійти</a></p>
+            </div>
         <?php endif; ?>
 
-        <div id="pdp-reviews-list"></div>
-        <button
-            id="pdp-reviews-more-btn"
-            class="pdp-btn pdp-btn-ghost"
-            type="button"
-            style="display:none; margin-top:10px;"
-        >
-            Показати ще
-        </button>
+        <!-- Список відгуків -->
+        <div class="pdp-reviews-container">
+            <div id="pdp-reviews-list">
+                <!-- Сюди JS підвантажує відгуки (pdp-review-item) -->
+            </div>
+
+            <button
+                id="pdp-reviews-more-btn"
+                class="pdp-btn pdp-btn-outline"
+                type="button"
+                style="display:none;"
+            >
+                Показати ще відгуки
+            </button>
+        </div>
     </div>
 </details>
 
@@ -358,28 +395,189 @@ if (isset($_SESSION['user']['id'])) {
 }
 
 /* Ізольовані стилі відгуків (щоб не конфліктували з темою) */
-#pdp-reviews-panel {
-    max-width: 100%;
-}
-
-.pdp-review-item {
+/* 1. Головний контейнер (рамка як у "Детальні характеристики") */
+.pdp-reviews-details {
     border: 1px solid #e2e8f0;
     border-radius: 8px;
-    padding: 10px;
     margin-top: 10px;
     background: #fff;
+    overflow: hidden;
+    font-family: sans-serif;
+}
+
+/* 2. Заголовок (Summary) */
+.pdp-reviews-details summary {
+    display: flex !important;
+    align-items: center;
+    justify-content: flex-start; /* Все ліворуч */
+    gap: 12px;
+    padding: 12px 16px;
+    background: #f8fafc;
+    cursor: pointer;
+    list-style: none;
+    font-weight: 600;
+    color: #1e293b;
+    user-select: none;
+}
+
+.pdp-reviews-details summary::-webkit-details-marker {
+    display: none;
+}
+
+/* Кастомна стрілка (трикутник) ліворуч */
+.pdp-reviews-details summary::before {
+    content: "";
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 5px 0 5px 7px;
+    border-color: transparent transparent transparent #1e293b;
+    transition: transform 0.2s ease;
+    display: inline-block;
+}
+
+.pdp-reviews-details[open] summary::before {
+    transform: rotate(90deg);
+}
+
+.pdp-reviews-details[open] summary {
+    border-bottom: 1px solid #e2e8f0;
+}
+
+/* 3. Внутрішня панель */
+#pdp-reviews-panel {
+    padding: 20px;
+    color: #1e293b;
+}
+
+/* 4. Форма відгуку */
+#pdp-review-form {
+    background: #f8fafc;
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 24px;
+}
+
+#pdp-review-form h3 {
+    margin: 0 0 16px 0;
+    font-size: 18px;
+}
+
+.pdp-input-group {
+    margin-bottom: 16px;
+}
+
+.pdp-input-group label {
+    display: block;
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 6px;
+}
+
+#pdp-review-body {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 15px;
+    resize: vertical;
+    box-sizing: border-box;
+}
+
+#pdp-review-body:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* 5. Рейтинг зірочками */
+.pdp-rating-wrapper {
+    margin-bottom: 16px;
+}
+
+.pdp-star-rating {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    gap: 4px;
+}
+
+.pdp-star-rating input { display: none; }
+
+.pdp-star-rating label {
+    cursor: pointer;
+    line-height: 1;
+}
+
+.pdp-star-rating label svg {
+    fill: #d1d5db;
+    width: 24px;
+    height: 24px;
+    transition: fill 0.2s;
+}
+
+.pdp-star-rating input:checked ~ label svg,
+.pdp-star-rating label:hover ~ label svg,
+.pdp-star-rating label:hover svg {
+    fill: #fbbf24;
+}
+
+/* 6. Кнопки */
+.pdp-btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+
+.pdp-btn-primary {
+    background: #2563eb;
+    color: white;
+}
+
+.pdp-btn-primary:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+}
+
+.pdp-btn-ghost {
+    background: transparent;
+    color: #64748b;
+}
+
+.pdp-btn-ghost:hover {
+    background: #f1f5f9;
+}
+
+/* 7. Список відгуків та відповіді */
+.pdp-review-item {
+    border-bottom: 1px solid #e2e8f0;
+    padding: 16px 0;
+}
+
+.pdp-review-item:last-child {
+    border-bottom: none;
 }
 
 .pdp-review-replies {
-    margin-left: 24px;
+    margin-left: 30px;
+    padding-left: 20px;
+    border-left: 2px solid #e2e8f0;
+    margin-top: 10px;
 }
 
-#pdp-review-form textarea,
-#pdp-review-form input[type="number"] {
-    width: 100%;
-    box-sizing: border-box;
-    margin: 6px 0 10px;
+.pdp-auth-prompt {
+    text-align: center;
+    padding: 20px;
+    background: #f8fafc;
+    border-radius: 8px;
+    color: #64748b;
 }
+
 
 .pdp-layout {
     display: grid;
@@ -861,114 +1059,69 @@ if (isset($_SESSION['user']['id'])) {
 </style>
 
 <script>
-    // 1. Отримуємо дані з PHP
+(() => {
+    // --- 1. ОБРАНЕ (WISHLIST) ---
     const isLoggedIn = <?php echo isset($_SESSION['user']) ? 1 : 0; ?>;
     const productId = <?php echo (int)$product['id']; ?>;
-    
-    // Знаходимо кнопку та її текстовий контейнер
     const wishlistBtn = document.querySelector('.pdp-btn-ghost');
-    // Зберігаємо початковий переклад (наприклад, "Wishlist" або "В обране") 
-    // щоб знати, що написати, коли товар буде видалено
-    const originalText = wishlistBtn.innerText.replace('❤️ ', '').trim();
 
-    wishlistBtn.addEventListener('click', function(e) {
-        e.preventDefault();
+    if (wishlistBtn) {
+        const originalText = wishlistBtn.innerText.replace('❤️ ', '').trim();
 
-        // 2. Перевірка авторизації
-        if (isLoggedIn === 0) {
-            showLoginPopup();
-            return;
-        }
-
-        const btn = this;
-        btn.disabled = true; // Блокуємо кнопку на час запиту
-
-        // 3. Підготовка даних для відправки
-        const formData = new FormData();
-        formData.append('product_id', productId);
-
-        // 4. Відправка запиту на контролер
-        fetch('/favorites/toggle', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'added') {
-                // Товар додано: додаємо клас та сердечко
-                btn.classList.add('active');
-                btn.innerHTML = '❤️ ' + originalText;
-            } else if (data.status === 'removed') {
-                // Товар видалено: прибираємо клас та сердечко
-                btn.classList.remove('active');
-                btn.innerHTML = originalText;
-            } else {
-                alert(data.message || 'Сталася помилка');
+        wishlistBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (isLoggedIn === 0) {
+                showLoginPopup();
+                return;
             }
-        })
-        .catch(error => {
-            console.error('Помилка AJAX:', error);
-            alert('Не вдалося з’єднатися з сервером');
-        })
-        .finally(() => {
-            btn.disabled = false; // Розблоковуємо кнопку
+
+            const btn = this;
+            btn.disabled = true;
+            const formData = new FormData();
+            formData.append('product_id', productId);
+
+            fetch('/favorites/toggle', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'added') {
+                    btn.classList.add('active');
+                    btn.innerHTML = '❤️ ' + originalText;
+                } else if (data.status === 'removed') {
+                    btn.classList.remove('active');
+                    btn.innerHTML = originalText;
+                }
+            })
+            .finally(() => { btn.disabled = false; });
         });
-    });
-
-    // Функція показу попапа для гостей
-    function showLoginPopup() {
-        if (document.getElementById('auth-popup')) return;
-
-        const popup = document.createElement('div');
-        popup.id = 'auth-popup';
-        
-        const header = document.querySelector('header') || document.querySelector('.main-header'); 
-        const headerHeight = header ? header.offsetHeight : 0;
-
-        popup.style.cssText = `
-            position: fixed;
-            top: ${headerHeight + 10}px;
-            right: 20px;
-            background: white;
-            padding: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-            z-index: 1000;
-            border-radius: 8px;
-            border-left: 4px solid #e74c3c;
-        `;
-
-        popup.innerHTML = `
-            <div class="auth-popup-content">
-                <p style="margin: 0 0 15px 0;">Щоб додати в обране, увійдіть у профіль</p>
-                <div style="display: flex; gap: 10px;">
-                    <a href="/login" style="color: #e74c3c; text-decoration: none; font-weight: bold;">Увійти</a>
-                    <a href="/register" style="color: #666; text-decoration: none;">Реєстрація</a>
-                </div>
-                <button onclick="this.closest('#auth-popup').remove()" 
-                        style="position: absolute; top: 5px; right: 10px; border: none; background: none; cursor: pointer; font-size: 20px;">
-                        &times;
-                </button>
-            </div>
-        `;
-        document.body.appendChild(popup);
-        setTimeout(() => { if(popup) popup.remove(); }, 5000);
     }
 
-(() => {
+    function showLoginPopup() {
+        if (document.getElementById('auth-popup')) return;
+        const popup = document.createElement('div');
+        popup.id = 'auth-popup';
+        popup.style.cssText = `position:fixed; top:80px; right:20px; background:white; padding:20px; box-shadow:0 4px 15px rgba(0,0,0,0.15); z-index:1000; border-radius:8px; border-left:4px solid #e74c3c;`;
+        popup.innerHTML = `
+            <div class="auth-popup-content">
+                <p style="margin:0 0 15px 0;">Щоб додати в обране, увійдіть у профіль</p>
+                <div style="display:flex; gap:10px;">
+                    <a href="/login" style="color:#e74c3c; text-decoration:none; font-weight:bold;">Увійти</a>
+                    <button onclick="this.closest('#auth-popup').remove()" style="border:none; background:none; cursor:pointer;">Закрити</button>
+                </div>
+            </div>`;
+        document.body.appendChild(popup);
+        setTimeout(() => popup.remove(), 5000);
+    }
+
+    // --- 2. ГАЛЕРЕЯ ТА АКОРДЕОНИ ---
     const mainImage = document.getElementById('pdp-main-image');
     if (mainImage) {
         document.querySelectorAll('[data-pdp-thumb]').forEach((thumb) => {
             thumb.addEventListener('click', () => {
-                const image = thumb.getAttribute('data-image');
-                if (!image) {
-                    return;
-                }
-
-                mainImage.src = image;
-
-                document.querySelectorAll('[data-pdp-thumb]').forEach((button) => {
-                    button.classList.remove('is-active');
-                });
+                mainImage.src = thumb.getAttribute('data-image');
+                document.querySelectorAll('[data-pdp-thumb]').forEach(b => b.classList.remove('is-active'));
                 thumb.classList.add('is-active');
             });
         });
@@ -977,198 +1130,129 @@ if (isset($_SESSION['user']['id'])) {
     document.querySelectorAll('[data-accordion-trigger]').forEach((trigger) => {
         trigger.addEventListener('click', () => {
             const panel = trigger.parentElement?.parentElement?.querySelector(':scope > [data-accordion-panel]');
-            const icon = trigger.querySelector('.category-accordion-icon');
-            if (!panel) {
-                return;
-            }
-
+            if (!panel) return;
             const isExpanded = trigger.getAttribute('aria-expanded') === 'true';
-            const nextExpanded = !isExpanded;
-
-            trigger.setAttribute('aria-expanded', nextExpanded ? 'true' : 'false');
-            const treeItem = trigger.closest('.category-royal-item');
-            if (treeItem) {
-                treeItem.setAttribute('aria-expanded', nextExpanded ? 'true' : 'false');
-            }
-
-            if (icon) {
-                icon.classList.toggle('is-open', nextExpanded);
-            }
-
-            if (nextExpanded) {
-                panel.style.maxHeight = `${panel.scrollHeight + 12}px`;
-                panel.style.opacity = '1';
-            } else {
-                panel.style.maxHeight = '0';
-                panel.style.opacity = '.4';
-            }
+            trigger.setAttribute('aria-expanded', !isExpanded ? 'true' : 'false');
+            panel.style.maxHeight = !isExpanded ? `${panel.scrollHeight + 12}px` : '0';
+            panel.style.opacity = !isExpanded ? '1' : '.4';
         });
     });
 
+    // --- 3. ЦІНА ТА ОПЦІЇ ---
     const priceNode = document.querySelector('.pdp-price[data-base-price]');
-    const buyForm = document.querySelector('.pdp-actions form[action^="/cart/add/"]');
-    const optionRadios = document.querySelectorAll('.pdp-options input[type="radio"][name^="selected_option_ids"]');
+    const optionRadios = document.querySelectorAll('.pdp-options input[type="radio"]');
 
-    function updateDisplayedPrice() {
-        if (!priceNode) {
-            return;
-        }
-
-        const basePrice = Number(priceNode.dataset.basePrice || 0);
+    function updatePrice() {
+        if (!priceNode) return;
         let delta = 0;
-        document.querySelectorAll('.pdp-options input[type="radio"]:checked').forEach((radio) => {
-            const price = Number(radio.dataset.optionPrice || 0);
-            const op = radio.dataset.optionOp === '-' ? -1 : 1;
-            if (price > 0) {
-                delta += price * op;
-            }
+        document.querySelectorAll('.pdp-options input[type="radio"]:checked').forEach(r => {
+            const p = Number(r.dataset.optionPrice || 0);
+            delta += (r.dataset.optionOp === '-' ? -1 : 1) * p;
         });
-
-        const finalPrice = Math.max(0, basePrice + delta);
-        priceNode.textContent = `${finalPrice.toFixed(2)} грн`;
+        priceNode.textContent = `${(Number(priceNode.dataset.basePrice) + delta).toFixed(2)} грн`;
     }
+    optionRadios.forEach(r => r.addEventListener('change', updatePrice));
 
-    optionRadios.forEach((radio) => {
-        radio.addEventListener('change', updateDisplayedPrice);
-    });
-    updateDisplayedPrice();
-
-    if (buyForm) {
-        buyForm.addEventListener('submit', () => {
-            buyForm.querySelectorAll('input[data-dynamic-option="1"]').forEach((input) => input.remove());
-            document.querySelectorAll('.pdp-options input[type="radio"]:checked').forEach((radio) => {
-                const hidden = document.createElement('input');
-                hidden.type = 'hidden';
-                hidden.name = radio.name;
-                hidden.value = radio.value;
-                hidden.setAttribute('data-dynamic-option', '1');
-                buyForm.appendChild(hidden);
-            });
-        });
-    }
-
+    // --- 4. ВІДГУКИ (ОСНОВНА ЛОГІКА) ---
     const reviewsPanel = document.getElementById('pdp-reviews-panel');
     if (reviewsPanel) {
         const slug = reviewsPanel.dataset.productSlug;
         const listEl = document.getElementById('pdp-reviews-list');
-        const moreBtn = document.getElementById('pdp-reviews-more-btn');
         const form = document.getElementById('pdp-review-form');
+        const moreBtn = document.getElementById('pdp-reviews-more-btn');
+        const ratingWrapper = document.querySelector('.pdp-rating-wrapper');
         const replyTarget = document.getElementById('pdp-reply-target');
-        const cancelReplyBtn = document.getElementById('pdp-cancel-reply');
+        const cancelBtn = document.getElementById('pdp-cancel-reply');
         let page = 1;
 
-        const escapeHtml = (str) => String(str ?? '')
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#039;');
+        const escapeHtml = (str) => String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-        const resetReplyMode = () => {
-            const parentIdEl = document.getElementById('pdp-review-parent-id');
-            const ratingEl = document.getElementById('pdp-review-rating');
-            if (parentIdEl) parentIdEl.value = '';
-            if (ratingEl) ratingEl.value = '5';
-            if (replyTarget) { replyTarget.textContent = ''; replyTarget.style.display = 'none'; }
-            if (cancelReplyBtn) cancelReplyBtn.style.display = 'none';
+        const resetForm = () => {
+            form.reset();
+            document.getElementById('pdp-review-parent-id').value = '';
+            if (ratingWrapper) ratingWrapper.style.display = 'block'; // Повертаємо зірочки
+            if (replyTarget) { replyTarget.style.display = 'none'; replyTarget.innerText = ''; }
+            if (cancelBtn) cancelBtn.style.display = 'none';
+        };
+
+        const renderStars = (rating) => {
+            if (!rating) return '';
+            return `<div style="color:#fbbf24; margin-bottom:4px;">${'★'.repeat(rating)}${'☆'.repeat(5-rating)}</div>`;
         };
 
         const renderReview = (item) => {
-            const replies = (item.replies || []).map((r) => `
-                <div class="pdp-review-item">
-                    <div><b>${escapeHtml(r.author_name)}</b> · ${escapeHtml(r.created_at)}</div>
-                    <div>${escapeHtml(r.body)}</div>
+            const replies = (item.replies || []).map(r => `
+                <div class="pdp-review-item" style="background:#f8fafc; margin-top:8px;">
+                    <div style="font-size:13px;"><b>${escapeHtml(r.author_name)}</b> <span style="color:#64748b; margin-left:8px;">${r.created_at}</span></div>
+                    <div style="margin-top:4px;">${escapeHtml(r.body)}</div>
                 </div>
             `).join('');
 
             return `
                 <div class="pdp-review-item">
-                    <div><b>${escapeHtml(item.author_name)}</b> · ${escapeHtml(item.created_at)}</div>
-                    <div>Рейтинг: ${item.rating !== null ? escapeHtml(item.rating) : '-'}</div>
-                    <div>${escapeHtml(item.body)}</div>
-                    ${form ? `<button class="pdp-reply-btn pdp-btn pdp-btn-ghost" data-id="${escapeHtml(item.id)}" data-author="${escapeHtml(item.author_name)}">Відповісти</button>` : ''}
+                    <div style="font-size:14px; display:flex; justify-content:space-between;">
+                        <b>${escapeHtml(item.author_name)}</b>
+                        <span style="color:#64748b; font-size:12px;">${item.created_at}</span>
+                    </div>
+                    ${renderStars(item.rating)}
+                    <div style="margin:8px 0;">${escapeHtml(item.body)}</div>
+                    ${isLoggedIn ? `<button class="pdp-reply-btn pdp-btn pdp-btn-ghost" style="padding:4px 8px; font-size:12px;" data-id="${item.id}" data-author="${item.author_name}">Відповісти</button>` : ''}
                     <div class="pdp-review-replies">${replies}</div>
-                </div>
-            `;
+                </div>`;
         };
 
-        const loadReviews = async () => {
-            try {
-                const res = await fetch(`/product/${encodeURIComponent(slug)}/reviews?page=${page}`, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
-                const data = await res.json();
-                if (!data.success) return;
-
+        const loadReviews = async (reset = false) => {
+            if (reset) { page = 1; listEl.innerHTML = ''; }
+            const res = await fetch(`/product/${encodeURIComponent(slug)}/reviews?page=${page}`, { headers: {'X-Requested-With':'XMLHttpRequest'} });
+            const data = await res.json();
+            if (data.success) {
                 listEl.insertAdjacentHTML('beforeend', data.items.map(renderReview).join(''));
                 moreBtn.style.display = data.has_more ? 'inline-block' : 'none';
-            } catch (e) {
-                console.error('Reviews load error', e);
             }
         };
 
         loadReviews();
 
-        if (moreBtn) {
-            moreBtn.addEventListener('click', () => {
-                page += 1;
-                loadReviews();
-            });
-        }
+        if (moreBtn) moreBtn.addEventListener('click', () => { page++; loadReviews(); });
 
         if (listEl) {
             listEl.addEventListener('click', (e) => {
                 const btn = e.target.closest('.pdp-reply-btn');
                 if (!btn) return;
-
-                const parentIdEl = document.getElementById('pdp-review-parent-id');
-                const ratingEl = document.getElementById('pdp-review-rating');
-
-                if (parentIdEl) parentIdEl.value = btn.dataset.id || '';
-                if (ratingEl) ratingEl.value = '';
-                if (replyTarget) { replyTarget.textContent = `Відповідь на ${btn.dataset.author || 'користувача'}`; replyTarget.style.display = 'block'; }
-                if (cancelReplyBtn) cancelReplyBtn.style.display = 'inline-block';
-                form?.scrollIntoView({behavior:'smooth', block:'center'});
+                document.getElementById('pdp-review-parent-id').value = btn.dataset.id;
+                if (ratingWrapper) ratingWrapper.style.display = 'none'; // ХОВАЄМО зірочки при відповіді
+                if (replyTarget) { replyTarget.innerHTML = `Відповідь для <b>${btn.dataset.author}</b>`; replyTarget.style.display = 'block'; }
+                if (cancelBtn) cancelBtn.style.display = 'inline-block';
+                form.scrollIntoView({behavior:'smooth', block:'center'});
             });
         }
 
-        if (cancelReplyBtn) { cancelReplyBtn.addEventListener('click', resetReplyMode); }
+        if (cancelBtn) cancelBtn.addEventListener('click', resetForm);
 
         if (form) {
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
+                const submitBtn = form.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
 
                 try {
-                    const fd = new FormData(form);
                     const res = await fetch(`/product/${encodeURIComponent(slug)}/reviews`, {
                         method: 'POST',
-                        body: fd,
-                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                        body: new FormData(form),
+                        headers: {'X-Requested-With':'XMLHttpRequest'}
                     });
                     const data = await res.json();
-
-                    if (!data.success) {
+                    if (data.success) {
+                        resetForm();
+                        await loadReviews(true);
+                    } else {
                         alert(data.message || 'Помилка');
-                        return;
                     }
-
-                    listEl.innerHTML = '';
-                    page = 1;
-
-                    const parentIdEl = document.getElementById('pdp-review-parent-id');
-                    const ratingEl = document.getElementById('pdp-review-rating');
-                    const bodyEl = document.getElementById('pdp-review-body');
-
-                    resetReplyMode();
-                    if (bodyEl) bodyEl.value = '';
-
-                    loadReviews();
-                } catch (err) {
-                    console.error('Reviews submit error', err);
-                    alert('Помилка відправки відгуку');
-                }
+                } catch (e) { alert('Помилка з’єднання'); }
+                finally { submitBtn.disabled = false; }
             });
         }
     }
 })();
+
 </script>

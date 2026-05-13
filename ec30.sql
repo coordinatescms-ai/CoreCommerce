@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: MySQL-8.0:3306
--- Час створення: Трв 10 2026 р., 15:34
+-- Час створення: Трв 13 2026 р., 16:50
 -- Версія сервера: 8.0.44
 -- Версія PHP: 8.3.29
 
@@ -379,7 +379,46 @@ INSERT INTO `crm_user_activity_logs` (`id`, `user_id`, `event_type`, `descriptio
 (119, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-10 13:03:41'),
 (120, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-10 13:05:32'),
 (121, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-10 13:05:38'),
-(122, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-10 13:07:15');
+(122, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-10 13:07:15'),
+(123, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-10 13:41:04'),
+(124, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-10 13:42:44'),
+(125, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-10 13:42:55'),
+(126, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-11 11:43:49'),
+(127, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-11 11:44:44'),
+(128, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-11 12:04:08'),
+(129, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-11 12:28:24'),
+(130, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-11 12:28:32'),
+(131, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-11 12:29:02'),
+(132, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-11 12:29:28'),
+(133, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-11 12:29:58'),
+(134, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-11 12:56:30'),
+(135, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-12 06:30:58'),
+(136, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-12 07:17:52'),
+(137, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-12 07:32:04'),
+(138, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-12 07:35:12'),
+(139, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-12 07:35:18'),
+(140, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-12 07:40:31'),
+(141, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-12 07:40:56'),
+(142, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-12 07:41:09'),
+(143, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-12 07:41:15'),
+(144, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-12 07:44:02'),
+(145, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-12 07:44:26'),
+(146, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-12 07:44:43'),
+(147, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-12 09:06:10'),
+(148, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-12 09:15:47'),
+(149, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-12 09:21:16'),
+(150, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-12 09:22:08'),
+(151, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-12 09:26:45'),
+(152, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-12 09:27:11'),
+(153, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-12 09:37:19'),
+(154, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-12 09:37:33'),
+(155, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-12 15:17:52'),
+(156, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-12 15:19:56'),
+(157, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-12 15:20:30'),
+(158, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-12 15:25:06'),
+(159, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-12 15:55:03'),
+(160, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-12 16:26:51'),
+(161, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-13 14:48:52');
 
 -- --------------------------------------------------------
 
@@ -631,7 +670,7 @@ CREATE TABLE `plugins` (
 --
 
 INSERT INTO `plugins` (`id`, `name`, `slug`, `main_file`, `is_active`, `version`, `created_at`, `updated_at`) VALUES
-(1, 'TestPlugin', 'TestPlugin', 'D:\\OSPanel\\home\\mysite.test/plugins/TestPlugin/plugin.php', 0, '1.0.0', '2026-04-30 19:25:51', '2026-05-09 19:32:33');
+(1, 'TestPlugin', 'TestPlugin', 'D:\\OSPanel\\home\\mysite.test/plugins/TestPlugin/plugin.php', 0, '1.0.0', '2026-04-30 19:25:51', '2026-05-12 08:43:25');
 
 -- --------------------------------------------------------
 
@@ -652,7 +691,6 @@ CREATE TABLE `products` (
   `meta_description` text COLLATE utf8mb4_general_ci,
   `meta_keywords` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `price` decimal(10,2) DEFAULT NULL,
-  `stock` int NOT NULL DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -661,9 +699,9 @@ CREATE TABLE `products` (
 -- Дамп даних таблиці `products`
 --
 
-INSERT INTO `products` (`id`, `sku`, `is_visible`, `category_id`, `name`, `description`, `image`, `slug`, `meta_title`, `meta_description`, `meta_keywords`, `price`, `stock`, `created_at`, `updated_at`) VALUES
-(1, 'ID-1', 1, 2, 'iPhone 13', 'Крутий смартфон, по дуже низьким цінам! Доступна ціна за круту якість!', '/uploads/products/gallery/original/product_69e6092591658980274602.jpg', 'iphone-13', '', '', NULL, 999.00, 6, '2026-03-30 07:45:12', '2026-05-10 10:57:17'),
-(2, 'ID-2', 1, 3, 'Сіомі', 'Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі!', '/uploads/products/gallery/original/product_69e608b6ddae3707094810.webp', 'siomi', 'Сіомі крутий продукт', '', NULL, 2050.00, 2, '2026-04-05 08:11:57', '2026-05-09 17:26:10');
+INSERT INTO `products` (`id`, `sku`, `is_visible`, `category_id`, `name`, `description`, `image`, `slug`, `meta_title`, `meta_description`, `meta_keywords`, `price`, `created_at`, `updated_at`) VALUES
+(1, 'ID-1', 1, 2, 'iPhone 13', 'Крутий смартфон, по дуже низьким цінам! Доступна ціна за круту якість!', '/uploads/products/gallery/original/product_69e6092591658980274602.jpg', 'iphone-13', '', '', NULL, 999.00, '2026-03-30 07:45:12', '2026-05-10 10:57:17'),
+(2, 'ID-2', 1, 3, 'Сіомі', 'Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі!', '/uploads/products/gallery/original/product_69e608b6ddae3707094810.webp', 'siomi', 'Сіомі крутий продукт', '', NULL, 2050.00, '2026-04-05 08:11:57', '2026-05-09 17:26:10');
 
 -- --------------------------------------------------------
 
@@ -799,7 +837,7 @@ CREATE TABLE `product_stocks` (
 
 INSERT INTO `product_stocks` (`id`, `product_id`, `option_id`, `sku`, `quantity`, `reserved`, `updated_at`) VALUES
 (1, 1, NULL, 'ID-1', 4, 0, '2026-05-10 12:19:24'),
-(7, 2, 100, 'ID-2-100', 5, 0, '2026-05-10 13:09:15');
+(7, 2, 100, 'ID-2-100', 2, 0, '2026-05-11 12:10:15');
 
 -- --------------------------------------------------------
 
@@ -993,7 +1031,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `email`, `password`, `first_name`, `last_name`, `phone`, `avatar`, `role_id`, `is_active`, `email_verified`, `email_verified_at`, `last_login`, `password_reset_token`, `password_reset_expires`, `remember_token`, `created_at`, `updated_at`) VALUES
-(2, 'systemmaster@meta.ua', '$2y$12$knhVn0wIOYbnqx3TRccf1OrGmEGu3JWSZsbLQ/c9tvLrmZElAaU86', 'Василь', 'Присяжнюк', NULL, NULL, 1, 1, 0, NULL, '2026-05-10 10:34:48', NULL, NULL, 'cbb001e6da426d9548d27caacbc6f0c29757dcc231187574284a73efcb440cab', '2026-03-31 09:57:24', '2026-05-10 10:34:48');
+(2, 'systemmaster@meta.ua', '$2y$12$knhVn0wIOYbnqx3TRccf1OrGmEGu3JWSZsbLQ/c9tvLrmZElAaU86', 'Василь', 'Присяжнюк', NULL, NULL, 1, 1, 0, NULL, '2026-05-13 14:09:10', NULL, NULL, 'cbb001e6da426d9548d27caacbc6f0c29757dcc231187574284a73efcb440cab', '2026-03-31 09:57:24', '2026-05-13 14:09:10');
 
 -- --------------------------------------------------------
 
@@ -1335,7 +1373,7 @@ ALTER TABLE `crm_user_action_audit`
 -- AUTO_INCREMENT для таблиці `crm_user_activity_logs`
 --
 ALTER TABLE `crm_user_activity_logs`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=123;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=162;
 
 --
 -- AUTO_INCREMENT для таблиці `filter_history`

@@ -67,9 +67,34 @@
                 <?php endif; ?>
             <?php elseif (($activeTab ?? '') === 'favorites'): ?>
                 <h2><?php echo __('profile_favorites'); ?></h2>
-                <?php if (!empty($favorites)): foreach ($favorites as $item): ?>
-                    <div><a href="/product/<?php echo urlencode($item['slug']); ?>"><?php echo htmlspecialchars((string) $item['name']); ?></a> — <?php echo number_format((float) $item['price'], 2); ?></div>
-                <?php endforeach; else: ?>
+                <?php if (!empty($favorites)): ?>
+                    <div>
+                        <table style="width:100%; border-collapse: collapse; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                            <thead>
+                                <tr style="background:#f8fafc;">
+                                    <th style="text-align:left; padding:10px; border-bottom:1px solid #e5e7eb;">Товар</th>
+                                    <th style="text-align:left; padding:10px; border-bottom:1px solid #e5e7eb;">Ціна</th>
+                                    <th style="text-align:left; padding:10px; border-bottom:1px solid #e5e7eb;">Додав</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($favorites as $item): ?>
+                                    <tr>
+                                        <td style="padding:10px; border-bottom:1px solid #f1f5f9;">
+                                            <a href="/product/<?php echo urlencode($item['slug']); ?>"><?php echo htmlspecialchars((string) $item['name']); ?></a>
+                                        </td>
+                                        <td style="padding:10px; border-bottom:1px solid #f1f5f9;">
+                                            <?php echo number_format((float) $item['price'], 2); ?>
+                                        </td>
+                                        <td style="padding:10px; border-bottom:1px solid #f1f5f9;">
+                                            <?php echo htmlspecialchars((string) ($item['added_at'] ?? '')); ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php  else: ?>
                     <p><?php echo __('profile_no_favorites'); ?></p>
                 <?php endif; ?>
             <?php else: ?>
