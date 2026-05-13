@@ -31,4 +31,15 @@ class LanguageController
         header('Location: ' . $referer);
         exit;
     }
+    /**
+     * Сумісність із роутом /language/{lang}.
+     *
+     * @param string $lang
+     * @return void
+     */
+    public function switch($lang = 'ua')
+    {
+        $this->change($lang);
+    }
+
 }
