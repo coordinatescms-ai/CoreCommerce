@@ -1,49 +1,53 @@
 (() => {
-    const mask = (window.APP_PHONE_MASK || '+38 (###) ###-##-##').trim();
-    const slotCount = [...mask].filter((ch) => ch === '#').length;
+    const mask = String(window.APP_PHONE_MASK || '+38 (###) ###-##-##').trim();
+    const slots = [];
     const DIGIT_RE = /\d/;
 
-    const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const digitsFrom = (value) => (String(value || '').match(/\d/g) || []).join('').slice(0, slotCount);
+    for (let i = 0; i < mask.length; i += 1) {
+        if (mask[i] === '#') slots.push(i);
+    }
 
-    const format = (digits) => {
-        const normalized = digitsFrom(digits);
+    const slotCount = slots.length;
+
+    const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const extractDigits = (value) => (String(value || '').match(/\d/g) || []).join('').slice(0, slotCount);
+
+    const formatDigits = (digits) => {
+        const normalized = extractDigits(digits);
         if (!normalized) return '';
 
-        let out = '';
-        let i = 0;
-
-        for (const ch of mask) {
-            if (ch === '#') {
-                if (i >= normalized.length) break;
-                out += normalized[i++];
-                continue;
-            }
-
-            if (i > 0) out += ch;
+        const chars = mask.split('');
+        for (let i = 0; i < slotCount; i += 1) {
+            chars[slots[i]] = i < normalized.length ? normalized[i] : '';
         }
 
-        return out;
+        let formatted = chars.join('');
+        const lastDigitIndex = normalized.length - 1;
+        if (lastDigitIndex >= 0) {
+            formatted = formatted.slice(0, slots[lastDigitIndex] + 1);
+        }
+
+        return formatted;
     };
 
     const regex = new RegExp('^' + escapeRegex(mask).replace(/#/g, '\\d') + '$');
-    window.PhoneMask = {
-        mask,
-        isComplete: (value) => regex.test((value || '').trim()),
-    };
 
-    const countDigitsBeforeCaret = (value, caret) => {
-        const limit = Math.max(0, Math.min(caret ?? 0, value.length));
+    window.PhoneMask = window.PhoneMask || {};
+    window.PhoneMask.mask = mask;
+    window.PhoneMask.isComplete = (value) => regex.test((value || '').trim());
+
+    const digitIndexFromCaret = (value, caret) => {
+        const stop = Math.max(0, Math.min(caret ?? 0, value.length));
         let count = 0;
 
-        for (let i = 0; i < limit; i += 1) {
+        for (let i = 0; i < stop; i += 1) {
             if (DIGIT_RE.test(value[i])) count += 1;
         }
 
         return count;
     };
 
-    const caretForDigitIndex = (formatted, digitIndex) => {
+    const caretFromDigitIndex = (formatted, digitIndex) => {
         if (digitIndex <= 0) return 0;
 
         let seen = 0;
@@ -56,187 +60,203 @@
         return formatted.length;
     };
 
-    const clampDigitIndex = (index, digitsLength) => Math.max(0, Math.min(index, digitsLength));
+    const clamp = (n, min, max) => Math.max(min, Math.min(n, max));
 
-    const transformValue = ({
-        digits,
-        startDigit,
-        endDigit,
-        type,
-        insertedDigits,
-    }) => {
-        const safeStart = clampDigitIndex(startDigit, digits.length);
-        const safeEnd = clampDigitIndex(endDigit, digits.length);
-        const selectionStart = Math.min(safeStart, safeEnd);
-        const selectionEnd = Math.max(safeStart, safeEnd);
+    const transformDigits = ({ digits, startDigit, endDigit, action, payloadDigits }) => {
+        const safeStart = clamp(startDigit, 0, digits.length);
+        const safeEnd = clamp(endDigit, 0, digits.length);
+        const from = Math.min(safeStart, safeEnd);
+        const to = Math.max(safeStart, safeEnd);
 
-        const left = digits.slice(0, selectionStart);
-        const selected = digits.slice(selectionStart, selectionEnd);
-        const right = digits.slice(selectionEnd);
+        const left = digits.slice(0, from);
+        const right = digits.slice(to);
 
-        if (type === 'insert' || type === 'paste') {
-            const payload = digitsFrom(insertedDigits || '');
+        if (action === 'insert' || action === 'paste') {
+            const payload = extractDigits(payloadDigits);
             const nextDigits = (left + payload + right).slice(0, slotCount);
-            const nextCaretDigit = clampDigitIndex(left.length + payload.length, nextDigits.length);
-            return { digits: nextDigits, caretDigit: nextCaretDigit };
+            const nextCaretDigit = clamp(left.length + payload.length, 0, nextDigits.length);
+            return { nextDigits, nextCaretDigit };
         }
 
-        if (selected.length > 0) {
+        if (from !== to) {
             const nextDigits = left + right;
-            return { digits: nextDigits, caretDigit: left.length };
+            return { nextDigits, nextCaretDigit: left.length };
         }
 
-        if (type === 'deleteBackward') {
-            if (selectionStart <= 0) return { digits, caretDigit: 0 };
-            const nextDigits = digits.slice(0, selectionStart - 1) + digits.slice(selectionStart);
-            return { digits: nextDigits, caretDigit: selectionStart - 1 };
+        if (action === 'deleteBackward') {
+            if (from === 0) return { nextDigits: digits, nextCaretDigit: 0 };
+            const nextDigits = digits.slice(0, from - 1) + digits.slice(from);
+            return { nextDigits, nextCaretDigit: from - 1 };
         }
 
-        if (type === 'deleteForward') {
-            if (selectionStart >= digits.length) return { digits, caretDigit: digits.length };
-            const nextDigits = digits.slice(0, selectionStart) + digits.slice(selectionStart + 1);
-            return { digits: nextDigits, caretDigit: selectionStart };
+        if (action === 'deleteForward') {
+            if (from >= digits.length) return { nextDigits: digits, nextCaretDigit: digits.length };
+            const nextDigits = digits.slice(0, from) + digits.slice(from + 1);
+            return { nextDigits, nextCaretDigit: from };
         }
 
-        return { digits, caretDigit: selectionStart };
+        return { nextDigits: digits, nextCaretDigit: from };
     };
 
-    const applyState = (input, nextDigits, nextCaretDigit) => {
-        const normalizedDigits = digitsFrom(nextDigits);
-        const formatted = format(normalizedDigits);
-        const caret = caretForDigitIndex(formatted, clampDigitIndex(nextCaretDigit, normalizedDigits.length));
+    const applyDigits = (input, digits, caretDigit) => {
+        const normalizedDigits = extractDigits(digits);
+        const formatted = formatDigits(normalizedDigits);
+        const nextCaret = caretFromDigitIndex(formatted, clamp(caretDigit, 0, normalizedDigits.length));
 
         const prevValue = input.value;
         const prevStart = input.selectionStart ?? 0;
         const prevEnd = input.selectionEnd ?? 0;
 
         const valueChanged = prevValue !== formatted;
-        const caretChanged = prevStart !== caret || prevEnd !== caret;
+        const caretChanged = prevStart !== nextCaret || prevEnd !== nextCaret;
 
-        if (!valueChanged && !caretChanged) return;
+        if (!valueChanged && !caretChanged) return false;
 
         if (valueChanged) input.value = formatted;
-        if (caretChanged) input.setSelectionRange(caret, caret);
+        if (caretChanged && document.activeElement === input) {
+            input.setSelectionRange(nextCaret, nextCaret);
+        }
+
+        return true;
     };
 
-    const captureSelection = (input) => {
+    const snapshotSelection = (input) => {
         const value = input.value;
-        const startRaw = input.selectionStart ?? 0;
-        const endRaw = input.selectionEnd ?? startRaw;
+        const start = input.selectionStart ?? 0;
+        const end = input.selectionEnd ?? start;
 
         return {
-            startRaw,
-            endRaw,
-            startDigit: countDigitsBeforeCaret(value, startRaw),
-            endDigit: countDigitsBeforeCaret(value, endRaw),
+            startDigit: digitIndexFromCaret(value, start),
+            endDigit: digitIndexFromCaret(value, end),
         };
     };
 
-    const bindPhoneMask = (input) => {
+    const bind = (input) => {
         if (!(input instanceof HTMLInputElement) || input.dataset.phoneMaskBound === '1') return;
-        input.dataset.phoneMaskBound = '1';
 
+        input.dataset.phoneMaskBound = '1';
         input.setAttribute('inputmode', 'numeric');
         input.setAttribute('autocomplete', 'tel');
         input.placeholder = mask;
         input.maxLength = mask.length;
 
-        let lastSelection = captureSelection(input);
+        let ignoreInputEvent = false;
+        let rememberedSelection = snapshotSelection(input);
 
-        const rememberSelection = () => {
-            lastSelection = captureSelection(input);
+        const remember = () => {
+            rememberedSelection = snapshotSelection(input);
         };
 
-        const normalizeInputFallback = () => {
+        const commit = (action, payloadDigits = '') => {
+            const currentDigits = extractDigits(input.value);
+            const sel = rememberedSelection;
+            const { nextDigits, nextCaretDigit } = transformDigits({
+                digits: currentDigits,
+                startDigit: sel.startDigit,
+                endDigit: sel.endDigit,
+                action,
+                payloadDigits,
+            });
+
+            ignoreInputEvent = true;
+            applyDigits(input, nextDigits, nextCaretDigit);
+            ignoreInputEvent = false;
+            remember();
+        };
+
+        const normalizeFallback = () => {
+            if (ignoreInputEvent) return;
             const raw = input.value;
-            const fallbackDigit = countDigitsBeforeCaret(raw, input.selectionStart ?? raw.length);
-            applyState(input, digitsFrom(raw), fallbackDigit);
-            rememberSelection();
+            const caretDigit = digitIndexFromCaret(raw, input.selectionStart ?? raw.length);
+            ignoreInputEvent = true;
+            applyDigits(input, raw, caretDigit);
+            ignoreInputEvent = false;
+            remember();
         };
 
         ['focus', 'click', 'select', 'keyup'].forEach((eventName) => {
-            input.addEventListener(eventName, rememberSelection);
+            input.addEventListener(eventName, remember);
         });
 
         input.addEventListener('beforeinput', (event) => {
+            rememberedSelection = snapshotSelection(input);
             const type = event.inputType || '';
-            const currentDigits = digitsFrom(input.value);
-            const snapshot = lastSelection = captureSelection(input);
 
             if (type === 'insertText' || type === 'insertCompositionText') {
-                if (!event.data) return;
-                const onlyDigits = digitsFrom(event.data);
-                if (!onlyDigits) {
+                const digits = extractDigits(event.data || '');
+                if (!digits) {
                     event.preventDefault();
                     return;
                 }
 
                 event.preventDefault();
-                const next = transformValue({
-                    digits: currentDigits,
-                    startDigit: snapshot.startDigit,
-                    endDigit: snapshot.endDigit,
-                    type: 'insert',
-                    insertedDigits: onlyDigits,
-                });
-                applyState(input, next.digits, next.caretDigit);
-                rememberSelection();
+                commit('insert', digits);
                 return;
             }
 
-            if (type === 'deleteContentBackward' || type === 'deleteContentForward') {
+            if (type === 'insertFromPaste') {
+                const digits = extractDigits(event.data || '');
                 event.preventDefault();
-                const next = transformValue({
-                    digits: currentDigits,
-                    startDigit: snapshot.startDigit,
-                    endDigit: snapshot.endDigit,
-                    type: type === 'deleteContentBackward' ? 'deleteBackward' : 'deleteForward',
-                });
-                applyState(input, next.digits, next.caretDigit);
-                rememberSelection();
+                commit('paste', digits);
+                return;
+            }
+
+            if (type === 'deleteContentBackward') {
+                event.preventDefault();
+                commit('deleteBackward');
+                return;
+            }
+
+            if (type === 'deleteContentForward') {
+                event.preventDefault();
+                commit('deleteForward');
+            }
+        });
+
+        input.addEventListener('keydown', (event) => {
+            rememberedSelection = snapshotSelection(input);
+
+            if (event.key === 'Backspace') {
+                event.preventDefault();
+                commit('deleteBackward');
+                return;
+            }
+
+            if (event.key === 'Delete') {
+                event.preventDefault();
+                commit('deleteForward');
             }
         });
 
         input.addEventListener('paste', (event) => {
+            rememberedSelection = snapshotSelection(input);
             const text = (event.clipboardData || window.clipboardData)?.getData('text') || '';
-            const inserted = digitsFrom(text);
             event.preventDefault();
-
-            const currentDigits = digitsFrom(input.value);
-            const snapshot = captureSelection(input);
-            const next = transformValue({
-                digits: currentDigits,
-                startDigit: snapshot.startDigit,
-                endDigit: snapshot.endDigit,
-                type: 'paste',
-                insertedDigits: inserted,
-            });
-
-            applyState(input, next.digits, next.caretDigit);
-            rememberSelection();
+            commit('paste', text);
         });
 
-        input.addEventListener('input', normalizeInputFallback);
+        input.addEventListener('input', normalizeFallback);
 
-        normalizeInputFallback();
+        normalizeFallback();
     };
 
     const init = (root = document) => {
         if (root instanceof HTMLInputElement && root.matches('input[data-phone-mask]')) {
-            bindPhoneMask(root);
+            bind(root);
             return;
         }
 
-        if (!(root instanceof Element || root instanceof Document)) return;
-        root.querySelectorAll('input[data-phone-mask]').forEach(bindPhoneMask);
+        if (!(root instanceof Document || root instanceof Element)) return;
+        root.querySelectorAll('input[data-phone-mask]').forEach(bind);
     };
 
     window.PhoneMask.init = init;
-
     init();
 
     document.addEventListener('focusin', (event) => {
         const target = event.target;
-        if (target instanceof HTMLInputElement && target.matches('input[data-phone-mask]')) bindPhoneMask(target);
+        if (target instanceof HTMLInputElement && target.matches('input[data-phone-mask]')) {
+            bind(target);
+        }
     });
 })();
