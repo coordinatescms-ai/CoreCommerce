@@ -260,6 +260,7 @@ $statusLabels = [
         }
 
         document.getElementById('orderComputedTotal').textContent = money(data.computed_total || 0);
+        window.PhoneMask?.init?.(form);
         openModal();
     };
 
