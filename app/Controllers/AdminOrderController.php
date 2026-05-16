@@ -451,7 +451,8 @@ class AdminOrderController
             throw new \InvalidArgumentException('Вкажіть коректне імʼя клієнта');
         }
 
-        if (!preg_match('/^[0-9+\-()\s]{8,20}$/', $customerPhone)) {
+        $phoneMask = normalize_phone_mask((string) Setting::get('phone_mask', '+38 (###) ###-##-##'));
+        if (!is_phone_matching_mask($customerPhone, $phoneMask)) {
             throw new \InvalidArgumentException('Вкажіть коректний номер телефону');
         }
 

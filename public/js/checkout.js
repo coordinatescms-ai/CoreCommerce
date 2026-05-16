@@ -54,7 +54,7 @@
         }
 
         if (field.name === 'phone') {
-            const ok = /^[\d\+\(\)\-\s]{10,20}$/.test(value);
+            const ok = window.PhoneMask ? window.PhoneMask.isComplete(value) : /^[\d\+\(\)\-\s]{10,20}$/.test(value);
             setFieldError(field.name, ok ? '' : 'Вкажіть коректний номер телефону.');
             return;
         }

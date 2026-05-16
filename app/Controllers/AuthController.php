@@ -511,7 +511,8 @@ class AuthController
         $errors = [];
         if ($firstName === '' || mb_strlen($firstName) > 100) { $errors[] = __('profile_invalid_first_name'); }
         if ($lastName === '' || mb_strlen($lastName) > 100) { $errors[] = __('profile_invalid_last_name'); }
-        if (!preg_match('/^[\d\+\(\)\-\s]{10,20}$/', $phone)) { $errors[] = __('profile_invalid_phone'); }
+        $phoneMask = normalize_phone_mask((string) get_setting('phone_mask', '+38 (###) ###-##-##'));
+        if (!is_phone_matching_mask($phone, $phoneMask)) { $errors[] = __('profile_invalid_phone'); }
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) { $errors[] = __('profile_invalid_email'); }
 
         $existing = User::findByEmail($email);

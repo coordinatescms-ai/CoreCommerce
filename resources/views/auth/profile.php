@@ -103,7 +103,7 @@
                     <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf'] ?? ''); ?>">
                     <label><?php echo __('first_name'); ?> <input type="text" name="first_name" maxlength="100" required value="<?php echo htmlspecialchars((string) ($user['first_name'] ?? '')); ?>"></label>
                     <label><?php echo __('last_name'); ?> <input type="text" name="last_name" maxlength="100" required value="<?php echo htmlspecialchars((string) ($user['last_name'] ?? '')); ?>"></label>
-                    <label><?php echo __('phone'); ?> <input type="text" name="phone" maxlength="20" required value="<?php echo htmlspecialchars((string) ($user['phone'] ?? '')); ?>"></label>
+                    <label><?php echo __('phone'); ?> <input type="text" name="phone" required data-phone-mask value="<?php echo htmlspecialchars((string) ($user['phone'] ?? '')); ?>"></label>
                     <label><?php echo __('email'); ?> <input type="email" name="email" maxlength="255" required value="<?php echo htmlspecialchars((string) ($user['email'] ?? '')); ?>"></label>
                     <button type="submit" class="btn"><?php echo __('crm_save'); ?></button>
                 </form>
@@ -116,3 +116,6 @@
         </div>
     </div>
 </div>
+
+<script>window.APP_PHONE_MASK = <?php echo json_encode((string) get_setting('phone_mask', '+38 (###) ###-##-##'), JSON_UNESCAPED_UNICODE); ?>;</script>
+<script src="/js/phone-mask.js"></script>
