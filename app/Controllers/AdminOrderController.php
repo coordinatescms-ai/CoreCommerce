@@ -160,58 +160,65 @@ class AdminOrderController
     {
         $this->checkAdmin();
 
-        $orderId = (int) $id;
-        if ($orderId <= 0) {
-            $this->respondJson(['success' => false, 'message' => 'Некоректний ID замовлення'], 422);
-            return;
+        try {
+            $orderId = (int) $id;
+            if ($orderId <= 0) {
+                $this->respondJson(['success' => false, 'message' => 'Некоректний ID замовлення'], 422);
+                return;
+            }
+
+            $this->ensureStatusHistoryTable();
+
+            $order = DB::query('SELECT * FROM orders WHERE id = ?', [$orderId])->fetch(\PDO::FETCH_ASSOC);
+            if (!$order) {
+                $this->respondJson(['success' => false, 'message' => 'Замовлення не знайдено'], 404);
+                return;
+            }
+
+            $order = $this->attachMethodNamesToOrder($order);
+
+            $items = DB::query(
+                'SELECT oi.id, oi.product_id, oi.qty, oi.price, oi.selected_options, p.name AS product_name, p.stock
+                 FROM order_items oi
+                 LEFT JOIN products p ON p.id = oi.product_id
+                 WHERE oi.order_id = ?
+                 ORDER BY oi.id ASC',
+                [$orderId]
+            )->fetchAll(\PDO::FETCH_ASSOC);
+
+            foreach ($items as &$item) {
+                $decodedOptions = json_decode((string) ($item['selected_options'] ?? ''), true);
+                $item['selected_options'] = is_array($decodedOptions) ? $decodedOptions : [];
+            }
+            unset($item);
+
+            $history = DB::query(
+                'SELECT id, old_status, new_status, ttn_code, changed_by, changed_at
+                 FROM order_status_history
+                 WHERE order_id = ?
+                 ORDER BY changed_at DESC, id DESC',
+                [$orderId]
+            )->fetchAll(\PDO::FETCH_ASSOC);
+
+            $total = 0.0;
+            foreach ($items as $item) {
+                $total += ((float) ($item['price'] ?? 0)) * ((int) ($item['qty'] ?? 0));
+            }
+
+            $this->respondJson([
+                'success' => true,
+                'order' => $order,
+                'items' => $items,
+                'history' => $history,
+                'computed_total' => round($total, 2),
+                'allowed_statuses' => $this->allowedStatuses,
+            ]);
+        } catch (\Throwable $e) {
+            $this->respondJson([
+                'success' => false,
+                'message' => 'Не вдалося завантажити деталі замовлення',
+            ], 500);
         }
-
-        $this->ensureStatusHistoryTable();
-
-        $order = DB::query('SELECT * FROM orders WHERE id = ?', [$orderId])->fetch(\PDO::FETCH_ASSOC);
-        if (!$order) {
-            $this->respondJson(['success' => false, 'message' => 'Замовлення не знайдено'], 404);
-            return;
-        }
-
-        $order = $this->attachMethodNamesToOrder($order);
-
-        $items = DB::query(
-            'SELECT oi.id, oi.product_id, oi.qty, oi.price, oi.selected_options, p.name AS product_name, p.stock
-             FROM order_items oi
-             LEFT JOIN products p ON p.id = oi.product_id
-             WHERE oi.order_id = ?
-             ORDER BY oi.id ASC',
-            [$orderId]
-        )->fetchAll(\PDO::FETCH_ASSOC);
-
-        foreach ($items as &$item) {
-            $decodedOptions = json_decode((string) ($item['selected_options'] ?? ''), true);
-            $item['selected_options'] = is_array($decodedOptions) ? $decodedOptions : [];
-        }
-        unset($item);
-
-        $history = DB::query(
-            'SELECT id, old_status, new_status, ttn_code, changed_by, changed_at
-             FROM order_status_history
-             WHERE order_id = ?
-             ORDER BY changed_at DESC, id DESC',
-            [$orderId]
-        )->fetchAll(\PDO::FETCH_ASSOC);
-
-        $total = 0.0;
-        foreach ($items as $item) {
-            $total += ((float) ($item['price'] ?? 0)) * ((int) ($item['qty'] ?? 0));
-        }
-
-        $this->respondJson([
-            'success' => true,
-            'order' => $order,
-            'items' => $items,
-            'history' => $history,
-            'computed_total' => round($total, 2),
-            'allowed_statuses' => $this->allowedStatuses,
-        ]);
     }
 
     private function attachMethodNames(array $orders): array
