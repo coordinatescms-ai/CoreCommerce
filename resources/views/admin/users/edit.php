@@ -114,7 +114,7 @@ $lastOrderAt = $lastOrderRaw !== '' ? date('d.m.Y H:i', strtotime($lastOrderRaw)
     <form action="/admin/users/update/<?php echo (int) $user['id']; ?>" method="POST" id="crm-user-edit-form">
         <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf']); ?>">
         <div class="form-group"><label for="email"><?php echo __('crm_profile_email'); ?></label><input class="form-control" type="email" id="email" name="email" required value="<?php echo htmlspecialchars((string) ($user['email'] ?? '')); ?>"></div>
-        <div class="form-group"><label for="phone"><?php echo __('crm_profile_phone'); ?></label><input class="form-control" type="text" id="phone" name="phone" data-phone-mask value="<?php echo htmlspecialchars((string) ($user['phone'] ?? '')); ?>"></div>
+        <div class="form-group"><label for="phone"><?php echo __('crm_profile_phone'); ?></label><input class="form-control" type="text" id="phone" name="phone" inputmode="numeric" pattern="[0-9]+" oninput="this.value=this.value.replace(/[^0-9]/g,'')" value="<?php echo htmlspecialchars((string) ($user['phone'] ?? '')); ?>"></div>
         <div class="form-group">
             <label for="role_id"><?php echo __('crm_role_label'); ?></label>
             <select class="form-control" id="role_id" name="role_id" required data-initial-role="<?php echo (int) ($user['role_id'] ?? 0); ?>">
@@ -205,6 +205,3 @@ $lastOrderAt = $lastOrderRaw !== '' ? date('d.m.Y H:i', strtotime($lastOrderRaw)
 })();
 </script>
 
-<script>window.APP_PHONE_MASK = <?php echo json_encode((string) get_setting('phone_mask', '+38 (###) ###-##-##'), JSON_UNESCAPED_UNICODE); ?>;</script>
-<script src="/js/phone-mask.js"></script>
-<script>window.PhoneMask?.init?.(document.getElementById('crm-user-edit-form') || document);</script>
