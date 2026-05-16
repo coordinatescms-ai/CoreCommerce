@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: MySQL-8.0:3306
--- Час створення: Трв 13 2026 р., 16:50
+-- Час створення: Трв 16 2026 р., 11:41
 -- Версія сервера: 8.0.44
 -- Версія PHP: 8.3.29
 
@@ -418,7 +418,9 @@ INSERT INTO `crm_user_activity_logs` (`id`, `user_id`, `event_type`, `descriptio
 (158, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-12 15:25:06'),
 (159, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-12 15:55:03'),
 (160, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-12 16:26:51'),
-(161, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-13 14:48:52');
+(161, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-13 14:48:52'),
+(162, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-13 15:05:35'),
+(163, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-13 15:06:07');
 
 -- --------------------------------------------------------
 
@@ -911,6 +913,7 @@ INSERT INTO `settings` (`key`, `value`, `group`, `type`, `created_at`, `updated_
 ('media_apply_watermark', '0', 'media', 'checkbox', '2026-04-13 09:12:17', '2026-05-09 12:54:15'),
 ('media_auto_webp', '0', 'media', 'checkbox', '2026-04-13 09:12:17', '2026-05-09 12:54:15'),
 ('media_watermark_position', 'bottom-right', 'media', 'select', '2026-04-13 09:12:17', '2026-05-09 12:54:15'),
+('phone_mask', '+38 (000) 000-00-00', 'general', 'text', '2026-05-16 09:39:11', '2026-05-16 09:39:11'),
 ('seo_desc_template', 'Пропонуємо {name} за найкращою ціною {price} грн. Категорія: {category}. Доставка по Україні!', 'seo', 'textarea', '2026-04-13 08:34:14', '2026-05-09 12:54:14'),
 ('seo_title_template', '{name} купити за {price} грн у магазині MyStore', 'seo', 'text', '2026-04-13 08:34:14', '2026-05-09 12:54:14'),
 ('site_description', 'Найкращий інтернет-магазин на PHP', 'general', 'textarea', '2026-04-03 08:17:13', '2026-05-09 12:54:14'),
@@ -919,7 +922,8 @@ INSERT INTO `settings` (`key`, `value`, `group`, `type`, `created_at`, `updated_
 ('smtp_pass', 'password123', 'general', 'text', '2026-04-12 16:47:28', '2026-05-09 12:54:14'),
 ('smtp_port', '587', 'general', 'text', '2026-04-12 16:42:48', '2026-05-09 12:54:14'),
 ('smtr', '//gmail.com', 'general', 'text', '2026-04-12 16:28:35', '2026-05-09 12:54:14'),
-('store_status', 'open', 'general', 'select', '2026-04-03 08:17:13', '2026-05-09 12:54:14');
+('store_status', 'open', 'general', 'select', '2026-04-03 08:17:13', '2026-05-09 12:54:14'),
+('upload_max_filesize', '10M', 'general', 'text', '2026-05-16 09:39:11', '2026-05-16 09:39:11');
 
 -- --------------------------------------------------------
 
@@ -1031,7 +1035,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `email`, `password`, `first_name`, `last_name`, `phone`, `avatar`, `role_id`, `is_active`, `email_verified`, `email_verified_at`, `last_login`, `password_reset_token`, `password_reset_expires`, `remember_token`, `created_at`, `updated_at`) VALUES
-(2, 'systemmaster@meta.ua', '$2y$12$knhVn0wIOYbnqx3TRccf1OrGmEGu3JWSZsbLQ/c9tvLrmZElAaU86', 'Василь', 'Присяжнюк', NULL, NULL, 1, 1, 0, NULL, '2026-05-13 14:09:10', NULL, NULL, 'cbb001e6da426d9548d27caacbc6f0c29757dcc231187574284a73efcb440cab', '2026-03-31 09:57:24', '2026-05-13 14:09:10');
+(2, 'systemmaster@meta.ua', '$2y$12$knhVn0wIOYbnqx3TRccf1OrGmEGu3JWSZsbLQ/c9tvLrmZElAaU86', 'Василь', 'Присяжнюк', NULL, NULL, 1, 1, 0, NULL, '2026-05-16 09:40:27', NULL, NULL, 'cbb001e6da426d9548d27caacbc6f0c29757dcc231187574284a73efcb440cab', '2026-03-31 09:57:24', '2026-05-16 09:40:27');
 
 -- --------------------------------------------------------
 
@@ -1373,7 +1377,7 @@ ALTER TABLE `crm_user_action_audit`
 -- AUTO_INCREMENT для таблиці `crm_user_activity_logs`
 --
 ALTER TABLE `crm_user_activity_logs`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=162;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=164;
 
 --
 -- AUTO_INCREMENT для таблиці `filter_history`
