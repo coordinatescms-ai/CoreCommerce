@@ -184,9 +184,19 @@ class AdminOrderController
             $order = $this->attachMethodNamesToOrder($order);
 
             $items = DB::query(
-                'SELECT oi.id, oi.product_id, oi.qty, oi.price, oi.selected_options, p.name AS product_name, p.stock
+                'SELECT
+                    oi.id,
+                    oi.product_id,
+                    oi.qty,
+                    oi.price,
+                    oi.selected_options,
+                    p.name AS product_name,
+                    COALESCE(ps.quantity, 0) AS stock
                  FROM order_items oi
                  LEFT JOIN products p ON p.id = oi.product_id
+                 LEFT JOIN product_stocks ps
+                    ON ps.sku COLLATE utf8mb4_general_ci = p.sku COLLATE utf8mb4_general_ci
+                    AND ps.option_id IS NULL
                  WHERE oi.order_id = ?
                  ORDER BY oi.id ASC',
                 [$orderId]
