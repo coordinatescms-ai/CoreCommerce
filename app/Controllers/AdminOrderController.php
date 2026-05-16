@@ -167,8 +167,6 @@ class AdminOrderController
                 return;
             }
 
-            $this->ensureStatusHistoryTable();
-
             $order = DB::query('SELECT * FROM orders WHERE id = ?', [$orderId])->fetch(\PDO::FETCH_ASSOC);
             if (!$order) {
                 $this->respondJson(['success' => false, 'message' => 'Замовлення не знайдено'], 404);
@@ -192,13 +190,16 @@ class AdminOrderController
             }
             unset($item);
 
-            $history = DB::query(
-                'SELECT id, old_status, new_status, ttn_code, changed_by, changed_at
-                 FROM order_status_history
-                 WHERE order_id = ?
-                 ORDER BY changed_at DESC, id DESC',
-                [$orderId]
-            )->fetchAll(\PDO::FETCH_ASSOC);
+            $history = [];
+            if ($this->hasStatusHistoryTable()) {
+                $history = DB::query(
+                    'SELECT id, old_status, new_status, ttn_code, changed_by, changed_at
+                     FROM order_status_history
+                     WHERE order_id = ?
+                     ORDER BY changed_at DESC, id DESC',
+                    [$orderId]
+                )->fetchAll(\PDO::FETCH_ASSOC);
+            }
 
             $total = 0.0;
             foreach ($items as $item) {
@@ -214,6 +215,14 @@ class AdminOrderController
                 'allowed_statuses' => $this->allowedStatuses,
             ]);
         } catch (\Throwable $e) {
+            error_log(sprintf(
+                '[AdminOrderController::orderDetails] %s in %s:%d\n%s',
+                $e->getMessage(),
+                $e->getFile(),
+                $e->getLine(),
+                $e->getTraceAsString()
+            ));
+
             $this->respondJson([
                 'success' => false,
                 'message' => 'Не вдалося завантажити деталі замовлення',
@@ -683,6 +692,16 @@ class AdminOrderController
                 INDEX idx_order_status_history_order_id (order_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci'
         );
+    }
+
+
+    private function hasStatusHistoryTable(): bool
+    {
+        $statement = DB::query(
+            "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'order_status_history'"
+        );
+
+        return ((int) $statement->fetchColumn()) > 0;
     }
 
     private function hasTtnCodeColumn(): bool
