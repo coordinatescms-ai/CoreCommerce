@@ -184,6 +184,21 @@ class Cart
         return ['success' => true, 'options' => self::normalizeSelectedOptions($options), 'stock_limit' => $stockLimit];
     }
 
+    private static function getBaseStockForProduct(array $product): int
+    {
+        $sku = trim((string) ($product['sku'] ?? ''));
+        if ($sku === '') {
+            return 0;
+        }
+
+        $row = DB::query(
+            'SELECT COALESCE(quantity, 0) AS quantity FROM product_stocks WHERE sku = ? AND option_id IS NULL LIMIT 1',
+            [$sku]
+        )->fetch(PDO::FETCH_ASSOC);
+
+        return max(0, (int) ($row['quantity'] ?? 0));
+    }
+
     public static function add($productId, $quantity = 1, array $selectedOptionIds = []): array
     {
         $productId = (int) $productId;
@@ -199,7 +214,7 @@ class Cart
             return ['success' => false, 'message' => $resolvedOptions['message']];
         }
 
-        $stock = (int) ($product['stock'] ?? 0);
+        $stock = self::getBaseStockForProduct($product);
         if ($resolvedOptions['stock_limit'] !== null) {
             $stock = min($stock, max(0, (int) $resolvedOptions['stock_limit']));
         }
@@ -262,7 +277,7 @@ class Cart
             return ['success' => false, 'message' => 'product_not_found'];
         }
 
-        $stock = (int) ($product['stock'] ?? 0);
+        $stock = self::getBaseStockForProduct($product);
         $selectedOptions = self::parseSelectedOptions($existing['selected_options'] ?? null);
         if (!empty($selectedOptions)) {
             $optionIds = array_map(static fn (array $option): int => (int) $option['option_id'], $selectedOptions);
@@ -321,9 +336,12 @@ class Cart
                     p.name,
                     p.image,
                     p.price,
-                    p.stock
+                    COALESCE(ps.quantity, 0) AS stock
                 FROM " . self::TABLE . " c
                 INNER JOIN products p ON p.id = c.product_id
+                LEFT JOIN product_stocks ps
+                    ON ps.sku COLLATE utf8mb4_general_ci = p.sku COLLATE utf8mb4_general_ci
+                   AND ps.option_id IS NULL
                 WHERE {$scope['where']}
                 ORDER BY c.id DESC";
 
