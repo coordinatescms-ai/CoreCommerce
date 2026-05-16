@@ -68,3 +68,36 @@ function apply_filters(string $hook, mixed $value, mixed ...$args): mixed
 {
     return \App\Core\Plugin\PluginManager::getInstance()->applyFilters($hook, $value, ...$args);
 }
+
+function normalize_phone_mask(string $mask): string
+{
+    return preg_replace('/\s+/', ' ', trim($mask)) ?? '';
+}
+
+function is_valid_phone_mask(string $mask): bool
+{
+    if ($mask === '' || mb_strlen($mask) > 40) {
+        return false;
+    }
+
+    if (substr_count($mask, '#') < 7) {
+        return false;
+    }
+
+    return (bool) preg_match('/^[\d\#\+\(\)\-\s]+$/u', $mask);
+}
+
+function phone_mask_to_regex(string $mask): string
+{
+    $escaped = preg_quote($mask, '/');
+    return '/^' . str_replace('\\#', '\\d', $escaped) . '$/u';
+}
+
+function is_phone_matching_mask(string $phone, string $mask): bool
+{
+    if (!is_valid_phone_mask($mask)) {
+        return false;
+    }
+
+    return (bool) preg_match(phone_mask_to_regex($mask), trim($phone));
+}

@@ -559,6 +559,13 @@ class AdminController
             $settings['media_quality'] = (string) $quality;
         }
 
+
+        if (isset($settings['phone_mask'])) {
+            $settings['phone_mask'] = normalize_phone_mask((string) $settings['phone_mask']);
+            if (!is_valid_phone_mask($settings['phone_mask'])) {
+                return [$settings, 'Маска телефону некоректна. Використайте формат на кшталт +38 (###) ###-##-##'];
+            }
+        }
         $settings['media_auto_webp'] = !empty($settings['media_auto_webp']) ? '1' : '0';
         $settings['media_apply_watermark'] = !empty($settings['media_apply_watermark']) ? '1' : '0';
 
@@ -630,6 +637,7 @@ class AdminController
             'active_theme' => ['group' => 'appearance', 'type' => 'select'],
             'contact_email' => ['group' => 'contact', 'type' => 'text'],
             'contact_phone' => ['group' => 'contact', 'type' => 'text'],
+            'phone_mask' => ['group' => 'contact', 'type' => 'text'],
             'media_thumb_width' => ['group' => 'media', 'type' => 'number'],
             'media_thumb_height' => ['group' => 'media', 'type' => 'number'],
             'media_medium_width' => ['group' => 'media', 'type' => 'number'],
