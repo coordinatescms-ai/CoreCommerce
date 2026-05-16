@@ -263,7 +263,16 @@ $statusLabels = [
 
     const fetchOrderDetails = async (id) => {
         const response = await fetch(`/admin/orders/details/${id}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-        const data = await response.json();
+        const rawText = await response.text();
+        let data = null;
+
+        try {
+            data = JSON.parse(rawText);
+        } catch (error) {
+            console.error('Order details response is not valid JSON', rawText);
+            throw new Error('Сервер повернув некоректну відповідь. Перевірте логи PHP.');
+        }
+
         if (!response.ok || !data.success) throw new Error(data.message || 'Не вдалося завантажити замовлення');
         return data;
     };
