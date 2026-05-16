@@ -123,7 +123,7 @@ $statusLabels = [
             <input type="hidden" name="id" id="orderIdField">
             <div class="modal-grid">
                 <div><label>Ім'я</label><input required name="customer_name" id="customerName"></div>
-                <div><label>Телефон</label><input required name="customer_phone" id="customerPhone"></div>
+                <div><label>Телефон</label><input required name="customer_phone" id="customerPhone" data-phone-mask></div>
                 <div><label>Email</label><input name="customer_email" id="customerEmail"></div>
                 <div><label>Статус</label><select name="status" id="orderStatus">
                     <?php foreach (($allStatuses ?? []) as $status): ?><option value="<?= htmlspecialchars((string)$status, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($statusLabels[$status] ?? $status, ENT_QUOTES, 'UTF-8') ?></option><?php endforeach; ?>
@@ -159,6 +159,8 @@ $statusLabels = [
     </div>
 </div>
 
+<script>window.APP_PHONE_MASK = <?= json_encode((string) get_setting('phone_mask', '+38 (###) ###-##-##'), JSON_UNESCAPED_UNICODE) ?>;</script>
+<script src="/js/phone-mask.js"></script>
 <script>
 (() => {
     const statusLabels = <?= json_encode($statusLabels, JSON_UNESCAPED_UNICODE) ?>;

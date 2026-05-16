@@ -301,7 +301,8 @@ class OrderController
             $errors['full_name'] = 'Вкажіть ПІБ (мінімум 5 символів).';
         }
 
-        if (!preg_match('/^[\d\+\(\)\-\s]{10,20}$/', $payload['phone'])) {
+        $phoneMask = normalize_phone_mask((string) get_setting('phone_mask', '+38 (###) ###-##-##'));
+        if (!is_phone_matching_mask($payload['phone'], $phoneMask)) {
             $errors['phone'] = 'Вкажіть коректний номер телефону.';
         }
 
