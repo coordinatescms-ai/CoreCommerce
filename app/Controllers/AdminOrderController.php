@@ -33,9 +33,14 @@ class AdminOrderController
 
     private function respondJson(array $payload, int $statusCode = 200): void
     {
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+
         http_response_code($statusCode);
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($payload, JSON_UNESCAPED_UNICODE);
+        exit;
     }
 
     private function getJsonPayload(): array
@@ -159,8 +164,11 @@ class AdminOrderController
     public function orderDetails($id): void
     {
         $this->checkAdmin();
+        $previousDisplayErrors = ini_get('display_errors');
 
         try {
+            ini_set('display_errors', '0');
+
             $orderId = (int) $id;
             if ($orderId <= 0) {
                 $this->respondJson(['success' => false, 'message' => 'Некоректний ID замовлення'], 422);
@@ -227,6 +235,10 @@ class AdminOrderController
                 'success' => false,
                 'message' => 'Не вдалося завантажити деталі замовлення',
             ], 500);
+        } finally {
+            if ($previousDisplayErrors !== false) {
+                ini_set('display_errors', (string) $previousDisplayErrors);
+            }
         }
     }
 
