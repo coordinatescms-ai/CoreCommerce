@@ -27,6 +27,11 @@
                 <textarea name="settings[maintenance_message]" id="maintenance_message" class="form-control" rows="2"><?php echo htmlspecialchars(get_setting('maintenance_message', '')); ?></textarea>
             </div>
             <div class="form-group">
+                <label for="phone_mask">Маска номера телефону</label>
+                <input type="text" name="settings[phone_mask]" id="phone_mask" class="form-control" value="<?php echo htmlspecialchars(get_setting('phone_mask', '+38 (###) ###-##-##')); ?>">
+                <small style="display:block; margin-top: 0.35rem; color: #6b7280;">Використовуйте символ <code>#</code> для цифр. Приклад: <code>+38 (###) ###-##-##</code>.</small>
+            </div>
+            <div class="form-group">
                 <label for="logotype_file">Логотип магазину</label>
                 <input type="file" name="logotype_file" id="logotype_file" class="form-control" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
                 <small style="display:block; margin-top: 0.35rem; color: #6b7280;">Дозволені формати: JPG, PNG, WEBP. Максимум: 1MB.</small>
@@ -159,7 +164,7 @@
             </div>
             <div class="form-group">
                 <label for="contact_phone">Контактний телефон</label>
-                <input type="text" name="settings[contact_phone]" id="contact_phone" class="form-control" value="<?php echo htmlspecialchars(get_setting('contact_phone', '')); ?>">
+                <input type="text" name="settings[contact_phone]" id="contact_phone" class="form-control" data-phone-mask value="<?php echo htmlspecialchars(get_setting('contact_phone', '')); ?>">
             </div>
         </div>
     </div>
@@ -221,4 +226,5 @@
             <i class="fas fa-save"></i> Зберегти всі налаштування
         </button>
     </div>
+    <script src="/js/phone-mask.js"></script>
 </form>

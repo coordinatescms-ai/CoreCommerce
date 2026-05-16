@@ -14,7 +14,7 @@
             <small class="field-error" data-error-for="full_name"></small>
 
             <label class="field-label" for="phone">Телефон</label>
-            <input id="phone" name="phone" type="tel" required placeholder="+380...">
+            <input id="phone" name="phone" type="tel" required data-phone-mask value="<?= htmlspecialchars((string)($user['phone'] ?? '')) ?>">
             <small class="field-error" data-error-for="phone"></small>
 
             <label class="field-label" for="email">Email</label>
@@ -131,4 +131,6 @@ input.invalid, select.invalid, textarea.invalid { border-color: #ef4444; }
 @media (max-width: 768px) { .checkout-grid { grid-template-columns: 1fr; } }
 </style>
 
+<script>window.APP_PHONE_MASK = <?= json_encode((string) get_setting('phone_mask', '+38 (###) ###-##-##'), JSON_UNESCAPED_UNICODE) ?>;</script>
+<script src="/js/phone-mask.js"></script>
 <script src="/js/checkout.js"></script>
