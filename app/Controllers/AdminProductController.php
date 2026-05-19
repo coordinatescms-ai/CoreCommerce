@@ -346,6 +346,158 @@ class AdminProductController
         View::render('admin/products/index', ['products' => $products], 'admin');
     }
 
+
+    public function importCsv()
+    {
+        $this->checkAdmin();
+        $this->validateCsrfOrAbort();
+
+        $file = $_FILES['products_csv'] ?? null;
+        if (!is_array($file)) {
+            $_SESSION['error'] = 'Файл для імпорту не передано.';
+            header('Location: /admin/products');
+            exit;
+        }
+
+        if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+            $_SESSION['error'] = 'Помилка завантаження CSV-файлу.';
+            header('Location: /admin/products');
+            exit;
+        }
+
+        $extension = strtolower((string) pathinfo((string) ($file['name'] ?? ''), PATHINFO_EXTENSION));
+        if ($extension !== 'csv') {
+            $_SESSION['error'] = 'Дозволено імпорт лише CSV-файлів (.csv).';
+            header('Location: /admin/products');
+            exit;
+        }
+
+        $handle = fopen((string) ($file['tmp_name'] ?? ''), 'r');
+        if ($handle === false) {
+            $_SESSION['error'] = 'Не вдалося відкрити CSV-файл для читання.';
+            header('Location: /admin/products');
+            exit;
+        }
+
+        $processedRows = 0;
+        $lineNumber = 0;
+
+        while (($row = fgetcsv($handle, 0, ',')) !== false) {
+            $lineNumber++;
+            if (count($row) < 6) {
+                $row = str_getcsv((string) ($row[0] ?? ''), ';');
+            }
+
+            if ($lineNumber === 1 && isset($row[0]) && mb_strtolower(trim((string) $row[0])) === 'sku') {
+                continue;
+            }
+
+            $sku = trim((string) ($row[0] ?? ''));
+            $name = trim((string) ($row[1] ?? ''));
+            $price = (float) str_replace(',', '.', trim((string) ($row[2] ?? '0')));
+            $quantity = max(0, (int) trim((string) ($row[3] ?? '0')));
+            $description = trim((string) ($row[4] ?? ''));
+            $categoryRaw = trim((string) ($row[5] ?? ''));
+            $categoryId = $this->resolveCategoryIdForImport($categoryRaw);
+
+            if ($sku === '' || $name === '' || $price <= 0) {
+                $this->logCsvImportError($lineNumber, "Обов'язкові поля невалідні (sku/name/price).", $row);
+                continue;
+            }
+
+            if ($categoryRaw !== '' && $categoryId === null) {
+                $this->logCsvImportError($lineNumber, 'Категорію не знайдено: ' . $categoryRaw, $row);
+                continue;
+            }
+
+            try {
+                \App\Core\Database\DB::query(
+                    'INSERT INTO products (sku, name, price, description, category_id, is_visible, updated_at)
+                     VALUES (?, ?, ?, ?, ?, 1, NOW())
+                     ON DUPLICATE KEY UPDATE
+                        name = VALUES(name),
+                        price = VALUES(price),
+                        description = VALUES(description),
+                        category_id = VALUES(category_id),
+                        updated_at = NOW()',
+                    [$sku, $name, $price, $description, $categoryId]
+                );
+            } catch (\Throwable $e) {
+                $this->logCsvImportError($lineNumber, 'Помилка upsert products: ' . $e->getMessage(), $row);
+                continue;
+            }
+
+            $productRow = \App\Core\Database\DB::query('SELECT id FROM products WHERE sku = ? LIMIT 1', [$sku])->fetch();
+            $productId = (int) ($productRow['id'] ?? 0);
+
+            try {
+                \App\Core\Database\DB::query(
+                    'INSERT INTO product_stocks (product_id, sku, quantity, option_id, updated_at)
+                     VALUES (?, ?, ?, NULL, NOW())
+                     ON DUPLICATE KEY UPDATE
+                        quantity = VALUES(quantity),
+                        updated_at = NOW()',
+                    [$productId > 0 ? $productId : null, $sku, $quantity]
+                );
+            } catch (\Throwable $e) {
+                $this->logCsvImportError($lineNumber, 'Помилка upsert product_stocks: ' . $e->getMessage(), $row);
+                continue;
+            }
+
+            $processedRows++;
+        }
+
+        fclose($handle);
+
+        $_SESSION['success'] = 'Імпорт завершено. Успішно оброблено рядків: ' . $processedRows . '.';
+        header('Location: /admin/products');
+        exit;
+    }
+
+
+    private function resolveCategoryIdForImport(string $categoryRaw): ?int
+    {
+        $categoryRaw = trim($categoryRaw);
+        if ($categoryRaw === '') {
+            return null;
+        }
+
+        if (ctype_digit($categoryRaw)) {
+            $category = Category::findById((int) $categoryRaw);
+            return $category ? (int) $category['id'] : null;
+        }
+
+        $categoryBySlug = \App\Core\Database\DB::query('SELECT id FROM categories WHERE slug = ? LIMIT 1', [$categoryRaw])->fetch();
+        if (!empty($categoryBySlug['id'])) {
+            return (int) $categoryBySlug['id'];
+        }
+
+        $categoryByName = \App\Core\Database\DB::query('SELECT id FROM categories WHERE name = ? LIMIT 1', [$categoryRaw])->fetch();
+        if (!empty($categoryByName['id'])) {
+            return (int) $categoryByName['id'];
+        }
+
+        return null;
+    }
+
+    private function logCsvImportError(int $lineNumber, string $reason, array $row = []): void
+    {
+        $logDir = __DIR__ . '/../../storage/logs';
+        if (!is_dir($logDir)) {
+            @mkdir($logDir, 0775, true);
+        }
+
+        $logFile = $logDir . '/product_csv_import_errors.log';
+        $rowJson = json_encode($row, JSON_UNESCAPED_UNICODE);
+        if ($rowJson === false) {
+            $rowJson = '[]';
+        }
+
+        $message = sprintf("[%s] line=%d reason=%s row=%s
+", date('Y-m-d H:i:s'), $lineNumber, $reason, $rowJson);
+        @file_put_contents($logFile, $message, FILE_APPEND);
+    }
+
     public function create()
     {
         $this->checkAdmin();
