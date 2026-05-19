@@ -1,3 +1,26 @@
+
+<?php if (!empty($_SESSION['success'])): ?>
+    <div class="alert alert-success"><?php echo htmlspecialchars((string) $_SESSION['success']); unset($_SESSION['success']); ?></div>
+<?php endif; ?>
+<?php if (!empty($_SESSION['error'])): ?>
+    <div class="alert alert-error"><?php echo htmlspecialchars((string) $_SESSION['error']); unset($_SESSION['error']); ?></div>
+<?php endif; ?>
+
+<div class="card">
+    <div class="card-header">Імпорт товарів з CSV</div>
+    <div class="card-body">
+        <form action="/admin/products/import-csv" method="POST" enctype="multipart/form-data" style="display:flex; gap:0.75rem; align-items:flex-end; flex-wrap:wrap;">
+            <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf']); ?>">
+            <div class="form-group" style="margin-bottom:0; min-width:280px;">
+                <label for="products_csv">CSV-файл</label>
+                <input id="products_csv" class="form-control" type="file" name="products_csv" accept=".csv" required>
+            </div>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-file-import"></i> Імпортувати</button>
+        </form>
+        <p style="margin-top:0.75rem; color:#64748b; font-size:0.85rem;">Формат: <code>sku,name,price,quantity,description,category</code></p>
+    </div>
+</div>
+
 <div class="page-header">
     <h1 class="page-title">Управління товарами</h1>
     <a href="/admin/products/create" class="btn btn-primary">
