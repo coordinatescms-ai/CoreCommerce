@@ -260,11 +260,13 @@ if (isset($_SESSION['user']['id'])) {
                     <?php if (!empty($groupedDetailAttributes)): ?>
                         <?php foreach ($groupedDetailAttributes as $attributeName => $values): ?>
                             <div class="pdp-option-group">
-                                <div class="pdp-option-label"><?= htmlspecialchars($attributeName) ?></div>
-                                <div class="pdp-option-values">
-                                    <?php foreach (array_unique(array_filter($values)) as $value): ?>
-                                        <span class="pdp-chip"><?= htmlspecialchars((string) $value) ?></span>
-                                    <?php endforeach; ?>
+                                <div class="pdp-option-label">
+                                    <p>
+                                        <?= htmlspecialchars($attributeName) ?> - 
+                                        <?php foreach (array_unique(array_filter($values)) as $value): ?>
+                                            <span><?= htmlspecialchars((string) $value) ?></span>
+                                        <?php endforeach; ?> 
+                                    </p> 
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -278,62 +280,62 @@ if (isset($_SESSION['user']['id'])) {
                 </details>
 
                 <details class="pdp-reviews-details">
-    <summary><?= __('reviews') ?></summary>
+                    <summary><?= __('reviews') ?></summary>
     
-    <div id="pdp-reviews-panel" data-product-slug="<?= htmlspecialchars($product['slug']) ?>">
+                    <div id="pdp-reviews-panel" data-product-slug="<?= htmlspecialchars($product['slug']) ?>">
         
-        <?php if (!empty($_SESSION['user']['id'])): ?>
-            <!-- Форма відгуку -->
-            <form id="pdp-review-form">
-                <input type="hidden" name="csrf" value="<?= htmlspecialchars(\App\Core\Http\Csrf::token()) ?>">
-                <input type="hidden" name="parent_id" id="pdp-review-parent-id" value="">
+                        <?php if (!empty($_SESSION['user']['id'])): ?>
+                        <!-- Форма відгуку -->
+                        <form id="pdp-review-form">
+                            <input type="hidden" name="csrf" value="<?= htmlspecialchars(\App\Core\Http\Csrf::token()) ?>">
+                            <input type="hidden" name="parent_id" id="pdp-review-parent-id" value="">
                 
-                <div class="pdp-form-header">
-                    <h3 id="pdp-form-title">Залишити відгук</h3>
-                    <div id="pdp-reply-target" style="display:none;"></div>
-                </div>
+                            <div class="pdp-form-header">
+                                <h3 id="pdp-form-title">Залишити відгук</h3>
+                                <div id="pdp-reply-target" style="display:none;"></div>
+                            </div>
 
-                <!-- Блок рейтингу зірочками -->
-                <div class="pdp-rating-wrapper">
-                    <label>Ваша оцінка:</label>
-                    <div class="pdp-star-rating">
-                        <?php for ($i = 5; $i >= 1; $i--): ?>
-                            <input type="radio" id="star<?= $i ?>" name="rating" value="<?= $i ?>" <?= $i === 5 ? 'checked' : '' ?>>
-                            <label for="star<?= $i ?>" title="<?= $i ?> зірок">
-                                <svg viewBox="0 0 24 24" width="24" height="24">
-                                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
-                                </svg>
-                            </label>
-                        <?php endfor; ?>
-                    </div>
-                </div>
+                            <!-- Блок рейтингу зірочками -->
+                            <div class="pdp-rating-wrapper">
+                                <label>Ваша оцінка:</label>
+                                <div class="pdp-star-rating">
+                                    <?php for ($i = 5; $i >= 1; $i--): ?>
+                                    <input type="radio" id="star<?= $i ?>" name="rating" value="<?= $i ?>" <?= $i === 5 ? 'checked' : '' ?>>
+                                    <label for="star<?= $i ?>" title="<?= $i ?> зірок">
+                                        <svg viewBox="0 0 24 24" width="24" height="24">
+                                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                                        </svg>
+                                    </label>
+                                    <?php endfor; ?>
+                                </div>
+                            </div>
 
-                <div class="pdp-input-group">
-                    <label for="pdp-review-body">Текст повідомлення:</label>
-                    <textarea
-                        name="body"
-                        id="pdp-review-body"
-                        rows="4"
-                        required
-                        maxlength="2000"
-                        placeholder="Поділіться враженнями про товар..."
-                    ></textarea>
-                </div>
+                            <div class="pdp-input-group">
+                                <label for="pdp-review-body">Текст повідомлення:</label>
+                                <textarea
+                                    name="body"
+                                    id="pdp-review-body"
+                                    rows="4"
+                                    required
+                                    maxlength="2000"
+                                    placeholder="Поділіться враженнями про товар...">
+                                </textarea>
+                            </div>
 
-                <div class="pdp-form-actions">
-                    <button type="submit" class="pdp-btn pdp-btn-primary">
-                        <span>Надіслати відгук</span>
-                    </button>
-                    <button type="button" id="pdp-cancel-reply" class="pdp-btn pdp-btn-ghost" style="display:none;">
-                        Скасувати відповідь
-                    </button>
-                </div>
-            </form>
-        <?php else: ?>
-            <div class="pdp-auth-prompt">
-                <p>Лише зареєстровані користувачі можуть залишати відгуки. <a href="/login">Увійти</a></p>
-            </div>
-        <?php endif; ?>
+                            <div class="pdp-form-actions">
+                                <button type="submit" class="pdp-btn pdp-btn-primary">
+                                    <span>Надіслати відгук</span>
+                                </button>
+                                <button type="button" id="pdp-cancel-reply" class="pdp-btn pdp-btn-ghost" style="display:none;">
+                                    Скасувати відповідь
+                                </button>
+                            </div>
+                        </form>
+                        <?php else: ?>
+                            <div class="pdp-auth-prompt">
+                                <p>Лише зареєстровані користувачі можуть залишати відгуки. <a href="/login">Увійти</a></p>
+                            </div>
+                        <?php endif; ?>
 
         <!-- Список відгуків -->
         <div class="pdp-reviews-container">
@@ -345,18 +347,13 @@ if (isset($_SESSION['user']['id'])) {
                 id="pdp-reviews-more-btn"
                 class="pdp-btn pdp-btn-outline"
                 type="button"
-                style="display:none;"
-            >
+                style="display:none;">
                 Показати ще відгуки
             </button>
         </div>
     </div>
-</details>
-
-                <details>
-                    <summary><?= __('shipping_terms') ?></summary>
-                    <p><?= __('delivery_info_default') ?></p>
                 </details>
+
             </section>
 
             <section class="pdp-similar" aria-label="<?= __('similar_products') ?>">
