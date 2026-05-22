@@ -83,9 +83,9 @@ class AdminController
 
         $stats = [
             'users_count' => User::count(),
-            'orders_count' => 0,
-            'products_count' => 0,
-            'total_sales' => 0
+            'orders_count' => Setting::count_order(),
+            'products_count' => Setting::count_products(),
+            'total_sales' => Setting::total_sales()
         ];
 
         View::render('admin/dashboard', [

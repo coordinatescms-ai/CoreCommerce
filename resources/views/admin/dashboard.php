@@ -68,14 +68,14 @@
             </tr>
         </thead>
         <tbody>
-            <?php if (empty($recent_orders)): ?>
+            <?php if (empty($recentOrders)): ?>
                 <tr>
                     <td colspan="6" style="text-align: center; padding: 20px; color: #94a3b8;">
                         Замовлень поки немає
                     </td>
                 </tr>
             <?php else: ?>
-                <?php foreach ($recent_orders as $order): ?>
+                <?php foreach ($recentOrders as $order): ?>
                 <tr>
                     <td>#<?= $order['id'] ?></td>
                     <td><strong><?= htmlspecialchars($order['customer_name'] ?? 'Гість') ?></strong></td>
@@ -87,7 +87,7 @@
                         </span>
                     </td>
                     <td>
-                        <a href="order_details.php?id=<?= $order['id'] ?>" class="btn-edit">
+                        <a href="/admin/orders" class="btn-edit">
                             <i class="fa-solid fa-eye"></i>
                         </a>
                     </td>
