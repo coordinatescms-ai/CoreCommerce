@@ -261,6 +261,9 @@
             <a href="/admin/settings" class="menu-item <?php echo $request_uri === '/admin/settings' ? 'active' : ''; ?>">
                 <i class="fas fa-cog"></i> Налаштування
             </a>
+            <a href="/admin/system" class="menu-item <?php echo strpos($request_uri, '/admin/system') === 0 ? 'active' : ''; ?>">
+                <i class="fas fa-server"></i> Система
+            </a>
             <a href="/admin/analytics/week" class="menu-item <?php echo $request_uri === '/admin/settings' ? 'active' : ''; ?>">
                 <i class="fas fa-chart-line"></i> Аналітика
             </a>
