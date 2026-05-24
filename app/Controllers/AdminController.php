@@ -310,8 +310,206 @@ class AdminController
             $_SESSION['error'] = 'Кеш очищено частково: ' . implode(' ', $errors);
         }
 
-        header('Location: /admin');
+        $redirectUrl = (strpos((string)($_SERVER['HTTP_REFERER'] ?? ''), '/admin/system') !== false) ? '/admin/system' : '/admin';
+        header('Location: ' . $redirectUrl);
         exit;
+    }
+
+
+
+    public function system()
+    {
+        $this->checkAdmin();
+
+        $systemInfo = $this->collectSystemInfo();
+        $logs = $this->collectSystemLogs();
+
+        View::render('admin/system', [
+            'systemInfo' => $systemInfo,
+            'logs' => $logs,
+        ], 'admin');
+    }
+
+    public function backupDatabase()
+    {
+        $this->checkAdmin();
+        if (!Csrf::isValid()) {
+            http_response_code(422);
+            $_SESSION['error'] = 'CSRF token validation failed';
+            header('Location: /admin/system');
+            exit;
+        }
+
+        $backupDir = dirname(__DIR__, 2) . '/storage/backups';
+        if (!is_dir($backupDir) && !@mkdir($backupDir, 0775, true)) {
+            $_SESSION['error'] = 'Не вдалося створити папку для резервних копій.';
+            header('Location: /admin/system');
+            exit;
+        }
+
+        $filePath = $backupDir . '/backup_' . date('Ymd_His') . '.sql';
+        $tables = DB::query('SHOW TABLES')->fetchAll(\PDO::FETCH_COLUMN);
+        $dump = "-- CoreCommerce SQL Backup\n-- " . date('Y-m-d H:i:s') . "\n\nSET FOREIGN_KEY_CHECKS=0;\n\n";
+
+        foreach ($tables as $table) {
+            $create = DB::query('SHOW CREATE TABLE `' . str_replace('`', '``', (string) $table) . '`')->fetch(\PDO::FETCH_ASSOC);
+            $createSql = $create['Create Table'] ?? array_values($create)[1] ?? '';
+            $dump .= "DROP TABLE IF EXISTS `{$table}`;\n" . $createSql . ";\n\n";
+
+            $rows = DB::query('SELECT * FROM `' . str_replace('`', '``', (string) $table) . '`')->fetchAll(\PDO::FETCH_ASSOC);
+            if (!empty($rows)) {
+                foreach ($rows as $row) {
+                    $cols = array_map(static fn($c) => '`' . str_replace('`', '``', (string) $c) . '`', array_keys($row));
+                    $vals = array_map(static function ($v) {
+                        return $v === null ? 'NULL' : DB::$pdo->quote((string) $v);
+                    }, array_values($row));
+                    $dump .= 'INSERT INTO `' . $table . '` (' . implode(',', $cols) . ') VALUES (' . implode(',', $vals) . ");\n";
+                }
+                $dump .= "\n";
+            }
+        }
+
+        $dump .= "SET FOREIGN_KEY_CHECKS=1;\n";
+
+        if (@file_put_contents($filePath, $dump) === false) {
+            $_SESSION['error'] = 'Не вдалося записати SQL-дамп.';
+        } else {
+            $_SESSION['success'] = 'Резервну копію створено: ' . basename($filePath);
+            $this->logAdminAction('backup_database', ['file' => basename($filePath)]);
+        }
+
+        header('Location: /admin/system');
+        exit;
+    }
+
+    public function optimizeDatabase()
+    {
+        $this->checkAdmin();
+        if (!Csrf::isValid()) {
+            http_response_code(422);
+            $_SESSION['error'] = 'CSRF token validation failed';
+            header('Location: /admin/system');
+            exit;
+        }
+
+        $tables = DB::query('SHOW TABLES')->fetchAll(\PDO::FETCH_COLUMN);
+        $optimized = [];
+        $errors = [];
+
+        foreach ($tables as $table) {
+            try {
+                DB::query('OPTIMIZE TABLE `' . str_replace('`', '``', (string) $table) . '`');
+                $optimized[] = $table;
+            } catch (\Throwable $e) {
+                $errors[] = $table . ': ' . $e->getMessage();
+            }
+        }
+
+        $this->logAdminAction('optimize_database', ['optimized' => $optimized, 'errors' => $errors]);
+        $_SESSION['success'] = 'Оптимізацію таблиць завершено. Успішно: ' . count($optimized);
+        if (!empty($errors)) {
+            $_SESSION['error'] = 'Частина таблиць не оптимізована: ' . implode('; ', $errors);
+        }
+
+        header('Location: /admin/system');
+        exit;
+    }
+
+    public function clearLogs()
+    {
+        $this->checkAdmin();
+        if (!Csrf::isValid()) {
+            http_response_code(422);
+            $_SESSION['error'] = 'CSRF token validation failed';
+            header('Location: /admin/system');
+            exit;
+        }
+
+        $logDir = dirname(__DIR__, 2) . '/storage/logs';
+        $deleted = [];
+        if (is_dir($logDir)) {
+            $entries = scandir($logDir) ?: [];
+            foreach ($entries as $entry) {
+                if ($entry === '.' || $entry === '..') { continue; }
+                $path = $logDir . '/' . $entry;
+                if (is_file($path) && @unlink($path)) {
+                    $deleted[] = $entry;
+                }
+            }
+        }
+
+        $this->logAdminAction('clear_logs', ['deleted' => $deleted]);
+        $_SESSION['success'] = 'Логи очищено. Видалено файлів: ' . count($deleted);
+        header('Location: /admin/system');
+        exit;
+    }
+
+    private function collectSystemInfo(): array
+    {
+        $updaterConfig = require dirname(__DIR__, 2) . '/config/updater.php';
+        $diskTotal = @disk_total_space(dirname(__DIR__, 2));
+        $diskFree = @disk_free_space(dirname(__DIR__, 2));
+
+        return [
+            'php_version' => PHP_VERSION,
+            'mysql_version' => DB::query('SELECT VERSION()')->fetchColumn(),
+            'engine_version' => $updaterConfig['current_version'] ?? 'unknown',
+            'upload_max_filesize' => ini_get('upload_max_filesize') ?: 'unknown',
+            'memory_limit' => ini_get('memory_limit') ?: 'unknown',
+            'extensions' => [
+                'gd' => extension_loaded('gd'),
+                'curl' => extension_loaded('curl'),
+                'mbstring' => extension_loaded('mbstring'),
+            ],
+            'disk_total' => $diskTotal,
+            'disk_free' => $diskFree,
+            'disk_used' => ($diskTotal !== false && $diskFree !== false) ? $diskTotal - $diskFree : false,
+        ];
+    }
+
+    private function collectSystemLogs(): array
+    {
+        $logDir = dirname(__DIR__, 2) . '/storage/logs';
+        $phpErrorLog = $logDir . '/error.log';
+        $adminActionsLog = $logDir . '/admin_actions.log';
+
+        return [
+            'php_errors' => $this->tailFile($phpErrorLog, 150),
+            'admin_actions' => $this->tailFile($adminActionsLog, 150),
+            'log_files' => is_dir($logDir) ? array_values(array_filter(scandir($logDir) ?: [], static fn($f) => $f !== '.' && $f !== '..')) : [],
+        ];
+    }
+
+    private function tailFile(string $path, int $maxLines = 100): array
+    {
+        if (!is_file($path)) {
+            return [];
+        }
+
+        $lines = @file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        if (!is_array($lines)) {
+            return [];
+        }
+
+        return array_slice($lines, -$maxLines);
+    }
+
+    private function logAdminAction(string $action, array $meta = []): void
+    {
+        $admin = $_SESSION['user'] ?? [];
+        $logDir = dirname(__DIR__, 2) . '/storage/logs';
+        if (!is_dir($logDir)) {
+            @mkdir($logDir, 0775, true);
+        }
+
+        $line = sprintf("[%s] admin_id=%d admin_email=%s action=%s meta=%s\n",
+            date('Y-m-d H:i:s'),
+            (int) ($admin['id'] ?? 0),
+            (string) ($admin['email'] ?? 'unknown'),
+            $action,
+            json_encode($meta, JSON_UNESCAPED_UNICODE)
+        );
+        @file_put_contents($logDir . '/admin_actions.log', $line, FILE_APPEND);
     }
 
     public function settingsTab($tab)
