@@ -10,6 +10,7 @@
         id: document.getElementById('cronTaskId'),
         name: document.getElementById('cronTaskName'),
         schedule: document.getElementById('cronTaskSchedule'),
+        command: document.getElementById('cronTaskCommand'),
         params: document.getElementById('cronTaskParams')
     };
 
@@ -28,6 +29,7 @@
             fields.id.value = task.id || '';
             fields.name.value = task.name || '';
             fields.schedule.value = task.schedule || '';
+            fields.command.value = task.command || '';
             fields.params.value = task.params || '';
             modal.classList.add('active');
         }
@@ -66,6 +68,7 @@
             id: fields.id.value,
             name: fields.name.value,
             schedule: fields.schedule.value,
+            command: fields.command.value,
             params: fields.params.value
         });
         if (!res.success) return alert(res.message || 'Помилка збереження');
@@ -75,6 +78,7 @@
             const task = JSON.parse(row.dataset.task || '{}');
             task.name = fields.name.value;
             task.schedule = fields.schedule.value;
+            task.command = fields.command.value;
             task.params = fields.params.value;
             row.dataset.task = JSON.stringify(task);
             row.children[0].textContent = fields.name.value;
