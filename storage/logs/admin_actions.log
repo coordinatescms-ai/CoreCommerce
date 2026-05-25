@@ -1,2 +1,3 @@
 [2026-05-11 12:52:36] admin_id=2 admin_email=systemmaster@meta.ua action=clear_cache cleared=["active_plugins.json"] errors=["Не вдалося оновити asset version: Call to undefined method App\\Models\\Setting::set()"]
 [2026-05-12 06:43:25] admin_id=2 admin_email=systemmaster@meta.ua action=clear_cache cleared=["active_plugins.json"] errors=["Не вдалося оновити asset version: Call to undefined method App\\Models\\Setting::set()"]
+[2026-05-24 18:47:04] admin_id=2 admin_email=systemmaster@meta.ua action=backup_database meta={"file":"backup_20260524_184704.sql"}

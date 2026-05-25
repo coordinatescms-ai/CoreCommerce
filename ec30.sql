@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: MySQL-8.0:3306
--- Час створення: Трв 16 2026 р., 11:41
+-- Час створення: Трв 25 2026 р., 19:00
 -- Версія сервера: 8.0.44
 -- Версія PHP: 8.3.29
 
@@ -420,7 +420,64 @@ INSERT INTO `crm_user_activity_logs` (`id`, `user_id`, `event_type`, `descriptio
 (160, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-12 16:26:51'),
 (161, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-13 14:48:52'),
 (162, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-13 15:05:35'),
-(163, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-13 15:06:07');
+(163, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-13 15:06:07'),
+(164, 2, 'cart_add', 'Додав у кошик: iPhone 13', NULL, '2026-05-16 13:06:51'),
+(165, 2, 'cart_remove', 'Видалив товар із кошика', NULL, '2026-05-16 13:07:14'),
+(166, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-16 13:07:22'),
+(167, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-16 13:07:32'),
+(168, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-16 13:07:37'),
+(169, 2, 'cart_add', 'Додав у кошик: iPhone 13', NULL, '2026-05-16 13:07:44'),
+(170, 2, 'cart_remove', 'Видалив товар із кошика', NULL, '2026-05-16 13:07:47'),
+(171, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-16 13:07:50'),
+(172, 2, 'cart_add', 'Додав у кошик: iPhone 13', NULL, '2026-05-16 13:07:56'),
+(173, 2, 'cart_remove', 'Видалив товар із кошика', NULL, '2026-05-16 13:07:58'),
+(174, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-16 13:08:00'),
+(175, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-16 13:08:03'),
+(176, 2, 'cart_add', 'Додав у кошик: iPhone 13', NULL, '2026-05-16 13:09:54'),
+(177, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-16 13:09:59'),
+(178, 2, 'cart_remove', 'Видалив товар із кошика', NULL, '2026-05-16 13:10:06'),
+(179, 2, 'cart_add', 'Додав у кошик: iPhone 13', NULL, '2026-05-16 13:11:03'),
+(180, 2, 'cart_remove', 'Видалив товар із кошика', NULL, '2026-05-16 13:11:21'),
+(181, 2, 'cart_add', 'Додав у кошик: Сіомі', NULL, '2026-05-16 13:14:40'),
+(182, 2, 'cart_remove', 'Видалив товар із кошика', NULL, '2026-05-16 13:15:29'),
+(183, 2, 'cart_add', 'Додав у кошик: iPhone 13', NULL, '2026-05-19 16:42:11'),
+(184, 2, 'cart_remove', 'Видалив товар із кошика', NULL, '2026-05-19 17:15:18'),
+(185, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-19 17:50:38'),
+(186, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-19 17:51:10'),
+(187, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-19 17:51:14'),
+(188, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-19 17:51:38'),
+(189, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-19 17:52:03'),
+(190, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-22 16:37:28'),
+(191, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-22 16:40:35'),
+(192, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-22 16:41:01'),
+(193, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-22 16:41:29'),
+(194, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-22 16:41:35'),
+(195, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-22 16:42:18'),
+(196, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-22 16:42:19'),
+(197, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-22 16:42:19'),
+(198, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-22 16:42:53'),
+(199, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-22 16:43:22'),
+(200, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-22 16:44:55'),
+(201, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-22 16:45:59'),
+(202, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-22 16:46:07'),
+(203, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-22 16:46:15'),
+(204, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-22 16:53:52'),
+(205, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-22 16:55:01'),
+(206, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-22 17:01:23'),
+(207, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-22 17:02:26'),
+(208, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-22 17:03:26'),
+(209, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-22 17:04:35'),
+(210, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-22 17:05:47'),
+(211, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-22 17:06:32'),
+(212, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-22 17:07:45'),
+(213, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-22 17:09:24'),
+(214, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-22 17:09:41'),
+(215, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-22 17:11:14'),
+(216, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-22 17:12:19'),
+(217, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-22 17:13:16'),
+(218, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-22 17:15:34'),
+(219, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-22 17:15:54'),
+(220, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-22 17:16:21');
 
 -- --------------------------------------------------------
 
@@ -452,6 +509,33 @@ CREATE TABLE `crm_user_subscriptions` (
 
 INSERT INTO `crm_user_subscriptions` (`user_id`, `marketing_email`, `updated_at`) VALUES
 (2, 0, '2026-04-28 16:08:09');
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблиці `cron_tasks`
+--
+
+CREATE TABLE `cron_tasks` (
+  `id` int UNSIGNED NOT NULL,
+  `name` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Зрозуміла назва задачі для адмінки',
+  `command` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Шлях до PHP файлу або назва методу',
+  `schedule` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '* * * * *' COMMENT 'Періодичність у форматі Cron',
+  `last_run` datetime DEFAULT NULL COMMENT 'Дата і час останнього запуску',
+  `next_run` datetime DEFAULT NULL COMMENT 'Коли запускати наступного разу',
+  `status` enum('active','disabled') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'active' COMMENT 'Статус задачі',
+  `last_result` enum('success','running','failed') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'success' COMMENT 'Результат останнього виконання',
+  `error_message` text COLLATE utf8mb4_unicode_ci COMMENT 'Текст помилки, якщо статус failed',
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Дамп даних таблиці `cron_tasks`
+--
+
+INSERT INTO `cron_tasks` (`id`, `name`, `command`, `schedule`, `last_run`, `next_run`, `status`, `last_result`, `error_message`, `updated_at`) VALUES
+(1, 'Очищення старих сесій та логів', 'tasks/clear_logs.php', '0 3 * * *', NULL, '2026-05-26 03:00:00', 'active', 'success', NULL, '2026-05-25 12:29:16'),
+(2, 'Автоматичний імпорт товарів з XML', 'tasks/import_products.php', '*/30 * * * *', NULL, '2026-05-25 16:00:00', 'active', 'success', NULL, '2026-05-25 12:29:16');
 
 -- --------------------------------------------------------
 
@@ -507,7 +591,8 @@ CREATE TABLE `inventory_log` (
 --
 
 INSERT INTO `inventory_log` (`id`, `sku`, `event_type`, `qty`, `comment`, `created_at`) VALUES
-(1, 'ID-1', 'add', 4, '', '2026-05-09 17:46:52');
+(1, 'ID-1', 'add', 4, '', '2026-05-09 17:46:52'),
+(2, 'ID-2', 'add', 10, '', '2026-05-16 13:14:11');
 
 -- --------------------------------------------------------
 
@@ -672,7 +757,7 @@ CREATE TABLE `plugins` (
 --
 
 INSERT INTO `plugins` (`id`, `name`, `slug`, `main_file`, `is_active`, `version`, `created_at`, `updated_at`) VALUES
-(1, 'TestPlugin', 'TestPlugin', 'D:\\OSPanel\\home\\mysite.test/plugins/TestPlugin/plugin.php', 0, '1.0.0', '2026-04-30 19:25:51', '2026-05-12 08:43:25');
+(1, 'TestPlugin', 'TestPlugin', 'D:\\OSPanel\\home\\mysite.test/plugins/TestPlugin/plugin.php', 0, '1.0.0', '2026-04-30 19:25:51', '2026-05-22 18:28:48');
 
 -- --------------------------------------------------------
 
@@ -839,7 +924,8 @@ CREATE TABLE `product_stocks` (
 
 INSERT INTO `product_stocks` (`id`, `product_id`, `option_id`, `sku`, `quantity`, `reserved`, `updated_at`) VALUES
 (1, 1, NULL, 'ID-1', 4, 0, '2026-05-10 12:19:24'),
-(7, 2, 100, 'ID-2-100', 2, 0, '2026-05-11 12:10:15');
+(7, 2, 100, 'ID-2-100', 2, 0, '2026-05-11 12:10:15'),
+(8, 0, NULL, 'ID-2', 10, 0, '2026-05-16 13:14:11');
 
 -- --------------------------------------------------------
 
@@ -1035,7 +1121,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `email`, `password`, `first_name`, `last_name`, `phone`, `avatar`, `role_id`, `is_active`, `email_verified`, `email_verified_at`, `last_login`, `password_reset_token`, `password_reset_expires`, `remember_token`, `created_at`, `updated_at`) VALUES
-(2, 'systemmaster@meta.ua', '$2y$12$knhVn0wIOYbnqx3TRccf1OrGmEGu3JWSZsbLQ/c9tvLrmZElAaU86', 'Василь', 'Присяжнюк', NULL, NULL, 1, 1, 0, NULL, '2026-05-16 09:40:27', NULL, NULL, 'cbb001e6da426d9548d27caacbc6f0c29757dcc231187574284a73efcb440cab', '2026-03-31 09:57:24', '2026-05-16 09:40:27');
+(2, 'systemmaster@meta.ua', '$2y$12$knhVn0wIOYbnqx3TRccf1OrGmEGu3JWSZsbLQ/c9tvLrmZElAaU86', 'Василь', 'Присяжнюк', NULL, NULL, 1, 1, 0, NULL, '2026-05-25 12:00:54', NULL, NULL, '5a4117784b1531506b42a8f5d1335fd5199ae5dea17a9738150944d249e97431', '2026-03-31 09:57:24', '2026-05-25 12:00:54');
 
 -- --------------------------------------------------------
 
@@ -1143,6 +1229,13 @@ ALTER TABLE `crm_user_bonus`
 --
 ALTER TABLE `crm_user_subscriptions`
   ADD PRIMARY KEY (`user_id`);
+
+--
+-- Індекси таблиці `cron_tasks`
+--
+ALTER TABLE `cron_tasks`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_status_next_run` (`status`,`next_run`);
 
 --
 -- Індекси таблиці `favorites`
@@ -1347,7 +1440,7 @@ ALTER TABLE `attribute_options`
 -- AUTO_INCREMENT для таблиці `cart`
 --
 ALTER TABLE `cart`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT для таблиці `categories`
@@ -1377,7 +1470,13 @@ ALTER TABLE `crm_user_action_audit`
 -- AUTO_INCREMENT для таблиці `crm_user_activity_logs`
 --
 ALTER TABLE `crm_user_activity_logs`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=164;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=221;
+
+--
+-- AUTO_INCREMENT для таблиці `cron_tasks`
+--
+ALTER TABLE `cron_tasks`
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT для таблиці `filter_history`
@@ -1389,7 +1488,7 @@ ALTER TABLE `filter_history`
 -- AUTO_INCREMENT для таблиці `inventory_log`
 --
 ALTER TABLE `inventory_log`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT для таблиці `login_logs`
@@ -1455,7 +1554,7 @@ ALTER TABLE `product_reviews`
 -- AUTO_INCREMENT для таблиці `product_stocks`
 --
 ALTER TABLE `product_stocks`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT для таблиці `seo_settings`
