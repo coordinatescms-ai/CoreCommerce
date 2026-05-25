@@ -540,20 +540,12 @@ class AdminController
 
     private function collectCronTasks(): array
     {
-        $tasks = [
-            ['name' => 'Нічна розсилка', 'schedule' => '03:00 щодня', 'log_file' => 'newsletter_cron.log'],
-            ['name' => 'Імпорт товарів', 'schedule' => '02:00 щодня', 'log_file' => 'product_csv_import_errors.log'],
-            ['name' => 'Очищення системних логів', 'schedule' => '04:00 щодня', 'log_file' => 'admin_actions.log'],
-        ];
-
-        $logsDir = dirname(__DIR__, 2) . '/storage/logs';
-        foreach ($tasks as &$task) {
-            $path = $logsDir . '/' . $task['log_file'];
-            $task['last_run'] = is_file($path) ? date('Y-m-d H:i:s', (int) filemtime($path)) : 'Немає запусків';
-            $task['status'] = is_file($path) ? 'Виконувався' : 'Невідомо';
+        try {
+            $stmt = DB::query('SELECT id, name, command, schedule, last_run, next_run, status, last_result, error_message, params FROM cron_tasks ORDER BY id ASC');
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        } catch (\Throwable $e) {
+            return [];
         }
-
-        return $tasks;
     }
 
     private function sendMailFromFileConfig(string $to, string $subject, string $body): bool
