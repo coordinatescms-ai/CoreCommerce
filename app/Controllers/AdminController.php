@@ -9,6 +9,8 @@ use App\Models\Setting;
 use App\Core\Database\DB;
 use App\Models\Page;
 use App\Models\Review;
+use App\Core\Mail\MailService;
+use PHPMailer\PHPMailer\PHPMailer;
 
 class AdminController
 {
@@ -323,11 +325,67 @@ class AdminController
 
         $systemInfo = $this->collectSystemInfo();
         $logs = $this->collectSystemLogs();
+        $cronTasks = $this->collectCronTasks();
+        $environment = [
+            'display_errors' => (string) Setting::get('display_errors', ini_get('display_errors') ?: '0'),
+            'store_status' => (string) Setting::get('store_status', 'open'),
+        ];
 
         View::render('admin/system', [
             'systemInfo' => $systemInfo,
             'logs' => $logs,
+            'cronTasks' => $cronTasks,
+            'environment' => $environment,
         ], 'admin');
+    }
+
+    public function saveSystemEnvironment()
+    {
+        $this->checkAdmin();
+        if (!Csrf::isValid()) {
+            http_response_code(422);
+            $_SESSION['error'] = 'CSRF token validation failed';
+            header('Location: /admin/system');
+            exit;
+        }
+
+        $debugMode = isset($_POST['display_errors']) ? '1' : '0';
+        $maintenanceMode = isset($_POST['maintenance_mode']) ? 'closed' : 'open';
+        Setting::setWithMeta('display_errors', $debugMode, 'system', 'checkbox');
+        Setting::setWithMeta('store_status', $maintenanceMode, 'general', 'select');
+
+        @ini_set('display_errors', $debugMode);
+        $_SESSION['success'] = 'Системні режими оновлено.';
+        header('Location: /admin/system');
+        exit;
+    }
+
+    public function sendSystemTestEmail()
+    {
+        $this->checkAdmin();
+        if (!Csrf::isValid()) {
+            http_response_code(422);
+            $_SESSION['error'] = 'CSRF token validation failed';
+            header('Location: /admin/system');
+            exit;
+        }
+
+        $to = trim((string) ($_POST['test_email'] ?? ''));
+        $useDb = isset($_POST['test_email_use_db']);
+        if ($to === '' || !filter_var($to, FILTER_VALIDATE_EMAIL)) {
+            $_SESSION['error'] = 'Вкажіть коректний email для тестового листа.';
+            header('Location: /admin/system');
+            exit;
+        }
+
+        $subject = 'Тест листа CoreCommerce';
+        $body = 'Це тестовий лист для перевірки Mail Settings (' . ($useDb ? 'DB settings' : 'config/mail.php') . ').';
+        $sent = $useDb ? (new MailService())->send($to, $subject, nl2br(htmlspecialchars($body, ENT_QUOTES, 'UTF-8'))) : $this->sendMailFromFileConfig($to, $subject, $body);
+
+        $_SESSION[$sent ? 'success' : 'error'] = $sent ? 'Тестовий лист успішно відправлено.' : 'Не вдалося відправити тестовий лист. Перевірте SMTP налаштування.';
+        $this->logAdminAction('system_test_mail', ['to' => $to, 'source' => $useDb ? 'db' : 'file', 'success' => $sent]);
+        header('Location: /admin/system');
+        exit;
     }
 
     public function backupDatabase()
@@ -478,6 +536,51 @@ class AdminController
             'admin_actions' => $this->tailFile($adminActionsLog, 150),
             'log_files' => is_dir($logDir) ? array_values(array_filter(scandir($logDir) ?: [], static fn($f) => $f !== '.' && $f !== '..')) : [],
         ];
+    }
+
+    private function collectCronTasks(): array
+    {
+        $tasks = [
+            ['name' => 'Нічна розсилка', 'schedule' => '03:00 щодня', 'log_file' => 'newsletter_cron.log'],
+            ['name' => 'Імпорт товарів', 'schedule' => '02:00 щодня', 'log_file' => 'product_csv_import_errors.log'],
+            ['name' => 'Очищення системних логів', 'schedule' => '04:00 щодня', 'log_file' => 'admin_actions.log'],
+        ];
+
+        $logsDir = dirname(__DIR__, 2) . '/storage/logs';
+        foreach ($tasks as &$task) {
+            $path = $logsDir . '/' . $task['log_file'];
+            $task['last_run'] = is_file($path) ? date('Y-m-d H:i:s', (int) filemtime($path)) : 'Немає запусків';
+            $task['status'] = is_file($path) ? 'Виконувався' : 'Невідомо';
+        }
+
+        return $tasks;
+    }
+
+    private function sendMailFromFileConfig(string $to, string $subject, string $body): bool
+    {
+        $config = require dirname(__DIR__, 2) . '/config/mail.php';
+        $mail = new PHPMailer(true);
+
+        try {
+            $mail->isSMTP();
+            $mail->Host = (string) ($config['host'] ?? '');
+            $mail->SMTPAuth = true;
+            $mail->Username = (string) ($config['username'] ?? '');
+            $mail->Password = (string) ($config['password'] ?? '');
+            $mail->SMTPSecure = (string) ($config['encryption'] ?? 'tls');
+            $mail->Port = (int) ($config['port'] ?? 587);
+            $mail->CharSet = 'UTF-8';
+            $mail->setFrom((string) ($config['from_email'] ?? 'admin@example.com'), (string) ($config['from_name'] ?? 'CoreCommerce'));
+            $mail->addAddress($to);
+            $mail->isHTML(true);
+            $mail->Subject = $subject;
+            $mail->Body = nl2br(htmlspecialchars($body, ENT_QUOTES, 'UTF-8'));
+            $mail->AltBody = $body;
+            $mail->send();
+            return true;
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     private function tailFile(string $path, int $maxLines = 100): array
