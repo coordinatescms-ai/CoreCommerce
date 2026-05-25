@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: MySQL-8.0:3306
--- Час створення: Трв 25 2026 р., 19:00
+-- Час створення: Трв 25 2026 р., 19:22
 -- Версія сервера: 8.0.44
 -- Версія PHP: 8.3.29
 
@@ -526,16 +526,17 @@ CREATE TABLE `cron_tasks` (
   `status` enum('active','disabled') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'active' COMMENT 'Статус задачі',
   `last_result` enum('success','running','failed') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'success' COMMENT 'Результат останнього виконання',
   `error_message` text COLLATE utf8mb4_unicode_ci COMMENT 'Текст помилки, якщо статус failed',
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `params` text COLLATE utf8mb4_unicode_ci
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Дамп даних таблиці `cron_tasks`
 --
 
-INSERT INTO `cron_tasks` (`id`, `name`, `command`, `schedule`, `last_run`, `next_run`, `status`, `last_result`, `error_message`, `updated_at`) VALUES
-(1, 'Очищення старих сесій та логів', 'tasks/clear_logs.php', '0 3 * * *', NULL, '2026-05-26 03:00:00', 'active', 'success', NULL, '2026-05-25 12:29:16'),
-(2, 'Автоматичний імпорт товарів з XML', 'tasks/import_products.php', '*/30 * * * *', NULL, '2026-05-25 16:00:00', 'active', 'success', NULL, '2026-05-25 12:29:16');
+INSERT INTO `cron_tasks` (`id`, `name`, `command`, `schedule`, `last_run`, `next_run`, `status`, `last_result`, `error_message`, `updated_at`, `params`) VALUES
+(1, 'Очищення старих сесій та логів', 'tasks/clear_logs.php', '0 3 * * *', NULL, '2026-05-26 03:00:00', 'active', 'success', NULL, '2026-05-25 12:29:16', NULL),
+(2, 'Автоматичний імпорт товарів з XML', 'tasks/import_products.php', '*/30 * * * *', NULL, '2026-05-25 16:00:00', 'active', 'success', NULL, '2026-05-25 12:29:16', NULL);
 
 -- --------------------------------------------------------
 
@@ -1121,7 +1122,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `email`, `password`, `first_name`, `last_name`, `phone`, `avatar`, `role_id`, `is_active`, `email_verified`, `email_verified_at`, `last_login`, `password_reset_token`, `password_reset_expires`, `remember_token`, `created_at`, `updated_at`) VALUES
-(2, 'systemmaster@meta.ua', '$2y$12$knhVn0wIOYbnqx3TRccf1OrGmEGu3JWSZsbLQ/c9tvLrmZElAaU86', 'Василь', 'Присяжнюк', NULL, NULL, 1, 1, 0, NULL, '2026-05-25 12:00:54', NULL, NULL, '5a4117784b1531506b42a8f5d1335fd5199ae5dea17a9738150944d249e97431', '2026-03-31 09:57:24', '2026-05-25 12:00:54');
+(2, 'systemmaster@meta.ua', '$2y$12$knhVn0wIOYbnqx3TRccf1OrGmEGu3JWSZsbLQ/c9tvLrmZElAaU86', 'Василь', 'Присяжнюк', NULL, NULL, 1, 1, 0, NULL, '2026-05-25 17:07:46', NULL, NULL, '5a4117784b1531506b42a8f5d1335fd5199ae5dea17a9738150944d249e97431', '2026-03-31 09:57:24', '2026-05-25 17:07:46');
 
 -- --------------------------------------------------------
 
