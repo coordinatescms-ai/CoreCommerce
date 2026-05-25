@@ -82,6 +82,8 @@ $router->get('/admin/settings', [AdminController::class, 'settings']);
 $router->post('/admin/settings/save', [AdminController::class, 'saveSettings']);
 $router->post('/admin/clear-cache', [AdminController::class, 'clearCache']);
 $router->get('/admin/system', [AdminController::class, 'system']);
+$router->post('/admin/system/environment', [AdminController::class, 'saveSystemEnvironment']);
+$router->post('/admin/system/mail/test', [AdminController::class, 'sendSystemTestEmail']);
 $router->post('/admin/system/logs/clear', [AdminController::class, 'clearLogs']);
 $router->post('/admin/system/database/backup', [AdminController::class, 'backupDatabase']);
 $router->post('/admin/system/database/optimize', [AdminController::class, 'optimizeDatabase']);

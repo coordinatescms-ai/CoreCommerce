@@ -16,6 +16,30 @@
 
 <div class="system-grid">
     <div class="card">
+        <div class="card-header">Environment</div>
+        <div class="card-body">
+            <form method="POST" action="/admin/system/environment">
+                <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf'] ?? ''); ?>">
+                <p><label><input type="checkbox" name="display_errors" value="1" <?php echo ($environment['display_errors'] ?? '0') === '1' ? 'checked' : ''; ?>> Режим розробки (Debug Mode / Display Errors)</label></p>
+                <p><label><input type="checkbox" name="maintenance_mode" value="1" <?php echo ($environment['store_status'] ?? 'open') === 'closed' ? 'checked' : ''; ?>> Технічні роботи (Maintenance Mode)</label></p>
+                <button class="btn btn-primary" type="submit">Зберегти режими</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Mail Settings</div>
+        <div class="card-body">
+            <form method="POST" action="/admin/system/mail/test">
+                <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf'] ?? ''); ?>">
+                <p><label>Email для тесту</label><input type="email" name="test_email" class="form-control" required placeholder="test@example.com"></p>
+                <p><label><input type="checkbox" name="test_email_use_db" value="1" checked> Тест з налаштувань бази даних</label></p>
+                <button class="btn btn-success" type="submit">Надіслати тестовий лист</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
         <div class="card-header">System Info</div>
         <div class="card-body">
             <div class="system-kv">
@@ -43,6 +67,25 @@
             <form method="POST" action="/admin/system/database/backup"><input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf'] ?? ''); ?>"><button class="btn btn-success" type="submit"><i class="fas fa-database"></i> Створити Backup (.sql)</button></form>
             <form method="POST" action="/admin/system/database/optimize"><input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf'] ?? ''); ?>"><button class="btn btn-primary" type="submit"><i class="fas fa-bolt"></i> OPTIMIZE TABLE</button></form>
         </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">Cron-завдання</div>
+    <div class="card-body">
+        <table class="table">
+            <thead><tr><th>Завдання</th><th>Розклад</th><th>Статус</th><th>Останнє виконання</th></tr></thead>
+            <tbody>
+            <?php foreach (($cronTasks ?? []) as $task): ?>
+                <tr>
+                    <td><?php echo htmlspecialchars((string) $task['name']); ?></td>
+                    <td><?php echo htmlspecialchars((string) $task['schedule']); ?></td>
+                    <td><?php echo htmlspecialchars((string) $task['status']); ?></td>
+                    <td><?php echo htmlspecialchars((string) $task['last_run']); ?></td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
     </div>
 </div>
 
