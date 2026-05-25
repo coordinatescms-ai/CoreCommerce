@@ -84,9 +84,9 @@
                     </td>
                     <td>
                         <div class="cron-actions">
-                            <button class="btn btn-primary js-edit-task" type="button">Редагувати</button>
+                            <button class="btn btn-primary js-edit-task" type="button" title="Редагувати"><i class="fas fa-edit"></i></button>
                             <button class="btn btn-secondary js-toggle-task" type="button"><?php echo $task['status'] === 'active' ? 'Disable' : 'Enable'; ?></button>
-                            <button class="btn btn-success js-run-task" type="button">Запустити зараз</button>
+                            <button class="btn btn-success js-run-task" type="button" title="Запустити зараз"><i class="fas fa-plug"></i></button>
                         </div>
                     </td>
                 </tr>
@@ -105,6 +105,8 @@
             <input type="text" id="cronTaskName">
             <label for="cronTaskSchedule">Cron string</label>
             <input type="text" id="cronTaskSchedule" placeholder="*/30 * * * *">
+            <label for="cronTaskCommand">Шлях до файлу</label>
+            <input type="text" id="cronTaskCommand" placeholder="tasks/import_products.php">
             <label for="cronTaskParams">Params (JSON або текст)</label>
             <textarea id="cronTaskParams"></textarea>
         </div>

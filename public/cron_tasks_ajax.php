@@ -32,8 +32,9 @@ if ($id <= 0) {
 
 try {
     if ($action === 'update') {
-        DB::query('UPDATE cron_tasks SET name = :name, schedule = :schedule, params = :params WHERE id = :id', [
+        DB::query('UPDATE cron_tasks SET name = :name, command = :command, schedule = :schedule, params = :params WHERE id = :id', [
             ':name' => trim((string)($input['name'] ?? '')),
+            ':command' => trim((string)($input['command'] ?? '')),
             ':schedule' => trim((string)($input['schedule'] ?? '')),
             ':params' => (string)($input['params'] ?? ''),
             ':id' => $id,
