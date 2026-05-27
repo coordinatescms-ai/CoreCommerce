@@ -36,6 +36,7 @@
                 </a>
                 
                 <form action="/admin/content/delete/<?= $page['id'] ?>" method="POST" style="display:inline;" onsubmit="return confirm('Ви впевнені?')">
+                    <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
                     <button type="submit" class="btn-delete" title="Видалити">
                         <i class="fas fa-trash"></i>
                     </button>

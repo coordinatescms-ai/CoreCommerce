@@ -3,8 +3,9 @@
         <i class="fas fa-sync"></i> Система оновлення ядра
     </div>
     <div class="card-body">
+        <input type="hidden" id="update-csrf" value="<?php echo htmlspecialchars($_SESSION['csrf'] ?? ''); ?>">
         <div id="update-info">
-            <p><strong>Поточна версія:</strong> <span id="current-version"><?php echo $current_version ?? '1.0.0'; ?></span></p>
+            <p><strong>Поточна версія:</strong> <span id="current-version"><?php echo htmlspecialchars($current_version ?? '1.0.0'); ?></span></p>
             <div id="update-check-container">
                 <button type="button" id="check-update-btn" class="btn btn-primary">
                     <i class="fas fa-search"></i> Перевірити наявність оновлень

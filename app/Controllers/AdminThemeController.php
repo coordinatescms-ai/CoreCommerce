@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Core\Http\Csrf;
 use App\Core\Theme\ThemeManager;
 use App\Core\View\View;
 use App\Middleware\AuthMiddleware;
@@ -15,7 +16,7 @@ class AdminThemeController
      */
     public function index()
     {
-        AuthMiddleware::handle();
+        AuthMiddleware::isAdmin();
         
         $themes = ThemeManager::getAvailableThemes();
         $active_theme = ThemeManager::getActiveTheme();
@@ -34,7 +35,8 @@ class AdminThemeController
      */
     public function switch($theme)
     {
-        AuthMiddleware::handle();
+        AuthMiddleware::isAdmin();
+        Csrf::abortIfInvalid();
         
         if (ThemeManager::setActiveTheme($theme)) {
             $_SESSION['success'] = "Тема '$theme' успішно активована!";
@@ -51,7 +53,8 @@ class AdminThemeController
      */
     public function upload()
     {
-        AuthMiddleware::handle();
+        AuthMiddleware::isAdmin();
+        Csrf::abortIfInvalid();
 
         if (!empty($_FILES['theme_zip'])) {
             $theme_id = ThemeManager::uploadTheme($_FILES['theme_zip']);
@@ -71,7 +74,7 @@ class AdminThemeController
      */
     public function edit($theme_id)
     {
-        AuthMiddleware::handle();
+        AuthMiddleware::isAdmin();
         
         $theme_info = ThemeManager::getThemeInfo($theme_id);
         if (!$theme_info) {
@@ -93,7 +96,8 @@ class AdminThemeController
      */
     public function update($theme_id)
     {
-        AuthMiddleware::handle();
+        AuthMiddleware::isAdmin();
+        Csrf::abortIfInvalid();
 
         $data = [
             'name' => $_POST['name'] ?? '',
@@ -118,7 +122,8 @@ class AdminThemeController
      */
     public function delete($theme_id)
     {
-        AuthMiddleware::handle();
+        AuthMiddleware::isAdmin();
+        Csrf::abortIfInvalid();
 
         if (ThemeManager::deleteTheme($theme_id)) {
             $_SESSION['success'] = "Тему '$theme_id' видалено.";
@@ -135,7 +140,8 @@ class AdminThemeController
      */
     public function preview($theme_id)
     {
-        AuthMiddleware::handle();
+        AuthMiddleware::isAdmin();
+        Csrf::abortIfInvalid();
         
         if (ThemeManager::setPreviewTheme($theme_id)) {
             $_SESSION['success'] = "Режим попереднього перегляду для теми '$theme_id' активовано. Тепер ви бачите сайт з цією темою.";
@@ -152,7 +158,8 @@ class AdminThemeController
      */
     public function cancelPreview()
     {
-        AuthMiddleware::handle();
+        AuthMiddleware::isAdmin();
+        Csrf::abortIfInvalid();
         ThemeManager::cancelPreview();
         header('Location: /admin/themes');
         exit;

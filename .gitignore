@@ -4,3 +4,7 @@ vendor/
 
 # Файли конфігурації (там зазвичай паролі до БД)
 .env
+
+# Local updater packages
+storage/local_updates/*.zip
+storage/local_updates/*.ZIP

@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Core\Http\Csrf;
 use App\Core\View\View;
 use App\Core\Database\DB;
 
@@ -36,6 +37,7 @@ class AdminContentController
     public function store()
     {
         $this->checkAdmin();
+        Csrf::abortIfInvalid();
 
         $data = [
             'title'     => trim($_POST['title'] ?? ''),
@@ -68,6 +70,7 @@ class AdminContentController
     public function delete($id)
     {
         $this->checkAdmin();
+        Csrf::abortIfInvalid();
     
         $pageModel = new \App\Models\Page();
         $pageModel->delete($id);
@@ -95,6 +98,7 @@ class AdminContentController
     public function update($id)
     {
         $this->checkAdmin();
+        Csrf::abortIfInvalid();
 
         $data = [
             'title'     => trim($_POST['title'] ?? ''),
@@ -148,6 +152,7 @@ class AdminContentController
 public function uploadImage()
 {
     $this->checkAdmin();
+    Csrf::abortIfInvalid();
     
     if (isset($_FILES['image']) && $_FILES['image']['error'] === 0) {
         $file = $_FILES['image'];
