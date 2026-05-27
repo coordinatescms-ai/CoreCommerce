@@ -3,7 +3,7 @@
     
     <div style="background: #fff; padding: 1rem; border-radius: 8px; border: 1px solid #ddd; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
         <form action="/admin/themes/upload" method="POST" enctype="multipart/form-data" style="display: flex; align-items: center; gap: 1rem;">
-            <input type="hidden" name="csrf" value="<?= $_SESSION['csrf'] ?? '' ?>">
+            <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
             <label style="font-weight: bold; font-size: 0.9rem;"><?= __('upload_new_theme') ?? 'Upload New Theme (ZIP)' ?>:</label>
             <input type="file" name="theme_zip" accept=".zip" required style="font-size: 0.8rem;">
             <button type="submit" style="background: #007bff; color: white; padding: 0.5rem 1rem; border-radius: 4px; border: none; font-weight: bold; cursor: pointer; font-size: 0.85rem;">
@@ -31,9 +31,12 @@
             <strong><?= __('preview_mode') ?? 'Preview Mode' ?>:</strong> 
             <?= __('currently_previewing') ?? 'Currently previewing theme' ?> "<?= htmlspecialchars($_SESSION['preview_theme']) ?>".
         </span>
-        <a href="/admin/themes/cancel-preview" style="background: #856404; color: white; padding: 0.5rem 1rem; border-radius: 4px; text-decoration: none; font-size: 0.85rem; font-weight: bold;">
-            <?= __('cancel_preview') ?? 'Cancel Preview' ?>
-        </a>
+        <form action="/admin/themes/cancel-preview" method="POST" style="margin: 0;">
+            <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
+            <button type="submit" style="background: #856404; color: white; padding: 0.5rem 1rem; border-radius: 4px; border: none; font-size: 0.85rem; font-weight: bold; cursor: pointer;">
+                <?= __('cancel_preview') ?? 'Cancel Preview' ?>
+            </button>
+        </form>
     </div>
 <?php endif; ?>
 
@@ -62,15 +65,21 @@
                                 ✓ <?= function_exists('__') ? (__('active_theme') ?? 'Active Theme') : 'Active Theme' ?>
                             </div>
                         <?php else: ?>
-                            <a href="/admin/theme/switch/<?= htmlspecialchars($theme['id']) ?>" 
-                               style="flex: 1; background: #007bff; color: white; padding: 0.75rem; border-radius: 4px; text-align: center; text-decoration: none; font-weight: bold; transition: background 0.3s;">
+                            <form action="/admin/theme/switch/<?= htmlspecialchars($theme['id']) ?>" method="POST" style="flex: 1; margin: 0;">
+                                <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
+                                <button type="submit"
+                                        style="width: 100%; background: #007bff; color: white; padding: 0.75rem; border-radius: 4px; border: none; text-align: center; font-weight: bold; cursor: pointer; transition: background 0.3s;">
                                 <?= function_exists('__') ? (__('activate') ?? 'Activate') : 'Activate' ?>
-                            </a>
-                            <a href="/admin/themes/preview/<?= htmlspecialchars($theme['id']) ?>" 
+                                </button>
+                            </form>
+                            <form action="/admin/themes/preview/<?= htmlspecialchars($theme['id']) ?>" method="POST" style="margin: 0;">
+                                <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
+                                <button type="submit"
                                title="<?= __('preview') ?? 'Preview' ?>"
-                               style="background: #17a2b8; color: white; padding: 0.75rem; border-radius: 4px; text-align: center; text-decoration: none; width: 50px;">
+                                        style="background: #17a2b8; color: white; padding: 0.75rem; border-radius: 4px; border: none; text-align: center; width: 50px; cursor: pointer;">
                                 👁
-                            </a>
+                                </button>
+                            </form>
                         <?php endif; ?>
                         
                         <a href="/admin/themes/edit/<?= htmlspecialchars($theme['id']) ?>" 
@@ -81,7 +90,7 @@
 
                         <?php if ($theme['id'] !== $active_theme && $theme['id'] !== 'default'): ?>
                             <form action="/admin/themes/delete/<?= htmlspecialchars($theme['id']) ?>" method="POST" onsubmit="return confirm('<?= __('confirm_delete_theme') ?? 'Are you sure you want to delete this theme?' ?>');">
-                                <input type="hidden" name="csrf" value="<?= $_SESSION['csrf'] ?? '' ?>">
+                                <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
                                 <button type="submit" title="<?= __('delete') ?? 'Delete' ?>"
                                         style="background: #dc3545; color: white; padding: 0.75rem; border-radius: 4px; border: none; cursor: pointer; width: 50px;">
                                     🗑

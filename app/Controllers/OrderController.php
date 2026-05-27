@@ -176,6 +176,7 @@ class OrderController
                 $lockedMap[(int) $locked['id']] = $locked;
             }
 
+            $stockService = StockServiceFactory::make();
             $total = 0.0;
             foreach ($items as $item) {
                 $productId = (int) $item['id'];
@@ -191,7 +192,6 @@ class OrderController
                     throw new \RuntimeException('У товару відсутній SKU: ' . $product['name']);
                 }
 
-                $stockService = StockServiceFactory::make();
                 if ($quantity > $stockService->getAvailableQuantity($sku)) {
                     throw new \RuntimeException('Немає в наявності: ' . $product['name']);
                 }
@@ -383,6 +383,6 @@ class OrderController
         }
 
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
-        return DB::query("SELECT id, name, price, stock FROM products WHERE id IN ($placeholders) FOR UPDATE", $ids)->fetchAll();
+        return DB::query("SELECT id, sku, name, price, stock FROM products WHERE id IN ($placeholders) FOR UPDATE", $ids)->fetchAll();
     }
 }

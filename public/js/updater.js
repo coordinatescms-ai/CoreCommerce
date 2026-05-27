@@ -50,7 +50,7 @@ document.addEventListener('click', function(event) {
         document.getElementById('update-progress-container').style.display = 'block';
         startBtn.disabled = true;
         
-        runUpdateProcess('init');
+        runUpdateProcess('init', password);
     }
 });
 
@@ -74,7 +74,12 @@ function addUpdateLog(msg, type = 'info') {
     logContainer.scrollTop = logContainer.scrollHeight;
 }
 
-function runUpdateProcess(step) {
+function getUpdateCsrfToken() {
+    const tokenInput = document.getElementById('update-csrf');
+    return tokenInput ? tokenInput.value : '';
+}
+
+function runUpdateProcess(step, password = null) {
     if (!step) return;
 
     const info = updateSteps[step];
@@ -89,9 +94,19 @@ function runUpdateProcess(step) {
     
     addUpdateLog(info.label + ' у процесі...');
 
+    const body = new URLSearchParams();
+    body.set('csrf', getUpdateCsrfToken());
+    if (step === 'init' && password !== null) {
+        body.set('password', password);
+    }
+
     fetch('/admin/update/' + step, {
         method: 'POST',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+        },
+        body: body.toString()
     })
     .then(res => res.json())
     .then(data => {

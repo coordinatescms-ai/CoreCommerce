@@ -2,6 +2,7 @@
     <h2>Додати нову сторінку</h2>
     
     <form action="/admin/content/store" method="POST" id="content-form">
+        <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
         <div class="form-group" style="margin-bottom: 15px;">
             <label>Заголовок сторінки:</label>
             <input type="text" name="title" id="title" class="form-control" style="width: 100%; padding: 8px;" required placeholder="Наприклад: Про нас">
@@ -90,6 +91,7 @@ function uploadEditorImage(input) {
 
     let formData = new FormData();
     formData.append('image', input.files[0]); // Беремо перший файл з масиву
+    formData.append('csrf', <?= json_encode((string) ($_SESSION['csrf'] ?? '')) ?>);
 
     fetch('/admin/content/upload', {
         method: 'POST',

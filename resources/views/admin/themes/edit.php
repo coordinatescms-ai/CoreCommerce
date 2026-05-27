@@ -14,7 +14,7 @@
 
 <div style="background: #fff; padding: 2rem; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 2rem;">
     <form action="/admin/themes/update/<?= htmlspecialchars($theme['id']) ?>" method="POST">
-        <input type="hidden" name="csrf" value="<?= $_SESSION['csrf'] ?? '' ?>">
+        <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
         
         <div style="margin-bottom: 1.5rem;">
             <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;"><?= __('theme_name') ?? 'Theme Name' ?></label>
