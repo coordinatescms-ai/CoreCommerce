@@ -4,6 +4,27 @@ namespace App\Core\Theme;
 
 class ThemeManager
 {
+    private const MAX_UPLOAD_SIZE = 10485760;
+
+    private const ALLOWED_UPLOAD_EXTENSIONS = [
+        'css',
+        'eot',
+        'gif',
+        'ico',
+        'jpeg',
+        'jpg',
+        'js',
+        'json',
+        'md',
+        'php',
+        'png',
+        'ttf',
+        'txt',
+        'webp',
+        'woff',
+        'woff2',
+    ];
+
     /**
      * Директорія з темами
      */
@@ -200,6 +221,11 @@ class ThemeManager
      */
     public static function themeExists($theme)
     {
+        $theme = self::sanitizeThemeId((string) $theme);
+        if ($theme === '') {
+            return false;
+        }
+
         $theme_path = self::$themes_dir . '/' . $theme;
         return is_dir($theme_path);
     }
@@ -234,6 +260,11 @@ class ThemeManager
         if ($theme === null) {
             $theme = self::getActiveTheme();
         }
+
+        $theme = self::sanitizeThemeId((string) $theme);
+        if ($theme === '') {
+            $theme = 'default';
+        }
         
         $layout_path = self::$themes_dir . '/' . $theme . '/layout.php';
         
@@ -262,6 +293,11 @@ class ThemeManager
         if ($theme === null) {
             $theme = self::getActiveTheme();
         }
+
+        $theme = self::sanitizeThemeId((string) $theme);
+        if ($theme === '') {
+            $theme = 'default';
+        }
         
         return self::$themes_dir . '/' . $theme;
     }
@@ -276,6 +312,11 @@ class ThemeManager
     {
         if ($theme === null) {
             $theme = self::getActiveTheme();
+        }
+
+        $theme = self::sanitizeThemeId((string) $theme);
+        if ($theme === '') {
+            $theme = 'default';
         }
         
         $style_path = self::$themes_dir . '/' . $theme . '/style.css';
@@ -303,6 +344,11 @@ class ThemeManager
     {
         if ($theme === null) {
             $theme = self::getActiveTheme();
+        }
+
+        $theme = self::sanitizeThemeId((string) $theme);
+        if ($theme === '') {
+            return [];
         }
         
         if (self::$theme_config !== null && isset(self::$theme_config[$theme])) {
@@ -350,6 +396,11 @@ class ThemeManager
      */
     public static function updateThemeMetadata($theme_id, array $data)
     {
+        $theme_id = self::sanitizeThemeId((string) $theme_id);
+        if ($theme_id === '') {
+            return false;
+        }
+
         $config_file = self::$themes_dir . '/' . $theme_id . '/theme.json';
         if (!file_exists($config_file)) {
             return false;
@@ -369,6 +420,11 @@ class ThemeManager
      */
     public static function deleteTheme($theme_id)
     {
+        $theme_id = self::sanitizeThemeId((string) $theme_id);
+        if ($theme_id === '') {
+            return false;
+        }
+
         if ($theme_id === 'default' || $theme_id === self::getActiveTheme()) {
             return false;
         }
@@ -401,65 +457,188 @@ class ThemeManager
      */
     public static function uploadTheme($file)
     {
-        if ($file['error'] !== UPLOAD_ERR_OK) {
+        if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+            return false;
+        }
+
+        if (($file['size'] ?? 0) > self::MAX_UPLOAD_SIZE) {
+            return false;
+        }
+
+        $originalName = (string) ($file['name'] ?? '');
+        if (strtolower(pathinfo($originalName, PATHINFO_EXTENSION)) !== 'zip') {
             return false;
         }
 
         $zip = new \ZipArchive();
-        if ($zip->open($file['tmp_name']) !== true) {
+        if ($zip->open((string) ($file['tmp_name'] ?? '')) !== true) {
             return false;
         }
 
-        // Шукаємо theme.json для визначення ID теми
-        $theme_id = null;
-        for ($i = 0; $i < $zip->numFiles; $i++) {
-            $filename = $zip->getNameIndex($i);
-            if (basename($filename) === 'theme.json') {
-                $content = $zip->getFromIndex($i);
-                $data = json_decode($content, true);
-                if (isset($data['id'])) {
-                    $theme_id = $data['id'];
-                    break;
-                }
-            }
+        if (!self::validateZipEntries($zip)) {
+            $zip->close();
+            return false;
         }
 
-        if (!$theme_id) {
-            // Якщо theme.json не знайдено, використовуємо назву архіву
-            $theme_id = str_replace('.zip', '', strtolower(basename($file['name'])));
-        }
+        $extract_root = sys_get_temp_dir() . '/theme_upload_' . bin2hex(random_bytes(8));
+        mkdir($extract_root, 0755, true);
 
-        $extract_path = self::$themes_dir . '/' . $theme_id;
-        if (is_dir($extract_path)) {
-            // Тема вже існує - можна або видати помилку, або перезаписати
-            // Для безпеки додамо префікс
-            $theme_id .= '_' . time();
-            $extract_path = self::$themes_dir . '/' . $theme_id;
-        }
-
-        mkdir($extract_path, 0755, true);
-        
-        // Перевіряємо, чи запакована тема в папку всередині архіву
-        $first_file = $zip->getNameIndex(0);
-        $has_root_dir = (strpos($first_file, '/') !== false);
-
-        if ($has_root_dir) {
-            // Складніша логіка розпакування, якщо є коренева папка в ZIP
-            $root_dir = explode('/', $first_file)[0];
-            for ($i = 0; $i < $zip->numFiles; $i++) {
-                $name = $zip->getNameIndex($i);
-                if (strpos($name, $root_dir . '/') === 0) {
-                    $zip->extractTo(self::$themes_dir, $name);
-                }
-            }
-            // Перейменовуємо розпаковану папку в наш theme_id
-            rename(self::$themes_dir . '/' . $root_dir, $extract_path);
-        } else {
-            $zip->extractTo($extract_path);
+        if (!$zip->extractTo($extract_root)) {
+            $zip->close();
+            self::recursiveRmdir($extract_root);
+            return false;
         }
 
         $zip->close();
+
+        $theme_dir = self::resolveThemeRootDir($extract_root);
+        if ($theme_dir === null) {
+            self::recursiveRmdir($extract_root);
+            return false;
+        }
+
+        $theme_config = self::readUploadedThemeConfig($theme_dir);
+        if ($theme_config === null) {
+            self::recursiveRmdir($extract_root);
+            return false;
+        }
+
+        $theme_id = self::sanitizeThemeId((string) $theme_config['id']);
+        if ($theme_id === '' || $theme_id !== (string) $theme_config['id']) {
+            self::recursiveRmdir($extract_root);
+            return false;
+        }
+
+        $target_dir = self::$themes_dir . '/' . $theme_id;
+        if (is_dir($target_dir)) {
+            self::recursiveRmdir($extract_root);
+            return false;
+        }
+
+        if (!is_dir(self::$themes_dir)) {
+            mkdir(self::$themes_dir, 0755, true);
+        }
+
+        if (!rename($theme_dir, $target_dir)) {
+            self::recursiveRmdir($extract_root);
+            return false;
+        }
+
+        self::recursiveRmdir($extract_root);
+        self::$themes_cache = [];
+        self::$theme_config = null;
+
         return $theme_id;
+    }
+
+    private static function resolveThemeRootDir(string $extract_root): ?string
+    {
+        if (is_file($extract_root . '/theme.json')) {
+            return $extract_root;
+        }
+
+        $dirs = glob($extract_root . '/*', GLOB_ONLYDIR) ?: [];
+        $matches = [];
+        foreach ($dirs as $dir) {
+            if (is_file($dir . '/theme.json')) {
+                $matches[] = $dir;
+            }
+        }
+
+        return count($matches) === 1 ? $matches[0] : null;
+    }
+
+    private static function readUploadedThemeConfig(string $theme_dir): ?array
+    {
+        if (!is_file($theme_dir . '/theme.json') || !is_file($theme_dir . '/layout.php')) {
+            return null;
+        }
+
+        $config = json_decode((string) file_get_contents($theme_dir . '/theme.json'), true);
+        if (!is_array($config)) {
+            return null;
+        }
+
+        foreach (['id', 'name', 'version'] as $field) {
+            if (empty($config[$field]) || !is_string($config[$field])) {
+                return null;
+            }
+        }
+
+        if (!preg_match('/^[0-9A-Za-z._-]+$/', $config['version'])) {
+            return null;
+        }
+
+        return $config;
+    }
+
+    private static function validateZipEntries(\ZipArchive $zip): bool
+    {
+        if ($zip->numFiles < 1) {
+            return false;
+        }
+
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $name = $zip->getNameIndex($i);
+            if (!is_string($name)) {
+                return false;
+            }
+
+            $is_directory = str_ends_with(str_replace('\\', '/', $name), '/');
+            $path = self::normalizeArchivePath($name);
+            if ($path === null) {
+                return false;
+            }
+
+            if (!$is_directory && !self::hasAllowedUploadExtension($path)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static function normalizeArchivePath(string $path): ?string
+    {
+        $path = str_replace('\\', '/', $path);
+        $path = trim($path);
+
+        if ($path === '' || str_starts_with($path, '/') || preg_match('/^[A-Za-z]:\//', $path)) {
+            return null;
+        }
+
+        $path = rtrim($path, '/');
+        if ($path === '') {
+            return null;
+        }
+
+        $parts = explode('/', $path);
+        foreach ($parts as $part) {
+            if ($part === '..' || $part === '') {
+                return null;
+            }
+        }
+
+        return $path;
+    }
+
+    private static function hasAllowedUploadExtension(string $path): bool
+    {
+        $basename = basename($path);
+        if ($basename === '' || str_starts_with($basename, '.')) {
+            return false;
+        }
+
+        $extension = strtolower(pathinfo($basename, PATHINFO_EXTENSION));
+        return $extension !== '' && in_array($extension, self::ALLOWED_UPLOAD_EXTENSIONS, true);
+    }
+
+    private static function sanitizeThemeId(string $theme_id): string
+    {
+        $theme_id = strtolower(trim($theme_id));
+        $theme_id = preg_replace('/[^a-z0-9_-]/', '-', $theme_id) ?? '';
+        $theme_id = preg_replace('/-+/', '-', $theme_id) ?? '';
+        return trim($theme_id, '-_');
     }
     
     /**
