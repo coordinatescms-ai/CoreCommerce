@@ -6,6 +6,22 @@ use App\Core\Database\DB;
 
 class PluginManager
 {
+    private const ALLOWED_UPLOAD_EXTENSIONS = [
+        'css',
+        'gif',
+        'ico',
+        'jpeg',
+        'jpg',
+        'js',
+        'json',
+        'md',
+        'php',
+        'png',
+        'sql',
+        'txt',
+        'webp',
+    ];
+
     private static ?self $instance = null;
 
     private string $pluginsPath;
@@ -124,15 +140,25 @@ class PluginManager
             return ['success' => false, 'message' => 'Архів пошкоджений або не є ZIP.'];
         }
 
+        $zipError = $this->validateZipEntries($zip);
+        if ($zipError !== null) {
+            $zip->close();
+            return ['success' => false, 'message' => $zipError];
+        }
+
         $extractRoot = sys_get_temp_dir() . '/plugin_upload_' . bin2hex(random_bytes(8));
         mkdir($extractRoot, 0775, true);
-        $zip->extractTo($extractRoot);
+        if (!$zip->extractTo($extractRoot)) {
+            $zip->close();
+            $this->deleteDirectory($extractRoot);
+            return ['success' => false, 'message' => 'Не вдалося розпакувати ZIP-файл.'];
+        }
         $zip->close();
 
         $pluginDir = $this->resolvePluginRootDir($extractRoot);
         if ($pluginDir === null) {
             $this->deleteDirectory($extractRoot);
-            return ['success' => false, 'message' => 'Не знайдено обов’язкові файли info.json та index.php.'];
+            return ['success' => false, 'message' => 'Не знайдено обов’язкові файли info.json та plugin.php.'];
         }
 
         $infoPath = $pluginDir . '/info.json';
@@ -143,9 +169,15 @@ class PluginManager
         }
 
         $safeSlug = $this->sanitizeSlug((string) $meta['slug']);
-        if ($safeSlug === '') {
+        if ($safeSlug === '' || $safeSlug !== (string) $meta['slug']) {
             $this->deleteDirectory($extractRoot);
             return ['success' => false, 'message' => 'Некоректний slug плагіна.'];
+        }
+
+        $compatibilityError = $this->validateCompatibility($meta);
+        if ($compatibilityError !== null) {
+            $this->deleteDirectory($extractRoot);
+            return ['success' => false, 'message' => $compatibilityError];
         }
 
         $targetDir = $this->pluginsPath . '/' . $safeSlug;
@@ -154,7 +186,10 @@ class PluginManager
             return ['success' => false, 'message' => 'Плагін з таким slug вже існує.'];
         }
 
-        rename($pluginDir, $targetDir);
+        if (!rename($pluginDir, $targetDir)) {
+            $this->deleteDirectory($extractRoot);
+            return ['success' => false, 'message' => 'Не вдалося зберегти плагін.'];
+        }
         $this->deleteDirectory($extractRoot);
 
         $this->syncPluginsTable();
@@ -307,17 +342,77 @@ class PluginManager
         return null;
     }
 
+    private function validateZipEntries(\ZipArchive $zip): ?string
+    {
+        if ($zip->numFiles < 1) {
+            return 'ZIP-архів порожній.';
+        }
+
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $name = $zip->getNameIndex($i);
+            if (!is_string($name)) {
+                return 'ZIP-архів містить некоректний шлях.';
+            }
+
+            $isDirectory = str_ends_with(str_replace('\\', '/', $name), '/');
+            $path = $this->normalizeArchivePath($name);
+            if ($path === null) {
+                return 'ZIP-архів містить небезпечний шлях.';
+            }
+
+            if (!$isDirectory && !$this->hasAllowedUploadExtension($path)) {
+                return 'ZIP-архів містить заборонений тип файлу.';
+            }
+        }
+
+        return null;
+    }
+
+    private function normalizeArchivePath(string $path): ?string
+    {
+        $path = str_replace('\\', '/', $path);
+        $path = trim($path);
+
+        if ($path === '' || str_starts_with($path, '/') || preg_match('/^[A-Za-z]:\//', $path)) {
+            return null;
+        }
+
+        $path = rtrim($path, '/');
+        if ($path === '') {
+            return null;
+        }
+
+        foreach (explode('/', $path) as $part) {
+            if ($part === '' || $part === '..') {
+                return null;
+            }
+        }
+
+        return $path;
+    }
+
+    private function hasAllowedUploadExtension(string $path): bool
+    {
+        $basename = basename($path);
+        if ($basename === '' || str_starts_with($basename, '.')) {
+            return false;
+        }
+
+        $extension = strtolower(pathinfo($basename, PATHINFO_EXTENSION));
+        return $extension !== '' && in_array($extension, self::ALLOWED_UPLOAD_EXTENSIONS, true);
+    }
+
     private function resolvePluginRootDir(string $extractRoot): ?string
     {
         $dirs = glob($extractRoot . '/*', GLOB_ONLYDIR) ?: [];
         $candidateDirs = $dirs;
 
-        if (is_file($extractRoot . '/info.json') && is_file($extractRoot . '/index.php')) {
+        if (is_file($extractRoot . '/info.json') && is_file($extractRoot . '/plugin.php')) {
             return $extractRoot;
         }
 
         foreach ($candidateDirs as $dir) {
-            if (is_file($dir . '/info.json') && is_file($dir . '/index.php')) {
+            if (is_file($dir . '/info.json') && is_file($dir . '/plugin.php')) {
                 return $dir;
             }
         }

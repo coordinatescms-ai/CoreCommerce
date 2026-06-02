@@ -144,15 +144,15 @@ if (isset($_SESSION['user']['id'])) {
                 <?php $isLast = $index === count($breadcrumbs) - 1; ?>
                 <li class="breadcrumb-divider" aria-hidden="true">/</li>
                 <li>
-                    <?php if ($isLast): ?>
-                        <span class="breadcrumb-current"><?= htmlspecialchars($crumb['name'] ?? '') ?></span>
-                    <?php else: ?>
-                        <a class="breadcrumb-link" href="<?= htmlspecialchars($crumb['url'] ?? '#') ?>">
-                            <?= htmlspecialchars($crumb['name'] ?? '') ?>
-                        </a>
-                    <?php endif; ?>
+                    <a class="breadcrumb-link" href="<?= htmlspecialchars($crumb['url'] ?? '#') ?>">
+                        <?= htmlspecialchars($crumb['name'] ?? '') ?>
+                    </a>
                 </li>
             <?php endforeach; ?>
+            <li class="breadcrumb-divider" aria-hidden="true">/</li>
+            <li>
+                <span class="breadcrumb-current"><?= htmlspecialchars($productName ?? '') ?></span>
+            </li>
         </ol>
     </nav>
 

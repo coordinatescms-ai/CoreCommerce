@@ -1,13 +1,22 @@
+<!-- 
 <section style="padding: 2rem 0;">
     <h1 style="margin-bottom: 0.5rem;"><?= __('homepage_hero_title') ?></h1>
     <p style="font-size: 1.1rem; color: #555; margin-bottom: 1.5rem;">
         <?= __('homepage_hero_subtitle') ?>
     </p>
 </section>
+-->
 
 <section style="margin-bottom: 2rem;">
     <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
-        <h2 style="margin: 0;">Популярні категорії</h2>
+        <h2 style="margin: 0;">
+            <svg style="width: 25px; height: 25px;" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <!-- Популярні категорії (Тренд / Вогонь) -->
+                <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 0 1-2.827 0l-4.244-4.243a8 8 0 1 1 11.314 0z" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M15 11a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Популярні категорії
+        </h2>
     </div>
 
     <?php if (empty($popularCategories)): ?>
@@ -29,7 +38,14 @@
 
 <section id="new-arrivals" style="margin-bottom: 2rem;">
     <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
-        <h2 style="margin: 0;">Новинки</h2>
+        <h2 style="margin: 0;">
+            <svg style="width: 25px; height: 25px;" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <!-- Новинки (Ярлик / Бірка) -->
+                <path d="M21 3H13.414A2 2 0 0 0 12 3.586L3.586 12a2 2 0 0 0 0 2.828l5.586 5.586a2 2 0 0 0 2.828 0L20.414 12A2 2 0 0 0 21 10.586V3Z" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M16.5 7.5H16.51" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Новинки
+        </h2>
     </div>
 
     <?php if (empty($newArrivals)): ?>
@@ -60,7 +76,13 @@
 
 <section style="margin-bottom: 2rem;">
     <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
-        <h2 style="margin: 0;">Рекомендовані товари</h2>
+        <h2 style="margin: 0;">
+            <svg style="width: 25px; height: 25px;" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <!-- Рекомендовані товари (Лайк / Схвалення) -->
+                <path d="M7 11V21M7 11H4C2.89543 11 2 11.8954 2 13V19C2 20.1046 2.89543 21 4 21H7M7 11L11.45 4.325C11.794 3.809 12.394 3.5 13.033 3.5H14.5C15.328 3.5 16 4.172 16 5V9.5H20.21C21.19 9.5 21.94 10.37 21.82 11.35L20.62 20.35C20.51 21.28 19.72 22 18.78 22H7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Рекомендовані товари
+        </h2>
         <a href="/products" style="display: inline-block; padding: 0.5rem 0.9rem; border: 1px solid #d1d5db; border-radius: 0.45rem; color: #111827; text-decoration: none;">
             Переглянути всі
         </a>

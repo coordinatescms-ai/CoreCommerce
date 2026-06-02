@@ -15,15 +15,24 @@
         <a href="/admin/analytics/year" class="filter-btn <?= $period == 'year' ? 'active' : '' ?>">
             <i class="fa-solid fa-calendar-days"></i> Рік
         </a>
-        <a href="?period=<?= $period ?>&export=csv" class="filter-btn" style="background: #22c55e; color: #fff;">
+        <a href="/admin/analytics/<?= $period ?>?export=csv" class="filter-btn" style="background: #22c55e; color: #fff;">
            <i class="fa-solid fa-file-csv"></i> Експорт CSV
         </a>
     </div>
 
     <form class="date-range-form" method="GET">
-        <input type="date" name="from" value="<?= $_GET['from'] ?? '' ?>">
-        <input type="date" name="to" value="<?= $_GET['to'] ?? '' ?>">
+        <input type="date" name="from"
+               value="<?= htmlspecialchars($date_from ?? $_GET['from'] ?? '') ?>"
+               max="<?= date('Y-m-d') ?>">
+        <input type="date" name="to"
+               value="<?= htmlspecialchars($date_to ?? $_GET['to'] ?? '') ?>"
+               max="<?= date('Y-m-d') ?>">
         <button type="submit" class="apply-btn">Застосувати</button>
+        <?php if (!empty($use_custom_range)): ?>
+            <a href="/admin/analytics/<?= htmlspecialchars($period) ?>"
+               style="margin-left:6px; font-size:12px; color:#94a3b8; text-decoration:none;"
+               title="Скинути до стандартного періоду">&#x2715; скинути</a>
+        <?php endif; ?>
     </form>
 </div>
 
@@ -34,7 +43,20 @@
 
 <div class="recent-orders-card" style="margin-top: 30px;">
     <div class="card-header">
-        <h3><i class="fa-solid fa-table-list"></i> Деталізація: <?= htmlspecialchars($title_text ?? '') ?></h3>
+        <h3>
+            <i class="fa-solid fa-table-list"></i>
+            Деталізація:
+            <?php if (!empty($use_custom_range)): ?>
+                <span style="color:#64748b; font-weight:400;">
+                    <?= date('d.m.Y', strtotime($date_from)) ?> — <?= date('d.m.Y', strtotime($date_to)) ?>
+                </span>
+                <span style="margin-left:8px; background:#eff6ff; color:#3b82f6; font-size:12px; font-weight:600; padding:2px 10px; border-radius:20px; vertical-align:middle;">
+                    довільний діапазон
+                </span>
+            <?php else: ?>
+                <?= htmlspecialchars($title_text ?? '') ?>
+            <?php endif; ?>
+        </h3>
     </div>
     
     <table class="admin-table">

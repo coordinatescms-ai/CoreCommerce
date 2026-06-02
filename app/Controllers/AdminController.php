@@ -116,104 +116,234 @@ class AdminController
     public function analytics($period)
     {
         $this->checkAdmin();
-    
-        $title_text = ""; // Початкове значення
-        $period = $period;
+
         $labels = [];
         $values = [];
+        $counts = [];
         $popular_products = [];
         $low_stock_products = [];
 
         // Масиви для перекладу
-       $months_ua = ['01'=>'Січ','02'=>'Лют','03'=>'Бер','04'=>'Квіт','05'=>'Трав','06'=>'Черв','07'=>'Лип','08'=>'Серп','09'=>'Вер','10'=>'Жовт','11'=>'Лист','12'=>'Груд'];
-       $days_ua = [0=>'Нд', 1=>'Пн', 2=>'Вв', 3=>'Ср', 4=>'Чт', 5=>'Пт', 6=>'Сб'];
-       // Додаємо кількість замовлень для кожного дня
+        $months_ua = ['01'=>'Січ','02'=>'Лют','03'=>'Бер','04'=>'Квіт','05'=>'Трав','06'=>'Черв','07'=>'Лип','08'=>'Серп','09'=>'Вер','10'=>'Жовт','11'=>'Лист','12'=>'Груд'];
+        $days_ua = [0=>'Нд', 1=>'Пн', 2=>'Вв', 3=>'Ср', 4=>'Чт', 5=>'Пт', 6=>'Сб'];
 
-        switch ($period) {
-            case 'year':
-            // Запит за останні 12 місяців
-            $title_text = "Продажі за останні 12 місяців";
-            $stmt = DB::query("SELECT DATE_FORMAT(created_at, '%m') as m_num, SUM(total) as rev, COUNT(id) as cnt 
-                    FROM orders WHERE created_at >= DATE_SUB(NOW(), INTERVAL 1 YEAR) 
-                    AND status = 'completed' GROUP BY m_num ORDER BY MIN(created_at) ASC");
-            break;
-            case 'month':
-                // За останні 30 днів (групуємо по днях)
-                $title_text = "Продажі за останні 30 днів";
-                $stmt = DB::query("SELECT DATE_FORMAT(created_at, '%d.%m') as day_label, SUM(total) as rev, COUNT(id) as cnt 
-                    FROM orders WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) 
-                    AND status = 'completed' GROUP BY DATE(created_at), day_label ORDER BY DATE(created_at) ASC");
-            break;
-            default: // week
-                // За останні 7 днів (використовуємо дні тижня)
-                $title_text = "Продажі за поточний тиждень";
-                $stmt = DB::query("SELECT (DAYOFWEEK(created_at)-1) as d_idx, DATE_FORMAT(created_at, '%d.%m') as d_date, SUM(total) as rev, COUNT(id) as cnt 
-                    FROM orders WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) 
-                    AND status = 'completed' GROUP BY d_idx, d_date, DATE(created_at) ORDER BY DATE(created_at) ASC");
-            break;
-        }
+        // --- Обробка довільного діапазону дат ---
+        $date_from_raw = trim($_GET['from'] ?? '');
+        $date_to_raw   = trim($_GET['to']   ?? '');
 
-        $db_data = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        foreach ($db_data as $row) {
-            if ($period == 'year') {
-                $labels[] = $months_ua[$row['m_num']];
-            } elseif ($period == 'month') {
-                $labels[] = $row['day_label'];
-            } else {
-                $labels[] = $days_ua[$row['d_idx']] . ' (' . $row['d_date'] . ')';
+        // Валідація формату YYYY-MM-DD
+        $isValidDate = static function (string $d): bool {
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $d)) {
+                return false;
             }
+            [$y, $m, $day] = explode('-', $d);
+            return checkdate((int)$m, (int)$day, (int)$y);
+        };
+
+        $use_custom_range = $isValidDate($date_from_raw) && $isValidDate($date_to_raw)
+                            && $date_from_raw <= $date_to_raw;
+
+        if ($use_custom_range) {
+            $date_from = $date_from_raw;
+            $date_to   = $date_to_raw;
+
+            $title_text = 'Продажі за ' . date('d.m.Y', strtotime($date_from))
+                        . ' — ' . date('d.m.Y', strtotime($date_to));
+
+            // Якщо діапазон > 60 днів — групуємо по місяцях, інакше по днях
+            $diff_days = (int)((strtotime($date_to) - strtotime($date_from)) / 86400);
+            $group_by_month = $diff_days > 60;
+
+            if ($group_by_month) {
+                $stmt = DB::query(
+                    "SELECT DATE_FORMAT(created_at, '%m') as m_num,
+                            DATE_FORMAT(created_at, '%m.%Y') as period_label,
+                            SUM(total) as rev, COUNT(id) as cnt
+                     FROM orders
+                     WHERE DATE(created_at) BETWEEN ? AND ?
+                       AND status = 'completed'
+                     GROUP BY DATE_FORMAT(created_at, '%Y-%m'),
+                              DATE_FORMAT(created_at, '%m'),
+                              DATE_FORMAT(created_at, '%m.%Y')
+                     ORDER BY MIN(created_at) ASC",
+                    [$date_from, $date_to]
+                );
+            } else {
+                $stmt = DB::query(
+                    "SELECT DATE_FORMAT(created_at, '%d.%m') as day_label,
+                            SUM(total) as rev, COUNT(id) as cnt
+                     FROM orders
+                     WHERE DATE(created_at) BETWEEN ? AND ?
+                       AND status = 'completed'
+                     GROUP BY DATE(created_at), DATE_FORMAT(created_at, '%d.%m')
+                     ORDER BY DATE(created_at) ASC",
+                    [$date_from, $date_to]
+                );
+            }
+
+            $db_data = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            foreach ($db_data as $row) {
+                $labels[] = $group_by_month
+                    ? ($months_ua[$row['m_num']] . ' ' . substr($row['period_label'], 3))
+                    : $row['day_label'];
                 $values[] = (float)$row['rev'];
                 $counts[] = (int)$row['cnt'];
+            }
+
+            // Популярні товари за довільний діапазон
+            $stmt = DB::query(
+                "SELECT p.id, p.name,
+                        SUM(oi.qty) as total_qty,
+                        SUM(oi.price * oi.qty) as total_revenue
+                 FROM order_items oi
+                 JOIN orders o ON oi.order_id = o.id
+                 JOIN products p ON oi.product_id = p.id
+                 WHERE DATE(o.created_at) BETWEEN ? AND ?
+                   AND o.status = 'completed'
+                 GROUP BY p.id, p.name
+                 ORDER BY total_revenue DESC
+                 LIMIT 5",
+                [$date_from, $date_to]
+            );
+            $popular_products = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        } else {
+            // --- Стандартні періоди: week / month / year ---
+            switch ($period) {
+                case 'year':
+                    $title_text = 'Продажі за останні 12 місяців';
+                    $stmt = DB::query(
+                        "SELECT DATE_FORMAT(created_at, '%m') as m_num, SUM(total) as rev, COUNT(id) as cnt
+                         FROM orders
+                         WHERE created_at >= DATE_SUB(NOW(), INTERVAL 1 YEAR)
+                           AND status = 'completed'
+                         GROUP BY m_num
+                         ORDER BY MIN(created_at) ASC"
+                    );
+                    break;
+                case 'month':
+                    $title_text = 'Продажі за останні 30 днів';
+                    $stmt = DB::query(
+                        "SELECT DATE_FORMAT(created_at, '%d.%m') as day_label, SUM(total) as rev, COUNT(id) as cnt
+                         FROM orders
+                         WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+                           AND status = 'completed'
+                         GROUP BY DATE(created_at), day_label
+                         ORDER BY DATE(created_at) ASC"
+                    );
+                    break;
+                default: // week
+                    $title_text = 'Продажі за поточний тиждень';
+                    $stmt = DB::query(
+                        "SELECT (DAYOFWEEK(created_at)-1) as d_idx, DATE_FORMAT(created_at, '%d.%m') as d_date,
+                                SUM(total) as rev, COUNT(id) as cnt
+                         FROM orders
+                         WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                           AND status = 'completed'
+                         GROUP BY d_idx, d_date, DATE(created_at)
+                         ORDER BY DATE(created_at) ASC"
+                    );
+                    break;
+            }
+
+            $db_data = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            foreach ($db_data as $row) {
+                if ($period === 'year') {
+                    $labels[] = $months_ua[$row['m_num']];
+                } elseif ($period === 'month') {
+                    $labels[] = $row['day_label'];
+                } else {
+                    $labels[] = $days_ua[$row['d_idx']] . ' (' . $row['d_date'] . ')';
+                }
+                $values[] = (float)$row['rev'];
+                $counts[] = (int)$row['cnt'];
+            }
+
+            // Популярні товари за стандартний період
+            switch ($period) {
+                case 'year':  $interval = 'INTERVAL 1 YEAR'; break;
+                case 'month': $interval = 'INTERVAL 30 DAY'; break;
+                default:      $interval = 'INTERVAL 7 DAY';  break;
+            }
+
+            $stmt = DB::query(
+                "SELECT p.id, p.name,
+                        SUM(oi.qty) as total_qty,
+                        SUM(oi.price * oi.qty) as total_revenue
+                 FROM order_items oi
+                 JOIN orders o ON oi.order_id = o.id
+                 JOIN products p ON oi.product_id = p.id
+                 WHERE o.created_at >= DATE_SUB(NOW(), $interval)
+                   AND o.status = 'completed'
+                 GROUP BY p.id, p.name
+                 ORDER BY total_revenue DESC
+                 LIMIT 5"
+            );
+            $popular_products = $stmt->fetchAll(\PDO::FETCH_ASSOC);
         }
 
-         // Якщо даних немає, ініціалізуємо порожніми значеннями для Chart.js
-        if (empty($db_data)) { 
-            $labels = ['Немає даних']; 
-            $values = [0]; 
-            $counts = [0]; 
+        // Якщо даних немає — порожні масиви для Chart.js
+        if (empty($labels)) {
+            $labels = ['Немає даних'];
+            $values = [0];
+            $counts = [0];
         }
 
-        // Використовуємо той самий $period, що і для графіка
-        switch ($period) {
-            case 'year':  $interval = "INTERVAL 1 YEAR"; break;
-            case 'month': $interval = "INTERVAL 30 DAY"; break;
-            default:      $interval = "INTERVAL 7 DAY"; break;
+        // Експорт в CSV (враховує і довільний діапазон)
+        if (isset($_GET['export']) && $_GET['export'] === 'csv') {
+            $filename = 'analytics_' . $period . '_' . date('Y-m-d') . '.csv';
+            header('Content-Type: text/csv; charset=utf-8');
+            header('Content-Disposition: attachment; filename=' . $filename);
+
+            $output = fopen('php://output', 'w');
+            fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+            fputcsv($output, ['Період', 'Замовлень', 'Сума виручки (₴)', 'Частка (%)']);
+
+            $total_sum = array_sum($values);
+            foreach ($labels as $key => $label) {
+                $val     = $values[$key];
+                $count   = $counts[$key];
+                $percent = $total_sum > 0 ? round(($val / $total_sum) * 100, 1) : 0;
+                fputcsv($output, [
+                    strip_tags($label),
+                    $count . ' шт.',
+                    number_format($val, 2, '.', ''),
+                    $percent . '%',
+                ]);
+            }
+            $total_orders = array_sum($counts);
+            fputcsv($output, ['РАЗОМ', $total_orders . ' шт.', number_format($total_sum, 2, '.', ''), '100%']);
+            fclose($output);
+            exit;
         }
 
-        $stmt = DB::query("SELECT 
-            p.id, 
-            p.name, 
-            SUM(oi.qty) as total_qty, 
-            SUM(oi.price * oi.qty) as total_revenue
-            FROM order_items oi
-            JOIN orders o ON oi.order_id = o.id
-            JOIN products p ON oi.product_id = p.id
-            WHERE o.created_at >= DATE_SUB(NOW(), $interval) 
-            AND o.status != 'canceled'
-            GROUP BY p.id, p.name
-            ORDER BY total_revenue DESC
-            LIMIT 5");
-
-        $popular_products = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
+        // Товари, що закінчуються (незалежно від діапазону)
         $stmt = DB::query("
             SELECT p.id, p.name, COALESCE(ps.quantity, 0) AS stock, p.price
             FROM products p
-            LEFT JOIN product_stocks ps ON ps.sku COLLATE utf8mb4_general_ci = p.sku COLLATE utf8mb4_general_ci AND ps.option_id IS NULL
+            LEFT JOIN product_stocks ps
+                ON ps.sku COLLATE utf8mb4_general_ci = p.sku COLLATE utf8mb4_general_ci
+               AND ps.option_id IS NULL
             WHERE COALESCE(ps.quantity, 0) <= 5
             ORDER BY COALESCE(ps.quantity, 0) ASC
             LIMIT 5");
 
         $low_stock_products = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
-        View::render('admin/analytics/index', ['title_text' => $title_text,
-            'labels' => $labels,
-            'values' => $values,
-            'counts' => $counts,
-            'popular_products' => $popular_products,
-            'low_stock_products' => $low_stock_products],
-            'admin');
+        View::render('admin/analytics/index', [
+            'period'             => $period,
+            'title_text'         => $title_text,
+            'labels'             => $labels,
+            'values'             => $values,
+            'counts'             => $counts,
+            'popular_products'   => $popular_products,
+            'low_stock_products' => $low_stock_products,
+            'use_custom_range'   => $use_custom_range ?? false,
+            'date_from'          => $date_from_raw,
+            'date_to'            => $date_to_raw,
+        ], 'admin');
     }
 
 
