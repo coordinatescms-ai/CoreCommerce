@@ -2,9 +2,23 @@
 use App\Core\Localization\LocalizationManager;
 use App\Models\Setting;
 
-function __($key)
+/**
+ * Отримати переклад.
+ *
+ * @param  string $key      'my_key' або 'namespace::my_key'
+ * @param  array  $replace  Параметри підстановки: ['name' => 'Іван'] → :name = Іван
+ */
+function __(string $key, array $replace = []): string
 {
-    return LocalizationManager::translate($key);
+    return LocalizationManager::translate($key, $replace);
+}
+
+/**
+ * Псевдонім __() для зручності.
+ */
+function trans(string $key, array $replace = []): string
+{
+    return LocalizationManager::translate($key, $replace);
 }
 
 /**
@@ -26,6 +40,27 @@ function get_supported_languages()
 function get_setting($key, $default = null)
 {
     return Setting::get($key, $default);
+}
+
+/**
+ * Відформатувати ціну з символом активної валюти.
+ * Використовується на всіх сторінках замість захардкодених "грн" / "₴".
+ *
+ * @param  float|int|string $amount
+ * @param  int              $decimals
+ * @return string   наприклад "1 250,00 $"
+ */
+function format_price($amount, int $decimals = 2): string
+{
+    static $symbol = null;
+    if ($symbol === null) {
+        // Кешуємо на час запиту — один запит до БД
+        $row = \App\Core\Database\DB::query(
+            'SELECT symbol FROM currencies WHERE is_active = 1 LIMIT 1'
+        )->fetch(\PDO::FETCH_ASSOC);
+        $symbol = $row ? $row['symbol'] : '₴';
+    }
+    return number_format((float)$amount, $decimals, ',', ' ') . ' ' . $symbol;
 }
 
 function product_image_variant_path(?string $path, string $variant = 'original'): string

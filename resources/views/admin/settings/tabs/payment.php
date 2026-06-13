@@ -52,28 +52,55 @@
                     </div>
                 </div>
 
-                <?php 
-                $extra = json_decode($method['settings'] ?? '', true) ?: []; 
+                <?php
+                $extra = json_decode($method['settings'] ?? '', true) ?: [];
                 ?>
-                
-                <!-- Специфічні налаштування для LiqPay -->
+
+                <!-- Прив'язка до платіжного плагіна (PaymentManager) -->
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Платіжний шлюз (плагін)</label>
+                        <input type="text"
+                               name="methods[<?= $method['id'] ?>][settings][gateway_name]"
+                               value="<?= htmlspecialchars($extra['gateway_name'] ?? $method['code']) ?>"
+                               class="form-control"
+                               placeholder="Наприклад: liqpay, wayforpay, cod">
+                        <small class="text-muted">
+                            Назва зареєстрованого платіжного плагіна (метод getName()).
+                            Залиште порожнім для методів без онлайн-оплати.
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Специфічні налаштування для LiqPay (зворотна сумісність) -->
                 <?php if ($method['code'] === 'liqpay'): ?>
                     <hr>
+                    <p class="text-muted small mb-2">
+                        <i class="fas fa-puzzle-piece"></i>
+                        Ці поля читає плагін <strong>LiqPayGateway</strong>.
+                        Увімкніть плагін у розділі <a href="/admin/plugins">Керування плагінами</a>.
+                    </p>
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Public Key</label>
-                            <input type="text" name="methods[<?= $method['id'] ?>][settings][public_key]" 
-                                   value="<?= htmlspecialchars($extra['public_key'] ?? '') ?>" class="form-control">
+                            <input type="text"
+                                   name="methods[<?= $method['id'] ?>][settings][public_key]"
+                                   value="<?= htmlspecialchars($extra['public_key'] ?? '') ?>"
+                                   class="form-control">
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Private Key</label>
-                            <input type="password" name="methods[<?= $method['id'] ?>][settings][private_key]" 
-                                   value="<?= htmlspecialchars($extra['private_key'] ?? '') ?>" class="form-control">
+                            <input type="password"
+                                   name="methods[<?= $method['id'] ?>][settings][private_key]"
+                                   value="<?= htmlspecialchars($extra['private_key'] ?? '') ?>"
+                                   class="form-control">
                         </div>
                     </div>
                     <div class="form-check form-switch">
                         <input type="hidden" name="methods[<?= $method['id'] ?>][is_test_mode]" value="0">
-                        <input class="form-check-input" type="checkbox" name="methods[<?= $method['id'] ?>][is_test_mode]" value="1" <?= ($method['is_test_mode'] ?? 0) ? 'checked' : '' ?>>
+                        <input class="form-check-input" type="checkbox"
+                               name="methods[<?= $method['id'] ?>][is_test_mode]" value="1"
+                               <?= ($method['is_test_mode'] ?? 0) ? 'checked' : '' ?>>
                         <label class="form-check-label text-danger">Тестовий режим (Sandbox)</label>
                     </div>
                 <?php endif; ?>
@@ -82,7 +109,10 @@
                 <?php if ($method['code'] === 'cash'): ?>
                     <hr>
                     <div class="text-muted">
-                        <small><i class="fas fa-info-circle"></i> Цей метод не потребує додаткових API налаштувань.</small>
+                        <small>
+                            <i class="fas fa-info-circle"></i>
+                            Цей метод не потребує додаткових API налаштувань.
+                        </small>
                     </div>
                 <?php endif; ?>
                 <br />

@@ -10,6 +10,7 @@ use App\Services\StockServiceFactory;
 class AdminOrderController
 {
     private array $allowedStatuses = [
+        'pending',
         'new',
         'confirmed',
         'processing',
@@ -51,27 +52,81 @@ class AdminOrderController
         return is_array($payload) ? $payload : $_POST;
     }
 
+    private const PER_PAGE = 24;
+
     public function index(): void
     {
         $this->checkAdmin();
 
         $kanbanColumns = [
-            'new' => 'Новий',
-            'confirmed' => 'Підтверджено',
+            'new'        => 'Новий',
+            'confirmed'  => 'Підтверджено',
             'processing' => 'Комплектується',
-            'shipped' => 'Відправлено',
+            'shipped'    => 'Відправлено',
         ];
 
-        $orders = DB::query(
-            'SELECT id, customer_name, customer_phone, total, status, delivery_method, payment_method, created_at FROM orders ORDER BY created_at DESC'
-        )->fetchAll(\PDO::FETCH_ASSOC);
+        $view         = $_GET['view']  ?? 'kanban';
+        $statusFilter = $_GET['status'] ?? '';
+        $searchFilter = trim($_GET['search'] ?? '');
 
-        $orders = $this->attachMethodNames($orders);
+        // ── ТАБЛИЦЯ ──────────────────────────────────────────────────────────
+        $tableWhere  = [];
+        $tableParams = [];
+
+        if ($statusFilter !== '') {
+            $tableWhere[]  = 'status = ?';
+            $tableParams[] = $statusFilter;
+        }
+        if ($searchFilter !== '') {
+            $tableWhere[]  = '(customer_name LIKE ? OR customer_phone LIKE ? OR id = ?)';
+            $like = '%' . $searchFilter . '%';
+            array_push($tableParams, $like, $like, (int)$searchFilter);
+        }
+
+        $tableWhereSql = $tableWhere ? 'WHERE ' . implode(' AND ', $tableWhere) : '';
+
+        [$tableOrders, $tablePager] = \App\Core\Pagination\Paginator::paginate(
+            "SELECT id, customer_name, customer_phone, total, status,
+                    delivery_method, payment_method, created_at
+             FROM orders $tableWhereSql ORDER BY created_at DESC",
+            $tableParams,
+            "SELECT COUNT(*) FROM orders $tableWhereSql",
+            $tableParams,
+            self::PER_PAGE,
+            'tpage'
+        );
+
+        $tableOrders = $this->attachMethodNames($tableOrders);
+
+        // ── КАНБАН ───────────────────────────────────────────────────────────
+        $kanbanStatuses = array_keys($kanbanColumns);
+        $placeholders   = implode(',', array_fill(0, count($kanbanStatuses), '?'));
+
+        [$kanbanOrders, $kanbanPager] = \App\Core\Pagination\Paginator::paginate(
+            "SELECT id, customer_name, customer_phone, total, status,
+                    delivery_method, payment_method, created_at
+             FROM orders WHERE status IN ($placeholders) ORDER BY created_at DESC",
+            $kanbanStatuses,
+            "SELECT COUNT(*) FROM orders WHERE status IN ($placeholders)",
+            $kanbanStatuses,
+            self::PER_PAGE,
+            'kpage'
+        );
+
+        $kanbanOrders = $this->attachMethodNames($kanbanOrders);
 
         View::render('admin/orders/index', [
-            'kanbanColumns' => $kanbanColumns,
-            'orders' => $orders,
-            'allStatuses' => $this->allowedStatuses,
+            'kanbanColumns'        => $kanbanColumns,
+            'kanbanOrders'         => $kanbanOrders,
+            'kanbanPager'          => $kanbanPager,
+            'tableOrders'          => $tableOrders,
+            'tablePager'           => $tablePager,
+            'allStatuses'          => $this->allowedStatuses,
+            'statusFilter'         => $statusFilter,
+            'searchFilter'         => $searchFilter,
+            'activeView'           => $view,
+            'orders'               => $kanbanOrders,
+            'activeCurrencySymbol' => DB::query('SELECT symbol FROM currencies WHERE is_active = 1 LIMIT 1')->fetchColumn() ?: '₴',
         ], 'admin');
     }
 
@@ -106,7 +161,7 @@ class AdminOrderController
 
         try {
             $this->ensureStatusHistoryTable();
-            DB::$pdo->beginTransaction();
+            DB::beginTransaction();
 
             $order = DB::query('SELECT * FROM orders WHERE id = ? FOR UPDATE', [$orderId])->fetch(\PDO::FETCH_ASSOC);
             if (!$order) {
@@ -115,7 +170,7 @@ class AdminOrderController
 
             $currentStatus = (string) ($order['status'] ?? 'new');
             if ($currentStatus === $newStatus) {
-                DB::$pdo->commit();
+                DB::commit();
                 $this->respondJson(['success' => true, 'message' => 'Статус не змінено', 'status' => $currentStatus]);
                 return;
             }
@@ -142,16 +197,31 @@ class AdminOrderController
 
             $this->insertStatusHistory($orderId, $currentStatus, $newStatus, $ttnCode !== '' ? $ttnCode : null);
 
-            DB::$pdo->commit();
+            DB::commit();
+
+            // Синхронізація статусу з Prom.ua (якщо інтеграція увімкнена)
+            if (\App\Services\PromApiClient::isEnabled()) {
+                try {
+                    (new \App\Services\PromStatusService())->onStatusChanged(
+                        $orderId,
+                        $newStatus,
+                        $ttnCode
+                    );
+                } catch (\Throwable $e) {
+                    // Не блокуємо основну відповідь при помилці Prom
+                    error_log('PromStatusService error: ' . $e->getMessage());
+                }
+            }
+
             $this->respondJson([
-                'success' => true,
-                'message' => 'Статус оновлено',
-                'status' => $newStatus,
+                'success'  => true,
+                'message'  => 'Статус оновлено',
+                'status'   => $newStatus,
                 'ttn_code' => $ttnCode,
             ]);
         } catch (\Throwable $e) {
-            if (DB::$pdo->inTransaction()) {
-                DB::$pdo->rollBack();
+            if (DB::inTransaction()) {
+                DB::rollBack();
             }
 
             $this->respondJson([
@@ -310,7 +380,7 @@ class AdminOrderController
             $normalized = $this->normalizeOrderInput($payload);
             $this->ensureStatusHistoryTable();
 
-            DB::$pdo->beginTransaction();
+            DB::beginTransaction();
 
             $isUpdate = $normalized['id'] > 0;
             $oldStatus = null;
@@ -365,7 +435,7 @@ class AdminOrderController
                     ]
                 );
 
-                $orderId = (int) DB::$pdo->lastInsertId();
+                $orderId = (int) DB::lastInsertId();
                 $oldStatus = null;
             }
 
@@ -386,7 +456,7 @@ class AdminOrderController
                 $this->insertStatusHistory($orderId, $oldStatus, $normalized['status'], null);
             }
 
-            DB::$pdo->commit();
+            DB::commit();
 
             $this->respondJson([
                 'success' => true,
@@ -394,13 +464,13 @@ class AdminOrderController
                 'order_id' => $orderId,
             ]);
         } catch (\InvalidArgumentException $e) {
-            if (DB::$pdo->inTransaction()) {
-                DB::$pdo->rollBack();
+            if (DB::inTransaction()) {
+                DB::rollBack();
             }
             $this->respondJson(['success' => false, 'message' => $e->getMessage()], 422);
         } catch (\Throwable $e) {
-            if (DB::$pdo->inTransaction()) {
-                DB::$pdo->rollBack();
+            if (DB::inTransaction()) {
+                DB::rollBack();
             }
             $this->respondJson(['success' => false, 'message' => $e->getMessage()], 500);
         }
@@ -431,7 +501,7 @@ class AdminOrderController
 
             $updated = [];
             $skipped = 0;
-            DB::$pdo->beginTransaction();
+            DB::beginTransaction();
             foreach ($shippedOrders as $order) {
                 $carrierStatus = $this->fetchCarrierStatusForOrder($order);
                 if ($carrierStatus === null) {
@@ -453,7 +523,7 @@ class AdminOrderController
                     ];
                 }
             }
-            DB::$pdo->commit();
+            DB::commit();
 
             $this->respondJson([
                 'success' => true,
@@ -464,8 +534,8 @@ class AdminOrderController
                 'skipped' => $skipped,
             ]);
         } catch (\Throwable $e) {
-            if (DB::$pdo->inTransaction()) {
-                DB::$pdo->rollBack();
+            if (DB::inTransaction()) {
+                DB::rollBack();
             }
             $this->respondJson(['success' => false, 'message' => $e->getMessage()], 500);
         }

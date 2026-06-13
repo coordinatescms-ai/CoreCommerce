@@ -66,6 +66,34 @@ if (empty($_SESSION['user']) && !empty($_COOKIE['remember_token']) && !empty($_C
 // 5. Завантаження плагінів
 PluginManager::load();
 
+// 5.2 Реєстрація вбудованих платіжних шлюзів
+\App\Core\Payment\PaymentManager::register(
+    new \App\Core\Payment\Gateways\CodGateway()
+);
+
+// 5.1 Інтеграція з Prom.ua (хуки підключаються тільки якщо інтеграція увімкнена)
+if (\App\Services\PromApiClient::isEnabled()) {
+    // Автоматична постановка товару в чергу при зміні ціни або залишків
+    PluginManager::getInstance()->addAction(
+        'product.updated',
+        static function (int $productId, array $changedFields): void {
+            $needsSync = !empty(array_intersect(['price', 'stock_quantity'], $changedFields));
+            if ($needsSync) {
+                try {
+                    $action = match (true) {
+                        in_array('price', $changedFields, true) && in_array('stock_quantity', $changedFields, true) => 'both',
+                        in_array('price', $changedFields, true) => 'price',
+                        default => 'quantity',
+                    };
+                    (new \App\Services\PromSyncService())->enqueueProducts([$productId], $action);
+                } catch (\Throwable $e) {
+                    error_log('Prom enqueue error: ' . $e->getMessage());
+                }
+            }
+        }
+    );
+}
+
 // 6. Ініціалізація роутера та завантаження маршрутів
 $router = new Router();
 require __DIR__.'/../routes/web.php';
@@ -73,4 +101,4 @@ require __DIR__.'/../app/helpers.php';
 
 // 7. Обробка запиту
 $request = Request::capture();
-echo $router->dispatch($request->method(), $request->uri());
+$router->dispatch($request->method(), $request->uri());

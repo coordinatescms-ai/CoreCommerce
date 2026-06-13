@@ -195,7 +195,7 @@ if (isset($_SESSION['user']['id'])) {
 
                 <div class="pdp-info">
                     <h1><?= $productName ?></h1>
-                    <div class="pdp-price" data-base-price="<?= htmlspecialchars((string) number_format((float) ($product['price'] ?? 0), 2, '.', '')) ?>"><?= $productPrice ?> грн</div>
+                    <div class="pdp-price" data-base-price="<?= htmlspecialchars((string) number_format((float) ($product['price'] ?? 0), 2, '.', '')) ?>"><?= format_price($product['price'] ?? 0) ?></div>
 
                     <p class="pdp-short-description">
                         <strong><?= __('short_description') ?>:</strong>
@@ -365,7 +365,7 @@ if (isset($_SESSION['user']['id'])) {
                                 <img src="<?= htmlspecialchars(!empty($item['image']) ? $item['image'] : $placeholderImage) ?>" alt="<?= htmlspecialchars($item['name']) ?>">
                             </a>
                             <h3><a href="/product/<?= htmlspecialchars($item['slug']) ?>"><?= htmlspecialchars($item['name']) ?></a></h3>
-                            <div class="pdp-similar-price"><?= number_format((float) ($item['price'] ?? 0), 2, '.', ' ') ?> грн</div>
+                            <div class="pdp-similar-price"><?= format_price((float) ($item['price'] ?? 0)) ?></div>
                         </article>
                     <?php endforeach; ?>
 
@@ -374,7 +374,7 @@ if (isset($_SESSION['user']['id'])) {
                             <article class="pdp-similar-card is-placeholder">
                                 <div class="pdp-similar-image-link"><img src="<?= htmlspecialchars($placeholderImage) ?>" alt="placeholder"></div>
                                 <h3>Product <?= $i + 1 ?></h3>
-                                <div class="pdp-similar-price">0.00 грн</div>
+                                <div class="pdp-similar-price">0.00 <?= htmlspecialchars($currencySymbol ?? '₴') ?></div>
                             </article>
                         <?php endfor; ?>
                     <?php endif; ?>
@@ -1146,7 +1146,7 @@ if (isset($_SESSION['user']['id'])) {
             const p = Number(r.dataset.optionPrice || 0);
             delta += (r.dataset.optionOp === '-' ? -1 : 1) * p;
         });
-        priceNode.textContent = `${(Number(priceNode.dataset.basePrice) + delta).toFixed(2)} грн`;
+        priceNode.textContent = `${(Number(priceNode.dataset.basePrice) + delta).toFixed(2)} ${window.CURRENCY_SYMBOL || '₴'}`;
     }
     optionRadios.forEach(r => r.addEventListener('change', updatePrice));
 

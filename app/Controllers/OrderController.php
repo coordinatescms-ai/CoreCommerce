@@ -168,7 +168,7 @@ class OrderController
         }
 
         try {
-            DB::$pdo->beginTransaction();
+            DB::beginTransaction();
 
             $lockedItems = $this->loadAndLockProducts(array_column($items, 'id'));
             $lockedMap = [];
@@ -205,7 +205,7 @@ class OrderController
             }
 
             DB::query(
-                'INSERT INTO orders (user_id, total, customer_name, customer_phone, customer_email, delivery_method, delivery_city, delivery_warehouse, delivery_address, payment_method, payment_id, delivery_id, comment, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())',
+                'INSERT INTO orders (user_id, total, customer_name, customer_phone, customer_email, delivery_method, delivery_city, delivery_warehouse, delivery_address, payment_method, payment_id, delivery_id, comment, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())',
                 [
                     isset($_SESSION['user']['id']) ? (int) $_SESSION['user']['id'] : null,
                     $total,
@@ -220,10 +220,14 @@ class OrderController
                     $payload['payment_id'],
                     $payload['delivery_id'],
                     $payload['comment'],
+                    'pending',
                 ]
             );
 
-            $orderId = (int) DB::$pdo->lastInsertId();
+            $orderId = (int) DB::lastInsertId();
+
+            // Хук для плагінів — замовлення створено, ще не оплачено
+            do_action('order.created', $orderId, $payload['payment_method_code'], $total);
 
             foreach ($items as $item) {
                 $productId = (int) $item['id'];
@@ -245,7 +249,7 @@ class OrderController
                 }
             }
 
-            DB::$pdo->commit();
+            DB::commit();
 
             if (!empty($_SESSION['user']['id'])) {
                 CrmUserService::recordActivity((int) $_SESSION['user']['id'], 'order_created', 'Оформив замовлення #' . $orderId);
@@ -254,14 +258,39 @@ class OrderController
             // Очищаємо кошик у БД (поточний scope: user_id або session_id)
             Cart::clear();
 
+            // ── Платіжний шлюз ──────────────────────────────────────────────
+            $gateway = \App\Core\Payment\PaymentManager::findForOrder(
+                $payload['payment_method_code']
+            );
+
+            // Якщо шлюз не знайдено — fallback до COD (показуємо сторінку подяки)
+            if ($gateway === null) {
+                $gateway = new \App\Core\Payment\Gateways\CodGateway();
+            }
+
+            $paymentResult = $gateway->initiate(
+                $orderId,
+                $total,
+                [
+                    'email'       => $payload['email'],
+                    'phone'       => $payload['phone'],
+                    'name'        => $payload['full_name'],
+                    'description' => 'Замовлення #' . $orderId,
+                ]
+            );
+
             echo json_encode([
-                'success' => true,
-                'message' => 'Замовлення успішно оформлено.',
-                'order_id' => $orderId,
+                'success'        => true,
+                'message'        => 'Замовлення успішно оформлено.',
+                'order_id'       => $orderId,
+                'payment_action' => $paymentResult->action,
+                'payment_url'    => $paymentResult->url,
+                'payment_html'   => $paymentResult->html,
+                'payment_message'=> $paymentResult->message,
             ]);
         } catch (\Throwable $e) {
-            if (DB::$pdo->inTransaction()) {
-                DB::$pdo->rollBack();
+            if (DB::inTransaction()) {
+                DB::rollBack();
             }
 
             http_response_code(500);

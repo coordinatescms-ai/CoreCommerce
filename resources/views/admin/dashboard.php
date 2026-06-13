@@ -80,7 +80,7 @@
                     <td>#<?= $order['id'] ?></td>
                     <td><strong><?= htmlspecialchars($order['customer_name'] ?? 'Гість') ?></strong></td>
                     <td><?= date('d.m.Y H:i', strtotime($order['created_at'])) ?></td>
-                    <td><?= number_format($order['total'], 2, '.', ' ') ?> ₴</td>
+                    <td><?= format_price($order['total']) ?></td>
                     <td>
                         <span class="status-badge status-<?= $order['status'] ?>">
                             <?= $order['status'] ?>
@@ -187,7 +187,7 @@ if (typeof Chart !== 'undefined') {
                 y: {
                     beginAtZero: true,
                     ticks: {
-                        callback: function(value) { return value.toLocaleString() + ' ₴'; }
+                        callback: function(value) { return value.toLocaleString() + ' ' + currencySymbol; }
                     }
                 },
                 x: { grid: { display: false } }

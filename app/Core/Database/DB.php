@@ -1,23 +1,36 @@
 <?php
-namespace App\Core\Database;
-use PDO;
 
-class DB {
-    static $pdo;
-    
-    static function connect($d, $u, $p) {
-        self::$pdo = new PDO($d, $u, $p, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+namespace App\Core\Database;
+
+use PDO;
+use PDOStatement;
+
+class DB
+{
+    private static PDO $pdo;
+
+    /**
+     * Ініціалізація з'єднання (викликається один раз у public/index.php).
+     */
+    public static function connect(string $dsn, string $user, string $pass): void
+    {
+        self::$pdo = new PDO($dsn, $user, $pass, [
+            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES   => false,
+        ]);
     }
-    
-    static function query($s, $p = []) {
-        $q = self::$pdo->prepare($s);
-        
-        // Явно зв'язуємо кожний параметр з правильним типом даних
-        foreach ($p as $key => $value) {
-            // Індекс параметра в PDO починається з 1
-            $paramIndex = $key + 1;
-            
-            // Визначаємо тип параметра
+
+    /**
+     * Виконати підготовлений запит з автоматичним визначенням типів параметрів.
+     */
+    public static function query(string $sql, array $params = []): PDOStatement
+    {
+        $stmt = self::$pdo->prepare($sql);
+
+        foreach ($params as $key => $value) {
+            $index = $key + 1; // PDO позиційні параметри починаються з 1
+
             if (is_int($value)) {
                 $type = PDO::PARAM_INT;
             } elseif (is_bool($value)) {
@@ -27,26 +40,99 @@ class DB {
             } else {
                 $type = PDO::PARAM_STR;
             }
-            
-            // Зв'язуємо параметр з явним типом
-            $q->bindValue($paramIndex, $value, $type);
+
+            $stmt->bindValue($index, $value, $type);
         }
-        
-        $q->execute();
-        return $q;
+
+        $stmt->execute();
+        return $stmt;
     }
-    
-    static function execute($s, $p = []) {
-        return self::query($s, $p);
+
+    /**
+     * Псевдонім query() для зворотної сумісності.
+     */
+    public static function execute(string $sql, array $params = []): PDOStatement
+    {
+        return self::query($sql, $params);
     }
-    
-    static function getInstance() {
-        return new self();
+
+    // ── Транзакції ────────────────────────────────────────────────────────────
+
+    public static function beginTransaction(): bool
+    {
+        return self::$pdo->beginTransaction();
     }
-    
-    public function __call($name, $args) {
-        if ($name === 'query' || $name === 'execute') {
-            return self::$name(...$args);
+
+    public static function commit(): bool
+    {
+        return self::$pdo->commit();
+    }
+
+    public static function rollBack(): bool
+    {
+        return self::$pdo->rollBack();
+    }
+
+    public static function inTransaction(): bool
+    {
+        return self::$pdo->inTransaction();
+    }
+
+    // ── Утиліти ───────────────────────────────────────────────────────────────
+
+    public static function lastInsertId(): int
+    {
+        return (int) self::$pdo->lastInsertId();
+    }
+
+    public static function quote(string $value): string
+    {
+        return self::$pdo->quote($value);
+    }
+
+    /**
+     * Виконати запит з файловим кешем результату.
+     *
+     * @param  string   $sql    SQL-запит
+     * @param  array    $params Параметри
+     * @param  int      $ttl    Час життя кешу в секундах (0 = без кешу)
+     * @param  string[] $tags   Теги для групової інвалідації
+     * @return array
+     */
+    public static function cached(string $sql, array $params = [], int $ttl = 60, array $tags = []): array
+    {
+        return QueryCache::remember($sql, $params, $ttl, $tags);
+    }
+
+    /**
+     * Виконати SQL без параметрів (наприклад, ALTER TABLE при оновленнях).
+     * Використовуйте тільки з довіреними рядками — без user-input.
+     */
+    public static function exec(string $sql): int|false
+    {
+        return self::$pdo->exec($sql);
+    }
+
+    // ── Зворотна сумісність ───────────────────────────────────────────────────
+
+    /**
+     * @deprecated Використовуйте DB::query() або DB::beginTransaction() тощо.
+     *             Залишено лише для зворотної сумісності старого коду.
+     */
+    public static function getInstance(): static
+    {
+        return new static();
+    }
+
+    /**
+     * Підтримка виклику через екземпляр: $db->query(...).
+     * @deprecated
+     */
+    public function __call(string $name, array $args): mixed
+    {
+        if (method_exists(static::class, $name)) {
+            return static::$name(...$args);
         }
+        throw new \BadMethodCallException("DB::$name() не існує.");
     }
 }

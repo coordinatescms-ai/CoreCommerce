@@ -91,6 +91,76 @@ class Product extends Model
         ) ?? [];
     }
 
+    public static function paginatedWithCategory(
+        int $limit,
+        int $offset,
+        string $search = '',
+        ?int $categoryId = null,
+        string $visibility = 'all'
+    ): array {
+        $where  = [];
+        $params = [];
+
+        if ($search !== '') {
+            $where[]  = '(p.name LIKE ? OR p.sku LIKE ?)';
+            $like     = '%' . $search . '%';
+            $params[] = $like;
+            $params[] = $like;
+        }
+        if ($categoryId !== null) {
+            $where[]  = 'p.category_id = ?';
+            $params[] = $categoryId;
+        }
+        if ($visibility === 'visible') { $where[] = 'p.is_visible = 1'; }
+        if ($visibility === 'hidden')  { $where[] = 'p.is_visible = 0'; }
+
+        $whereSql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
+
+        $rows = self::query(
+            "SELECT p.*, c.name AS category_name, COALESCE(ps.quantity, 0) AS stock_quantity
+             FROM " . static::$table . " p
+             LEFT JOIN categories c ON c.id = p.category_id
+             LEFT JOIN product_stocks ps
+                ON ps.sku COLLATE utf8mb4_general_ci = p.sku COLLATE utf8mb4_general_ci
+               AND ps.option_id IS NULL
+             $whereSql
+             ORDER BY p.id DESC
+             LIMIT $limit OFFSET $offset",
+            $params
+        );
+
+        return $rows ?? [];
+    }
+
+    public static function countWithFilters(
+        string $search = '',
+        ?int $categoryId = null,
+        string $visibility = 'all'
+    ): int {
+        $where  = [];
+        $params = [];
+
+        if ($search !== '') {
+            $where[]  = '(p.name LIKE ? OR p.sku LIKE ?)';
+            $like     = '%' . $search . '%';
+            $params[] = $like;
+            $params[] = $like;
+        }
+        if ($categoryId !== null) {
+            $where[]  = 'p.category_id = ?';
+            $params[] = $categoryId;
+        }
+        if ($visibility === 'visible') { $where[] = 'p.is_visible = 1'; }
+        if ($visibility === 'hidden')  { $where[] = 'p.is_visible = 0'; }
+
+        $whereSql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
+
+        return (int) \App\Core\Database\DB::query(
+            "SELECT COUNT(*) FROM " . static::$table . " p $whereSql",
+            $params
+        )->fetchColumn();
+    }
+
     /**
      * Отримати товар за ID разом з назвою категорії
      *

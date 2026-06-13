@@ -1,7 +1,11 @@
 <?php
+/**
+ * @var array                               $products
+ * @var \App\Core\Pagination\Paginator|null $pager
+ * @var array|null                          $category
+ */
 $products = $products ?? [];
-$pages = max(1, (int) ($pages ?? 1));
-$page = max(1, (int) ($page ?? 1));
+$pager    = $pager    ?? null;
 $category = $category ?? null;
 ?>
 
@@ -28,7 +32,7 @@ $category = $category ?? null;
                     </h3>
 
                     <div class="product-price category-product-price">
-                        <?= number_format((float) ($product['price'] ?? 0), 2, '.', ' ') ?> грн
+                        <?= format_price((float) ($product['price'] ?? 0)) ?>
                     </div>
 
                     <form action="/cart/add/<?= (int) $product['id'] ?>" method="POST">
@@ -42,21 +46,8 @@ $category = $category ?? null;
     </div>
 <?php endif; ?>
 
-<?php if ($pages > 1 && $category): ?>
-    <nav class="category-pagination" aria-label="Category pagination">
-        <?php
-        $baseQuery = $_GET;
-        for ($i = 1; $i <= $pages; $i++):
-            $baseQuery['page'] = $i;
-            $url = '/category/' . $category['slug'] . '?' . http_build_query($baseQuery);
-            $isCurrent = $i === $page;
-        ?>
-            <a class="category-pagination-link<?= $isCurrent ? ' is-current' : '' ?>"
-               href="<?= htmlspecialchars($url) ?>"
-               data-page="<?= $i ?>"
-               <?= $isCurrent ? 'aria-current="page"' : '' ?>>
-                <?= $i ?>
-            </a>
-        <?php endfor; ?>
+<?php if ($pager !== null && $pager->hasPages()): ?>
+    <nav class="category-pagination" aria-label="Pagination">
+        <?= $pager->render(['show_info' => false]) ?>
     </nav>
 <?php endif; ?>

@@ -56,7 +56,7 @@
                     </div>
 
                     <div style="color:#64748b;">Ціна:</div>
-                    <div style="font-size: 1.2rem; font-weight: 700;"><?php echo number_format((float)$product['price'], 2, ',', ' '); ?> грн</div>
+                    <div style="font-size: 1.2rem; font-weight: 700;"><?php echo format_price((float)$product['price']); ?></div>
                 </div>
 
                 <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 1.25rem 0;">

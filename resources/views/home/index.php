@@ -60,7 +60,7 @@
                     <h3 style="margin: 0 0 0.5rem;">
                         <a href="/product/<?= htmlspecialchars($product['slug']) ?>" style="text-decoration: none; color: #111827;"><?= htmlspecialchars($product['name']) ?></a>
                     </h3>
-                    <p style="margin: 0 0 0.75rem;"><strong><?= htmlspecialchars($product['price']) ?> грн</strong></p>
+                    <p style="margin: 0 0 0.75rem;"><strong><?= format_price($product['price']) ?></strong></p>
                     <form action="/cart/add/<?= (int)$product['id'] ?>" method="POST" style="display: inline-block; margin: 0;">
                         <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
                         <input type="hidden" name="return_url" value="<?= htmlspecialchars($_SERVER['REQUEST_URI'] ?? '/products') ?>">
@@ -97,7 +97,7 @@
                     <h3 style="margin: 0 0 0.5rem;">
                         <a href="/product/<?= htmlspecialchars($product['slug']) ?>" style="text-decoration: none; color: #111827;"><?= htmlspecialchars($product['name']) ?></a>
                     </h3>
-                    <p style="margin: 0 0 0.5rem;"><strong><?= htmlspecialchars($product['price']) ?> грн</strong></p>
+                    <p style="margin: 0 0 0.5rem;"><strong><?= format_price($product['price']) ?></strong></p>
                     <?php if (isset($product['orders_count'])): ?>
                         <p style="margin: 0; color: #6b7280; font-size: 0.9rem;">Замовлень: <?= (int)$product['orders_count'] ?></p>
                     <?php endif; ?>

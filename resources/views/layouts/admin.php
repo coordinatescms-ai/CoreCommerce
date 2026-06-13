@@ -223,6 +223,13 @@
             .main-content { margin-left: 0; width: 100%; }
         }
     </style>
+    <script>
+        var currencySymbol = <?= json_encode(
+            \App\Core\Database\DB::query('SELECT symbol FROM currencies WHERE is_active = 1 LIMIT 1')
+                ->fetchColumn() ?: '₴'
+        ) ?>;
+        window.CURRENCY_SYMBOL = currencySymbol;
+    </script>
 </head>
 <body>
     <!-- Sidebar -->
@@ -269,6 +276,12 @@
             </a>
             <a href="/admin/stocks" class="menu-item <?php echo strpos($request_uri, '/admin/stocks') === 0 ? 'active' : ''; ?>">
                 <i class="fas fa-warehouse"></i> Склад
+            </a>
+            <a href="/admin/reviews" class="menu-item <?php echo strpos($request_uri, '/admin/reviews') === 0 ? 'active' : ''; ?>">
+                <i class="fas fa-comments"></i> Коментарі
+            </a>
+            <a href="/admin/migrations" class="menu-item <?php echo strpos($request_uri, '/admin/migrations') === 0 ? 'active' : ''; ?>">
+                <i class="fas fa-database"></i> Міграції БД
             </a>
         </nav>
     </aside>

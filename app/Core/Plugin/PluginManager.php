@@ -75,16 +75,30 @@ class PluginManager
             $meta = $this->readPluginMetadata($slug);
             $exists = $meta !== null;
 
+            // Перевіряємо чи є у плагіна налаштування
+            $hasSettings = false;
+            if ($exists) {
+                $mainFile = $this->pluginsPath . '/' . $slug . '/plugin.php';
+                if (is_file($mainFile)) {
+                    $pluginInstance = require $mainFile;
+                    if ($pluginInstance instanceof PluginInterface) {
+                        $hasSettings = !empty($pluginInstance->getSettingsSchema());
+                    }
+                }
+            }
+
             $plugins[] = [
-                'slug' => $slug,
-                'name' => $meta['name'] ?? $slug,
-                'description' => $meta['description'] ?? 'Опис відсутній.',
-                'version' => $meta['version'] ?? 'n/a',
-                'author' => $meta['author'] ?? 'Unknown',
-                'requires_php' => $meta['requires_php'] ?? '',
+                'slug'          => $slug,
+                'name'          => $meta['name']         ?? $slug,
+                'description'   => $meta['description']  ?? 'Опис відсутній.',
+                'version'       => $meta['version']       ?? 'n/a',
+                'author'        => $meta['author']        ?? 'Unknown',
+                'requires_php'  => $meta['requires_php']  ?? '',
                 'requires_core' => $meta['requires_core'] ?? '',
-                'is_active' => (int) ($row['is_active'] ?? 0),
-                'is_missing' => !$exists,
+                'requires'      => $meta['requires']      ?? [],
+                'is_active'     => (int) ($row['is_active'] ?? 0),
+                'is_missing'    => !$exists,
+                'has_settings'  => $hasSettings,
             ];
         }
 
@@ -109,6 +123,18 @@ class PluginManager
             $compatibilityError = $this->validateCompatibility($meta);
             if ($compatibilityError !== null) {
                 return ['success' => false, 'message' => $compatibilityError];
+            }
+
+            // Перевірка залежностей
+            $depsError = $this->validateDependencies($meta);
+            if ($depsError !== null) {
+                return ['success' => false, 'message' => $depsError];
+            }
+        } else {
+            // Перевірка зворотних залежностей — чи є активні плагіни що залежать від цього
+            $reverseDepsError = $this->validateReverseDependencies($slug);
+            if ($reverseDepsError !== null) {
+                return ['success' => false, 'message' => $reverseDepsError];
             }
         }
 
@@ -135,6 +161,16 @@ class PluginManager
         }
 
         $tmpName = (string) ($uploadedFile['tmp_name'] ?? '');
+
+        // MIME-валідація через finfo (захист від підміни розширення)
+        $finfo    = finfo_open(FILEINFO_MIME_TYPE);
+        $realMime = $finfo ? (string) finfo_file($finfo, $tmpName) : '';
+        if ($finfo) { finfo_close($finfo); }
+
+        if ($realMime !== 'application/zip' && $realMime !== 'application/x-zip-compressed') {
+            return ['success' => false, 'message' => 'Файл не є ZIP-архівом (перевірено за вмістом).'];
+        }
+
         $zip = new \ZipArchive();
         if ($zip->open($tmpName) !== true) {
             return ['success' => false, 'message' => 'Архів пошкоджений або не є ZIP.'];
@@ -196,6 +232,185 @@ class PluginManager
         $this->clearCache();
 
         return ['success' => true, 'message' => 'Плагін успішно завантажено.'];
+    }
+
+    // ── Налаштування плагіна ─────────────────────────────────────────────────
+
+    /**
+     * Отримати схему налаштувань + поточні збережені значення для плагіна.
+     */
+    public function getPluginSettings(string $slug): array
+    {
+        $plugin = $this->loadedPlugins[$slug] ?? null;
+
+        // Якщо плагін не завантажений (неактивний) — завантажуємо тимчасово
+        if ($plugin === null) {
+            $mainFile = $this->pluginsPath . '/' . $slug . '/plugin.php';
+            if (!is_file($mainFile)) {
+                return [];
+            }
+            $plugin = require $mainFile;
+        }
+
+        if (!$plugin instanceof PluginInterface) {
+            return [];
+        }
+
+        $schema = $plugin->getSettingsSchema();
+        if (empty($schema)) {
+            return [];
+        }
+
+        // Підтягуємо збережені значення з БД
+        $saved = DB::query(
+            'SELECT `key`, `value` FROM plugin_settings WHERE plugin_slug = ?',
+            [$slug]
+        )->fetchAll(\PDO::FETCH_KEY_PAIR);
+
+        // Мержимо: schema + saved значення (або default)
+        $result = [];
+        foreach ($schema as $key => $field) {
+            $result[$key] = [
+                'label'    => $field['label']    ?? $key,
+                'type'     => $field['type']     ?? 'text',
+                'default'  => $field['default']  ?? '',
+                'options'  => $field['options']  ?? [],
+                'required' => $field['required'] ?? false,
+                'hint'     => $field['hint']     ?? '',
+                'value'    => $saved[$key]       ?? $field['default'] ?? '',
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Зберегти налаштування плагіна в plugin_settings.
+     */
+    public function savePluginSettings(string $slug, array $data): array
+    {
+        $settings = $this->getPluginSettings($slug);
+        if (empty($settings)) {
+            return ['success' => false, 'message' => 'Плагін не має налаштувань.'];
+        }
+
+        foreach ($settings as $key => $field) {
+            if ($field['required'] && empty($data[$key])) {
+                return [
+                    'success' => false,
+                    'message' => "Поле «{$field['label']}» є обов'язковим.",
+                ];
+            }
+
+            $value = isset($data[$key]) ? (string)$data[$key] : '';
+
+            DB::query(
+                "INSERT INTO plugin_settings (plugin_slug, `key`, `value`, updated_at)
+                 VALUES (?, ?, ?, NOW())
+                 ON DUPLICATE KEY UPDATE `value` = ?, updated_at = NOW()",
+                [$slug, $key, $value, $value]
+            );
+        }
+
+        return ['success' => true, 'message' => 'Налаштування збережено.'];
+    }
+
+    // ── Залежності ───────────────────────────────────────────────────────────
+
+    /**
+     * Перевіряє що всі залежні плагіни з info.json.requires є активними.
+     *
+     * Формат info.json:
+     *   "requires": { "other-plugin-slug": ">=1.2.0", "another-plugin": "*" }
+     */
+    private function validateDependencies(array $meta): ?string
+    {
+        $requires = $meta['requires'] ?? [];
+        if (empty($requires) || !is_array($requires)) {
+            return null;
+        }
+
+        $activePlugins = $this->getActivePluginsWithVersions();
+
+        foreach ($requires as $depSlug => $versionConstraint) {
+            if (!isset($activePlugins[$depSlug])) {
+                $depMeta = $this->readPluginMetadata($depSlug);
+                $depName = $depMeta['name'] ?? $depSlug;
+                return "Залежність не виконана: потрібен активний плагін «{$depName}».";
+            }
+
+            // Перевірка версії якщо вказано не '*'
+            if ($versionConstraint !== '*') {
+                $installedVersion = $activePlugins[$depSlug];
+                if (!$this->versionSatisfies($installedVersion, $versionConstraint)) {
+                    $depMeta = $this->readPluginMetadata($depSlug);
+                    $depName = $depMeta['name'] ?? $depSlug;
+                    return "Залежність «{$depName}»: потрібна версія {$versionConstraint}, встановлена {$installedVersion}.";
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Перевіряє чи немає активних плагінів що залежать від цього (при деактивації).
+     */
+    private function validateReverseDependencies(string $slug): ?string
+    {
+        $activePlugins = $this->getActivePluginsFromDatabase();
+
+        foreach ($activePlugins as $activeSlug) {
+            if ($activeSlug === $slug) {
+                continue;
+            }
+            $meta     = $this->readPluginMetadata($activeSlug);
+            $requires = $meta['requires'] ?? [];
+            if (isset($requires[$slug])) {
+                $activeName = $meta['name'] ?? $activeSlug;
+                return "Не можна вимкнути: плагін «{$activeName}» залежить від цього.";
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Отримати масив [slug => version] активних плагінів.
+     */
+    private function getActivePluginsWithVersions(): array
+    {
+        $rows = DB::query(
+            'SELECT slug, version FROM plugins WHERE is_active = 1'
+        )->fetchAll(\PDO::FETCH_ASSOC);
+
+        $result = [];
+        foreach ($rows as $row) {
+            $result[$row['slug']] = $row['version'];
+        }
+        return $result;
+    }
+
+    /**
+     * Перевірити чи версія задовольняє обмеження (>=1.2.0, <=2.0.0, =1.5.0).
+     */
+    private function versionSatisfies(string $installed, string $constraint): bool
+    {
+        if (preg_match('/^(>=|<=|>|<|=|!=)\s*(.+)$/', trim($constraint), $m)) {
+            $operator        = $m[1];
+            $requiredVersion = trim($m[2]);
+            return version_compare($installed, $requiredVersion, $operator);
+        }
+        // Без оператора — точна відповідність
+        return version_compare($installed, trim($constraint), '=');
+    }
+
+    /**
+     * Отримати PluginDB для плагіна (обмежений проксі до БД).
+     */
+    public function getPluginDB(string $slug): PluginDB
+    {
+        return new PluginDB($slug);
     }
 
     public function clearCache(): void

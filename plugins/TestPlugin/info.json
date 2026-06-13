@@ -1,0 +1,10 @@
+{
+    "slug": "TestPlugin",
+    "name": "Test Plugin",
+    "description": "Демонстраційний плагін — показує роботу getSettingsSchema() та PluginDB.",
+    "version": "1.0.0",
+    "author": "CoreCommerce",
+    "requires_php": "8.1",
+    "requires_core": "1.0",
+    "requires": {}
+}

@@ -304,6 +304,197 @@ class AdminUserController
         $this->jsonResponse(['success' => true]);
     }
 
+    public function createOrder($id)
+    {
+        $this->checkAdmin();
+
+        $userId = (int) $id;
+        $user = User::findById($userId);
+
+        if (!$user) {
+            $_SESSION['error'] = 'Користувача не знайдено.';
+            header('Location: /admin/users');
+            exit;
+        }
+
+        $shippingMethods = array_values(array_filter(
+            \App\Models\Setting::getShopMethods('shipping'),
+            static fn($m) => (int)($m['is_active'] ?? 0) === 1
+        ));
+        $paymentMethods = array_values(array_filter(
+            \App\Models\Setting::getShopMethods('payment'),
+            static fn($m) => (int)($m['is_active'] ?? 0) === 1
+        ));
+
+        View::render('admin/users/create_order', [
+            'user'            => $user,
+            'shippingMethods' => $shippingMethods,
+            'paymentMethods'  => $paymentMethods,
+            'csrf'            => \App\Core\Http\Csrf::token(),
+            'allowedStatuses' => [
+                'new','confirmed','processing','shipped',
+                'delivered','completed','cancelled','returned',
+            ],
+        ], 'admin');
+    }
+
+    public function storeOrder($id)
+    {
+        $this->checkAdmin();
+
+        $userId = (int) $id;
+
+        if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+            $this->jsonResponse(['success' => false, 'message' => 'Метод не підтримується'], 405);
+        }
+
+        $rawInput = file_get_contents('php://input') ?: '';
+        $payload  = json_decode($rawInput, true);
+        if (!is_array($payload)) {
+            $payload = $_POST;
+        }
+
+        // Перевірка CSRF
+        $token = trim((string)($payload['csrf'] ?? ''));
+        if (!hash_equals((string)($_SESSION['csrf'] ?? ''), $token)) {
+            $this->jsonResponse(['success' => false, 'message' => 'CSRF токен недійсний'], 419);
+        }
+
+        $user = User::findById($userId);
+        if (!$user) {
+            $this->jsonResponse(['success' => false, 'message' => 'Користувача не знайдено'], 404);
+        }
+
+        // Делегуємо нормалізацію та збереження AdminOrderController
+        $orderController = new \App\Controllers\AdminOrderController();
+
+        // Підставляємо user_id у payload — saveOrder його ігнорував,
+        // тому зберігаємо через власний INSERT нижче
+        try {
+            $allowedStatuses = [
+                'new','confirmed','processing','shipped',
+                'delivered','completed','cancelled','returned',
+            ];
+
+            $customerName  = trim((string)($payload['customer_name'] ?? ''));
+            $customerPhone = trim((string)($payload['customer_phone'] ?? ''));
+            $customerEmail = trim((string)($payload['customer_email'] ?? ''));
+            $deliveryMethod = trim((string)($payload['delivery_method'] ?? ''));
+            $deliveryCity   = trim((string)($payload['delivery_city'] ?? ''));
+            $deliveryWarehouse = trim((string)($payload['delivery_warehouse'] ?? ''));
+            $deliveryAddress = trim((string)($payload['delivery_address'] ?? ''));
+            $paymentMethod  = trim((string)($payload['payment_method'] ?? ''));
+            $comment        = trim((string)($payload['comment'] ?? ''));
+            $status         = trim((string)($payload['status'] ?? 'new'));
+
+            if ($customerName === '' || mb_strlen($customerName) < 2) {
+                throw new \InvalidArgumentException('Вкажіть коректне імʼя клієнта');
+            }
+            $phoneMask = normalize_phone_mask((string)\App\Models\Setting::get('phone_mask', '+38 (###) ###-##-##'));
+            if (!is_phone_matching_mask($customerPhone, $phoneMask)) {
+                throw new \InvalidArgumentException('Вкажіть коректний номер телефону');
+            }
+            if ($customerEmail !== '' && filter_var($customerEmail, FILTER_VALIDATE_EMAIL) === false) {
+                throw new \InvalidArgumentException('Невірний формат email');
+            }
+            if (!in_array($status, $allowedStatuses, true)) {
+                throw new \InvalidArgumentException('Невідомий статус замовлення');
+            }
+
+            $itemsPayload = $payload['items'] ?? [];
+            if (!is_array($itemsPayload) || count($itemsPayload) === 0) {
+                throw new \InvalidArgumentException('Додайте хоча б один товар');
+            }
+
+            $normalizedItems = [];
+            $total = 0.0;
+            foreach ($itemsPayload as $i => $item) {
+                $productId = (int)($item['product_id'] ?? 0);
+                $qty       = (int)($item['qty'] ?? 0);
+                if ($productId <= 0 || $qty <= 0) {
+                    throw new \InvalidArgumentException('Некоректні дані товару у рядку ' . ($i + 1));
+                }
+                $product = \App\Core\Database\DB::query(
+                    'SELECT id, price FROM products WHERE id = ?', [$productId]
+                )->fetch(\PDO::FETCH_ASSOC);
+                if (!$product) {
+                    throw new \InvalidArgumentException('Товар ID ' . $productId . ' не знайдено');
+                }
+                $price = isset($item['price']) && $item['price'] !== ''
+                    ? (float)$item['price']
+                    : (float)($product['price'] ?? 0);
+                if ($price < 0) {
+                    throw new \InvalidArgumentException('Ціна не може бути відʼємною');
+                }
+                $normalizedItems[] = [
+                    'product_id' => $productId,
+                    'qty'        => $qty,
+                    'price'      => round($price, 2),
+                ];
+                $total += $qty * $price;
+            }
+
+            DB::beginTransaction();
+
+            \App\Core\Database\DB::query(
+                'INSERT INTO orders
+                    (user_id, total, customer_name, customer_phone, customer_email,
+                     delivery_method, delivery_city, delivery_warehouse, delivery_address,
+                     payment_method, comment, status, created_at)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())',
+                [
+                    $userId,
+                    round($total, 2),
+                    $customerName,
+                    $customerPhone,
+                    $customerEmail,
+                    $deliveryMethod,
+                    $deliveryCity,
+                    $deliveryWarehouse,
+                    $deliveryAddress,
+                    $paymentMethod,
+                    $comment,
+                    $status,
+                ]
+            );
+            $orderId = (int)DB::lastInsertId();
+
+            foreach ($normalizedItems as $item) {
+                \App\Core\Database\DB::query(
+                    'INSERT INTO order_items (order_id, product_id, qty, price, selected_options)
+                     VALUES (?, ?, ?, ?, ?)',
+                    [$orderId, $item['product_id'], $item['qty'], $item['price'], null]
+                );
+            }
+
+            DB::commit();
+
+            \App\Models\CrmUserService::recordActivity(
+                $userId,
+                'order_created',
+                'Адміністратор створив замовлення #' . $orderId
+            );
+
+            $this->jsonResponse([
+                'success'  => true,
+                'message'  => 'Замовлення #' . $orderId . ' створено',
+                'order_id' => $orderId,
+                'redirect' => '/admin/orders/details/' . $orderId,
+            ]);
+
+        } catch (\InvalidArgumentException $e) {
+            if (DB::inTransaction()) {
+                DB::rollBack();
+            }
+            $this->jsonResponse(['success' => false, 'message' => $e->getMessage()], 422);
+        } catch (\Throwable $e) {
+            if (DB::inTransaction()) {
+                DB::rollBack();
+            }
+            $this->jsonResponse(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
     public function liveCart($id)
     {
         $this->checkAdmin();

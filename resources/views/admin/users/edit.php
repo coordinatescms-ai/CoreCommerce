@@ -83,7 +83,7 @@ $lastOrderAt = $lastOrderRaw !== '' ? date('d.m.Y H:i', strtotime($lastOrderRaw)
         <h2 class="crm-card-title"><?php echo __('crm_actions_title'); ?></h2>
         <div class="crm-actions">
             <a href="#user-edit-form" class="btn btn-outline"><?php echo __('crm_action_edit_user'); ?></a>
-            <a href="/checkout?admin_user_id=<?php echo (int) $user['id']; ?>&prefill_email=<?php echo urlencode((string) ($user['email'] ?? '')); ?>" class="btn btn-primary"><?php echo __('crm_action_create_order'); ?></a>
+            <a href="/admin/users/create-order/<?php echo (int) $user['id']; ?>" class="btn btn-primary"><i class="fas fa-plus"></i> <?php echo __('crm_action_create_order'); ?></a>
         </div>
 
         <h3 style="margin: 1rem 0 .5rem;"><?php echo __('crm_activity_log_title'); ?></h3>
@@ -204,4 +204,3 @@ $lastOrderAt = $lastOrderRaw !== '' ? date('d.m.Y H:i', strtotime($lastOrderRaw)
     }
 })();
 </script>
-

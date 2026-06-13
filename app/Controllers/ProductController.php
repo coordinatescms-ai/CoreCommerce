@@ -82,37 +82,44 @@ class ProductController
      */
     private function buildCategoryPageData(array $category, array $queryParams): array
     {
+        $perPage = (int)($queryParams['limit'] ?? 12);
+        $perPage = max(1, $perPage);
+
         $filters = ProductFilterService::parseFiltersFromUrl($queryParams);
-        $filters['category_id'] = $category['id'];
-        $filters['limit'] = (int) ($queryParams['limit'] ?? 12);
-        $page = max(1, (int) ($queryParams['page'] ?? 1));
-        $filters['offset'] = ($page - 1) * $filters['limit'];
-        $filters['sort_by'] = $queryParams['sort_by'] ?? 'name';
-        $filters['sort_order'] = $queryParams['sort_order'] ?? 'ASC';
+        $filters['category_id']  = $category['id'];
+        $filters['limit']        = $perPage;
+        $filters['sort_by']      = $queryParams['sort_by']    ?? 'name';
+        $filters['sort_order']   = $queryParams['sort_order'] ?? 'ASC';
 
-        $products = ProductFilterService::filter($filters);
+        $pager = \App\Core\Pagination\Paginator::fromRequest('page', $perPage);
+        $filters['offset'] = $pager->offset;
+
+        $products      = ProductFilterService::filter($filters);
         $totalProducts = ProductFilterService::count($filters);
-        $pages = max(1, (int) ceil($totalProducts / max(1, $filters['limit'])));
-        $filterOptions = ProductFilterService::getFilterOptions($category['id'], $filters);
-        $priceRange = ProductFilterService::getPriceRange($category['id']);
-        $breadcrumbs = Category::getBreadcrumbs($category['id']);
 
-        $seoSettings = Category::getSeoSettings($category['id']);
+        $pager = $pager->setTotal($totalProducts);
+
+        $filterOptions = ProductFilterService::getFilterOptions($category['id'], $filters);
+        $priceRange    = ProductFilterService::getPriceRange($category['id']);
+        $breadcrumbs   = Category::getBreadcrumbs($category['id']);
+        $seoSettings   = Category::getSeoSettings($category['id']);
 
         return [
-            'category' => $category,
-            'products' => $products,
-            'totalProducts' => $totalProducts,
-            'page' => $page,
-            'pages' => $pages,
-            'filterOptions' => $filterOptions,
-            'priceRange' => $priceRange,
+            'category'       => $category,
+            'products'       => $products,
+            'totalProducts'  => $totalProducts,
+            'pager'          => $pager,
+            // Зворотна сумісність для partial що ще використовує $page/$pages
+            'page'           => $pager->page,
+            'pages'          => $pager->totalPages,
+            'filterOptions'  => $filterOptions,
+            'priceRange'     => $priceRange,
             'currentFilters' => $filters,
-            'breadcrumbs' => $breadcrumbs,
-            'categoryTree' => Category::getTree(),
-            'childCategories' => Category::getChildren($category['id']),
-            'seoSettings' => $seoSettings,
-            'seo' => $this->resolveCategorySeoPage($category, $seoSettings),
+            'breadcrumbs'    => $breadcrumbs,
+            'categoryTree'   => Category::getTree(),
+            'childCategories'=> Category::getChildren($category['id']),
+            'seoSettings'    => $seoSettings,
+            'seo'            => $this->resolveCategorySeoPage($category, $seoSettings),
         ];
     }
 

@@ -82,7 +82,7 @@
             <tr>
                 <td><strong><?= $label ?></strong></td>
                 <td><span style="color: #64748b;"><i class="fa-solid fa-box-open"></i></span> <?= $count ?> шт.</td>
-                <td><?= number_format($val, 2, '.', ' ') ?> ₴</td>
+                <td><?= format_price($val) ?></td>
                 <td style="text-align: right;">
                     <small style="color: #36a2eb; font-weight: 600;"><?= $percent ?>%</small>
                 </td>
@@ -92,7 +92,7 @@
             <tr style="background: #f8fafc; font-weight: bold; border-top: 2px solid #e2e8f0;">
                 <td>РАЗОМ</td>
                 <td><?= $total_orders ?> шт.</td>
-                <td><?= number_format($total_sum, 2, '.', ' ') ?> ₴</td>
+                <td><?= format_price($total_sum) ?></td>
                 <td style="text-align: right;">100%</td>
             </tr>
             
@@ -134,7 +134,7 @@
                         </span>
                     </td>
                     <td style="text-align: right; font-weight: bold; color: #059669;">
-                        <?= number_format($item['total_revenue'], 2, '.', ' ') ?> ₴
+                        <?= format_price($item['total_revenue']) ?>
                     </td>
                 </tr>
                 <?php endforeach; ?>
@@ -169,7 +169,7 @@
                 <tr>
                     <td>
                         <div style="font-weight: 600;"><?= htmlspecialchars($item['name']) ?></div>
-                        <small style="color: #94a3b8;">Ціна: <?= number_format($item['price'], 2) ?> ₴</small>
+                        <small style="color: #94a3b8;">Ціна: <?= format_price($item['price']) ?></small>
                     </td>
                     <td style="text-align: center;">
                         <span class="stock-label <?= $item['stock'] == 0 ? 'out-of-stock' : 'low-stock' ?>">
@@ -224,7 +224,7 @@
             data: {
                 labels: labels,
                 datasets: [{
-                    label: 'Виручка (грн)',
+                    label: 'Виручка (' + currencySymbol + ')',
                     data: data,
                     borderColor: '#36a2eb',
                     borderWidth: 3,
@@ -252,7 +252,7 @@
                         displayColors: false,
                         callbacks: {
                             label: function(context) {
-                                return 'Сума: ' + context.parsed.y.toLocaleString() + ' ₴';
+                                return 'Сума: ' + context.parsed.y.toLocaleString() + ' ' + currencySymbol;
                             }
                         }
                     }
@@ -266,7 +266,7 @@
                         },
                         ticks: {
                             callback: function(value) {
-                                return value.toLocaleString() + ' ₴';
+                                return value.toLocaleString() + ' ' + currencySymbol;
                             }
                         }
                     },
