@@ -339,11 +339,70 @@ class AdminProductController
         return $service->addStock($sku, $qty, $comment);
     }
 
+    private const PRODUCTS_PER_PAGE = 20;
+
     public function index()
     {
         $this->checkAdmin();
-        $products = Product::allWithCategory();
-        View::render('admin/products/index', ['products' => $products], 'admin');
+
+        $search     = trim((string)($_GET['search']     ?? ''));
+        $catId      = isset($_GET['category']) && $_GET['category'] !== ''
+                        ? (int)$_GET['category'] : null;
+        $visibility = in_array($_GET['visibility'] ?? '', ['visible', 'hidden'], true)
+                        ? $_GET['visibility'] : 'all';
+
+        [$products, $pager] = \App\Core\Pagination\Paginator::paginate(
+            "SELECT p.*, c.name AS category_name, COALESCE(ps.quantity, 0) AS stock_quantity
+             FROM products p
+             LEFT JOIN categories c ON c.id = p.category_id
+             LEFT JOIN product_stocks ps
+                ON ps.sku COLLATE utf8mb4_general_ci = p.sku COLLATE utf8mb4_general_ci
+               AND ps.option_id IS NULL
+             " . $this->buildProductWhere($search, $catId, $visibility)['sql'] . "
+             ORDER BY p.id DESC",
+            $this->buildProductWhere($search, $catId, $visibility)['params'],
+            "SELECT COUNT(*) FROM products p
+             " . $this->buildProductWhere($search, $catId, $visibility)['sql'],
+            $this->buildProductWhere($search, $catId, $visibility)['params'],
+            self::PRODUCTS_PER_PAGE
+        );
+
+        $categories = \App\Core\Database\DB::query(
+            'SELECT id, name FROM categories ORDER BY name ASC'
+        )->fetchAll(\PDO::FETCH_ASSOC);
+
+        View::render('admin/products/index', [
+            'products'   => $products,
+            'categories' => $categories,
+            'pager'      => $pager,
+            'search'     => $search,
+            'catId'      => $catId,
+            'visibility' => $visibility,
+        ], 'admin');
+    }
+
+    private function buildProductWhere(string $search, ?int $catId, string $visibility): array
+    {
+        $where  = [];
+        $params = [];
+
+        if ($search !== '') {
+            $where[]  = '(p.name LIKE ? OR p.sku LIKE ?)';
+            $like     = '%' . $search . '%';
+            $params[] = $like;
+            $params[] = $like;
+        }
+        if ($catId !== null) {
+            $where[]  = 'p.category_id = ?';
+            $params[] = $catId;
+        }
+        if ($visibility === 'visible') { $where[] = 'p.is_visible = 1'; }
+        if ($visibility === 'hidden')  { $where[] = 'p.is_visible = 0'; }
+
+        return [
+            'sql'    => $where ? 'WHERE ' . implode(' AND ', $where) : '',
+            'params' => $params,
+        ];
     }
 
 
@@ -368,6 +427,18 @@ class AdminProductController
         $extension = strtolower((string) pathinfo((string) ($file['name'] ?? ''), PATHINFO_EXTENSION));
         if ($extension !== 'csv') {
             $_SESSION['error'] = 'Дозволено імпорт лише CSV-файлів (.csv).';
+            header('Location: /admin/products');
+            exit;
+        }
+
+        // MIME-валідація через finfo (захист від підміни розширення)
+        $finfo    = finfo_open(FILEINFO_MIME_TYPE);
+        $realMime = $finfo ? (string) finfo_file($finfo, (string) ($file['tmp_name'] ?? '')) : '';
+        if ($finfo) { finfo_close($finfo); }
+
+        $allowedCsvMimes = ['text/plain', 'text/csv', 'application/csv', 'application/octet-stream'];
+        if ($realMime !== '' && !in_array($realMime, $allowedCsvMimes, true)) {
+            $_SESSION['error'] = 'Файл не є текстовим CSV (перевірено за вмістом).';
             header('Location: /admin/products');
             exit;
         }
@@ -532,7 +603,11 @@ class AdminProductController
 
         $galleryImages = ProductImage::getByProduct((int) $id);
 
-        View::render('admin/products/show', ['product' => $product, 'galleryImages' => $galleryImages], 'admin');
+        View::render('admin/products/show', [
+            'product'        => $product,
+            'galleryImages'  => $galleryImages,
+            'currencySymbol' => \App\Core\Database\DB::query('SELECT symbol FROM currencies WHERE is_active = 1 LIMIT 1')->fetchColumn() ?: '₴',
+        ], 'admin');
     }
 
     private function getGalleryImagesLimit(): int
@@ -943,8 +1018,27 @@ class AdminProductController
             $primaryImage = $this->resolvePrimaryImageFromGallery((int) $id);
             Product::update((int) $id, ['image' => $primaryImage]);
 
+            // Хук для Prom.ua — визначаємо які поля змінились
+            if ($oldProduct) {
+                $changedFields = [];
+                if ((float)$oldProduct['price'] !== $data['price']) {
+                    $changedFields[] = 'price';
+                }
+                // stock_quantity перевіряємо якщо є коригування
+                if ($stockQty > 0) {
+                    $changedFields[] = 'stock_quantity';
+                }
+                if (!empty($changedFields)) {
+                    do_action('product.updated', (int)$id, $changedFields);
+                }
+            }
+
             unset($_SESSION[self::PRODUCT_FORM_FLASH_KEY]);
             $_SESSION['success'] = 'Товар успішно оновлено!';
+
+            // Інвалідуємо кеш товарів
+            \App\Core\Database\QueryCache::flush('products');
+
             header('Location: /admin/products');
         } else {
             $this->flashProductFormData($data, $attributeRows);
@@ -1098,5 +1192,40 @@ class AdminProductController
         unset($_SESSION[self::PRODUCT_FORM_FLASH_KEY]);
 
         return is_array($data) ? $data : [];
+    }
+
+    public function search(): void
+    {
+        if (empty($_SESSION['user']) || ($_SESSION['user']['role'] ?? '') !== 'admin') {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Доступ заборонено']);
+            exit;
+        }
+
+        $q = trim((string)($_GET['q'] ?? ''));
+        if (mb_strlen($q) < 1) {
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['success' => true, 'products' => []]);
+            exit;
+        }
+
+        $like = '%' . $q . '%';
+        $rows = \App\Core\Database\DB::query(
+            "SELECT p.id, p.name, p.price, p.sku,
+                    COALESCE(ps.quantity, 0) AS stock
+             FROM products p
+             LEFT JOIN product_stocks ps
+                ON ps.sku COLLATE utf8mb4_general_ci = p.sku COLLATE utf8mb4_general_ci
+                AND ps.option_id IS NULL
+             WHERE p.is_visible = 1
+               AND (p.name LIKE ? OR p.sku LIKE ?)
+             ORDER BY p.name ASC
+             LIMIT 30",
+            [$like, $like]
+        )->fetchAll(\PDO::FETCH_ASSOC);
+
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['success' => true, 'products' => $rows], JSON_UNESCAPED_UNICODE);
+        exit;
     }
 }

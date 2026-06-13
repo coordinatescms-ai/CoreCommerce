@@ -80,7 +80,7 @@ if (!function_exists('renderCategoryAccordionTree')) {
                         <h3 style="margin: 0 0 0.5rem;">
                             <a href="/product/<?= htmlspecialchars($product['slug']) ?>" style="text-decoration: none; color: #111827;"><?= htmlspecialchars($product['name']) ?></a>
                         </h3>
-                        <p style="margin: 0 0 0.75rem;"><strong><?= htmlspecialchars($product['price']) ?> грн</strong></p>
+                        <p style="margin: 0 0 0.75rem;"><strong><?= format_price($product['price']) ?></strong></p>
                         <form action="/cart/add/<?= (int)$product['id'] ?>" method="POST" style="display: inline-block; margin: 0; width: 100%;">
                             <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
                             <input type="hidden" name="return_url" value="<?= htmlspecialchars($_SERVER['REQUEST_URI'] ?? '/products') ?>">

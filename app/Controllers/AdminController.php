@@ -461,11 +461,16 @@ class AdminController
             'store_status' => (string) Setting::get('store_status', 'open'),
         ];
 
+        $currencies = DB::query(
+            'SELECT * FROM currencies ORDER BY is_active DESC, code ASC'
+        )->fetchAll(\PDO::FETCH_ASSOC);
+
         View::render('admin/system', [
-            'systemInfo' => $systemInfo,
-            'logs' => $logs,
-            'cronTasks' => $cronTasks,
+            'systemInfo'  => $systemInfo,
+            'logs'        => $logs,
+            'cronTasks'   => $cronTasks,
             'environment' => $environment,
+            'currencies'  => $currencies,
         ], 'admin');
     }
 
@@ -549,7 +554,7 @@ class AdminController
                 foreach ($rows as $row) {
                     $cols = array_map(static fn($c) => '`' . str_replace('`', '``', (string) $c) . '`', array_keys($row));
                     $vals = array_map(static function ($v) {
-                        return $v === null ? 'NULL' : DB::$pdo->quote((string) $v);
+                        return $v === null ? 'NULL' : DB::quote((string) $v);
                     }, array_values($row));
                     $dump .= 'INSERT INTO `' . $table . '` (' . implode(',', $cols) . ') VALUES (' . implode(',', $vals) . ");\n";
                 }
@@ -786,6 +791,26 @@ class AdminController
             $config = require __DIR__ . '/../../config/updater.php';
             View::renderPartial('admin/settings/tabs/update', [
                 'current_version' => $config['current_version']
+            ]);
+            break;
+
+        case 'integrations':
+            $promSettings = [
+                'prom_enabled'        => (string) Setting::get('prom_enabled',        '0'),
+                'prom_api_key'        => (string) Setting::get('prom_api_key',        ''),
+                'prom_sync_method'    => (string) Setting::get('prom_sync_method',    'xml'),
+                'prom_webhook_secret' => (string) Setting::get('prom_webhook_secret', ''),
+                'prom_last_sync'      => (string) Setting::get('prom_last_sync',      ''),
+            ];
+            $siteUrl  = rtrim((string) Setting::get('site_url', ''), '/');
+            $queueStats = [];
+            if ($promSettings['prom_enabled'] === '1') {
+                $queueStats = (new \App\Services\PromSyncService())->getQueueStats();
+            }
+            View::renderPartial('admin/settings/tabs/integrations', [
+                'prom'       => $promSettings,
+                'siteUrl'    => $siteUrl,
+                'queueStats' => $queueStats,
             ]);
             break;
 

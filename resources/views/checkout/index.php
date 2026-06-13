@@ -97,13 +97,13 @@
                                 </small>
                             <?php endif; ?>
                         </span>
-                        <strong><?= number_format($item['price'] * $item['quantity'], 2) ?> грн</strong>
+                        <strong><?= format_price($item['price'] * $item['quantity']) ?></strong>
                     </li>
                 <?php endforeach; ?>
             </ul>
             <div class="summary-total">
                 <span>Разом</span>
-                <strong><?= number_format($total, 2) ?> грн</strong>
+                <strong><?= format_price($total) ?></strong>
             </div>
 
             <button type="submit" id="checkout-submit" class="checkout-submit">Підтвердити замовлення</button>

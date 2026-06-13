@@ -470,8 +470,18 @@ class ThemeManager
             return false;
         }
 
+        // MIME-валідація через finfo
+        $tmpName  = (string) ($file['tmp_name'] ?? '');
+        $finfo    = finfo_open(FILEINFO_MIME_TYPE);
+        $realMime = $finfo ? (string) finfo_file($finfo, $tmpName) : '';
+        if ($finfo) { finfo_close($finfo); }
+
+        if ($realMime !== 'application/zip' && $realMime !== 'application/x-zip-compressed') {
+            return false;
+        }
+
         $zip = new \ZipArchive();
-        if ($zip->open((string) ($file['tmp_name'] ?? '')) !== true) {
+        if ($zip->open($tmpName) !== true) {
             return false;
         }
 

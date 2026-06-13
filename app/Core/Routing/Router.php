@@ -1,18 +1,62 @@
 <?php
+
 namespace App\Core\Routing;
-class Router{
-protected $r=[];
-function get($u,$a){$this->r[]=['GET',$u,$a];}
-function post($u,$a){$this->r[]=['POST',$u,$a];}
-function delete($u,$a){$this->r[]=['DELETE',$u,$a];}
-function match($p,$u,&$pa){$p=preg_replace('#\{([^/]+)\}#','([^/]+)',$p);$p='#^'.$p.'$#';if(preg_match($p,$u,$m)){array_shift($m);$pa=$m;return true;}return false;}
-function dispatch($m,$u){
-foreach($this->r as [$rm,$ru,$ra]){
-if($rm!=$m)continue;
-$pa=[];
-if($this->match($ru,$u,$pa)){
-$c=new $ra[0];
-return call_user_func_array([$c,$ra[1]],$pa);
-}}
-return '404';
-}}
+
+class Router
+{
+    protected array $routes = [];
+
+    public function get(string $uri, array $action): void
+    {
+        $this->routes[] = ['GET', $uri, $action];
+    }
+
+    public function post(string $uri, array $action): void
+    {
+        $this->routes[] = ['POST', $uri, $action];
+    }
+
+    public function delete(string $uri, array $action): void
+    {
+        $this->routes[] = ['DELETE', $uri, $action];
+    }
+
+    private function matchRoute(string $pattern, string $uri, array &$params): bool
+    {
+        $pattern = preg_replace('#\{([^/]+)\}#', '([^/]+)', $pattern);
+        $pattern = '#^' . $pattern . '$#';
+
+        if (preg_match($pattern, $uri, $matches)) {
+            array_shift($matches);
+            $params = $matches;
+            return true;
+        }
+
+        return false;
+    }
+
+    public function dispatch(string $method, string $uri): void
+    {
+        foreach ($this->routes as [$routeMethod, $routeUri, $action]) {
+            if ($routeMethod !== $method) {
+                continue;
+            }
+
+            $params = [];
+            if ($this->matchRoute($routeUri, $uri, $params)) {
+                $controller = new $action[0]();
+                call_user_func_array([$controller, $action[1]], $params);
+                return;
+            }
+        }
+
+        // Маршрут не знайдено — повертаємо справжній HTTP 404
+        http_response_code(404);
+        $viewPath = dirname(__DIR__, 3) . '/resources/views/errors/404.php';
+        if (is_file($viewPath)) {
+            require $viewPath;
+        } else {
+            echo '<h1>404 — Сторінку не знайдено</h1>';
+        }
+    }
+}

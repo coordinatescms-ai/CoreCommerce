@@ -232,7 +232,30 @@
                 return;
             }
 
-            showStatus('success', `${result.message} Номер замовлення: #${result.order_id}`);
+            // Обробляємо відповідь платіжного шлюзу
+            const action = result.payment_action || 'thank_you';
+
+            if (action === 'redirect' && result.payment_url) {
+                // Перенаправляємо на зовнішню платіжну сторінку
+                window.location.href = result.payment_url;
+                return;
+            }
+
+            if (action === 'render' && result.payment_html) {
+                // Плагін повернув HTML форму — вставляємо замість форми
+                form.innerHTML = result.payment_html;
+                // Виконуємо <script> теги якщо є
+                form.querySelectorAll('script').forEach((old) => {
+                    const s = document.createElement('script');
+                    s.textContent = old.textContent;
+                    old.parentNode.replaceChild(s, old);
+                });
+                return;
+            }
+
+            // thank_you або fallback — показуємо сторінку подяки
+            const msg = result.payment_message || result.message || 'Замовлення успішно оформлено.';
+            showStatus('success', `${msg} Номер замовлення: #${result.order_id}`);
             form.reset();
             toggleDeliveryFields();
         } catch (error) {

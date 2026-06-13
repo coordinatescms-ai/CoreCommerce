@@ -1,4 +1,17 @@
-<form action="/admin/settings/save" method="POST" enctype="multipart/form-data">
+<?php
+// Отримуємо всі валюти та поточні налаштування
+$allCurrencies   = \App\Core\Database\DB::query('SELECT * FROM currencies ORDER BY is_active DESC, code ASC')->fetchAll(\PDO::FETCH_ASSOC);
+$activeCurrency  = array_values(array_filter($allCurrencies, fn($c) => (int)$c['is_active'] === 1))[0] ?? null;
+$currencySource  = get_setting('currency_source', 'manual');
+?>
+
+<!-- Окрема форма для валют (ПЕРША) -->
+<form method="POST" action="/admin/currencies/update" id="currencyUpdateForm" style="display:none;">
+    <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
+</form>
+
+<!-- Основна форма налаштувань (ДРУГА) -->
+<form action="/admin/settings/save" method="POST" enctype="multipart/form-data" id="mainSettingsForm">
     <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf']); ?>">
     <input type="hidden" name="current_tab" value="general">
 
@@ -47,7 +60,7 @@
 
     <div class="card">
         <div class="card-header">
-            <i class="fas fa-globe"></i> Локалізація та Валюта
+            <i class="fas fa-globe"></i> Локалізація
         </div>
         <div class="card-body">
             <div class="form-group">
@@ -57,91 +70,182 @@
                     <option value="en" <?php echo get_setting('default_language', 'ua') === 'en' ? 'selected' : ''; ?>>Англійська</option>
                 </select>
             </div>
+        </div>
+    </div>
+
+    <!-- Блок перерахунку валюти (ВІЗУАЛЬНО ТУТ, АЛЕ ПРИВ'ЯЗАНИЙ ДО currencyUpdateForm) -->
+    <div class="card" style="margin-top:1rem;">
+        <div class="card-header">
+            <i class="fas fa-coins"></i> Валюта та перерахунок цін
+            <?php if ($activeCurrency): ?>
+                <span style="margin-left:.75rem; background:#dcfce7; color:#166534;
+                             font-size:.75rem; font-weight:700; padding:2px 10px;
+                             border-radius:20px; vertical-align:middle;">
+                    Активна: <?= htmlspecialchars($activeCurrency['code']) ?>
+                    (<?= htmlspecialchars($activeCurrency['symbol']) ?>)
+                    · курс <?= number_format((float)$activeCurrency['rate'], 4) ?>
+                </span>
+            <?php endif; ?>
+        </div>
+        <div class="card-body">
             <div class="form-group">
-                <label for="default_currency">Основна валюта</label>
-                <select name="settings[default_currency]" id="default_currency" class="form-control">
-                    <option value="UAH" <?php echo get_setting('default_currency', 'UAH') === 'UAH' ? 'selected' : ''; ?>>Гривня (UAH)</option>
-                    <option value="USD" <?php echo get_setting('default_currency', 'UAH') === 'USD' ? 'selected' : ''; ?>>Долар (USD)</option>
-                    <option value="EUR" <?php echo get_setting('default_currency', 'UAH') === 'EUR' ? 'selected' : ''; ?>>Євро (EUR)</option>
+                <label for="target_currency">Перемкнути сайт на валюту</label>
+                <select name="target_currency" id="target_currency" class="form-control" form="currencyUpdateForm">
+                    <?php foreach ($allCurrencies as $cur): ?>
+                        <option value="<?= htmlspecialchars($cur['code']) ?>"
+                            <?= (int)$cur['is_active'] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($cur['code']) ?>
+                            (<?= htmlspecialchars($cur['symbol']) ?>)
+                            <?= (int)$cur['is_active'] ? ' — поточна' : '' ?>
+                        </option>
+                    <?php endforeach; ?>
                 </select>
+                <small style="color:#64748b; font-size:.8rem; margin-top:.25rem; display:block;">
+                    Ціни <strong>всіх товарів</strong> будуть фізично перераховані в базі даних.
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label style="display:flex; align-items:center; gap:.75rem; cursor:pointer; font-weight:600;">
+                    Джерело курсу:
+                    <label style="display:flex; align-items:center; gap:.3rem; font-weight:400; cursor:pointer;">
+                        <input type="radio" name="currency_source" value="manual"
+                               id="src_manual"
+                               form="currencyUpdateForm"
+                               <?= $currencySource !== 'api' ? 'checked' : '' ?>
+                               onchange="toggleRateSource()">
+                        Мій курс
+                    </label>
+                    <label style="display:flex; align-items:center; gap:.3rem; font-weight:400; cursor:pointer;">
+                        <input type="radio" name="currency_source" value="api"
+                               id="src_api"
+                               form="currencyUpdateForm"
+                               <?= $currencySource === 'api' ? 'checked' : '' ?>
+                               onchange="toggleRateSource()">
+                        API НБУ (автоматично)
+                    </label>
+                </label>
+            </div>
+
+            <!-- Поле для ручного курсу -->
+            <div class="form-group" id="manual_rate_group"
+                 style="<?= $currencySource === 'api' ? 'display:none;' : '' ?>">
+                <label for="manual_rate">Курс цільової валюти до UAH</label>
+                <input type="number" name="manual_rate" id="manual_rate"
+                       class="form-control"
+                       form="currencyUpdateForm"
+                       min="0.0001" step="0.0001"
+                       placeholder="Напр. 41.5000"
+                       value="">
+                <small style="color:#64748b; font-size:.8rem; display:block; margin-top:.25rem;">
+                    Скільки гривень коштує 1 одиниця цільової валюти.
+                </small>
+            </div>
+
+            <!-- Інфо про API -->
+            <div class="form-group" id="api_rate_group"
+                 style="<?= $currencySource !== 'api' ? 'display:none;' : '' ?>">
+                <label for="api_key_input">API-ключ НБУ</label>
+                <?php
+                $savedApiKey = (!in_array($currencySource, ['manual', 'api'], true)) ? $currencySource : '';
+                ?>
+                <input type="text" name="currency_api_key" id="api_key_input"
+                       class="form-control"
+                       form="currencyUpdateForm"
+                       placeholder="Введіть ключ доступу до API НБУ"
+                       value="<?= htmlspecialchars($savedApiKey) ?>">
+                <small style="color:#64748b; font-size:.8rem; display:block; margin-top:.25rem;">
+                    Ключ зберігається в БД і передається при кожному запиті до НБУ.
+                </small>
+            </div>
+
+            <button type="submit" class="btn btn-primary"
+                    form="currencyUpdateForm"
+                    onclick="return confirm('Увага! Ціни всіх товарів будуть перераховані. Продовжити?')">
+                <i class="fas fa-sync-alt"></i> Оновити курс та ціни
+            </button>
+        </div>
+    </div>
+
+    <!-- Секція Локалізація -->
+    <div class="card" style="margin-top:1rem;">
+        <div class="card-header">
+            <i class="fa-solid fa-clock"></i> Регіональні налаштування
+        </div>
+        <div class="card-body">
+            <div class="form-group">
+                <label>Часовий пояс (Timezone)</label>
+                <select name="settings[site_timezone]" id="site_timezone" class="form-control">
+                    <option value="Europe/Kiev" <?php echo get_setting('site_timezone', 'Europe/Kiev') === 'Europe/Kiev' ? 'selected' : ''; ?>>Kyiv (GMT+2 / GMT+3)</option>
+                    <option value="Europe/London" <?php echo get_setting('site_timezone', 'Europe/London') === 'Europe/London' ? 'selected' : ''; ?>>London (GMT+0 / GMT+1)</option>
+                    <option value="Europe/Warsaw" <?php echo get_setting('site_timezone', '') === 'Europe/Warsaw' ? 'selected' : ''; ?>>Warsaw (GMT+1 / GMT+2)</option>
+                    <option value="UTC" <?php echo get_setting('site_timezone', '') === 'UTC' ? 'selected' : ''; ?>>Universal Time (UTC)</option>
+                </select>
+                <small class="hint">Впливає на відображення дати та часу в замовленнях.</small>
+            </div>
+            <div class="form-group">
+                <label>Формат дати</label>
+                <input type="text" name="settings[date_format]" class="form-control" value="<?php echo htmlspecialchars(get_setting('date_format', 'd.m.Y H:i')); ?>" placeholder="d.m.Y H:i">
+                <small class="hint">Наприклад: <code>11.04.2024 15:30</code></small>
             </div>
         </div>
     </div>
 
-<!-- Секція Локалізація -->
-<div class="settings-card">
-    <div class="card-header">
-        <h3><i class="fa-solid fa-clock"></i> Регіональні налаштування</h3>
-    </div>
-    <div class="grid-inputs">
-        <div class="input-group">
-            <label>Часовий пояс (Timezone)</label>
-            <select name="settings[site_timezone]" id="site_timezone" class="custom-select">
-                <option value="Europe/Kiev" <?php echo get_setting('site_timezone', 'Europe/Kiev') === 'Europe/Kiev' ? 'selected' : ''; ?>>Kyiv (GMT+2 / GMT+3)</option>
-                <option value="Europe/London" <?php echo get_setting('site_timezone', 'Europe/London') === 'Europe/London' ? 'selected' : ''; ?>>London (GMT+0 / GMT+1)</option>
-                <option value="Europe/Warsaw">Warsaw (GMT+1 / GMT+2)</option>
-                <option value="UTC">Universal Time (UTC)</option>
-            </select>
-            <small class="hint">Впливає на відображення дати та часу в замовленнях.</small>
+    <!-- Секція SMTP -->
+    <div class="card" style="margin-top:1rem;">
+        <div class="card-header">
+            <i class="fa-solid fa-envelope"></i> Налаштування пошти (SMTP)
         </div>
-        <div class="input-group">
-            <label>Формат дати</label>
-            <input type="text" name="date_format" value="d.m.Y H:i" placeholder="d.m.Y H:i">
-            <p class="hint">Наприклад: <code>11.04.2024 15:30</code></p>
+        <div class="card-body">
+            <div class="form-group">
+                <label>SMTP Хост</label>
+                <input type="text" id="smtp" name="settings[smtr]" class="form-control" value="<?php echo htmlspecialchars(get_setting('smtr', '')); ?>">
+            </div>
+            <div class="form-group">
+                <label>Порт</label>
+                <input type="number" id="smtp_port" name="settings[smtp_port]" class="form-control" value="<?php echo htmlspecialchars(get_setting('smtp_port', '')); ?>">
+            </div>
+            <div class="form-group">
+                <label>Користувач (Email)</label>
+                <input type="email" id="email" name="settings[email]" class="form-control" value="<?php echo htmlspecialchars(get_setting('email', '')); ?>">
+            </div>
+            <div class="form-group">
+                <label>Пароль</label>
+                <input type="password" id="smtp_pass" name="settings[smtp_pass]" class="form-control" value="<?php echo htmlspecialchars(get_setting('smtp_pass', '')); ?>">
+            </div>
         </div>
-    </div>
-</div>
-
-<!-- Секція SMTP -->
-<div class="settings-card">
-    <div class="card-header">
-        <h3><i class="fa-solid fa-envelope"></i> Налаштування пошти (SMTP)</h3>
-    </div>
-    <div class="grid-inputs">
-        <div class="input-group">
-            <label>SMTP Хост</label>
-            <input type="text" id="smtp" name="settings[smtr]" value="<?php echo htmlspecialchars(get_setting('smtr', '')); ?>">
-        </div>
-        <div class="input-group">
-            <label>Порт</label>
-            <input type="number" id="smtp_port" name="settings[smtp_port]" value="<?php echo htmlspecialchars(get_setting('smtp_port', '')); ?>">
-        </div>
-        <div class="input-group">
-            <label>Користувач (Email)</label>
-            <input type="email" id="email" name="settings[email]" value="<?php echo htmlspecialchars(get_setting('email', '')); ?>">
-        </div>
-        <div class="input-group">
-            <label>Пароль</label>
-            <input type="password" id="smtp_pass" name="settings[smtp_pass]" value="<?php echo htmlspecialchars(get_setting('smtp_pass', '')); ?>">
-        </div>
-    </div>
-</div>
-
-<!-- Секція SEO -->
-<div class="settings-card">
-    <div class="card-header">
-        <h3><i class="fa-solid fa-search"></i> SEO-шаблони для товарів</h3>
-    </div>
-    <div class="input-group">
-        <label>Шаблон Title</label>
-        <input type="text" id="seo_title_template" name="settings[seo_title_template]" value="<?php echo htmlspecialchars(get_setting('seo_title_template', '')); ?>">
-        <p class="hint">Доступні маски: <code>{name}</code>, <code>{price}</code>, <code>{category}</code></p>
-    </div>
-    <div class="input-group">
-        <label>Шаблон Description</label>
-        <textarea id="seo_desc_template" name="settings[seo_desc_template]" rows="3"><?php echo htmlspecialchars(get_setting('seo_desc_template', '')); ?></textarea>
-        <p class="hint">Якщо для конкретного товару відсутнє seo-налаштування, тоді застосовуються автоматичні шаблони для всіх товарів</p>
     </div>
 
-</div>
+    <!-- Секція SEO -->
+    <div class="card" style="margin-top:1rem;">
+        <div class="card-header">
+            <i class="fa-solid fa-search"></i> SEO-шаблони для товарів
+        </div>
+        <div class="card-body">
+            <div class="form-group">
+                <label>Шаблон Title</label>
+                <input type="text" id="seo_title_template" name="settings[seo_title_template]" class="form-control" value="<?php echo htmlspecialchars(get_setting('seo_title_template', '')); ?>">
+                <small class="hint">Доступні маски: <code>{name}</code>, <code>{price}</code>, <code>{category}</code></small>
+            </div>
+            <div class="form-group">
+                <label>Шаблон Description</label>
+                <textarea id="seo_desc_template" name="settings[seo_desc_template]" class="form-control" rows="3"><?php echo htmlspecialchars(get_setting('seo_desc_template', '')); ?></textarea>
+                <small class="hint">Автоматичні шаблони для всіх товарів.</small>
+            </div>
+        </div>
+    </div>
 
-    <div class="card">
+    <div class="card" style="margin-top:1rem;">
         <div class="card-header">
             <i class="fas fa-palette"></i> Зовнішній вигляд
         </div>
         <div class="card-body">
             <div class="form-group">
                 <label for="active_theme">Активна тема оформлення</label>
+                <?php
+                $themesDir = __DIR__ . '/../../../../resources/themes';
+                $themes = is_dir($themesDir) ? array_values(array_diff(scandir($themesDir), ['.', '..'])) : [];
+                ?>
                 <select name="settings[active_theme]" id="active_theme" class="form-control">
                     <?php foreach ($themes as $theme): ?>
                         <option value="<?php echo htmlspecialchars($theme); ?>" <?php echo get_setting('active_theme', '') === $theme ? 'selected' : ''; ?>>
@@ -153,7 +257,7 @@
         </div>
     </div>
 
-    <div class="card">
+    <div class="card" style="margin-top:1rem;">
         <div class="card-header">
             <i class="fas fa-address-book"></i> Контактні дані
         </div>
@@ -164,13 +268,12 @@
             </div>
             <div class="form-group">
                 <label for="contact_phone">Контактний телефон</label>
-                <input type="text" name="settings[contact_phone]" id="contact_phone" class="form-control" data-phone-mask value="<?php echo htmlspecialchars(get_setting('contact_phone', '')); ?>">
+                <input type="text" name="settings[contact_phone]" id="contact_phone" class="form-control" value="<?php echo htmlspecialchars(get_setting('contact_phone', '')); ?>">
             </div>
         </div>
     </div>
 
-
-    <div class="card">
+    <div class="card" style="margin-top:1rem;">
         <div class="card-header">
             <i class="fas fa-user-shield"></i> Соціальний вхід
         </div>
@@ -191,14 +294,8 @@
                 <label for="google_client_secret">Client Secret</label>
                 <input type="password" name="settings[google_client_secret]" id="google_client_secret" class="form-control" value="<?php echo htmlspecialchars(get_setting('google_client_secret', '')); ?>">
             </div>
-            <div class="form-group">
-                <label for="google_redirect_url">Redirect URL</label>
-                <input type="url" name="settings[google_redirect_url]" id="google_redirect_url" class="form-control" value="<?php echo htmlspecialchars(get_setting('google_redirect_url', '')); ?>">
-            </div>
 
-            <hr style="margin:1.25rem 0;">
-
-            <h4>Facebook</h4>
+            <h4 style="margin-top:1rem;">Facebook</h4>
             <div class="form-group">
                 <label for="facebook_auth_enabled">Статус</label>
                 <select name="settings[facebook_auth_enabled]" id="facebook_auth_enabled" class="form-control">
@@ -214,17 +311,22 @@
                 <label for="facebook_client_secret">Client Secret</label>
                 <input type="password" name="settings[facebook_client_secret]" id="facebook_client_secret" class="form-control" value="<?php echo htmlspecialchars(get_setting('facebook_client_secret', '')); ?>">
             </div>
-            <div class="form-group">
-                <label for="facebook_redirect_url">Redirect URL</label>
-                <input type="url" name="settings[facebook_redirect_url]" id="facebook_redirect_url" class="form-control" value="<?php echo htmlspecialchars(get_setting('facebook_redirect_url', '')); ?>">
-            </div>
         </div>
     </div>
 
-    <div style="margin-bottom: 2rem; display: flex; justify-content: flex-end;">
+    <div style="margin-top: 2rem; margin-bottom: 2rem; display: flex; justify-content: flex-end;">
         <button type="submit" class="btn btn-primary btn-lg" style="padding: 0.75rem 2rem; font-size: 1rem;">
             <i class="fas fa-save"></i> Зберегти всі налаштування
         </button>
     </div>
-    <script src="/js/phone-mask.js"></script>
 </form>
+
+<script>
+function toggleRateSource() {
+    const isApi = document.getElementById('src_api').checked;
+    document.getElementById('manual_rate_group').style.display = isApi ? 'none' : '';
+    document.getElementById('api_rate_group').style.display    = isApi ? '' : 'none';
+    document.getElementById('manual_rate').required = !isApi;
+}
+toggleRateSource();
+</script>

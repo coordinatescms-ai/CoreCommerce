@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: MySQL-8.0:3306
--- Час створення: Трв 25 2026 р., 19:22
--- Версія сервера: 8.0.44
--- Версія PHP: 8.3.29
+-- Час створення: Чрв 13 2026 р., 18:17
+-- Версія сервера: 8.0.45
+-- Версія PHP: 8.3.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -71,10 +71,10 @@ DELIMITER ;
 
 CREATE TABLE `attributes` (
   `id` int NOT NULL,
-  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `slug` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `type` enum('text','select','multiselect','color','range') COLLATE utf8mb4_unicode_ci DEFAULT 'text',
-  `description` text COLLATE utf8mb4_unicode_ci,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `slug` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `type` enum('text','select','multiselect','color','range') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'text',
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `is_filterable` tinyint(1) DEFAULT '1',
   `is_visible` tinyint(1) DEFAULT '1',
   `sort_order` int DEFAULT '0',
@@ -102,9 +102,9 @@ INSERT INTO `attributes` (`id`, `name`, `slug`, `type`, `description`, `is_filte
 CREATE TABLE `attribute_options` (
   `id` int NOT NULL,
   `attribute_id` int NOT NULL,
-  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `value` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `color_code` varchar(7) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `color_code` varchar(7) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `sort_order` int DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -140,7 +140,7 @@ INSERT INTO `attribute_options` (`id`, `attribute_id`, `name`, `value`, `color_c
 CREATE TABLE `cart` (
   `id` int NOT NULL,
   `user_id` int DEFAULT NULL,
-  `session_id` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `session_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `product_id` int NOT NULL,
   `selected_options` json DEFAULT NULL,
   `quantity` int NOT NULL DEFAULT '1',
@@ -156,16 +156,16 @@ CREATE TABLE `cart` (
 
 CREATE TABLE `categories` (
   `id` int NOT NULL,
-  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `parent_id` int DEFAULT NULL,
-  `slug` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `description` text COLLATE utf8mb4_unicode_ci,
+  `slug` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `sort_order` int DEFAULT '0',
-  `image` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `image` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `is_active` tinyint(1) DEFAULT '1',
-  `meta_title` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `meta_description` text COLLATE utf8mb4_unicode_ci,
-  `meta_keywords` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `meta_title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `meta_description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `meta_keywords` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -212,7 +212,7 @@ CREATE TABLE `category_filters` (
   `id` int NOT NULL,
   `category_id` int NOT NULL,
   `attribute_id` int NOT NULL,
-  `filter_type` enum('checkbox','range','color') COLLATE utf8mb4_unicode_ci DEFAULT 'checkbox',
+  `filter_type` enum('checkbox','range','color') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'checkbox',
   `min_value` decimal(10,2) DEFAULT NULL,
   `max_value` decimal(10,2) DEFAULT NULL,
   `is_active` tinyint(1) DEFAULT '1',
@@ -477,7 +477,33 @@ INSERT INTO `crm_user_activity_logs` (`id`, `user_id`, `event_type`, `descriptio
 (217, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-22 17:13:16'),
 (218, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-22 17:15:34'),
 (219, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-22 17:15:54'),
-(220, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-22 17:16:21');
+(220, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-22 17:16:21'),
+(221, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-27 17:19:06'),
+(222, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-27 17:19:46'),
+(223, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-27 17:19:58'),
+(224, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-29 16:07:57'),
+(225, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-29 16:09:14'),
+(226, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-29 16:10:39'),
+(227, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-29 16:11:59'),
+(228, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-29 16:12:34'),
+(229, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-29 16:24:02'),
+(230, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-29 16:25:16'),
+(231, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-29 16:25:25'),
+(232, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-29 16:26:54'),
+(233, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-29 16:26:57'),
+(234, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-29 16:27:08'),
+(235, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-29 16:30:44'),
+(236, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-29 16:30:57'),
+(237, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-29 16:31:56'),
+(238, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-29 16:32:00'),
+(239, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-05-29 16:32:04'),
+(240, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-29 16:40:16'),
+(241, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-05-29 16:53:35'),
+(242, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-01 11:36:10'),
+(243, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-06-01 11:36:18'),
+(244, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-02 14:58:39'),
+(245, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-10 18:00:39'),
+(246, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-10 18:01:01');
 
 -- --------------------------------------------------------
 
@@ -518,16 +544,16 @@ INSERT INTO `crm_user_subscriptions` (`user_id`, `marketing_email`, `updated_at`
 
 CREATE TABLE `cron_tasks` (
   `id` int UNSIGNED NOT NULL,
-  `name` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Зрозуміла назва задачі для адмінки',
-  `command` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Шлях до PHP файлу або назва методу',
-  `schedule` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '* * * * *' COMMENT 'Періодичність у форматі Cron',
+  `name` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Зрозуміла назва задачі для адмінки',
+  `command` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Шлях до PHP файлу або назва методу',
+  `schedule` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '* * * * *' COMMENT 'Періодичність у форматі Cron',
   `last_run` datetime DEFAULT NULL COMMENT 'Дата і час останнього запуску',
   `next_run` datetime DEFAULT NULL COMMENT 'Коли запускати наступного разу',
-  `status` enum('active','disabled') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'active' COMMENT 'Статус задачі',
-  `last_result` enum('success','running','failed') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'success' COMMENT 'Результат останнього виконання',
-  `error_message` text COLLATE utf8mb4_unicode_ci COMMENT 'Текст помилки, якщо статус failed',
+  `status` enum('active','disabled') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'active' COMMENT 'Статус задачі',
+  `last_result` enum('success','running','failed') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'success' COMMENT 'Результат останнього виконання',
+  `error_message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'Текст помилки, якщо статус failed',
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `params` text COLLATE utf8mb4_unicode_ci
+  `params` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -537,6 +563,29 @@ CREATE TABLE `cron_tasks` (
 INSERT INTO `cron_tasks` (`id`, `name`, `command`, `schedule`, `last_run`, `next_run`, `status`, `last_result`, `error_message`, `updated_at`, `params`) VALUES
 (1, 'Очищення старих сесій та логів', 'tasks/clear_logs.php', '0 3 * * *', NULL, '2026-05-26 03:00:00', 'active', 'success', NULL, '2026-05-25 12:29:16', NULL),
 (2, 'Автоматичний імпорт товарів з XML', 'tasks/import_products.php', '*/30 * * * *', NULL, '2026-05-25 16:00:00', 'active', 'success', NULL, '2026-05-25 12:29:16', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблиці `currencies`
+--
+
+CREATE TABLE `currencies` (
+  `id` int UNSIGNED NOT NULL,
+  `code` varchar(3) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Код (USD, UAH, EUR)',
+  `symbol` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Символ ($, ₴, €)',
+  `rate` decimal(10,4) NOT NULL DEFAULT '1.0000' COMMENT 'Курс відносно UAH (базової)',
+  `is_active` tinyint(1) NOT NULL DEFAULT '0' COMMENT '1 - активна на сайті, 0 - ні'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Дамп даних таблиці `currencies`
+--
+
+INSERT INTO `currencies` (`id`, `code`, `symbol`, `rate`, `is_active`) VALUES
+(1, 'UAH', '₴', 1.0000, 1),
+(2, 'USD', '$', 41.5000, 0),
+(3, 'EUR', '€', 45.2000, 0);
 
 -- --------------------------------------------------------
 
@@ -568,7 +617,7 @@ CREATE TABLE `filter_history` (
   `category_id` int DEFAULT NULL,
   `filters` json DEFAULT NULL,
   `user_id` int DEFAULT NULL,
-  `ip_address` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ip_address` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -598,16 +647,42 @@ INSERT INTO `inventory_log` (`id`, `sku`, `event_type`, `qty`, `comment`, `creat
 -- --------------------------------------------------------
 
 --
+-- Структура таблиці `login_attempts`
+--
+
+CREATE TABLE `login_attempts` (
+  `id` int UNSIGNED NOT NULL,
+  `ip` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'IPv4 або IPv6',
+  `email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `success` tinyint(1) NOT NULL DEFAULT '0',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Структура таблиці `login_logs`
 --
 
 CREATE TABLE `login_logs` (
   `id` int NOT NULL,
   `user_id` int NOT NULL,
-  `ip_address` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `user_agent` text COLLATE utf8mb4_unicode_ci,
+  `ip_address` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `user_agent` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `login_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `logout_time` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблиці `migrations`
+--
+
+CREATE TABLE `migrations` (
+  `id` int UNSIGNED NOT NULL,
+  `migration` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `applied_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -620,30 +695,32 @@ CREATE TABLE `orders` (
   `id` int NOT NULL,
   `user_id` int DEFAULT NULL,
   `total` decimal(10,2) DEFAULT NULL,
-  `customer_name` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `customer_phone` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `customer_email` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `delivery_method` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `delivery_city` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `delivery_warehouse` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `delivery_address` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `payment_method` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `status` varchar(50) COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'new',
-  `ttn_code` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `customer_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `customer_phone` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `customer_email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `delivery_method` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `delivery_city` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `delivery_warehouse` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `delivery_address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `payment_method` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `status` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'new',
+  `ttn_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `payment_id` int DEFAULT NULL,
   `delivery_id` int DEFAULT NULL,
-  `comment` text COLLATE utf8mb4_general_ci,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+  `comment` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `prom_order_id` bigint UNSIGNED DEFAULT NULL COMMENT 'ID замовлення на Prom.ua',
+  `prom_source` tinyint(1) NOT NULL DEFAULT '0' COMMENT '1 = прийшло з Prom webhook'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Дамп даних таблиці `orders`
 --
 
-INSERT INTO `orders` (`id`, `user_id`, `total`, `customer_name`, `customer_phone`, `customer_email`, `delivery_method`, `delivery_city`, `delivery_warehouse`, `delivery_address`, `payment_method`, `status`, `ttn_code`, `payment_id`, `delivery_id`, `comment`, `created_at`) VALUES
-(1, 2, 3199.00, 'Василь Присяжнюк', '+380967445693', 'systemmaster@meta.ua', 'courier', '', '', 'с.Ольгопіль', 'cod', 'new', NULL, NULL, NULL, '', '2026-04-18 14:43:34'),
-(2, 2, 2050.00, 'Василь Присяжнюк', '+380967445693', 'systemmaster@meta.ua', 'self_pickup', '', '', '', 'cash', 'completed', '135790', 3, 2, '', '2026-04-23 09:40:30'),
-(3, 2, 2200.00, 'Василь Присяжнюк', '+380967445693', 'systemmaster@meta.ua', 'self_pickup', 'Ольгопіль', '', '', 'cash', 'shipped', '123456', 3, 2, '', '2026-04-23 16:36:08');
+INSERT INTO `orders` (`id`, `user_id`, `total`, `customer_name`, `customer_phone`, `customer_email`, `delivery_method`, `delivery_city`, `delivery_warehouse`, `delivery_address`, `payment_method`, `status`, `ttn_code`, `payment_id`, `delivery_id`, `comment`, `created_at`, `prom_order_id`, `prom_source`) VALUES
+(1, 2, 3199.00, 'Василь Присяжнюк', '+380967445693', 'systemmaster@meta.ua', 'courier', '', '', 'с.Ольгопіль', 'cod', 'new', NULL, NULL, NULL, '', '2026-04-18 14:43:34', NULL, 0),
+(2, 2, 2050.00, 'Василь Присяжнюк', '+380967445693', 'systemmaster@meta.ua', 'self_pickup', '', '', '', 'cash', 'completed', '135790', 3, 2, '', '2026-04-23 09:40:30', NULL, 0),
+(3, 2, 2200.00, 'Василь Присяжнюк', '+380967445693', 'systemmaster@meta.ua', 'self_pickup', 'Ольгопіль', '', '', 'cash', 'shipped', '123456', 3, 2, '', '2026-04-23 16:36:08', NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -679,9 +756,9 @@ INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `selected_options`, `
 CREATE TABLE `order_status_history` (
   `id` int NOT NULL,
   `order_id` int NOT NULL,
-  `old_status` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `new_status` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-  `ttn_code` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `old_status` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `new_status` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `ttn_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `changed_by` int DEFAULT NULL,
   `changed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -744,11 +821,11 @@ INSERT INTO `pages` (`id`, `title`, `slug`, `content`, `meta_title`, `meta_descr
 
 CREATE TABLE `plugins` (
   `id` int UNSIGNED NOT NULL,
-  `name` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `slug` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `main_file` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `slug` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `main_file` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `is_active` tinyint(1) NOT NULL DEFAULT '0',
-  `version` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '1.0.0',
+  `version` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '1.0.0',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -758,7 +835,22 @@ CREATE TABLE `plugins` (
 --
 
 INSERT INTO `plugins` (`id`, `name`, `slug`, `main_file`, `is_active`, `version`, `created_at`, `updated_at`) VALUES
-(1, 'TestPlugin', 'TestPlugin', 'D:\\OSPanel\\home\\mysite.test/plugins/TestPlugin/plugin.php', 0, '1.0.0', '2026-04-30 19:25:51', '2026-05-22 18:28:48');
+(1, 'Test Plugin', 'TestPlugin', 'D:\\OSPanel\\home\\mysite.test/plugins/TestPlugin/plugin.php', 0, '1.0.0', '2026-04-30 19:25:51', '2026-06-10 13:42:15'),
+(2, 'LiqPay — онлайн оплата', 'LiqPayGateway', 'D:\\OSPanel\\home\\mysite.test/plugins/LiqPayGateway/plugin.php', 0, '1.0.0', '2026-06-10 13:42:15', '2026-06-10 13:42:15');
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблиці `plugin_settings`
+--
+
+CREATE TABLE `plugin_settings` (
+  `id` int UNSIGNED NOT NULL,
+  `plugin_slug` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `key` varchar(120) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `value` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -771,25 +863,26 @@ CREATE TABLE `products` (
   `sku` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `is_visible` tinyint(1) DEFAULT '1',
   `category_id` int DEFAULT NULL,
-  `name` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-  `image` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `slug` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `meta_title` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `meta_description` text COLLATE utf8mb4_general_ci,
-  `meta_keywords` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `image` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `slug` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `meta_title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `meta_description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `meta_keywords` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `price` decimal(10,2) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `prom_product_id` bigint UNSIGNED DEFAULT NULL COMMENT 'ID товару на Prom.ua'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Дамп даних таблиці `products`
 --
 
-INSERT INTO `products` (`id`, `sku`, `is_visible`, `category_id`, `name`, `description`, `image`, `slug`, `meta_title`, `meta_description`, `meta_keywords`, `price`, `created_at`, `updated_at`) VALUES
-(1, 'ID-1', 1, 2, 'iPhone 13', 'Крутий смартфон, по дуже низьким цінам! Доступна ціна за круту якість!', '/uploads/products/gallery/original/product_69e6092591658980274602.jpg', 'iphone-13', '', '', NULL, 999.00, '2026-03-30 07:45:12', '2026-05-10 10:57:17'),
-(2, 'ID-2', 1, 3, 'Сіомі', 'Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі!', '/uploads/products/gallery/original/product_69e608b6ddae3707094810.webp', 'siomi', 'Сіомі крутий продукт', '', NULL, 2050.00, '2026-04-05 08:11:57', '2026-05-09 17:26:10');
+INSERT INTO `products` (`id`, `sku`, `is_visible`, `category_id`, `name`, `description`, `image`, `slug`, `meta_title`, `meta_description`, `meta_keywords`, `price`, `created_at`, `updated_at`, `prom_product_id`) VALUES
+(1, 'ID-1', 1, 2, 'iPhone 13', 'Крутий смартфон, по дуже низьким цінам! Доступна ціна за круту якість!', '/uploads/products/gallery/original/product_69e6092591658980274602.jpg', 'iphone-13', '', '', NULL, 999.00, '2026-03-30 07:45:12', '2026-05-10 10:57:17', NULL),
+(2, 'ID-2', 1, 3, 'Сіомі', 'Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі!', '/uploads/products/gallery/original/product_69e608b6ddae3707094810.webp', 'siomi', 'Сіомі крутий продукт', '', NULL, 2050.00, '2026-04-05 08:11:57', '2026-05-09 17:26:10', NULL);
 
 -- --------------------------------------------------------
 
@@ -799,10 +892,10 @@ INSERT INTO `products` (`id`, `sku`, `is_visible`, `category_id`, `name`, `descr
 
 CREATE TABLE `product_attributes` (
   `id` int NOT NULL,
-  `sku` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sku` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `product_id` int NOT NULL,
   `attribute_id` int NOT NULL,
-  `value` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `attribute_option_id` int DEFAULT NULL,
   `price_modifier` decimal(10,2) NOT NULL DEFAULT '0.00',
   `price_operation` enum('+','-') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '+',
@@ -829,7 +922,7 @@ INSERT INTO `product_attributes` (`id`, `sku`, `product_id`, `attribute_id`, `va
 CREATE TABLE `product_images` (
   `id` int NOT NULL,
   `product_id` int NOT NULL,
-  `image_path` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `image_path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `sort_order` int UNSIGNED NOT NULL DEFAULT '1',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -855,8 +948,8 @@ CREATE TABLE `product_reviews` (
   `user_id` int NOT NULL,
   `parent_id` int DEFAULT NULL,
   `rating` tinyint DEFAULT NULL,
-  `author_name` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `body` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `author_name` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `body` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `is_visible` tinyint(1) NOT NULL DEFAULT '1',
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL
@@ -931,21 +1024,38 @@ INSERT INTO `product_stocks` (`id`, `product_id`, `option_id`, `sku`, `quantity`
 -- --------------------------------------------------------
 
 --
+-- Структура таблиці `prom_sync_queue`
+--
+
+CREATE TABLE `prom_sync_queue` (
+  `id` int UNSIGNED NOT NULL,
+  `product_id` int NOT NULL COMMENT 'ID товару в нашій БД',
+  `action` enum('price','quantity','both') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'both',
+  `status` enum('pending','processing','done','failed') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending',
+  `attempts` tinyint NOT NULL DEFAULT '0',
+  `last_error` text COLLATE utf8mb4_unicode_ci,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `processed_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Структура таблиці `seo_settings`
 --
 
 CREATE TABLE `seo_settings` (
   `id` int NOT NULL,
-  `entity_type` enum('product','category','page') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `entity_type` enum('product','category','page') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `entity_id` int NOT NULL,
-  `title` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `description` text COLLATE utf8mb4_unicode_ci,
-  `keywords` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `og_title` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `og_description` text COLLATE utf8mb4_unicode_ci,
-  `og_image` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `canonical_url` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `robots_meta` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `keywords` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `og_title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `og_description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `og_image` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `canonical_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `robots_meta` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -967,10 +1077,10 @@ INSERT INTO `seo_settings` (`id`, `entity_type`, `entity_id`, `title`, `descript
 --
 
 CREATE TABLE `settings` (
-  `key` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `value` text COLLATE utf8mb4_unicode_ci,
-  `group` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT 'general',
-  `type` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT 'text',
+  `key` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `value` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `group` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'general',
+  `type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'text',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -984,6 +1094,7 @@ INSERT INTO `settings` (`key`, `value`, `group`, `type`, `created_at`, `updated_
 ('active_theme', 'modern', 'appearance', 'select', '2026-04-03 08:17:13', '2026-05-09 12:54:14'),
 ('contact_email', 'admin@mysite.test', 'contact', 'text', '2026-04-03 08:17:13', '2026-05-09 12:54:14'),
 ('contact_phone', '+380 00 000 00 00', 'contact', 'text', '2026-04-03 08:17:13', '2026-05-09 12:54:14'),
+('currency_source', 'manual', 'currency', 'select', '2026-06-05 10:00:00', '2026-06-05 10:00:00'),
 ('default_currency', 'UAH', 'localization', 'select', '2026-04-03 08:17:13', '2026-05-09 12:54:14'),
 ('default_language', 'ua', 'localization', 'select', '2026-04-03 08:17:13', '2026-05-09 12:54:14'),
 ('email', 'admin@mysite.test', 'general', 'text', '2026-04-12 16:35:40', '2026-05-09 12:54:14'),
@@ -1001,6 +1112,11 @@ INSERT INTO `settings` (`key`, `value`, `group`, `type`, `created_at`, `updated_
 ('media_auto_webp', '0', 'media', 'checkbox', '2026-04-13 09:12:17', '2026-05-09 12:54:15'),
 ('media_watermark_position', 'bottom-right', 'media', 'select', '2026-04-13 09:12:17', '2026-05-09 12:54:15'),
 ('phone_mask', '+38 (000) 000-00-00', 'general', 'text', '2026-05-16 09:39:11', '2026-05-16 09:39:11'),
+('prom_api_key', '', 'prom', 'text', '2026-06-10 17:52:36', '2026-06-10 17:52:36'),
+('prom_enabled', '0', 'prom', 'checkbox', '2026-06-10 17:52:36', '2026-06-10 17:52:36'),
+('prom_last_sync', '', 'prom', 'text', '2026-06-10 17:52:36', '2026-06-10 17:52:36'),
+('prom_sync_method', 'xml', 'prom', 'select', '2026-06-10 17:52:36', '2026-06-10 17:52:36'),
+('prom_webhook_secret', '', 'prom', 'text', '2026-06-10 17:52:36', '2026-06-10 17:52:36'),
 ('seo_desc_template', 'Пропонуємо {name} за найкращою ціною {price} грн. Категорія: {category}. Доставка по Україні!', 'seo', 'textarea', '2026-04-13 08:34:14', '2026-05-09 12:54:14'),
 ('seo_title_template', '{name} купити за {price} грн у магазині MyStore', 'seo', 'text', '2026-04-13 08:34:14', '2026-05-09 12:54:14'),
 ('site_description', 'Найкращий інтернет-магазин на PHP', 'general', 'textarea', '2026-04-03 08:17:13', '2026-05-09 12:54:14'),
@@ -1020,11 +1136,11 @@ INSERT INTO `settings` (`key`, `value`, `group`, `type`, `created_at`, `updated_
 
 CREATE TABLE `shop_methods` (
   `id` int NOT NULL,
-  `type` enum('shipping','payment') COLLATE utf8mb4_unicode_ci NOT NULL,
-  `code` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `icon` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `description` text COLLATE utf8mb4_unicode_ci,
+  `type` enum('shipping','payment') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `icon` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `is_active` tinyint(1) DEFAULT '0',
   `is_test_mode` tinyint(1) DEFAULT '1',
   `settings` json DEFAULT NULL,
@@ -1051,12 +1167,12 @@ INSERT INTO `shop_methods` (`id`, `type`, `code`, `name`, `icon`, `description`,
 
 CREATE TABLE `slug_history` (
   `id` int NOT NULL,
-  `entity_type` enum('product','category','page') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `entity_type` enum('product','category','page') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `entity_id` int NOT NULL,
-  `old_slug` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `new_slug` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `old_slug` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `new_slug` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `changed_by` int DEFAULT NULL,
-  `reason` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `reason` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -1081,9 +1197,9 @@ CREATE TABLE `stock_documents` (
 
 CREATE TABLE `url_redirects` (
   `id` int NOT NULL,
-  `old_slug` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `new_slug` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `entity_type` enum('product','category','page') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `old_slug` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `new_slug` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `entity_type` enum('product','category','page') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `entity_id` int DEFAULT NULL,
   `status_code` int DEFAULT '301',
   `is_active` tinyint(1) DEFAULT '1',
@@ -1099,20 +1215,20 @@ CREATE TABLE `url_redirects` (
 
 CREATE TABLE `users` (
   `id` int NOT NULL,
-  `email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `first_name` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `last_name` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `phone` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `avatar` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `first_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `last_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `avatar` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `role_id` int DEFAULT '3',
   `is_active` tinyint(1) DEFAULT '1',
   `email_verified` tinyint(1) DEFAULT '0',
   `email_verified_at` timestamp NULL DEFAULT NULL,
   `last_login` timestamp NULL DEFAULT NULL,
-  `password_reset_token` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `password_reset_token` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `password_reset_expires` timestamp NULL DEFAULT NULL,
-  `remember_token` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `remember_token` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -1122,7 +1238,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `email`, `password`, `first_name`, `last_name`, `phone`, `avatar`, `role_id`, `is_active`, `email_verified`, `email_verified_at`, `last_login`, `password_reset_token`, `password_reset_expires`, `remember_token`, `created_at`, `updated_at`) VALUES
-(2, 'systemmaster@meta.ua', '$2y$12$knhVn0wIOYbnqx3TRccf1OrGmEGu3JWSZsbLQ/c9tvLrmZElAaU86', 'Василь', 'Присяжнюк', NULL, NULL, 1, 1, 0, NULL, '2026-05-25 17:07:46', NULL, NULL, '5a4117784b1531506b42a8f5d1335fd5199ae5dea17a9738150944d249e97431', '2026-03-31 09:57:24', '2026-05-25 17:07:46');
+(2, 'systemmaster@meta.ua', '$2y$12$knhVn0wIOYbnqx3TRccf1OrGmEGu3JWSZsbLQ/c9tvLrmZElAaU86', 'Василь', 'Присяжнюк', NULL, NULL, 1, 1, 0, NULL, '2026-06-13 16:12:34', NULL, NULL, '5a4117784b1531506b42a8f5d1335fd5199ae5dea17a9738150944d249e97431', '2026-03-31 09:57:24', '2026-06-13 16:12:34');
 
 -- --------------------------------------------------------
 
@@ -1132,9 +1248,9 @@ INSERT INTO `users` (`id`, `email`, `password`, `first_name`, `last_name`, `phon
 
 CREATE TABLE `user_roles` (
   `id` int NOT NULL,
-  `name` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `slug` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `description` text COLLATE utf8mb4_unicode_ci,
+  `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `slug` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -1239,6 +1355,13 @@ ALTER TABLE `cron_tasks`
   ADD KEY `idx_status_next_run` (`status`,`next_run`);
 
 --
+-- Індекси таблиці `currencies`
+--
+ALTER TABLE `currencies`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `idx_code` (`code`);
+
+--
 -- Індекси таблиці `favorites`
 --
 ALTER TABLE `favorites`
@@ -1262,6 +1385,14 @@ ALTER TABLE `inventory_log`
   ADD KEY `idx_inventory_log_sku` (`sku`);
 
 --
+-- Індекси таблиці `login_attempts`
+--
+ALTER TABLE `login_attempts`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_ip_created` (`ip`,`created_at`),
+  ADD KEY `idx_email_created` (`email`,`created_at`);
+
+--
 -- Індекси таблиці `login_logs`
 --
 ALTER TABLE `login_logs`
@@ -1270,12 +1401,20 @@ ALTER TABLE `login_logs`
   ADD KEY `idx_login_time` (`login_time`);
 
 --
+-- Індекси таблиці `migrations`
+--
+ALTER TABLE `migrations`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_migration` (`migration`);
+
+--
 -- Індекси таблиці `orders`
 --
 ALTER TABLE `orders`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_orders_created_at` (`created_at`),
-  ADD KEY `idx_orders_status_ttn` (`status`,`ttn_code`);
+  ADD KEY `idx_orders_status_ttn` (`status`,`ttn_code`),
+  ADD KEY `idx_prom_order_id` (`prom_order_id`);
 
 --
 -- Індекси таблиці `order_items`
@@ -1306,6 +1445,13 @@ ALTER TABLE `plugins`
   ADD KEY `idx_plugins_active` (`is_active`);
 
 --
+-- Індекси таблиці `plugin_settings`
+--
+ALTER TABLE `plugin_settings`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_plugin_key` (`plugin_slug`,`key`);
+
+--
 -- Індекси таблиці `products`
 --
 ALTER TABLE `products`
@@ -1314,7 +1460,8 @@ ALTER TABLE `products`
   ADD UNIQUE KEY `idx_slug` (`slug`),
   ADD KEY `idx_products_category` (`category_id`),
   ADD KEY `idx_products_price` (`price`),
-  ADD KEY `idx_products_visible` (`is_visible`);
+  ADD KEY `idx_products_visible` (`is_visible`),
+  ADD KEY `idx_prom_product_id` (`prom_product_id`);
 
 --
 -- Індекси таблиці `product_attributes`
@@ -1354,6 +1501,14 @@ ALTER TABLE `product_stocks`
   ADD UNIQUE KEY `uniq_product_stocks_sku` (`sku`),
   ADD KEY `idx_stock_product` (`product_id`),
   ADD KEY `idx_stock_option` (`option_id`);
+
+--
+-- Індекси таблиці `prom_sync_queue`
+--
+ALTER TABLE `prom_sync_queue`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_status_created` (`status`,`created_at`),
+  ADD KEY `idx_product_id` (`product_id`);
 
 --
 -- Індекси таблиці `seo_settings`
@@ -1471,13 +1626,19 @@ ALTER TABLE `crm_user_action_audit`
 -- AUTO_INCREMENT для таблиці `crm_user_activity_logs`
 --
 ALTER TABLE `crm_user_activity_logs`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=221;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=247;
 
 --
 -- AUTO_INCREMENT для таблиці `cron_tasks`
 --
 ALTER TABLE `cron_tasks`
   MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT для таблиці `currencies`
+--
+ALTER TABLE `currencies`
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT для таблиці `filter_history`
@@ -1492,10 +1653,22 @@ ALTER TABLE `inventory_log`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
+-- AUTO_INCREMENT для таблиці `login_attempts`
+--
+ALTER TABLE `login_attempts`
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT для таблиці `login_logs`
 --
 ALTER TABLE `login_logs`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT для таблиці `migrations`
+--
+ALTER TABLE `migrations`
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT для таблиці `orders`
@@ -1525,7 +1698,13 @@ ALTER TABLE `pages`
 -- AUTO_INCREMENT для таблиці `plugins`
 --
 ALTER TABLE `plugins`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT для таблиці `plugin_settings`
+--
+ALTER TABLE `plugin_settings`
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT для таблиці `products`
@@ -1556,6 +1735,12 @@ ALTER TABLE `product_reviews`
 --
 ALTER TABLE `product_stocks`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+
+--
+-- AUTO_INCREMENT для таблиці `prom_sync_queue`
+--
+ALTER TABLE `prom_sync_queue`
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT для таблиці `seo_settings`

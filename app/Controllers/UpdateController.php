@@ -327,7 +327,7 @@ class UpdateController
         }
 
         try {
-            DB::$pdo->exec($sql);
+            DB::exec($sql);
         } catch (\Throwable $e) {
             $this->failUpdate('Помилка SQL-міграції: ' . $e->getMessage());
         }

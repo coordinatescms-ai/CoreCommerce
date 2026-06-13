@@ -93,7 +93,7 @@
                     
                     <div style="display: flex; justify-content: space-between; margin-bottom: 10px; color: #666;">
                         <span><?php echo __('subtotal'); ?></span>
-                        <span style="font-weight: 600; color: #333;"><?php echo number_format($total, 2); ?> грн</span>
+                        <span style="font-weight: 600; color: #333;"><?php echo format_price($total); ?></span>
                     </div>
                     
                     <div style="display: flex; justify-content: space-between; margin-bottom: 20px; color: #666;">
@@ -105,7 +105,7 @@
 
                     <div style="margin-bottom: 25px;">
                         <span style="display: block; font-size: 12px; color: #999; text-transform: uppercase;"><?php echo __('total'); ?></span>
-                        <span style="font-size: 28px; font-weight: 800; color: #007bff;"><?php echo number_format($total, 2); ?> <small style="font-size: 14px;">грн</small></span>
+                        <span style="font-size: 28px; font-weight: 800; color: #007bff;"><?= format_price($total) ?></span>
                     </div>
 
                     <a href="/checkout" style="display: block !important; background: #007bff !important; color: #fff !important; text-align: center !important; padding: 15px !important; border-radius: 10px !important; text-decoration: none !important; font-weight: 700 !important; font-size: 16px !important; transition: background 0.2s !important;">

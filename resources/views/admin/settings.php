@@ -11,6 +11,9 @@
             <button type="button" class="btn btn-outline settings-tab-btn" data-tab="payment">Оплата</button>
             <button type="button" class="btn btn-outline settings-tab-btn" data-tab="reviews">Відгуки</button>
             <button type="button" class="btn btn-outline settings-tab-btn" data-tab="update">Оновлення</button>
+            <button type="button" class="btn btn-outline settings-tab-btn" data-tab="integrations">
+                <i class="fas fa-plug"></i> Інтеграції
+            </button>
         </div>
     </div>
 </div>
@@ -52,6 +55,12 @@
             })
             .then(function (html) {
                 tabContent.innerHTML = html;
+                // innerHTML не виконує <script> — запускаємо вручну
+                tabContent.querySelectorAll('script').forEach(function (oldScript) {
+                    const newScript = document.createElement('script');
+                    newScript.textContent = oldScript.textContent;
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                });
             })
             .catch(function () {
                 tabContent.innerHTML = '<div class="card"><div class="card-body" style="color:#ef4444;">Помилка завантаження вкладки.</div></div>';

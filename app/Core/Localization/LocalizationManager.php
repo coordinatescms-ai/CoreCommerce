@@ -2,185 +2,281 @@
 
 namespace App\Core\Localization;
 
+/**
+ * Менеджер локалізації з підтримкою namespace перекладів.
+ *
+ * Namespace дозволяє плагінам та модулям мати власні файли перекладів
+ * без конфліктів з ядром.
+ *
+ * Формат ключа: 'namespace::key' або просто 'key' (namespace = 'core')
+ *
+ * Приклади:
+ *   __('add_to_cart')               → core namespace (lang/ua.php)
+ *   __('liqpay::payment_error')     → lang/ua/liqpay.php або plugins/LiqPayGateway/lang/ua.php
+ *   __('prom::sync_done')           → lang/ua/prom.php
+ *
+ * Реєстрація namespace плагіном:
+ *   LocalizationManager::registerNamespace('liqpay', '/path/to/plugin/lang');
+ */
 class LocalizationManager
 {
+    private const CORE_NAMESPACE = 'core';
+    private const NS_SEPARATOR   = '::';
+
+    /** @var string[] */
+    private static array $supportedLanguages = ['ua', 'en'];
+
+    private static string $defaultLanguage = 'ua';
+
     /**
-     * Список підтримуваних мов
-     * 
-     * @var array
+     * Завантажені переклади: [lang][namespace][key] = value
+     * @var array<string, array<string, array<string, string>>>
      */
-    private static $supported_languages = ['ua', 'en'];
-    
+    private static array $translations = [];
+
     /**
-     * Мова за замовчуванням
-     * 
-     * @var string
+     * Зареєстровані namespace -> шлях до папки з lang-файлами
+     * @var array<string, string>
      */
-    private static $default_language = 'ua';
-    
+    private static array $namespaces = [];
+
+    // ── Публічне API ─────────────────────────────────────────────────────────
+
     /**
-     * Кешовані переклади
-     * 
-     * @var array
+     * Отримати переклад.
+     *
+     * @param  string      $key   'my_key' або 'namespace::my_key'
+     * @param  array       $replace  Параметри для підстановки: ['name' => 'Іван']
+     * @param  string|null $lang
      */
-    private static $translations = [];
-    
-    /**
-     * Отримати поточну мову
-     * 
-     * @return string
-     */
-    public static function getCurrentLanguage()
+    public static function translate(string $key, array $replace = [], ?string $lang = null): string
     {
-        // Спочатку перевіряємо сесію
-        if (!empty($_SESSION['lang'])) {
-            return $_SESSION['lang'];
+        $lang = $lang ?? self::getCurrentLanguage();
+
+        [$namespace, $realKey] = self::parseKey($key);
+
+        // Завантажуємо якщо ще не в кеші
+        if (!isset(self::$translations[$lang][$namespace])) {
+            self::loadNamespace($lang, $namespace);
         }
-        
-        // Потім перевіряємо кукі
-        if (!empty($_COOKIE['lang'])) {
-            $lang = $_COOKIE['lang'];
-            if (self::isLanguageSupported($lang)) {
-                $_SESSION['lang'] = $lang;
-                return $lang;
+
+        $value = self::$translations[$lang][$namespace][$realKey]
+            ?? self::$translations[self::$defaultLanguage][$namespace][$realKey]
+            ?? $key;
+
+        // Підстановка параметрів: :name → значення
+        if (!empty($replace)) {
+            foreach ($replace as $param => $val) {
+                $value = str_replace(':' . $param, (string)$val, $value);
             }
         }
-        
-        // Перевіряємо HTTP Accept-Language заголовок
+
+        return $value;
+    }
+
+    /**
+     * Зареєструвати власний namespace для плагіна або модуля.
+     *
+     * @param string $namespace  Наприклад: 'liqpay'
+     * @param string $langPath   Абсолютний шлях до папки з lang-файлами
+     *                           Файли мають бути: {langPath}/ua.php, {langPath}/en.php
+     *                           або {langPath}/ua/namespace.php
+     */
+    public static function registerNamespace(string $namespace, string $langPath): void
+    {
+        self::$namespaces[$namespace] = rtrim($langPath, '/');
+        // Скидаємо кеш для цього namespace якщо вже завантажено
+        foreach (array_keys(self::$translations) as $lang) {
+            unset(self::$translations[$lang][$namespace]);
+        }
+    }
+
+    /**
+     * Перевірити чи існує ключ перекладу.
+     */
+    public static function has(string $key, ?string $lang = null): bool
+    {
+        $lang = $lang ?? self::getCurrentLanguage();
+        [$namespace, $realKey] = self::parseKey($key);
+
+        if (!isset(self::$translations[$lang][$namespace])) {
+            self::loadNamespace($lang, $namespace);
+        }
+
+        return isset(self::$translations[$lang][$namespace][$realKey]);
+    }
+
+    /**
+     * Отримати всі переклади для namespace.
+     *
+     * @return array<string, string>
+     */
+    public static function getNamespace(string $namespace, ?string $lang = null): array
+    {
+        $lang = $lang ?? self::getCurrentLanguage();
+
+        if (!isset(self::$translations[$lang][$namespace])) {
+            self::loadNamespace($lang, $namespace);
+        }
+
+        return self::$translations[$lang][$namespace] ?? [];
+    }
+
+    // ── Мова ─────────────────────────────────────────────────────────────────
+
+    public static function getCurrentLanguage(): string
+    {
+        if (!empty($_SESSION['lang']) && self::isLanguageSupported($_SESSION['lang'])) {
+            return $_SESSION['lang'];
+        }
+
+        if (!empty($_COOKIE['lang']) && self::isLanguageSupported($_COOKIE['lang'])) {
+            $_SESSION['lang'] = $_COOKIE['lang'];
+            return $_COOKIE['lang'];
+        }
+
         $lang = self::parseAcceptLanguage();
         if ($lang) {
             $_SESSION['lang'] = $lang;
             return $lang;
         }
-        
-        // За замовчуванням повертаємо українську
-        $_SESSION['lang'] = self::$default_language;
-        return self::$default_language;
+
+        $_SESSION['lang'] = self::$defaultLanguage;
+        return self::$defaultLanguage;
     }
-    
-    /**
-     * Встановити мову
-     * 
-     * @param string $lang Код мови
-     * @return bool
-     */
-    public static function setLanguage($lang)
+
+    public static function setLanguage(string $lang): bool
     {
         if (!self::isLanguageSupported($lang)) {
             return false;
         }
-        
         $_SESSION['lang'] = $lang;
-        setcookie('lang', $lang, time() + (365 * 24 * 60 * 60), '/', '', false, true);
-        
+        setcookie('lang', $lang, time() + 365 * 24 * 3600, '/', '', false, true);
         return true;
     }
-    
-    /**
-     * Перевірити, чи мова підтримується
-     * 
-     * @param string $lang Код мови
-     * @return bool
-     */
-    public static function isLanguageSupported($lang)
+
+    public static function isLanguageSupported(string $lang): bool
     {
-        return in_array($lang, self::$supported_languages);
+        return in_array($lang, self::$supportedLanguages, true);
     }
-    
-    /**
-     * Отримати список підтримуваних мов
-     * 
-     * @return array
-     */
-    public static function getSupportedLanguages()
+
+    public static function getSupportedLanguages(): array
     {
-        return self::$supported_languages;
+        return self::$supportedLanguages;
     }
-    
+
     /**
-     * Отримати переклад
-     * 
-     * @param string $key Ключ перекладу
-     * @param string $lang Код мови (опціонально)
-     * @return string
+     * Додати нову підтримувану мову (наприклад плагін локалізації).
      */
-    public static function translate($key, $lang = null)
+    public static function addLanguage(string $lang): void
     {
-        if ($lang === null) {
-            $lang = self::getCurrentLanguage();
-        }
-        
-        // Завантажити переклади для мови, якщо вони ще не кешовані
-        if (!isset(self::$translations[$lang])) {
-            self::loadTranslations($lang);
-        }
-        
-        // Повернути переклад або сам ключ, якщо переклад не знайдено
-        return self::$translations[$lang][$key] ?? $key;
-    }
-    
-    /**
-     * Завантажити переклади для мови
-     * 
-     * @param string $lang Код мови
-     * @return void
-     */
-    private static function loadTranslations($lang)
-    {
-        $lang_file = __DIR__ . '/../../../lang/' . $lang . '.php';
-        
-        if (file_exists($lang_file)) {
-            self::$translations[$lang] = require $lang_file;
-        } else {
-            self::$translations[$lang] = [];
+        if (!in_array($lang, self::$supportedLanguages, true)) {
+            self::$supportedLanguages[] = $lang;
         }
     }
-    
-    /**
-     * Розпарсити HTTP Accept-Language заголовок
-     * 
-     * @return string|null
-     */
-    private static function parseAcceptLanguage()
+
+    // ── Завантаження перекладів ───────────────────────────────────────────────
+
+    private static function parseKey(string $key): array
+    {
+        if (str_contains($key, self::NS_SEPARATOR)) {
+            [$namespace, $realKey] = explode(self::NS_SEPARATOR, $key, 2);
+            return [$namespace, $realKey];
+        }
+        return [self::CORE_NAMESPACE, $key];
+    }
+
+    private static function loadNamespace(string $lang, string $namespace): void
+    {
+        self::$translations[$lang][$namespace] = [];
+
+        if ($namespace === self::CORE_NAMESPACE) {
+            self::loadCoreTranslations($lang);
+            return;
+        }
+
+        // Шукаємо зареєстрований namespace
+        if (isset(self::$namespaces[$namespace])) {
+            $path = self::$namespaces[$namespace];
+
+            // Варіант 1: {langPath}/ua.php
+            $file1 = $path . '/' . $lang . '.php';
+            // Варіант 2: {langPath}/ua/namespace.php (підпапка per-namespace)
+            $file2 = $path . '/' . $lang . '/' . $namespace . '.php';
+
+            $file = is_file($file1) ? $file1 : (is_file($file2) ? $file2 : null);
+
+            if ($file) {
+                $data = require $file;
+                if (is_array($data)) {
+                    self::$translations[$lang][$namespace] = $data;
+                }
+            }
+            return;
+        }
+
+        // Fallback: шукаємо lang/{lang}/{namespace}.php у папці ядра
+        $fallbackFile = dirname(__DIR__, 3) . '/lang/' . $lang . '/' . $namespace . '.php';
+        if (is_file($fallbackFile)) {
+            $data = require $fallbackFile;
+            if (is_array($data)) {
+                self::$translations[$lang][$namespace] = $data;
+            }
+        }
+    }
+
+    private static function loadCoreTranslations(string $lang): void
+    {
+        // Основний файл: lang/ua.php
+        $mainFile = dirname(__DIR__, 3) . '/lang/' . $lang . '.php';
+        if (is_file($mainFile)) {
+            $data = require $mainFile;
+            if (is_array($data)) {
+                self::$translations[$lang][self::CORE_NAMESPACE] = $data;
+            }
+        }
+
+        // Додаткові файли з підпапки: lang/ua/*.php (merge)
+        $subDir = dirname(__DIR__, 3) . '/lang/' . $lang;
+        if (is_dir($subDir)) {
+            foreach (glob($subDir . '/*.php') ?: [] as $file) {
+                $data = require $file;
+                if (is_array($data)) {
+                    self::$translations[$lang][self::CORE_NAMESPACE] = array_merge(
+                        self::$translations[$lang][self::CORE_NAMESPACE] ?? [],
+                        $data
+                    );
+                }
+            }
+        }
+    }
+
+    private static function parseAcceptLanguage(): ?string
     {
         if (empty($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
             return null;
         }
-        
-        $accept_language = $_SERVER['HTTP_ACCEPT_LANGUAGE'];
-        
-        // Розпарсити Accept-Language заголовок
+
         $languages = [];
-        foreach (explode(',', $accept_language) as $lang_range) {
-            $parts = explode(';', $lang_range);
-            $lang = trim($parts[0]);
+        foreach (explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']) as $part) {
+            $parts   = explode(';', $part);
+            $code    = trim($parts[0]);
             $quality = isset($parts[1]) ? (float)str_replace('q=', '', trim($parts[1])) : 1.0;
-            
-            // Отримати основний код мови (наприклад, 'uk' з 'uk-UA')
-            $lang_code = explode('-', $lang)[0];
-            
-            $languages[$lang_code] = $quality;
+            $primary = explode('-', $code)[0];
+            $languages[$primary] = max($languages[$primary] ?? 0, $quality);
         }
-        
-        // Сортувати за якістю (найвища спочатку)
+
         arsort($languages);
-        
-        // Знайти першу підтримувану мову
-        foreach ($languages as $lang => $quality) {
-            // Перевірити точне збігання
+
+        foreach (array_keys($languages) as $lang) {
             if (self::isLanguageSupported($lang)) {
                 return $lang;
             }
-            
-            // Перевірити розширену мову (наприклад, uk-UA -> ua)
             if ($lang === 'uk' && self::isLanguageSupported('ua')) {
                 return 'ua';
             }
-            if ($lang === 'en' && self::isLanguageSupported('en')) {
-                return 'en';
-            }
         }
-        
+
         return null;
     }
 }

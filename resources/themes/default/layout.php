@@ -84,6 +84,13 @@
         }
     </style>
     <?php do_action('theme.head'); ?>
+    <script>
+        var currencySymbol = <?= json_encode(
+            \App\Core\Database\DB::query('SELECT symbol FROM currencies WHERE is_active = 1 LIMIT 1')
+                ->fetchColumn() ?: '₴'
+        ) ?>;
+        window.CURRENCY_SYMBOL = currencySymbol;
+    </script>
 </head>
 <body>
     <?php

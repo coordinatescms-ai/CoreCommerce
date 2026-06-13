@@ -156,11 +156,22 @@ public function uploadImage()
     
     if (isset($_FILES['image']) && $_FILES['image']['error'] === 0) {
         $file = $_FILES['image'];
-        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $ext  = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 
         if (!in_array($ext, $allowed)) {
             echo json_encode(['error' => 'Недопустимий тип файлу']);
+            exit;
+        }
+
+        // MIME-валідація через finfo
+        $finfo    = finfo_open(FILEINFO_MIME_TYPE);
+        $realMime = $finfo ? (string) finfo_file($finfo, $file['tmp_name']) : '';
+        if ($finfo) { finfo_close($finfo); }
+
+        $allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!in_array($realMime, $allowedMimes, true)) {
+            echo json_encode(['error' => 'Файл не є зображенням (перевірено за вмістом)']);
             exit;
         }
 

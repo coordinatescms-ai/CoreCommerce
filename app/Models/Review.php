@@ -22,7 +22,7 @@ class Review
             ]
         );
 
-        return (int) DB::$pdo->lastInsertId();
+        return (int) DB::lastInsertId();
     }
 
     public static function findById(int $id): ?array

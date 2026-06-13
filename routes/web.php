@@ -21,6 +21,10 @@ use App\Controllers\PageController;
 use App\Controllers\AdminPluginController;
 use App\Controllers\UpdateController;
 use App\Controllers\StockController;
+use App\Controllers\AdminReviewController;
+use App\Controllers\CurrencyController;
+use App\Controllers\AdminMigrationController;
+use App\Controllers\PromWebhookController;
 
 $router = new Router();
 
@@ -42,6 +46,9 @@ $router->delete('/cart/clear',[CartController::class,'clear']);
 
 $router->get('/checkout',[OrderController::class,'checkout']);
 $router->post('/place-order',[OrderController::class,'placeOrder']);
+
+// Платіжні вебхуки — універсальний endpoint для всіх шлюзів
+$router->post('/payment/webhook/{gateway}', [\App\Controllers\PaymentWebhookController::class, 'handle']);
 
 // Перемикання мови
 $router->get('/language/{lang}', [LanguageController::class, 'switch']);
@@ -93,6 +100,36 @@ $router->post('/admin/settings/methods/delete/{id}', [AdminController::class, 'd
 $router->post('/admin/reviews/update/{id}', [AdminController::class, 'updateReview']);
 $router->post('/admin/reviews/delete/{id}', [AdminController::class, 'deleteReview']);
 $router->post('/admin/reviews/toggle/{id}', [AdminController::class, 'toggleReviewVisibility']);
+
+// Система керування коментарями
+$router->get('/admin/reviews', [AdminReviewController::class, 'index']);
+$router->post('/admin/reviews/remove/{id}', [AdminReviewController::class, 'delete']);
+$router->post('/admin/reviews/visibility/{id}', [AdminReviewController::class, 'toggle']);
+$router->post('/admin/reviews/bulk', [AdminReviewController::class, 'bulkAction']);
+
+// Міграції БД
+$router->get('/admin/migrations',       [AdminMigrationController::class, 'index']);
+$router->post('/admin/migrations/run',  [AdminMigrationController::class, 'run']);
+$router->post('/admin/migrations/reset',[AdminMigrationController::class, 'reset']);
+
+// Валюти
+$router->post('/admin/currencies/store',        [CurrencyController::class, 'store']);
+$router->post('/admin/currencies/delete/{id}',  [CurrencyController::class, 'delete']);
+$router->post('/admin/currencies/update',       [CurrencyController::class, 'update']);
+
+// Prom.ua — вебхук (публічний endpoint, без авторизації — верифікація через підпис)
+$router->post('/prom/webhook',  [PromWebhookController::class, 'handle']);
+
+// Prom.ua — публічний XML-фід (Підхід А)
+$router->get('/prom/feed.xml',  [PromWebhookController::class, 'feed']);
+
+// Prom.ua — адмін-дії (захищені)
+$router->post('/admin/prom/save',           [\App\Controllers\AdminPromController::class, 'save']);
+$router->post('/admin/prom/test',           [\App\Controllers\AdminPromController::class, 'test']);
+$router->post('/admin/prom/generate-feed',  [\App\Controllers\AdminPromController::class, 'generateFeed']);
+$router->post('/admin/prom/enqueue',        [\App\Controllers\AdminPromController::class, 'enqueue']);
+$router->post('/admin/prom/process-queue',  [\App\Controllers\AdminPromController::class, 'processQueue']);
+$router->post('/admin/prom/clear-queue',    [\App\Controllers\AdminPromController::class, 'clearQueue']);
 
 // Управління контентом в адмінці
 $router->get('/admin/content', [AdminContentController::class, 'index']);
@@ -158,12 +195,17 @@ $router->post('/admin/themes/cancel-preview', [AdminThemeController::class, 'can
 $router->get('/admin/plugins', [AdminPluginController::class, 'index']);
 $router->post('/admin/plugins/toggle', [AdminPluginController::class, 'toggle']);
 $router->post('/admin/plugins/upload', [AdminPluginController::class, 'upload']);
+$router->get('/admin/plugins/settings/{slug}', [AdminPluginController::class, 'settings']);
+$router->post('/admin/plugins/settings/{slug}', [AdminPluginController::class, 'saveSettings']);
 
 // Управління користувачами в адмінці
 $router->get('/admin/users', [AdminUserController::class, 'index']);
 $router->get('/admin/users/edit/{id}', [AdminUserController::class, 'edit']);
 $router->post('/admin/users/update/{id}', [AdminUserController::class, 'update']);
 $router->get('/admin/users/live-cart/{id}', [AdminUserController::class, 'liveCart']);
+$router->get('/admin/users/create-order/{id}', [AdminUserController::class, 'createOrder']);
+$router->post('/admin/users/store-order/{id}', [AdminUserController::class, 'storeOrder']);
+$router->get('/admin/products/search', [AdminProductController::class, 'search']);
 $router->post('/admin/users/bonus/{id}', [AdminUserController::class, 'updateBonus']);
 $router->post('/admin/users/block/{id}', [AdminUserController::class, 'updateBlockStatus']);
 $router->post('/admin/users/subscription/{id}', [AdminUserController::class, 'updateSubscription']);

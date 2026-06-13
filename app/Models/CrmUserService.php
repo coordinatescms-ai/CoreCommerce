@@ -177,7 +177,7 @@ class CrmUserService
     {
         self::ensureSchema();
 
-        DB::$pdo->beginTransaction();
+        DB::beginTransaction();
         try {
             $current = self::getBonusBalance($userId);
             $newBalance = $current + $delta;
@@ -190,12 +190,12 @@ class CrmUserService
             self::recordAudit($userId, $adminId, 'bonus_adjust', $reason, (string) $current, (string) $newBalance);
             self::recordActivity($userId, 'bonus_adjust', 'Бонусний баланс змінено: ' . ($delta >= 0 ? '+' : '') . $delta, ['delta' => $delta, 'new_balance' => $newBalance]);
 
-            DB::$pdo->commit();
+            DB::commit();
 
             return $newBalance;
         } catch (\Throwable $e) {
-            if (DB::$pdo->inTransaction()) {
-                DB::$pdo->rollBack();
+            if (DB::inTransaction()) {
+                DB::rollBack();
             }
             throw $e;
         }

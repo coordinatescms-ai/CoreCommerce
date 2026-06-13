@@ -6,6 +6,7 @@ use App\Core\View\View;
 use App\Core\Http\Csrf;
 use App\Models\User;
 use App\Core\Mail\MailService;
+use App\Services\LoginRateLimiter;
 
 class AuthController
 {
@@ -34,41 +35,76 @@ class AuthController
             return 'CSRF token validation failed';
         }
 
-        $email = $_POST['email'] ?? '';
-        $password = $_POST['password'] ?? '';
+        $email    = trim((string)($_POST['email']    ?? ''));
+        $password = (string)($_POST['password'] ?? '');
 
         // Валідація
-        if (empty($email) || empty($password)) {
+        if ($email === '' || $password === '') {
             $_SESSION['error'] = __('email_and_password_required');
             header('Location: /login');
             exit;
         }
 
+        $limiter = new LoginRateLimiter();
+
+        // ── Rate limiting ──────────────────────────────────────────────────
+        $block = $limiter->check($email);
+        if ($block !== null) {
+            $minutes = (int) ceil($block['retry_after'] / 60);
+            $_SESSION['error'] = sprintf(
+                'Забагато невдалих спроб входу. Спробуйте через %d хв.',
+                max(1, $minutes)
+            );
+            header('Location: /login');
+            exit;
+        }
+        // ──────────────────────────────────────────────────────────────────
+
         // Знайти користувача
         $user = User::findByEmail($email);
-        
+
         if (!$user || !User::verifyPassword($password, $user['password'])) {
-            $_SESSION['error'] = __('invalid_email_or_password');
+            // Записуємо невдалу спробу
+            $limiter->recordFailure($email);
+
+            // Показуємо скільки спроб залишилось (тільки якщо їх мало)
+            $remaining = $limiter->remainingAttempts($email);
+            $left      = min($remaining['by_ip'], $remaining['by_email']);
+
+            if ($left <= 2 && $left > 0) {
+                $_SESSION['error'] = sprintf(
+                    '%s. Залишилось спроб: %d.',
+                    __('invalid_email_or_password'),
+                    $left
+                );
+            } else {
+                $_SESSION['error'] = __('invalid_email_or_password');
+            }
+
             header('Location: /login');
             exit;
         }
 
         // Перевірити, чи активний користувач
         if (!$user['is_active']) {
+            $limiter->recordFailure($email);
             $_SESSION['error'] = __('account_is_inactive');
             header('Location: /login');
             exit;
         }
 
+        // ── Успішний вхід ──────────────────────────────────────────────────
+        $limiter->recordSuccess($email);
+
         $oldSessionId = session_id();
-        
+
         // Встановити сесію
         $_SESSION['user'] = [
-            'id' => $user['id'],
-            'email' => $user['email'],
+            'id'         => $user['id'],
+            'email'      => $user['email'],
             'first_name' => $user['first_name'],
-            'last_name' => $user['last_name'],
-            'role' => $user['role'],
+            'last_name'  => $user['last_name'],
+            'role'       => $user['role'],
         ];
 
         // Перенести кошик з сесії до користувача
@@ -76,13 +112,10 @@ class AuthController
 
         // Якщо користувач вибрав "Запам'ятати мене"
         if (!empty($_POST['remember_me'])) {
-            // Генерувати токен для запам'ятовування
             $remember_token = bin2hex(random_bytes(32));
             User::setRememberToken($user['id'], $remember_token);
-            
-            // Встановити кукі на 30 днів
-            setcookie('remember_token', $remember_token, time() + (30 * 24 * 60 * 60), '/');
-            setcookie('user_id', $user['id'], time() + (30 * 24 * 60 * 60), '/');
+            setcookie('remember_token', $remember_token, time() + (30 * 24 * 60 * 60), '/', '', true, true);
+            setcookie('user_id', $user['id'], time() + (30 * 24 * 60 * 60), '/', '', true, true);
         }
 
         // Оновити час останнього входу
