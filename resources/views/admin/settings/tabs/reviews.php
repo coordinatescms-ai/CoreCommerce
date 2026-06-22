@@ -5,7 +5,7 @@ $page = (int) ($page ?? 1);
 $pages = (int) ($pages ?? 1);
 ?>
 <div class="settings-card">
-    <h3>Модерація відгуків</h3>
+    <h3><?= __('settings_reviews') ?></h3>
     <form method="GET" action="/admin/settings" class="mb-3" style="display:grid;grid-template-columns:2fr 2fr 1fr auto;gap:8px;">
         <input type="hidden" name="tab" value="reviews">
         <input type="text" name="product" value="<?= htmlspecialchars((string)$filters['product']) ?>" placeholder="Пошук товару">
@@ -15,7 +15,7 @@ $pages = (int) ($pages ?? 1);
             <option value="1" <?= $filters['status']==='1'?'selected':'' ?>>Видимі</option>
             <option value="0" <?= $filters['status']==='0'?'selected':'' ?>>Заблоковані</option>
         </select>
-        <button class="btn btn-primary" type="submit">Фільтр</button>
+        <button class="btn btn-primary" type="submit"><?= __('search') ?></button>
     </form>
 
     <?php if (empty($reviews)): ?>
@@ -24,21 +24,21 @@ $pages = (int) ($pages ?? 1);
         <?php foreach ($reviews as $review): ?>
             <div style="border:1px solid #e5e7eb;border-radius:8px;padding:10px;margin-bottom:10px;<?= !empty($review['parent_id']) ? 'margin-left:24px;' : '' ?>">
                 <div><strong><?= htmlspecialchars((string)$review['author_name']) ?></strong> · <?= htmlspecialchars((string)$review['product_name']) ?> · <?= htmlspecialchars((string)$review['created_at']) ?></div>
-                <?php if (!empty($review['parent_author'])): ?><div><small>Відповідь на: <?= htmlspecialchars((string)$review['parent_author']) ?></small></div><?php endif; ?>
+                <?php if (!empty($review['parent_author'])): ?><div><small><?= __('review_reply_to') ?> <?= htmlspecialchars((string)$review['parent_author']) ?></small></div><?php endif; ?>
                 <form method="POST" action="/admin/reviews/update/<?= (int)$review['id'] ?>">
                     <input type="hidden" name="csrf" value="<?= htmlspecialchars(\App\Core\Http\Csrf::token()) ?>">
                     <textarea name="body" rows="3" maxlength="2000" style="width:100%;margin-top:6px;"><?= htmlspecialchars((string)$review['body']) ?></textarea>
                     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
-                        <button class="btn btn-success" type="submit">Зберегти</button>
+                        <button class="btn btn-success" type="submit"><?= __('save') ?></button>
                 </form>
                 <form method="POST" action="/admin/reviews/toggle/<?= (int)$review['id'] ?>">
                     <input type="hidden" name="csrf" value="<?= htmlspecialchars(\App\Core\Http\Csrf::token()) ?>">
                     <input type="hidden" name="is_visible" value="<?= !empty($review['is_visible']) ? '0' : '1' ?>">
-                    <button class="btn btn-warning" type="submit"><?= !empty($review['is_visible']) ? 'Заблокувати' : 'Розблокувати' ?></button>
+                    <button class="btn btn-warning" type="submit"><?= !empty($review['is_visible']) ? __('block_action_btn') : __('unblock_action_btn') ?></button>
                 </form>
                 <form method="POST" action="/admin/reviews/delete/<?= (int)$review['id'] ?>" onsubmit="return confirm('Видалити відгук?');">
                     <input type="hidden" name="csrf" value="<?= htmlspecialchars(\App\Core\Http\Csrf::token()) ?>">
-                    <button class="btn btn-danger" type="submit">Видалити</button>
+                    <button class="btn btn-danger" type="submit"><?= __('delete') ?></button>
                 </form>
                     </div>
             </div>

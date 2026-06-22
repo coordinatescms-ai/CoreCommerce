@@ -1,5 +1,5 @@
 <div class="page-header">
-    <h1 class="page-title">Редагування категорії: <?php echo htmlspecialchars($category['name']); ?></h1>
+    <h1 class="page-title"><?= __('category_edit') ?>: <?php echo htmlspecialchars($category['name']); ?></h1>
     <a href="/admin/categories" class="btn btn-outline" style="border: 1px solid #ddd; color: #64748b;">
         <i class="fas fa-arrow-left"></i> Назад до списку
     </a>
@@ -22,7 +22,7 @@
                 <input type="text" name="slug" id="slug" class="form-control" required value="<?php echo htmlspecialchars($category['slug']); ?>">
             </div>
             <div class="form-group">
-                <label for="parent_id">Батьківська категорія</label>
+                <label for="parent_id"><?= __('category_parent') ?></label>
                 <select name="parent_id" id="parent_id" class="form-control">
                     <option value="">-- Немає (коренева) --</option>
                     <?php foreach ($categories as $cat): ?>

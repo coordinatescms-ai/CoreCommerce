@@ -157,7 +157,7 @@ class User extends Model
      * @param array $data
      * @return int|false
      */
-    public static function create($data)
+    public static function create(array $data): int|false
     {
         // Якщо це перший користувач, призначити роль Адміна (role_id = 1)
         $count = self::count();

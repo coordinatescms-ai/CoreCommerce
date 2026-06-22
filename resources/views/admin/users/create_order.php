@@ -7,14 +7,14 @@
 $fullName  = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''));
 $fullName  = $fullName !== '' ? $fullName : ($user['email'] ?? '—');
 $statusLabels = [
-    'new'        => 'Новий',
-    'confirmed'  => 'Підтверджено',
-    'processing' => 'Комплектується',
-    'shipped'    => 'Відправлено',
-    'delivered'  => 'Доставлено',
-    'completed'  => 'Виконано',
-    'cancelled'  => 'Скасовано',
-    'returned'   => 'Повернення',
+    'new'        => __('status_new'),
+    'confirmed'  => __('status_confirmed'),
+    'processing' => __('status_processing'),
+    'shipped'    => __('status_shipped'),
+    'delivered'  => __('status_delivered'),
+    'completed'  => __('status_completed'),
+    'cancelled'  => __('status_cancelled'),
+    'returned'   => __('status_returned'),
 ];
 ?>
 <style>
@@ -392,7 +392,7 @@ $statusLabels = [
                     ${fmtPrice(it.price * it.qty)} ' + currencySymbol + '
                 </td>
                 <td>
-                    <button class="remove-btn" onclick="window._coRemove(${idx})" title="Видалити">
+                    <button class="remove-btn" onclick="window._coRemove(${idx})" title="<?= __('delete') ?>">
                         <i class="fas fa-trash-alt"></i>
                     </button>
                 </td>
@@ -443,7 +443,7 @@ $statusLabels = [
 
     // ---- Submit ----
     submitBtn.addEventListener('click', async function () {
-        if (!items.length) { toast('Додайте хоча б один товар', 'error'); return; }
+        if (!items.length) { toast(window.LANG.add_at_least_one_product, 'error'); return; }
 
         const name  = document.getElementById('f-name').value.trim();
         const phone = document.getElementById('f-phone').value.trim();
@@ -493,7 +493,7 @@ $statusLabels = [
                     window.location.href = '/admin/orders/details/' + data.order_id;
                 }, 900);
             } else {
-                toast(data.message || 'Помилка збереження', 'error');
+                toast(data.message || window.LANG.save_error, 'error');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<i class="fas fa-check"></i> Оформити замовлення';
             }

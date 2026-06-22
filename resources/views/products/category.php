@@ -42,7 +42,7 @@ if (!function_exists('renderCategorySidebarAccordion')) {
 
             echo '<li class="category-royal-item" role="treeitem" aria-expanded="' . ($isExpanded ? 'true' : 'false') . '">';
             echo '<div class="category-royal-row">';
-            echo '<a href="/category/' . htmlspecialchars((string) ($item['slug'] ?? '')) . '" class="category-royal-link';
+            echo '<a href="/category/' . htmlspecialchars(ltrim((string) ($item['path'] ?? $item['slug'] ?? ''), '/')) . '" class="category-royal-link';
             echo $isActive ? ' is-active' : '';
             echo '" style="padding-left:' . $padding . 'px">';
             echo htmlspecialchars((string) ($item['name'] ?? ''));
@@ -78,37 +78,13 @@ if (!function_exists('renderCategorySidebarAccordion')) {
 ?>
 
 <div class="category-page" data-category-page>
-    <nav class="category-breadcrumbs" aria-label="Breadcrumb">
-        <ol>
-            <li>
-                <a class="breadcrumb-link breadcrumb-link-home" href="/">
-                    <svg class="breadcrumb-home-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M3 10.5L12 3L21 10.5V20A1 1 0 0 1 20 21H4A1 1 0 0 1 3 20V10.5Z" stroke="currentColor" stroke-width="1.8"/>
-                    </svg>
-                    <span><?= __('breadcrumb_home') ?></span>
-                </a>
-            </li>
-            <?php foreach ($breadcrumbs as $index => $crumb): ?>
-                <?php $isLast = $index === count($breadcrumbs) - 1; ?>
-                <li class="breadcrumb-divider" aria-hidden="true">/</li>
-                <li>
-                    <?php if ($isLast): ?>
-                        <span class="breadcrumb-current"><?= htmlspecialchars($crumb['name'] ?? '') ?></span>
-                    <?php else: ?>
-                        <a class="breadcrumb-link" href="<?= htmlspecialchars($crumb['url'] ?? '#') ?>">
-                            <?= htmlspecialchars($crumb['name'] ?? '') ?>
-                        </a>
-                    <?php endif; ?>
-                </li>
-            <?php endforeach; ?>
-        </ol>
-    </nav>
+    <?php include view_path('components/breadcrumb'); ?>
 
     <section class="category-heading">
         <div class="category-heading-top">
             <h1 class="category-title"><?= htmlspecialchars($category['name'] ?? __('categories')) ?></h1>
             <div class="category-total">
-                <?= __('products') ?>: <strong id="category-total-products"><?= $totalProducts ?></strong>
+                <?= __('products_found_label') ?>: <strong id="category-total-products"><?= $totalProducts ?></strong>
             </div>
         </div>
         <?php if (!empty($category['description'])): ?>

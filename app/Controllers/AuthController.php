@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Core\View\View;
+use App\Services\SeoService;
 use App\Core\Http\Csrf;
 use App\Models\User;
 use App\Core\Mail\MailService;
@@ -22,7 +23,7 @@ class AuthController
      */
     public function showLogin()
     {
-        View::render('auth/login');
+        View::render('auth/login', ['seo' => SeoService::forSystem('login', '/login')]);
     }
 
     /**
@@ -132,7 +133,7 @@ class AuthController
      */
     public function showRegister()
     {
-        View::render('auth/register');
+        View::render('auth/register', ['seo' => SeoService::forSystem('register', '/register')]);
     }
 
     /**
@@ -273,7 +274,7 @@ class AuthController
      */
     public function showForgotPassword()
     {
-        View::render('auth/forgot_password');
+        View::render('auth/forgot_password', ['seo' => SeoService::forSystem('forgot_password', '/forgot-password')]);
     }
 
     /**

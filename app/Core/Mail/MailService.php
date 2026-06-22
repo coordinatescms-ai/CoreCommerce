@@ -32,38 +32,97 @@ class MailService
      * @param string $body Тіло листа (HTML)
      * @return bool
      */
-    public function send($to, $subject, $body)
+    /**
+     * Сконфігурувати PHPMailer з поточних налаштувань.
+     */
+    private function configure(PHPMailer $mail): void
+    {
+        $encryption = $this->config['encryption'];
+
+        $mail->isSMTP();
+        $mail->Host     = $this->config['host'];
+        $mail->Port     = (int) $this->config['port'];
+        $mail->CharSet  = 'UTF-8';
+
+        if ($encryption === '' || $encryption === null || $encryption === 'none') {
+            // Без шифрування — Mailpit, локальний SMTP, порт 25
+            $mail->SMTPAuth   = false;
+            $mail->SMTPSecure = '';
+        } else {
+            // tls або ssl
+            $mail->SMTPAuth   = true;
+            $mail->SMTPSecure = $encryption;
+            $mail->Username   = $this->config['username'];
+            $mail->Password   = $this->config['password'];
+        }
+
+        // Таймаут з'єднання — щоб сторінка не зависала при недосяжному SMTP
+        $mail->Timeout    = 10;
+
+        // Дозволяємо самопідписані сертифікати (поширено на локальних SMTP)
+        $mail->SMTPOptions = [
+            'ssl' => [
+                'verify_peer'       => false,
+                'verify_peer_name'  => false,
+                'allow_self_signed' => true,
+            ],
+        ];
+
+        $mail->setFrom($this->config['from_email'], $this->config['from_name']);
+    }
+
+    /**
+     * Відправити HTML лист.
+     *
+     * @param string $to      Кому
+     * @param string $subject Тема
+     * @param string $body    Тіло листа (HTML)
+     */
+    public function send(string $to, string $subject, string $body): bool
+    {
+        return $this->sendWithDiagnostics($to, $subject, $body)['success'];
+    }
+
+    /**
+     * Відправити лист і повернути детальну інформацію про результат.
+     * Використовується для тестової відправки в адмін-панелі.
+     *
+     * @return array{success: bool, error: string}
+     */
+    public function sendWithDiagnostics(string $to, string $subject, string $body): array
     {
         $mail = new PHPMailer(true);
 
         try {
-            // Налаштування сервера
-            $mail->isSMTP();
-            $mail->Host       = $this->config['host'];
-            $mail->SMTPAuth   = true;
-            $mail->Username   = $this->config['username'];
-            $mail->Password   = $this->config['password'];
-            $mail->SMTPSecure = $this->config['encryption'];
-            $mail->Port       = $this->config['port'];
-            $mail->CharSet    = 'UTF-8';
-
-            // Отримувачі
-            $mail->setFrom($this->config['from_email'], $this->config['from_name']);
+            $this->configure($mail);
             $mail->addAddress($to);
-
-            // Вміст
             $mail->isHTML(true);
             $mail->Subject = $subject;
             $mail->Body    = $body;
             $mail->AltBody = strip_tags($body);
 
             $mail->send();
-            return true;
-        } catch (Exception $e) {
-            // У реальному додатку тут було б логування помилки
-            // error_log("Mail Error: {$mail->ErrorInfo}");
-            return false;
+            return ['success' => true, 'error' => ''];
+        } catch (\Throwable $e) {
+            $detail = $mail->ErrorInfo ?: $e->getMessage();
+            error_log('MailService error: ' . $detail);
+            return ['success' => false, 'error' => $detail];
         }
+    }
+
+    /**
+     * Повернути поточну конфігурацію (без пароля) для відображення в адмінці.
+     */
+    public function getConfigSummary(): array
+    {
+        return [
+            'host'       => $this->config['host'],
+            'port'       => $this->config['port'],
+            'username'   => $this->config['username'],
+            'encryption' => $this->config['encryption'],
+            'from_email' => $this->config['from_email'],
+            'from_name'  => $this->config['from_name'],
+        ];
     }
 
     /**

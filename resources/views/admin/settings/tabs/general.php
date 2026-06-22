@@ -21,11 +21,11 @@ $currencySource  = get_setting('currency_source', 'manual');
         </div>
         <div class="card-body">
             <div class="form-group">
-                <label for="site_name">Назва магазину</label>
+                <label for="site_name"><?= __('settings_shop_name') ?></label>
                 <input type="text" name="settings[site_name]" id="site_name" class="form-control" value="<?php echo htmlspecialchars(get_setting('site_name', '')); ?>">
             </div>
             <div class="form-group">
-                <label for="site_description">Опис магазину (для SEO)</label>
+                <label for="site_description"><?= __('settings_shop_desc') ?></label>
                 <textarea name="settings[site_description]" id="site_description" class="form-control" rows="3"><?php echo htmlspecialchars(get_setting('site_description', '')); ?></textarea>
             </div>
             <div class="form-group">
@@ -40,12 +40,12 @@ $currencySource  = get_setting('currency_source', 'manual');
                 <textarea name="settings[maintenance_message]" id="maintenance_message" class="form-control" rows="2"><?php echo htmlspecialchars(get_setting('maintenance_message', '')); ?></textarea>
             </div>
             <div class="form-group">
-                <label for="phone_mask">Маска номера телефону</label>
+                <label for="phone_mask"><?= __('settings_phone_mask') ?></label>
                 <input type="text" name="settings[phone_mask]" id="phone_mask" class="form-control" value="<?php echo htmlspecialchars(get_setting('phone_mask', '+38 (###) ###-##-##')); ?>">
                 <small style="display:block; margin-top: 0.35rem; color: #6b7280;">Використовуйте символ <code>#</code> для цифр. Приклад: <code>+38 (###) ###-##-##</code>.</small>
             </div>
             <div class="form-group">
-                <label for="logotype_file">Логотип магазину</label>
+                <label for="logotype_file"><?= __('settings_logo') ?></label>
                 <input type="file" name="logotype_file" id="logotype_file" class="form-control" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
                 <small style="display:block; margin-top: 0.35rem; color: #6b7280;">Дозволені формати: JPG, PNG, WEBP. Максимум: 1MB.</small>
                 <?php $activeLogotype = trim((string) get_setting('active_logotype', '')); ?>
@@ -64,7 +64,7 @@ $currencySource  = get_setting('currency_source', 'manual');
         </div>
         <div class="card-body">
             <div class="form-group">
-                <label for="default_language">Мова за замовчуванням</label>
+                <label for="default_language"><?= __('settings_default_lang') ?></label>
                 <select name="settings[default_language]" id="default_language" class="form-control">
                     <option value="ua" <?php echo get_setting('default_language', 'ua') === 'ua' ? 'selected' : ''; ?>>Українська</option>
                     <option value="en" <?php echo get_setting('default_language', 'ua') === 'en' ? 'selected' : ''; ?>>Англійська</option>
@@ -96,7 +96,7 @@ $currencySource  = get_setting('currency_source', 'manual');
                             <?= (int)$cur['is_active'] ? 'selected' : '' ?>>
                             <?= htmlspecialchars($cur['code']) ?>
                             (<?= htmlspecialchars($cur['symbol']) ?>)
-                            <?= (int)$cur['is_active'] ? ' — поточна' : '' ?>
+                            <?= (int)$cur['is_active'] ? ' — ' . __('current') : '' ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -122,7 +122,7 @@ $currencySource  = get_setting('currency_source', 'manual');
                                form="currencyUpdateForm"
                                <?= $currencySource === 'api' ? 'checked' : '' ?>
                                onchange="toggleRateSource()">
-                        API НБУ (автоматично)
+                        <?= __('currency_nbu_auto') ?>
                     </label>
                 </label>
             </div>
@@ -174,19 +174,19 @@ $currencySource  = get_setting('currency_source', 'manual');
         </div>
         <div class="card-body">
             <div class="form-group">
-                <label>Часовий пояс (Timezone)</label>
+                <label><?= __('settings_timezone') ?></label>
                 <select name="settings[site_timezone]" id="site_timezone" class="form-control">
                     <option value="Europe/Kiev" <?php echo get_setting('site_timezone', 'Europe/Kiev') === 'Europe/Kiev' ? 'selected' : ''; ?>>Kyiv (GMT+2 / GMT+3)</option>
                     <option value="Europe/London" <?php echo get_setting('site_timezone', 'Europe/London') === 'Europe/London' ? 'selected' : ''; ?>>London (GMT+0 / GMT+1)</option>
                     <option value="Europe/Warsaw" <?php echo get_setting('site_timezone', '') === 'Europe/Warsaw' ? 'selected' : ''; ?>>Warsaw (GMT+1 / GMT+2)</option>
                     <option value="UTC" <?php echo get_setting('site_timezone', '') === 'UTC' ? 'selected' : ''; ?>>Universal Time (UTC)</option>
                 </select>
-                <small class="hint">Впливає на відображення дати та часу в замовленнях.</small>
+                <small class="hint"><?= __('settings_timezone_hint') ?></small>
             </div>
             <div class="form-group">
-                <label>Формат дати</label>
+                <label><?= __('settings_date_format') ?></label>
                 <input type="text" name="settings[date_format]" class="form-control" value="<?php echo htmlspecialchars(get_setting('date_format', 'd.m.Y H:i')); ?>" placeholder="d.m.Y H:i">
-                <small class="hint">Наприклад: <code>11.04.2024 15:30</code></small>
+                <small class="hint"><?= __('settings_phone_mask_eg') ?>: <code>11.04.2024 15:30</code></small>
             </div>
         </div>
     </div>
@@ -194,44 +194,154 @@ $currencySource  = get_setting('currency_source', 'manual');
     <!-- Секція SMTP -->
     <div class="card" style="margin-top:1rem;">
         <div class="card-header">
-            <i class="fa-solid fa-envelope"></i> Налаштування пошти (SMTP)
+            <i class="fa-solid fa-envelope"></i> <?= __('smtp_settings_title') ?>
         </div>
         <div class="card-body">
-            <div class="form-group">
-                <label>SMTP Хост</label>
-                <input type="text" id="smtp" name="settings[smtr]" class="form-control" value="<?php echo htmlspecialchars(get_setting('smtr', '')); ?>">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0 1.25rem;">
+                <div class="form-group">
+                    <label for="smtp_host"><?= __('smtp_host') ?></label>
+                    <input type="text" id="smtp_host" name="settings[smtp_host]" class="form-control"
+                           placeholder="smtp.gmail.com"
+                           value="<?php echo htmlspecialchars(get_setting('smtp_host', '')); ?>">
+                </div>
+                <div class="form-group">
+                    <label for="smtp_port"><?= __('smtp_port') ?></label>
+                    <input type="number" id="smtp_port" name="settings[smtp_port]" class="form-control"
+                           placeholder="587"
+                           value="<?php echo htmlspecialchars(get_setting('smtp_port', '587')); ?>">
+                </div>
+                <div class="form-group">
+                    <label for="smtp_username"><?= __('smtp_user') ?></label>
+                    <input type="text" id="smtp_username" name="settings[smtp_username]" class="form-control"
+                           placeholder="your@email.com"
+                           value="<?php echo htmlspecialchars(get_setting('smtp_username', '')); ?>">
+                </div>
+                <div class="form-group">
+                    <label for="smtp_pass"><?= __('smtp_pass') ?></label>
+                    <input type="password" id="smtp_pass" name="settings[smtp_pass]" class="form-control"
+                           placeholder="••••••••"
+                           value="<?php echo htmlspecialchars(get_setting('smtp_pass', '')); ?>">
+                </div>
+                <div class="form-group">
+                    <label for="smtp_encryption"><?= __('smtp_encryption') ?></label>
+                    <select id="smtp_encryption" name="settings[smtp_encryption]" class="form-control">
+                        <?php
+                        $currentEnc = get_setting('smtp_encryption', 'tls');
+                        foreach (['tls' => __('smtp_enc_tls'), 'ssl' => __('smtp_enc_ssl'), '' => __('smtp_enc_none')] as $val => $label):
+                        ?>
+                            <option value="<?php echo $val; ?>" <?php echo $currentEnc === $val ? 'selected' : ''; ?>>
+                                <?php echo $label; ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="form-group" style="grid-column:1/-1; border-top:1px solid #e2e8f0; padding-top:.75rem; margin-top:.25rem;">
+                    <p style="font-size:.85rem; color:#64748b; margin:0 0 .75rem;">
+                        <i class="fas fa-info-circle"></i> Від кого надсилаються листи покупцям
+                    </p>
+                </div>
+                <div class="form-group">
+                    <label for="smtp_from_email"><?= __('smtp_from_email') ?></label>
+                    <input type="email" id="smtp_from_email" name="settings[smtp_from_email]" class="form-control"
+                           placeholder="no-reply@mysite.com"
+                           value="<?php echo htmlspecialchars(get_setting('smtp_from_email', '')); ?>">
+                </div>
+                <div class="form-group">
+                    <label for="smtp_from_name"><?= __('smtp_from_name') ?></label>
+                    <input type="text" id="smtp_from_name" name="settings[smtp_from_name]" class="form-control"
+                           placeholder="Мій магазин"
+                           value="<?php echo htmlspecialchars(get_setting('smtp_from_name', '')); ?>">
+                </div>
             </div>
-            <div class="form-group">
-                <label>Порт</label>
-                <input type="number" id="smtp_port" name="settings[smtp_port]" class="form-control" value="<?php echo htmlspecialchars(get_setting('smtp_port', '')); ?>">
-            </div>
-            <div class="form-group">
-                <label>Користувач (Email)</label>
-                <input type="email" id="email" name="settings[email]" class="form-control" value="<?php echo htmlspecialchars(get_setting('email', '')); ?>">
-            </div>
-            <div class="form-group">
-                <label>Пароль</label>
-                <input type="password" id="smtp_pass" name="settings[smtp_pass]" class="form-control" value="<?php echo htmlspecialchars(get_setting('smtp_pass', '')); ?>">
-            </div>
+            <p style="font-size:.8rem; color:#94a3b8; margin:.5rem 0 0;">
+                <i class="fas fa-shield-alt"></i> Для тестування відправки перейдіть у
+                <a href="/admin/system?tab=mail"><?= __('smtp_goto_system') ?></a>.
+            </p>
         </div>
     </div>
 
     <!-- Секція SEO -->
     <div class="card" style="margin-top:1rem;">
         <div class="card-header">
-            <i class="fa-solid fa-search"></i> SEO-шаблони для товарів
+            <i class="fa-solid fa-magnifying-glass"></i> <?= __('seo_templates') ?>
         </div>
         <div class="card-body">
-            <div class="form-group">
-                <label>Шаблон Title</label>
-                <input type="text" id="seo_title_template" name="settings[seo_title_template]" class="form-control" value="<?php echo htmlspecialchars(get_setting('seo_title_template', '')); ?>">
-                <small class="hint">Доступні маски: <code>{name}</code>, <code>{price}</code>, <code>{category}</code></small>
-            </div>
-            <div class="form-group">
-                <label>Шаблон Description</label>
-                <textarea id="seo_desc_template" name="settings[seo_desc_template]" class="form-control" rows="3"><?php echo htmlspecialchars(get_setting('seo_desc_template', '')); ?></textarea>
-                <small class="hint">Автоматичні шаблони для всіх товарів.</small>
-            </div>
+            <p style="font-size:.85rem; color:#64748b; margin:0 0 1rem;">
+                <?= __('seo_available_masks') ?>:
+                <code>{name}</code>, <code>{price}</code>, <code>{category}</code>,
+                <code>{shop_name}</code>, <code>{slug}</code>
+            </p>
+
+            <fieldset style="border:1px solid #e2e8f0; border-radius:6px; padding:1rem; margin-bottom:1rem;">
+                <legend style="font-weight:600; font-size:.9rem; padding:0 .5rem;">
+                    <i class="fas fa-box"></i> <?= __('admin_products') ?>
+                </legend>
+                <div class="form-group">
+                    <label><?= __('seo_title_template') ?></label>
+                    <input type="text" name="settings[seo_title_template]" class="form-control"
+                           placeholder="{name} — <?= __('buy') ?> в {shop_name}"
+                           value="<?= htmlspecialchars(get_setting('seo_title_template', '')) ?>">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label><?= __('seo_desc_template') ?></label>
+                    <textarea name="settings[seo_desc_template]" class="form-control" rows="2"
+                              placeholder="{name}. <?= __('seo_price_hint') ?> {price} грн."><?= htmlspecialchars(get_setting('seo_desc_template', '')) ?></textarea>
+                    <small class="hint"><?= __('seo_auto_hint') ?></small>
+                </div>
+            </fieldset>
+
+            <fieldset style="border:1px solid #e2e8f0; border-radius:6px; padding:1rem; margin-bottom:1rem;">
+                <legend style="font-weight:600; font-size:.9rem; padding:0 .5rem;">
+                    <i class="fas fa-list"></i> <?= __('admin_categories') ?>
+                </legend>
+                <div class="form-group">
+                    <label><?= __('seo_title_template') ?></label>
+                    <input type="text" name="settings[seo_category_title_template]" class="form-control"
+                           placeholder="{name} — {shop_name}"
+                           value="<?= htmlspecialchars(get_setting('seo_category_title_template', '')) ?>">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label><?= __('seo_desc_template') ?></label>
+                    <textarea name="settings[seo_category_desc_template]" class="form-control" rows="2"
+                              placeholder="{name} — <?= __('seo_catalog_hint') ?>"><?= htmlspecialchars(get_setting('seo_category_desc_template', '')) ?></textarea>
+                </div>
+            </fieldset>
+
+            <fieldset style="border:1px solid #e2e8f0; border-radius:6px; padding:1rem; margin-bottom:1rem;">
+                <legend style="font-weight:600; font-size:.9rem; padding:0 .5rem;">
+                    <i class="fas fa-file-lines"></i> <?= __('admin_content') ?>
+                </legend>
+                <div class="form-group">
+                    <label><?= __('seo_title_template') ?></label>
+                    <input type="text" name="settings[seo_page_title_template]" class="form-control"
+                           placeholder="{name} — {shop_name}"
+                           value="<?= htmlspecialchars(get_setting('seo_page_title_template', '')) ?>">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label><?= __('seo_desc_template') ?></label>
+                    <textarea name="settings[seo_page_desc_template]" class="form-control" rows="2"><?= htmlspecialchars(get_setting('seo_page_desc_template', '')) ?></textarea>
+                </div>
+            </fieldset>
+
+            <fieldset style="border:1px solid #e2e8f0; border-radius:6px; padding:1rem;">
+                <legend style="font-weight:600; font-size:.9rem; padding:0 .5rem;">
+                    <i class="fas fa-home"></i> <?= __('seo_home_page') ?>
+                </legend>
+                <div class="form-group">
+                    <label><?= __('seo_title_template') ?></label>
+                    <input type="text" name="settings[seo_home_title]" class="form-control"
+                           value="<?= htmlspecialchars(get_setting('seo_home_title', '')) ?>">
+                </div>
+                <div class="form-group">
+                    <label><?= __('seo_desc_template') ?></label>
+                    <textarea name="settings[seo_home_description]" class="form-control" rows="2"><?= htmlspecialchars(get_setting('seo_home_description', '')) ?></textarea>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label><?= __('meta_keywords') ?></label>
+                    <input type="text" name="settings[seo_home_keywords]" class="form-control"
+                           value="<?= htmlspecialchars(get_setting('seo_home_keywords', '')) ?>">
+                </div>
+            </fieldset>
         </div>
     </div>
 
@@ -263,11 +373,11 @@ $currencySource  = get_setting('currency_source', 'manual');
         </div>
         <div class="card-body">
             <div class="form-group">
-                <label for="contact_email">Контактний Email</label>
+                <label for="contact_email"><?= __('settings_contact_email') ?></label>
                 <input type="email" name="settings[contact_email]" id="contact_email" class="form-control" value="<?php echo htmlspecialchars(get_setting('contact_email', '')); ?>">
             </div>
             <div class="form-group">
-                <label for="contact_phone">Контактний телефон</label>
+                <label for="contact_phone"><?= __('settings_contact_phone') ?></label>
                 <input type="text" name="settings[contact_phone]" id="contact_phone" class="form-control" value="<?php echo htmlspecialchars(get_setting('contact_phone', '')); ?>">
             </div>
         </div>

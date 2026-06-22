@@ -362,3 +362,80 @@ table tbody tr:hover {
     visibility: visible;
     opacity: 1;
 }
+
+/* ── Breadcrumb ──────────────────────────────────────────────────────────── */
+.breadcrumb {
+    margin: 0 0 1.25rem;
+}
+
+.breadcrumb-list {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap;
+    align-items: center;
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: .84rem;
+    line-height: 1.4;
+    counter-reset: none !important;
+}
+
+.breadcrumb-list li {
+    list-style: none !important;
+    counter-increment: none !important;
+}
+
+.breadcrumb-list li::marker {
+    content: none !important;
+    display: none !important;
+}
+
+/* Роздільник через ::before */
+.breadcrumb-item + .breadcrumb-item::before {
+    content: '›';
+    display: inline-block;
+    margin: 0 .4rem;
+    color: #b0bec5;
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.breadcrumb-item {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    white-space: nowrap;
+}
+
+.breadcrumb-item a {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    color: #64748b;
+    text-decoration: none;
+    transition: color .15s;
+}
+
+.breadcrumb-item a:hover {
+    color: var(--color-primary, #3b82f6);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.breadcrumb-item a .fa-home {
+    font-size: .8rem;
+}
+
+.breadcrumb-item--current {
+    color: #1e293b;
+    font-weight: 500;
+    max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@media (max-width: 640px) {
+    .breadcrumb-list { font-size: .78rem; }
+    .breadcrumb-item--current { max-width: 160px; }
+}

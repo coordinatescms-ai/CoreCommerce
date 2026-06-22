@@ -23,7 +23,10 @@ function renderCategoryTree($categories, $currentCategoryId = null, $depth = 0, 
         $hasChildren = !empty($category['children']);
         
         echo '<li class="category-item ' . $isActive . '">';
-        echo '<a href="/category/' . htmlspecialchars($category['slug']) . '" class="category-link">';
+        $catPath = !empty($category['path'])
+            ? ltrim($category['path'], '/')
+            : $category['slug'];
+        echo '<a href="/category/' . htmlspecialchars($catPath) . '" class="category-link">';
         echo htmlspecialchars($category['name']);
         
         if ($hasChildren) {

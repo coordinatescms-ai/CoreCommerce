@@ -1,7 +1,7 @@
 <div class="page-header">
-    <h1 class="page-title">Управління атрибутами</h1>
+    <h1 class="page-title"><?= __('attribute_manage') ?></h1>
     <a href="/admin/attributes/create" class="btn btn-primary">
-        <i class="fas fa-plus"></i> Новий атрибут
+        <i class="fas fa-plus"></i> <?= __('attribute_new') ?>
     </a>
 </div>
 
@@ -26,7 +26,7 @@
                 <?php foreach (($attributes ?? []) as $attribute): ?>
                     <?php
                         $storedType = (string)($attribute['type'] ?? 'text');
-                        $typeLabel = $storedType === 'range' ? 'Число' : ($storedType === 'select' ? 'Список (select)' : 'Текст');
+                        $typeLabel = $storedType === 'range' ? __('attr_type_number') : ($storedType === 'select' ? __('attr_type_select') : __('attr_type_text'));
                     ?>
                     <tr style="border-bottom: 1px solid #eee;">
                         <td style="padding: 1rem;">

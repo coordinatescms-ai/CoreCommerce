@@ -154,11 +154,11 @@ function reviewStars(int|null $rating): string {
                    placeholder="Пошук за автором, товаром, текстом…">
         </div>
         <?php if ($filterSearch !== ''): ?>
-            <a href="<?= $pager->url(1) ?>" class="rv-btn" title="Скинути пошук">
+            <a href="<?= $pager->url(1) ?>" class="rv-btn" title="<?= __('reset') ?>">
                 <i class="fas fa-times"></i>
             </a>
         <?php endif; ?>
-        <button type="submit" class="rv-btn" title="Пошук" style="background:#6366f1; color:#fff; border-color:#6366f1;">
+        <button type="submit" class="rv-btn" title="<?= __('search') ?>" style="background:#6366f1; color:#fff; border-color:#6366f1;">
             <i class="fas fa-search"></i>
         </button>
     </form>
@@ -205,10 +205,10 @@ function reviewStars(int|null $rating): string {
                 <th class="th-check">
                     <input type="checkbox" id="check-all" title="Обрати всі">
                 </th>
-                <th>Автор</th>
+                <th><?= __('review_author') ?></th>
                 <th>Товар</th>
-                <th>Коментар</th>
-                <th>Рейтинг</th>
+                <th><?= __('review_comment') ?></th>
+                <th><?= __('review_rating') ?></th>
                 <th>Статус</th>
                 <th>Дата</th>
                 <th>Дії</th>
@@ -220,7 +220,7 @@ function reviewStars(int|null $rating): string {
                 <td colspan="8">
                     <div class="rv-empty">
                         <i class="fas fa-comments"></i>
-                        <?= $filterSearch !== '' ? 'За вашим запитом нічого не знайдено' : 'Коментарів ще немає' ?>
+                        <?= $filterSearch !== '' ? __('nothing_found') : __('reviews_empty') ?>
                     </div>
                 </td>
             </tr>
@@ -280,7 +280,7 @@ function reviewStars(int|null $rating): string {
                     <span class="rv-status <?= $isHidden ? 'hidden' : 'visible' ?>"
                           id="status-<?= (int)$r['id'] ?>">
                         <i class="fas <?= $isHidden ? 'fa-eye-slash' : 'fa-eye' ?>"></i>
-                        <?= $isHidden ? 'Блок' : 'Видимий' ?>
+                        <?= $isHidden ? __('block') : __('visible') ?>
                     </span>
                 </td>
                 <td style="white-space:nowrap; color:#64748b; font-size:.82rem;">
@@ -338,7 +338,7 @@ function reviewStars(int|null $rating): string {
         const btn = document.getElementById('expand-' + id);
         if (!el) return;
         el.classList.toggle('expanded');
-        btn.textContent = el.classList.contains('expanded') ? 'згорнути' : 'розгорнути';
+        btn.textContent = el.classList.contains('expanded') ? window.LANG.collapse : window.LANG.expand;
     };
 
     /* ── Checkboxes ── */
@@ -381,7 +381,7 @@ function reviewStars(int|null $rating): string {
                 body: JSON.stringify({ csrf: CSRF }),
             });
             const data = await res.json();
-            if (!data.success) { toast(data.message || 'Помилка', 'error'); return; }
+            if (!data.success) { toast(data.message || window.LANG.error, 'error'); return; }
 
             const row       = document.getElementById('row-' + id);
             const statusEl  = document.getElementById('status-' + id);
@@ -410,7 +410,7 @@ function reviewStars(int|null $rating): string {
 
     /* ── Delete ── */
     window.deleteReview = async function (id) {
-        if (!confirm('Видалити коментар разом з усіма відповідями?')) return;
+        if (!confirm(window.LANG.confirm_delete_review)) return;
         try {
             const res  = await fetch('/admin/reviews/remove/' + id, {
                 method: 'POST',
@@ -418,7 +418,7 @@ function reviewStars(int|null $rating): string {
                 body: JSON.stringify({ csrf: CSRF }),
             });
             const data = await res.json();
-            if (!data.success) { toast(data.message || 'Помилка', 'error'); return; }
+            if (!data.success) { toast(data.message || window.LANG.error, 'error'); return; }
 
             const row = document.getElementById('row-' + id);
             if (row) {
@@ -435,7 +435,7 @@ function reviewStars(int|null $rating): string {
         const ids = getChecked();
         if (!ids.length) return;
 
-        const labels = { delete: 'видалити', hide: 'заблокувати', show: 'опублікувати' };
+        const labels = { delete: window.LANG.delete_action, hide: window.LANG.block_action, show: window.LANG.publish_action };
         if (action === 'delete' && !confirm('Видалити ' + ids.length + ' коментар(і) разом з відповідями?')) return;
 
         try {
@@ -445,7 +445,7 @@ function reviewStars(int|null $rating): string {
                 body: JSON.stringify({ csrf: CSRF, action, ids }),
             });
             const data = await res.json();
-            if (!data.success) { toast(data.message || 'Помилка', 'error'); return; }
+            if (!data.success) { toast(data.message || window.LANG.error, 'error'); return; }
 
             toast(data.message, 'success');
             setTimeout(() => location.reload(), 700);

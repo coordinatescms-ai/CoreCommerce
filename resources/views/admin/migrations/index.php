@@ -45,7 +45,7 @@
         <table style="width:100%; border-collapse:collapse; font-size:.875rem;">
             <thead>
                 <tr style="background:#f8fafc;">
-                    <th style="padding:.7rem 1rem; text-align:left; color:#64748b; font-size:.78rem; text-transform:uppercase; border-bottom:2px solid #e2e8f0;">Файл міграції</th>
+                    <th style="padding:.7rem 1rem; text-align:left; color:#64748b; font-size:.78rem; text-transform:uppercase; border-bottom:2px solid #e2e8f0;"><?= __('migration_file') ?></th>
                     <th style="padding:.7rem 1rem; text-align:left; color:#64748b; font-size:.78rem; text-transform:uppercase; border-bottom:2px solid #e2e8f0;">Статус</th>
                     <th style="padding:.7rem 1rem; text-align:left; color:#64748b; font-size:.78rem; text-transform:uppercase; border-bottom:2px solid #e2e8f0;">Виконано</th>
                     <th style="padding:.7rem 1rem; text-align:right; color:#64748b; font-size:.78rem; text-transform:uppercase; border-bottom:2px solid #e2e8f0;">Дії</th>
@@ -62,9 +62,9 @@
                     <?php foreach ($statuses as $m): ?>
                         <?php
                         $statusColor = match($m['status']) {
-                            'applied'      => ['#dcfce7', '#166534', 'fa-check-circle', 'Виконано'],
-                            'pending'      => ['#fef3c7', '#92400e', 'fa-clock', 'Очікує'],
-                            'missing_file' => ['#fee2e2', '#991b1b', 'fa-exclamation-circle', 'Файл відсутній'],
+                            'applied'      => ['#dcfce7', '#166534', 'fa-check-circle', __('stock_done')],
+                            'pending'      => ['#fef3c7', '#92400e', 'fa-clock', __('status_pending')],
+                            'missing_file' => ['#fee2e2', '#991b1b', 'fa-exclamation-circle', __('missing')],
                             default        => ['#f1f5f9', '#64748b', 'fa-question-circle', $m['status']],
                         };
                         [$bg, $color, $icon, $label] = $statusColor;
@@ -105,7 +105,7 @@
 </div>
 
 <div style="margin-top:1rem; padding:1rem; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0; font-size:.82rem; color:#64748b;">
-    <strong>Як додати нову міграцію:</strong>
+    <strong><?= __('migration_how_to') ?>:</strong>
     Створіть файл <code>migrations/YYYYMMDD_назва.sql</code> з SQL-командами.
     Система виконає його автоматично при наступному запуску.<br>
     <strong>CLI:</strong> <code>php migrations/migrate.php</code> &nbsp;|&nbsp;
@@ -163,7 +163,7 @@
     document.querySelectorAll('.reset-btn').forEach(btn => {
         btn.addEventListener('click', async function () {
             const name = this.dataset.name;
-            if (!confirm(`Скинути міграцію «${name}»?\nВона буде виконана знову при наступному запуску.`)) return;
+            if (!confirm(`${window.LANG.confirm_reset_migration} «${name}»`)) return;
             const data = await postJson('/admin/migrations/reset', { name });
             showResult(data);
             if (data.success) setTimeout(() => location.reload(), 800);

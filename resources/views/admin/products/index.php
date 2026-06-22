@@ -59,7 +59,7 @@ $hasFilters = $search !== '' || $catId !== null || $visibility !== 'all';
 <?php endif; ?>
 
 <div class="card">
-    <div class="card-header">Імпорт товарів з CSV</div>
+    <div class="card-header"><?= __('product_import_csv') ?></div>
     <div class="card-body">
         <form action="/admin/products/import-csv" method="POST" enctype="multipart/form-data"
               style="display:flex; gap:.75rem; align-items:flex-end; flex-wrap:wrap;">
@@ -85,7 +85,7 @@ $hasFilters = $search !== '' || $catId !== null || $visibility !== 'all';
         </span>
     </h1>
     <a href="/admin/products/create" class="btn btn-primary">
-        <i class="fas fa-plus"></i> Новий товар
+        <i class="fas fa-plus"></i> <?= __('product_new') ?>
     </a>
 </div>
 
@@ -132,7 +132,7 @@ $hasFilters = $search !== '' || $catId !== null || $visibility !== 'all';
     </div>
 
     <?php if ($hasFilters): ?>
-        <a href="/admin/products" class="prod-reset" title="Скинути фільтри">
+        <a href="/admin/products" class="prod-reset" title="<?= __('reset') ?>">
             <i class="fas fa-times"></i>
         </a>
     <?php endif; ?>
@@ -156,7 +156,7 @@ $hasFilters = $search !== '' || $catId !== null || $visibility !== 'all';
                     <tr>
                         <td colspan="6" style="padding:2.5rem; text-align:center; color:#94a3b8;">
                             <i class="fas fa-box-open" style="font-size:1.5rem; display:block; margin-bottom:.5rem;"></i>
-                            <?= $hasFilters ? 'За вашим запитом нічого не знайдено' : 'Товарів поки що не створено' ?>
+                            <?= $hasFilters ? __('nothing_found') : __('products_empty')  ?>
                         </td>
                     </tr>
                 <?php else: ?>
@@ -213,11 +213,11 @@ $hasFilters = $search !== '' || $catId !== null || $visibility !== 'all';
                             </td>
                             <td style="padding:1rem; text-align:right; white-space:nowrap;">
                                 <a href="/admin/products/show/<?= (int)$product['id'] ?>"
-                                   class="btn btn-outline" style="border:1px solid #ddd; color:#0f766e;" title="Перегляд">
+                                   class="btn btn-outline" style="border:1px solid #ddd; color:#0f766e;" title="<?= __('preview') ?>">
                                     <i class="fas fa-eye"></i>
                                 </a>
                                 <a href="/admin/products/edit/<?= (int)$product['id'] ?>"
-                                   class="btn btn-outline" style="border:1px solid #ddd; color:#2563eb;" title="Редагувати">
+                                   class="btn btn-outline" style="border:1px solid #ddd; color:#2563eb;" title="<?= __('edit') ?>">
                                     <i class="fas fa-edit"></i>
                                 </a>
                                 <form action="/admin/products/delete/<?= (int)$product['id'] ?>"
@@ -226,7 +226,7 @@ $hasFilters = $search !== '' || $catId !== null || $visibility !== 'all';
                                     <input type="hidden" name="_method" value="DELETE">
                                     <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf']) ?>">
                                     <button type="submit" class="btn btn-outline"
-                                            style="border:1px solid #ddd; color:#ef4444;" title="Видалити">
+                                            style="border:1px solid #ddd; color:#ef4444;" title="<?= __('delete') ?>">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </form>

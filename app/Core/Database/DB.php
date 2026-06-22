@@ -23,14 +23,13 @@ class DB
 
     /**
      * Виконати підготовлений запит з автоматичним визначенням типів параметрів.
+     * Підтримує як позиційні (?) так і іменовані (:name) параметри.
      */
     public static function query(string $sql, array $params = []): PDOStatement
     {
         $stmt = self::$pdo->prepare($sql);
 
         foreach ($params as $key => $value) {
-            $index = $key + 1; // PDO позиційні параметри починаються з 1
-
             if (is_int($value)) {
                 $type = PDO::PARAM_INT;
             } elseif (is_bool($value)) {
@@ -41,7 +40,14 @@ class DB
                 $type = PDO::PARAM_STR;
             }
 
-            $stmt->bindValue($index, $value, $type);
+            if (is_string($key)) {
+                // Named параметр: ':name' або 'name'
+                $paramKey = str_starts_with($key, ':') ? $key : ':' . $key;
+                $stmt->bindValue($paramKey, $value, $type);
+            } else {
+                // Позиційний параметр: індекс з 1
+                $stmt->bindValue($key + 1, $value, $type);
+            }
         }
 
         $stmt->execute();

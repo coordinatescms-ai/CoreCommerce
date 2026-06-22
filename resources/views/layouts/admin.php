@@ -219,8 +219,85 @@
     .btn-edit:hover { color: #36a2eb; }
 
         @media (max-width: 768px) {
-            .sidebar { transform: translateX(-100%); }
-            .main-content { margin-left: 0; width: 100%; }
+            .sidebar {
+                transform: translateX(-100%);
+                position: fixed;
+                z-index: 1100;
+                box-shadow: 4px 0 20px rgba(0,0,0,.3);
+            }
+            .sidebar.is-open { transform: translateX(0); }
+            .main-content { margin-left: 0 !important; width: 100%; }
+
+            /* Overlay */
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,.45);
+                z-index: 1050;
+            }
+            .sidebar-overlay.is-visible { display: block; }
+
+            /* Burger в топ-хедері */
+            .admin-burger {
+                display: flex !important;
+            }
+
+            /* Таблиці: горизонтальний скрол */
+            .admin-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+            /* Картки в grid — по 1 колонці */
+            .stats-grid { grid-template-columns: 1fr 1fr !important; }
+
+            /* Форми — поля по всій ширині */
+            .form-group { width: 100% !important; }
+
+            /* Прибираємо зайві колонки в таблицях */
+            .admin-table .hide-mobile { display: none !important; }
+
+            /* Кнопки дій — менші */
+            .btn-edit, .btn-delete { padding: .3rem .5rem; font-size: .8rem; }
+
+            /* Page header */
+            .page-header { flex-direction: column; align-items: flex-start; gap: .5rem; }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr !important; }
+            .content-body { padding: .75rem !important; }
+            .card-body { padding: .75rem !important; }
+            .top-header { padding: .5rem .75rem !important; }
+            .page-title { font-size: 1.1rem !important; }
+        }
+
+        .admin-burger {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            background: none;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #64748b;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+        .admin-burger:hover { background: #f1f5f9; }
+
+        /* Таблиці — горизонтальний скрол на мобільних */
+        @media (max-width: 768px) {
+            .content-body table {
+                min-width: 600px;
+            }
+            .content-body > *:has(table),
+            .card-body:has(table),
+            .orders-list,
+            .admin-table-wrap {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
         }
     </style>
     <script>
@@ -229,59 +306,95 @@
                 ->fetchColumn() ?: '₴'
         ) ?>;
         window.CURRENCY_SYMBOL = currencySymbol;
+
+        // Рядки для JS (alert, toast тощо)
+        window.LANG = {
+            mail_sent:                 <?= json_encode(__('mail_sent')) ?>,
+            gallery_limit_reached:     <?= json_encode(__('gallery_limit_reached')) ?>,
+            image_upload_error:        <?= json_encode(__('image_upload_error')) ?>,
+            reason_required:           <?= json_encode(__('reason_required')) ?>,
+            error:                     <?= json_encode(__('error')) ?>,
+            unknown_error:             <?= json_encode(__('unknown_error')) ?>,
+            enabled:                   <?= json_encode(__('enabled')) ?>,
+            disabled:                  <?= json_encode(__('disabled')) ?>,
+            collapse:                  <?= json_encode(__('collapse')) ?>,
+            expand:                    <?= json_encode(__('expand')) ?>,
+            no_data:                   <?= json_encode(__('no_data')) ?>,
+            delete_action:             <?= json_encode(__('delete')) ?>,
+            block_action:              <?= json_encode(__('block_action')) ?>,
+            publish_action:            <?= json_encode(__('publish_action')) ?>,
+            order_new:                 <?= json_encode(__('order')) ?>,
+            no_attributes_for_category:<?= json_encode(__('no_attributes_for_category')) ?>,
+            checking:                  <?= json_encode(__('checking')) ?>,
+            generate_xml:              <?= json_encode(__('generate_xml')) ?>,
+            check_connection:          <?= json_encode(__('check_connection')) ?>,
+            generating:                <?= json_encode(__('generating')) ?>,
+            saving:                    <?= json_encode(__('saving')) ?>,
+            nothing_found:             <?= json_encode(__('nothing_found')) ?>,
+            order_history_empty:       <?= json_encode(__('order_history_empty')) ?>,
+            confirm_delete_review:     <?= json_encode(__('confirm_delete_review')) ?>,
+            confirm_reset_migration:   <?= json_encode(__('confirm_reset_migration')) ?>,
+            add_at_least_one_product:  <?= json_encode(__('add_at_least_one_product')) ?>,
+            sync_error:                <?= json_encode(__('sync_error')) ?>,
+            load_order_error:          <?= json_encode(__('load_order_error')) ?>,
+            save_error:                <?= json_encode(__('save_error')) ?>,
+            ban_reason_prompt:         <?= json_encode(__('ban_reason_prompt')) ?>,
+            bonus_reason_prompt:       <?= json_encode(__('bonus_reason_prompt')) ?>,
+        };
     </script>
 </head>
 <body>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
     <!-- Sidebar -->
-    <aside class="sidebar">
+    <aside class="sidebar" id="admin-sidebar">
         <div class="sidebar-header">
             <i class="fas fa-shopping-cart"></i> MySite Admin
         </div>
         <nav class="sidebar-menu">
             <a href="/admin" class="menu-item <?php echo $request_uri === '/admin' ? 'active' : ''; ?>">
-                <i class="fas fa-tachometer-alt"></i> Dashboard
+                <i class="fas fa-tachometer-alt"></i> <?= __('admin_dashboard') ?>
             </a>
             <a href="/admin/orders" class="menu-item <?php echo strpos($request_uri, '/admin/orders') === 0 ? 'active' : ''; ?>">
-                <i class="fas fa-shopping-bag"></i> Замовлення
+                <i class="fas fa-shopping-bag"></i> <?= __('admin_orders') ?>
             </a>
             <a href="/admin/products" class="menu-item">
-                <i class="fas fa-box"></i> Товари
+                <i class="fas fa-box"></i> <?= __('admin_products') ?>
             </a>
             <a href="/admin/categories" class="menu-item">
-                <i class="fas fa-list"></i> Категорії
+                <i class="fas fa-list"></i> <?= __('admin_categories') ?>
             </a>
             <a href="/admin/attributes" class="menu-item <?php echo strpos($request_uri, '/admin/attributes') === 0 ? 'active' : ''; ?>">
-                <i class="fas fa-sliders-h"></i> Атрибути
+                <i class="fas fa-sliders-h"></i> <?= __('admin_attributes') ?>
             </a>
             <a href="/admin/users" class="menu-item <?php echo strpos($request_uri, '/admin/users') === 0 ? 'active' : ''; ?>">
-                <i class="fas fa-users"></i> Користувачі
+                <i class="fas fa-users"></i> <?= __('admin_users') ?>
             </a>
             <a href="/admin/plugins" class="menu-item <?php echo strpos($request_uri, '/admin/plugins') === 0 ? 'active' : ''; ?>">
-                <i class="fas fa-plug"></i> Плагіни
+                <i class="fas fa-plug"></i> <?= __('admin_plugins') ?>
             </a>
             <a href="/admin/themes" class="menu-item">
-                <i class="fas fa-adjust"></i> Теми
+                <i class="fas fa-adjust"></i> <?= __('admin_themes') ?>
             </a>
             <a href="/admin/content" class="menu-item">
-                <i class="fas fa-file-lines"></i> Контент
+                <i class="fas fa-file-lines"></i> <?= __('admin_content') ?>
             </a>
             <a href="/admin/settings" class="menu-item <?php echo $request_uri === '/admin/settings' ? 'active' : ''; ?>">
-                <i class="fas fa-cog"></i> Налаштування
+                <i class="fas fa-cog"></i> <?= __('admin_settings') ?>
             </a>
             <a href="/admin/system" class="menu-item <?php echo strpos($request_uri, '/admin/system') === 0 ? 'active' : ''; ?>">
-                <i class="fas fa-server"></i> Система
+                <i class="fas fa-server"></i> <?= __('admin_system') ?>
             </a>
-            <a href="/admin/analytics/week" class="menu-item <?php echo $request_uri === '/admin/settings' ? 'active' : ''; ?>">
-                <i class="fas fa-chart-line"></i> Аналітика
+            <a href="/admin/analytics/week" class="menu-item <?php echo strpos($request_uri, '/admin/analytics') === 0 ? 'active' : ''; ?>">
+                <i class="fas fa-chart-line"></i> <?= __('admin_analytics') ?>
             </a>
             <a href="/admin/stocks" class="menu-item <?php echo strpos($request_uri, '/admin/stocks') === 0 ? 'active' : ''; ?>">
-                <i class="fas fa-warehouse"></i> Склад
+                <i class="fas fa-warehouse"></i> <?= __('admin_stocks') ?>
             </a>
             <a href="/admin/reviews" class="menu-item <?php echo strpos($request_uri, '/admin/reviews') === 0 ? 'active' : ''; ?>">
-                <i class="fas fa-comments"></i> Коментарі
+                <i class="fas fa-comments"></i> <?= __('admin_reviews') ?>
             </a>
             <a href="/admin/migrations" class="menu-item <?php echo strpos($request_uri, '/admin/migrations') === 0 ? 'active' : ''; ?>">
-                <i class="fas fa-database"></i> Міграції БД
+                <i class="fas fa-database"></i> <?= __('admin_migrations') ?>
             </a>
         </nav>
     </aside>
@@ -290,16 +403,19 @@
     <main class="main-content">
         <header class="top-header">
             <div class="header-left">
+                <button class="admin-burger" id="admin-burger" aria-label="Меню" type="button">
+                    <i class="fas fa-bars"></i>
+                </button>
                 <a href="/" target="_blank" class="btn btn-outline" style="border: 1px solid #ddd;">
-                    <i class="fas fa-external-link-alt"></i> Перейти на сайт
+                    <i class="fas fa-external-link-alt"></i> <?= __('view_site') ?>
                 </a>
             </div>
             <div class="user-nav">
-                <span>Привіт, <strong><?php echo htmlspecialchars($_SESSION['user']['first_name']); ?></strong></span>
+                <span><?= __('hi') ?> <strong><?php echo htmlspecialchars($_SESSION['user']['first_name']); ?></strong></span>
                 <form action="/logout" method="POST" style="display:inline-block; margin:0;">
                     <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf'] ?? ''); ?>">
                     <button type="submit" class="btn btn-link" style="padding:0; border:none; background:none; color:inherit; cursor:pointer;">
-                        <i class="fas fa-sign-out-alt"></i> Вийти
+                        <i class="fas fa-sign-out-alt"></i> <?= __('logout') ?>
                     </button>
                 </form>
             </div>
@@ -321,5 +437,34 @@
             <?php echo $content; ?>
         </div>
     </main>
+<script>
+// ── Admin sidebar burger ───────────────────────────────────────────────────
+(function () {
+    const burger  = document.getElementById('admin-burger');
+    const sidebar = document.getElementById('admin-sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    if (!burger || !sidebar) return;
+
+    function open() {
+        sidebar.classList.add('is-open');
+        if (overlay) overlay.classList.add('is-visible');
+        burger.setAttribute('aria-expanded', 'true');
+    }
+    function close() {
+        sidebar.classList.remove('is-open');
+        if (overlay) overlay.classList.remove('is-visible');
+        burger.setAttribute('aria-expanded', 'false');
+    }
+
+    burger.addEventListener('click', function (e) {
+        e.stopPropagation();
+        sidebar.classList.contains('is-open') ? close() : open();
+    });
+
+    if (overlay) overlay.addEventListener('click', close);
+
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+})();
+</script>
 </body>
 </html>

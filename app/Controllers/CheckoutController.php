@@ -1,6 +1,7 @@
 <?php
 namespace App\Controllers;
 use App\Core\Database\DB;
+use App\Services\SeoService;
 use App\Core\Http\Csrf;
 
 class CheckoutController{

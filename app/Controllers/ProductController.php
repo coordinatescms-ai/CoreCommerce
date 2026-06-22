@@ -12,65 +12,26 @@ use App\Models\CrmUserService;
 use App\Models\Setting;
 use App\Services\SlugHelper;
 use App\Services\ProductFilterService;
+use App\Services\SeoService;
 use App\Models\Review;
 use App\Core\Mail\MailService;
 
 class ProductController
 {
-    private function renderProductSeoTemplate(string $template, array $product, ?array $category): string
-    {
-        $template = trim($template);
-        if ($template === '') {
-            return '';
-        }
-
-        $replacements = [
-            '{name}' => (string) ($product['name'] ?? ''),
-            '{price}' => (string) ($product['price'] ?? ''),
-            '{category}' => (string) ($category['name'] ?? ''),
-        ];
-
-        return trim(strtr($template, $replacements));
-    }
-
     private function resolveCategorySeoPage(array $category, ?array $seoSettings): array
     {
-        $metaTitle = trim((string) ($category['meta_title'] ?? ''));
-        $metaDescription = trim((string) ($category['meta_description'] ?? ''));
-
-        if ($metaTitle === '') {
-            $metaTitle = trim((string) ($seoSettings['title'] ?? ''));
-        }
-
-        if ($metaDescription === '') {
-            $metaDescription = trim((string) ($seoSettings['description'] ?? ''));
-        }
-
-        return [
-            'meta_title' => $metaTitle,
-            'meta_description' => $metaDescription,
-        ];
+        return SeoService::forCategory($category);
     }
 
     private function resolveProductSeoPage(array $product, ?array $category): array
     {
-        $metaTitle = trim((string) ($product['meta_title'] ?? ''));
-        $metaDescription = trim((string) ($product['meta_description'] ?? ''));
+        return SeoService::forProduct($product, $category);
+    }
 
-        if ($metaTitle === '') {
-            $metaTitleTemplate = (string) Setting::get('seo_title_template', '');
-            $metaTitle = $this->renderProductSeoTemplate($metaTitleTemplate, $product, $category);
-        }
-
-        if ($metaDescription === '') {
-            $metaDescriptionTemplate = (string) Setting::get('seo_desc_template', '');
-            $metaDescription = $this->renderProductSeoTemplate($metaDescriptionTemplate, $product, $category);
-        }
-
-        return [
-            'meta_title' => $metaTitle,
-            'meta_description' => $metaDescription,
-        ];
+    private function renderProductSeoTemplate(string $template, array $product, ?array $category): string
+    {
+        // Залишено для зворотної сумісності; SeoService::forProduct() використовує власну логіку
+        return '';
     }
 
     /**
@@ -242,6 +203,7 @@ class ProductController
             'page' => $page,
             'pages' => $pages,
             'limit' => $limit,
+            'seo'   => SeoService::forSystem('admin_products', '/products'),
         ]);
     }
 
@@ -329,58 +291,72 @@ class ProductController
     }
 
     /**
-     * Показати категорію за slug
-     * 
-     * @param string $slug
+     * Показати категорію за вкладеним path або slug.
+     * Параметр $path може бути:
+     *   - 'smartphones'            (старий slug)
+     *   - 'electronics/smartphones' (новий вкладений path)
      */
-    public function showCategory($slug)
+    public function showCategory(string $path): void
     {
-        // Перевірити, чи є редирект для цього slug
-        $redirect = SlugHelper::getRedirect($slug, 'category');
-        
-        if ($redirect) {
-            header("HTTP/1.1 301 Moved Permanently");
-            header("Location: /category/" . $redirect['new_slug']);
-            exit;
+        // Спочатку шукаємо за повним path (вкладені категорії)
+        $category = Category::findByPath($path);
+
+        // Якщо не знайшли за path — шукаємо за slug (зворотна сумісність)
+        if (!$category) {
+            $lastSlug = basename($path);
+
+            // Перевіряємо 301 редирект
+            $redirect = SlugHelper::getRedirect($lastSlug, 'category');
+            if ($redirect) {
+                $newCategory = Category::findBySlug($redirect['new_slug']);
+                $newPath     = ltrim($newCategory['path'] ?? $redirect['new_slug'], '/');
+                header('HTTP/1.1 301 Moved Permanently');
+                header('Location: /category/' . $newPath);
+                exit;
+            }
+
+            $category = Category::findBySlug($lastSlug);
         }
 
-        // Отримати категорію за slug
-        $category = Category::findBySlug($slug);
-        
         if (!$category) {
             http_response_code(404);
             View::render('errors/404');
             return;
         }
 
-        $data = $this->buildCategoryPageData($category, $_GET);
+        // Якщо URL не відповідає канонічному path — 301
+        $canonicalPath = ltrim($category['path'] ?? $category['slug'], '/');
+        if ($path !== $canonicalPath && !empty($category['path'])) {
+            header('HTTP/1.1 301 Moved Permanently');
+            header('Location: /category/' . $canonicalPath);
+            exit;
+        }
 
+        $data   = $this->buildCategoryPageData($category, $_GET);
         $isAjax = (!empty($_GET['ajax']) && (int) $_GET['ajax'] === 1)
-            || (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
+            || (!empty($_SERVER['HTTP_X_REQUESTED_WITH'])
+                && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
 
         if ($isAjax) {
             header('Content-Type: application/json; charset=utf-8');
             echo json_encode([
-                'html' => $this->renderCategoryProductsHtml($data),
+                'html'  => $this->renderCategoryProductsHtml($data),
                 'total' => $data['totalProducts'],
                 'pages' => $data['pages'],
-                'page' => $data['page']
+                'page'  => $data['page'],
             ]);
             return;
         }
 
-        return View::render('products/category', $data);
+        View::render('products/category', $data);
     }
 
     /**
      * AJAX endpoint для фільтрації товарів категорії.
-     *
-     * @param string $slug
-     * @return void
      */
-    public function filterCategory($slug)
+    public function filterCategory(string $path): void
     {
-        return $this->showCategory($slug);
+        $this->showCategory($path);
     }
 
     public function reviews($slug)

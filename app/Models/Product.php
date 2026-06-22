@@ -231,7 +231,7 @@ class Product extends Model
      * @param array $data
      * @return int|false
      */
-    public static function create($data)
+    public static function create(array $data): int|false
     {
         // Генерувати унікальний slug, якщо не надано
         if (empty($data['slug'])) {

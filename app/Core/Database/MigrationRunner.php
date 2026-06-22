@@ -54,17 +54,25 @@ class MigrationRunner
             }
 
             try {
-                DB::$pdo->beginTransaction();
+                $isDdl = $this->isDdlMigration($sql);
+
+                if (!$isDdl) {
+                    DB::beginTransaction();
+                }
+
                 $this->executeSql($sql);
                 $this->markApplied($name);
-                DB::$pdo->commit();
+
+                if (!$isDdl) {
+                    DB::commit();
+                }
 
                 $run[] = $name;
                 $this->log("OK: $name");
 
             } catch (\Throwable $e) {
-                if (DB::$pdo->inTransaction()) {
-                    DB::$pdo->rollBack();
+                if (!($isDdl ?? true) && DB::inTransaction()) {
+                    DB::rollBack();
                 }
                 $failed[$name] = $e->getMessage();
                 $this->log("FAIL: $name | " . $e->getMessage());
@@ -204,6 +212,18 @@ class MigrationRunner
         foreach ($statements as $statement) {
             DB::exec($statement);
         }
+    }
+
+    /**
+     * Визначити чи містить міграція DDL-команди (ALTER, CREATE, DROP, RENAME).
+     * DDL в MySQL автоматично робить implicit COMMIT — транзакція не потрібна.
+     */
+    private function isDdlMigration(string $sql): bool
+    {
+        return (bool) preg_match(
+            '/^\s*(ALTER|CREATE|DROP|RENAME|TRUNCATE)\s/im',
+            $sql
+        );
     }
 
     private function log(string $message): void

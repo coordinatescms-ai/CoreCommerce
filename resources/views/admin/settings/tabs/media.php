@@ -36,7 +36,7 @@
             </div>
 
             <div class="form-group" style="margin-top:1rem;">
-                <label for="media_quality">Якість стиснення WebP/JPEG: <strong id="quality-value"><?php echo (int) get_setting('media_quality', '82'); ?></strong>%</label>
+                <label for="media_quality"><?= __('settings_webp_quality') ?>: <strong id="quality-value"><?php echo (int) get_setting('media_quality', '82'); ?></strong>%</label>
                 <input type="range" min="10" max="100" step="1" name="settings[media_quality]" id="media_quality" class="form-control" value="<?php echo (int) get_setting('media_quality', '82'); ?>">
             </div>
 
@@ -55,7 +55,7 @@
         </div>
         <div class="card-body">
             <div class="form-group">
-                <label for="watermark_file">Логотип водяного знака (PNG з прозорістю)</label>
+                <label for="watermark_file"><?= __('settings_watermark') ?></label>
                 <input type="file" name="watermark_file" id="watermark_file" class="form-control" accept=".png,image/png">
                 <?php if (get_setting('media_watermark_path')): ?>
                     <div style="margin-top:0.5rem;">
@@ -65,7 +65,7 @@
             </div>
 
             <div class="form-group">
-                <label for="media_watermark_position">Позиція водяного знака</label>
+                <label for="media_watermark_position"><?= __('settings_watermark_pos') ?></label>
                 <select name="settings[media_watermark_position]" id="media_watermark_position" class="form-control">
                     <?php $position = get_setting('media_watermark_position', 'bottom-right'); ?>
                     <option value="top-left" <?php echo $position === 'top-left' ? 'selected' : ''; ?>>Top-Left</option>

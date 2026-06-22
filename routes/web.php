@@ -3,6 +3,7 @@
 use App\Core\Routing\Router;
 use App\Controllers\ProductController;
 use App\Controllers\HomeController;
+use App\Controllers\SearchController;
 use App\Controllers\CartController;
 use App\Controllers\OrderController;
 use App\Controllers\AdminProductController;
@@ -30,11 +31,13 @@ $router = new Router();
 
 $router->get('/',[HomeController::class,'index']);
 $router->get('/products',[ProductController::class,'index']);
+$router->get('/search',              [SearchController::class, 'index']);
+$router->get('/search/autocomplete', [SearchController::class, 'autocomplete']);
 $router->get('/product/{slug}',[ProductController::class,'show']);
 $router->get('/product/{slug}/reviews',[ProductController::class,'reviews']);
 $router->post('/product/{slug}/reviews',[ProductController::class,'addReview']);
-$router->get('/category/{slug}/filter',[ProductController::class,'filterCategory']);
-$router->get('/category/{slug}',[ProductController::class,'showCategory']);
+$router->get('/category/{path:.+}/filter', [ProductController::class, 'filterCategory']);
+$router->get('/category/{path:.+}',        [ProductController::class, 'showCategory']);
 
 // Кошик
 $router->get('/cart',[CartController::class,'index']);
@@ -90,6 +93,8 @@ $router->post('/admin/settings/save', [AdminController::class, 'saveSettings']);
 $router->post('/admin/clear-cache', [AdminController::class, 'clearCache']);
 $router->get('/admin/system', [AdminController::class, 'system']);
 $router->post('/admin/system/environment', [AdminController::class, 'saveSystemEnvironment']);
+$router->post('/admin/system/security', [AdminController::class, 'saveSecuritySettings']);
+$router->post('/admin/system/sitemap/generate', [AdminController::class, 'generateSitemap']);
 $router->post('/admin/system/mail/test', [AdminController::class, 'sendSystemTestEmail']);
 $router->post('/admin/system/logs/clear', [AdminController::class, 'clearLogs']);
 $router->post('/admin/system/database/backup', [AdminController::class, 'backupDatabase']);

@@ -1,11 +1,11 @@
 <div class="page-header">
-    <h1 class="page-title">Управління контентом</h1>
+    <h1 class="page-title"><?= __('content_manage') ?></h1>
     <a href="/admin/content/create" class="btn btn-primary">
         <i class="fas fa-plus"></i> Новий контент
     </a>
 </div>
 
-<table class="admin-table">
+<div class="admin-table-wrap"><table class="admin-table">
     <thead>
         <tr>
             <th>ID</th>
@@ -31,13 +31,13 @@
             </td>
             <td><?= date('d.m.Y', strtotime($page['created_at'])) ?></td>
             <td class="actions">
-                <a href="/admin/content/edit/<?= $page['id'] ?>" class="btn-edit" title="Редагувати">
+                <a href="/admin/content/edit/<?= $page['id'] ?>" class="btn-edit" title="<?= __('edit') ?>">
                     <i class="fas fa-edit"></i>
                 </a>
                 
                 <form action="/admin/content/delete/<?= $page['id'] ?>" method="POST" style="display:inline;" onsubmit="return confirm('Ви впевнені?')">
                     <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
-                    <button type="submit" class="btn-delete" title="Видалити">
+                    <button type="submit" class="btn-delete" title="<?= __('delete') ?>">
                         <i class="fas fa-trash"></i>
                     </button>
                 </form>

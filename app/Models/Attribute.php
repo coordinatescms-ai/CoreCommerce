@@ -156,7 +156,7 @@ class Attribute extends Model
      * @param array $data
      * @return int|false
      */
-    public static function create($data)
+    public static function create(array $data): int|false
     {
         // Генерувати slug, якщо не надано
         if (empty($data['slug'])) {

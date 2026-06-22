@@ -5,12 +5,12 @@
 <div class="card" style="margin-bottom: 1rem;">
     <div class="card-body" style="padding: 0.75rem 1rem;">
         <div id="settings-tabs" style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-            <button type="button" class="btn btn-outline settings-tab-btn active" data-tab="general">Загальні</button>
-            <button type="button" class="btn btn-outline settings-tab-btn" data-tab="media">Мультимедіа</button>
-            <button type="button" class="btn btn-outline settings-tab-btn" data-tab="shipping">Доставка</button>
-            <button type="button" class="btn btn-outline settings-tab-btn" data-tab="payment">Оплата</button>
-            <button type="button" class="btn btn-outline settings-tab-btn" data-tab="reviews">Відгуки</button>
-            <button type="button" class="btn btn-outline settings-tab-btn" data-tab="update">Оновлення</button>
+            <button type="button" class="btn btn-outline settings-tab-btn active" data-tab="general"><?= __('settings_general') ?></button>
+            <button type="button" class="btn btn-outline settings-tab-btn" data-tab="media"><?= __('settings_media') ?></button>
+            <button type="button" class="btn btn-outline settings-tab-btn" data-tab="shipping"><?= __('order_delivery') ?></button>
+            <button type="button" class="btn btn-outline settings-tab-btn" data-tab="payment"><?= __('settings_payment') ?></button>
+            <button type="button" class="btn btn-outline settings-tab-btn" data-tab="reviews"><?= __('admin_reviews') ?></button>
+            <button type="button" class="btn btn-outline settings-tab-btn" data-tab="update"><?= __('settings_update') ?></button>
             <button type="button" class="btn btn-outline settings-tab-btn" data-tab="integrations">
                 <i class="fas fa-plug"></i> Інтеграції
             </button>
