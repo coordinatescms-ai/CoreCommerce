@@ -77,7 +77,7 @@ $webhookUrl = rtrim($siteUrl, '/') . '/prom/webhook';
                       padding:2px 10px; border-radius:20px;
                       background:<?= $isEnabled ? '#dcfce7' : '#f1f5f9' ?>;
                       color:<?= $isEnabled ? '#166534' : '#64748b' ?>;">
-                    <?= $isEnabled ? 'Увімкнено' : 'Вимкнено' ?>
+                    <?= $isEnabled ? __('enabled') : __('disabled') ?>
                 </span>
             </div>
             <div class="int-toggle-desc">
@@ -164,7 +164,7 @@ $webhookUrl = rtrim($siteUrl, '/') . '/prom/webhook';
             <!-- Підхід А -->
             <div class="sync-panel <?= $syncMethod === 'xml' ? 'active' : '' ?>" id="panel-xml">
                 <p style="font-size:.875rem; color:#475569; margin-bottom:1rem;">
-                    Prom сам завантажує ваш каталог за посиланням. Рекомендовано для магазинів з великим каталогом.
+                    <?= __('prom_hint') ?>
                     Вкажіть URL фіду в кабінеті Prom: <strong>Товари → Імпорт → YML</strong>.
                 </p>
                 <div class="form-group">
@@ -233,7 +233,7 @@ $webhookUrl = rtrim($siteUrl, '/') . '/prom/webhook';
 
     <!-- Кнопка збереження -->
     <button type="button" class="btn btn-primary" id="savePromBtn" style="min-width:180px;">
-        <i class="fas fa-save"></i> Зберегти налаштування
+        <i class="fas fa-save"></i> <?= __('save_settings') ?>
     </button>
     <div id="saveResult" style="display:inline-block; margin-left:.75rem; font-size:.875rem;"></div>
 
@@ -251,7 +251,7 @@ $webhookUrl = rtrim($siteUrl, '/') . '/prom/webhook';
     toggle.addEventListener('change', function () {
         const on = this.checked;
         body.classList.toggle('locked', !on);
-        badge.textContent = on ? 'Увімкнено' : 'Вимкнено';
+        badge.textContent = on ? window.LANG.enabled : window.LANG.disabled;
         badge.style.background = on ? '#dcfce7' : '#f1f5f9';
         badge.style.color      = on ? '#166534' : '#64748b';
     });
@@ -263,7 +263,7 @@ $webhookUrl = rtrim($siteUrl, '/') . '/prom/webhook';
         const apiKey = document.getElementById('promApiKey').value.trim();
 
         btn.disabled    = true;
-        btn.innerHTML   = '<span class="spin"></span> Перевірка…';
+        btn.innerHTML   = `<span class="spin"></span> ${window.LANG.checking}`;
         result.className = 'conn-result';
 
         try {
@@ -278,23 +278,23 @@ $webhookUrl = rtrim($siteUrl, '/') . '/prom/webhook';
             result.innerHTML = (data.success
                 ? '<i class="fas fa-check-circle"></i> '
                 : '<i class="fas fa-times-circle"></i> ')
-                + (data.message || 'Невідома відповідь');
+                + (data.message || window.LANG.unknown_error);
         } catch {
             result.className  = 'conn-result fail';
             result.textContent = 'Помилка мережі.';
         }
 
         btn.disabled  = false;
-        btn.innerHTML = '<i class="fas fa-plug"></i> Перевірити зв\'язок';
+        btn.innerHTML = `<i class="fas fa-plug"></i> ${window.LANG.check_connection}`;
     });
 
-    // ── Зберегти налаштування ─────────────────────────────────────────────────
+    // ── <?= __('save_settings') ?> ─────────────────────────────────────────────────
     document.getElementById('savePromBtn').addEventListener('click', async function () {
         const btn    = this;
         const result = document.getElementById('saveResult');
 
         btn.disabled  = true;
-        btn.innerHTML = '<span class="spin"></span> Збереження…';
+        btn.innerHTML = `<span class="spin"></span> ${window.LANG.saving}`;
         result.textContent = '';
 
         const body = new URLSearchParams({
@@ -316,7 +316,7 @@ $webhookUrl = rtrim($siteUrl, '/') . '/prom/webhook';
         }
 
         btn.disabled  = false;
-        btn.innerHTML = '<i class="fas fa-save"></i> Зберегти налаштування';
+        btn.innerHTML = '<i class="fas fa-save"></i> <?= __('save_settings') ?>';
     });
 
     // ── Перемикач методу синхронізації ────────────────────────────────────────
@@ -334,7 +334,7 @@ $webhookUrl = rtrim($siteUrl, '/') . '/prom/webhook';
         const result = document.getElementById('feedResult');
 
         btn.disabled  = true;
-        btn.innerHTML = '<span class="spin"></span> Генерація…';
+        btn.innerHTML = `<span class="spin"></span> ${window.LANG.generating}`;
 
         try {
             const res  = await fetch('/admin/prom/generate-feed', {
@@ -353,7 +353,7 @@ $webhookUrl = rtrim($siteUrl, '/') . '/prom/webhook';
         }
 
         btn.disabled  = false;
-        btn.innerHTML = '<i class="fas fa-file-export"></i> Згенерувати XML зараз';
+        btn.innerHTML = `<i class="fas fa-file-export"></i> ${window.LANG.generate_xml}`;
     });
 
     // ── API черга ─────────────────────────────────────────────────────────────

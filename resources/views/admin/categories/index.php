@@ -1,7 +1,7 @@
 <div class="page-header">
     <h1 class="page-title">Управління категоріями</h1>
     <a href="/admin/categories/create" class="btn btn-primary">
-        <i class="fas fa-plus"></i> Нова категорія
+        <i class="fas fa-plus"></i> <?= __('category_new') ?>
     </a>
 </div>
 
@@ -12,7 +12,7 @@
                 <tr style="border-bottom: 2px solid #eee; text-align: left;">
                     <th style="padding: 1rem;">Назва</th>
                     <th style="padding: 1rem;">Slug</th>
-                    <th style="padding: 1rem;">Батьківська</th>
+                    <th style="padding: 1rem;"><?= __('category_parent_label') ?></th>
                     <th style="padding: 1rem;">Товарів</th>
                     <th style="padding: 1rem; text-align: right;">Дії</th>
                 </tr>
@@ -25,7 +25,7 @@
                             <strong><?php echo htmlspecialchars($category['name']); ?></strong>
                         </td>
                         <td style="padding: 1rem; color: #64748b; font-size: 0.85rem;">
-                            /category/<?php echo htmlspecialchars($category['slug']); ?>
+                            /category/<?php echo htmlspecialchars(ltrim($category['path'] ?? $category['slug'], '/')); ?>
                         </td>
                         <td style="padding: 1rem;">
                             <?php 

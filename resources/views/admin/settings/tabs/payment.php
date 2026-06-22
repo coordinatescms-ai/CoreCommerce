@@ -13,14 +13,14 @@
     <input type="hidden" name="current_tab" value="payment">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="h4 mb-0">Методи оплати</h2>
+        <h2 class="h4 mb-0"><?= __('settings_payment') ?></h2>
     </div>
 
     <?php foreach ($methods as $method): ?>
         <div class="card mb-4 shadow-sm border-0">
             <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
                 <h5 class="mb-0 text-success"><?= htmlspecialchars($method['name']) ?></h5>
-                <a href="#" onclick="if(confirm('Видалити цей метод?')) { document.getElementById('delete-form-<?= $method['id'] ?>').submit(); } return false;" class="btn btn-sm btn-outline-danger">
+                <a href="#" onclick="if(confirm(window.LANG.confirm_delete_method)) { document.getElementById('delete-form-<?= $method['id'] ?>').submit(); } return false;" class="btn btn-sm btn-outline-danger">
                     Видалити
                 </a>
 
@@ -39,14 +39,14 @@
                 <div class="row">
                     <!-- Назва методу -->
                     <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold">Назва методу для клієнта</label>
+                        <label class="form-label fw-bold"><?= __('settings_payment_name_client') ?></label>
                         <input type="text" name="methods[<?= $method['id'] ?>][name]" 
                                value="<?= htmlspecialchars($method['name']) ?>" class="form-control">
                     </div>
 
                     <!-- Опис методу -->
                     <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold">Опис при виборі оплати</label>
+                        <label class="form-label fw-bold"><?= __('plugin_payment_desc') ?></label>
                         <input type="text" name="methods[<?= $method['id'] ?>][description]" 
                                value="<?= htmlspecialchars($method['description'] ?? '') ?>" class="form-control" placeholder="Наприклад: Комісія 2%">
                     </div>
@@ -59,7 +59,7 @@
                 <!-- Прив'язка до платіжного плагіна (PaymentManager) -->
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold">Платіжний шлюз (плагін)</label>
+                        <label class="form-label fw-bold"><?= __('plugin_payment_gateway') ?></label>
                         <input type="text"
                                name="methods[<?= $method['id'] ?>][settings][gateway_name]"
                                value="<?= htmlspecialchars($extra['gateway_name'] ?? $method['code']) ?>"

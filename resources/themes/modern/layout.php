@@ -4,10 +4,36 @@
     <?php $assetVersion = urlencode((string) (get_setting('asset_version', '1'))); ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars((string) ($pageSeo['meta_title'] ?? 'Мій Магазин')) ?></title>
+
+    <title><?= htmlspecialchars((string) ($pageSeo['meta_title'] ?? get_setting('site_name', 'My Shop'))) ?></title>
+
     <?php if (!empty($pageSeo['meta_description'])): ?>
         <meta name="description" content="<?= htmlspecialchars((string) $pageSeo['meta_description']) ?>">
     <?php endif; ?>
+    <?php if (!empty($pageSeo['meta_keywords'])): ?>
+        <meta name="keywords" content="<?= htmlspecialchars((string) $pageSeo['meta_keywords']) ?>">
+    <?php endif; ?>
+    <?php if (!empty($pageSeo['robots'])): ?>
+        <meta name="robots" content="<?= htmlspecialchars((string) $pageSeo['robots']) ?>">
+    <?php endif; ?>
+    <?php if (!empty($pageSeo['canonical'])): ?>
+        <link rel="canonical" href="<?= htmlspecialchars((string) $pageSeo['canonical']) ?>">
+    <?php endif; ?>
+
+    <!-- Open Graph -->
+    <meta property="og:type"        content="<?= htmlspecialchars((string) ($pageSeo['og_type'] ?? 'website')) ?>">
+    <meta property="og:title"       content="<?= htmlspecialchars((string) ($pageSeo['og_title'] ?? $pageSeo['meta_title'] ?? '')) ?>">
+    <?php if (!empty($pageSeo['og_description'])): ?>
+        <meta property="og:description" content="<?= htmlspecialchars((string) $pageSeo['og_description']) ?>">
+    <?php endif; ?>
+    <?php if (!empty($pageSeo['og_image'])): ?>
+        <meta property="og:image" content="<?= htmlspecialchars((string) $pageSeo['og_image']) ?>">
+    <?php endif; ?>
+    <?php if (!empty($pageSeo['canonical'])): ?>
+        <meta property="og:url" content="<?= htmlspecialchars((string) $pageSeo['canonical']) ?>">
+    <?php endif; ?>
+    <meta property="og:site_name" content="<?= htmlspecialchars((string) ($pageSeo['shop_name'] ?? get_setting('site_name', ''))) ?>">
+
     <link rel="stylesheet" href="<?php echo class_exists('App\\Core\\View\\View') ? \App\Core\View\View::getThemeStyle() : '/resources/themes/modern/style.css'; ?>?v=<?php echo $assetVersion; ?>">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Segoe+UI:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
@@ -563,87 +589,176 @@
         }
 
         /* Responsive */
+        /* Nav actions (search + lang + cart) */
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            flex-shrink: 0;
+        }
+
+        /* Search */
+        .nav-search-wrap { position: relative; }
+        .nav-search-form {
+            display: flex;
+            align-items: center;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            overflow: hidden;
+            width: 220px;
+            transition: width .25s;
+        }
+        .nav-search-form:focus-within { width: 280px; }
+        .nav-search-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            padding: .42rem .55rem;
+            font-size: .88rem;
+            background: transparent;
+            color: #333;
+            min-width: 0;
+        }
+        .nav-search-btn {
+            padding: .42rem .65rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        .nav-search-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border-radius: 0 0 8px 8px;
+            z-index: 9999;
+            box-shadow: 0 4px 16px rgba(0,0,0,.15);
+        }
+
+        /* Burger button */
+        .nav-burger {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            gap: 5px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,.15);
+            border: 1px solid rgba(255,255,255,.25);
+            border-radius: 8px;
+            cursor: pointer;
+            padding: 8px;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+        .nav-burger-line {
+            display: block;
+            width: 100%;
+            height: 2px;
+            background: #fff;
+            border-radius: 2px;
+            transition: all .25s;
+        }
+        .nav-burger[aria-expanded="true"] .nav-burger-line:nth-child(1) {
+            transform: translateY(7px) rotate(45deg);
+        }
+        .nav-burger[aria-expanded="true"] .nav-burger-line:nth-child(2) {
+            opacity: 0;
+        }
+        .nav-burger[aria-expanded="true"] .nav-burger-line:nth-child(3) {
+            transform: translateY(-7px) rotate(-45deg);
+        }
+
+        @media (max-width: 900px) {
+            .nav-search-form { width: 160px; }
+            .nav-search-form:focus-within { width: 200px; }
+        }
+
         @media (max-width: 768px) {
             nav {
-                flex-direction: column;
-                gap: 1rem;
+                flex-wrap: wrap;
+                padding: .75rem 1rem;
+                gap: .5rem;
             }
 
+            .nav-burger { display: flex; }
+
+            /* Мобільне меню — приховано за замовчуванням */
             .nav-links {
-                order: 3;
+                display: none;
+                flex-direction: column;
+                align-items: flex-start;
                 width: 100%;
-                justify-content: center;
-                gap: 1rem;
+                order: 10;
+                background: rgba(255,255,255,.06);
+                border-radius: 10px;
+                padding: .5rem 0;
+                gap: 0;
+            }
+            .nav-links.is-open { display: flex; }
+
+            .nav-links a,
+            .nav-dropdown-toggle {
+                width: 100%;
+                padding: .65rem 1rem;
+                border-radius: 0;
+                text-align: left;
+                font-size: .95rem;
             }
 
-            .nav-dropdown {
-                width: 100%;
-                text-align: center;
-            }
-
+            .nav-dropdown { width: 100%; }
             .nav-dropdown-menu {
                 position: static;
+                box-shadow: none;
+                border: none;
+                border-radius: 0;
+                background: rgba(0,0,0,.1);
                 max-height: none;
-                margin-top: 0.5rem;
-            }
-
-            .nav-dropdown.is-open > .nav-dropdown-menu {
-                display: block;
-            }
-
-            .nav-dropdown:hover > .nav-dropdown-menu {
                 display: none;
+                padding: 0;
             }
+            .nav-dropdown.is-open > .nav-dropdown-menu { display: block; }
+            .nav-dropdown:hover > .nav-dropdown-menu { display: none; }
+            .nav-dropdown.is-open:hover > .nav-dropdown-menu { display: block; }
 
-            .language-selector {
-                order: 2;
-                justify-content: center;
-            }
+            .nav-dropdown-menu a { color: rgba(255,255,255,.9) !important; padding: .5rem 1.5rem; }
+            .nav-dropdown-menu a:hover { background: rgba(255,255,255,.1) !important; }
 
-            h1 {
-                font-size: 1.8rem;
+            /* Actions — пошук + кошик залишаються в рядку поруч з burger */
+            .nav-actions {
+                margin-left: auto;
+                gap: .5rem;
             }
-
-            h2 {
-                font-size: 1.5rem;
-            }
-
-            .products-grid {
-                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-                gap: 1rem;
-            }
-
-            .container {
-                padding: 1rem;
-            }
-
-            main {
-                padding: 1rem;
-            }
+            .nav-search-form { width: 130px; }
+            .nav-search-form:focus-within { width: 160px; }
+            .lang-dropdown { display: none; } /* Мову ховаємо — є в меню */
         }
 
         @media (max-width: 480px) {
-            .nav-links {
-                gap: 0.5rem;
-            }
-
-            .nav-links a {
-                padding: 0.4rem 0.8rem;
-                font-size: 0.9rem;
-            }
-
-            h1 {
-                font-size: 1.5rem;
-            }
-
-            h2 {
-                font-size: 1.2rem;
-            }
-
-            .products-grid {
-                grid-template-columns: 1fr;
-            }
+            .nav-search-form { width: 100px; }
+            .nav-search-form:focus-within { width: 130px; }
+            h1 { font-size: 1.5rem; }
+            h2 { font-size: 1.2rem; }
+            .products-grid { grid-template-columns: 1fr; }
         }
+
+        /* Breadcrumb */
+        .breadcrumb { margin: 0 0 1.25rem; }
+        .breadcrumb-list { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; list-style: none; padding: 0; margin: 0; font-size: .84rem; line-height: 1.4; gap: 0; }
+        .breadcrumb-list li { list-style: none; }
+        .breadcrumb-list li::marker { content: none; }
+        .breadcrumb-item { display: inline-flex; align-items: center; gap: .25rem; }
+        .breadcrumb-item + .breadcrumb-item::before { content: '›'; margin: 0 .4rem; color: #b0bec5; font-size: 1rem; line-height: 1; }
+        .breadcrumb-item a { display: inline-flex; align-items: center; gap: .25rem; color: #64748b; text-decoration: none; }
+        .breadcrumb-item a:hover { color: var(--primary, #2563eb); text-decoration: none; }
+        .breadcrumb-item a .fa-home { font-size: .78rem; }
+        .breadcrumb-item--current { color: #1e293b; font-weight: 500; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        @media (max-width: 640px) { .breadcrumb-list { font-size: .78rem; } .breadcrumb-item--current { max-width: 150px; } }
     </style>
     <?php do_action('theme.head'); ?>
     <script>
@@ -669,7 +784,7 @@
 
             foreach ($categories as $category) {
                 echo '<li>';
-                echo '<a href="/category/' . htmlspecialchars($category['slug']) . '">' . htmlspecialchars($category['name']) . '</a>';
+                echo '<a href="/category/' . htmlspecialchars(ltrim($category['path'] ?? $category['slug'], '/')) . '">' . htmlspecialchars($category['name']) . '</a>';
 
                 if (!empty($category['children']) && $depth < $maxDepth) {
                     renderModernThemeHeaderCategories($category['children'], $depth + 1, $maxDepth, $rootId);
@@ -691,7 +806,16 @@
                 <?php endif; ?>
                 <span><?php echo htmlspecialchars((string) get_setting('site_name', 'Мій Магазин')); ?></span>
             </a>
-            <div class="nav-links">
+
+            <!-- Burger button (mobile only) -->
+            <button class="nav-burger" id="nav-burger" aria-label="Меню" aria-expanded="false" aria-controls="nav-mobile-panel" type="button">
+                <span class="nav-burger-line"></span>
+                <span class="nav-burger-line"></span>
+                <span class="nav-burger-line"></span>
+            </button>
+
+            <!-- Desktop nav links -->
+            <div class="nav-links" id="nav-mobile-panel">
                 <div class="nav-dropdown" data-nav-dropdown>
                     <button class="nav-dropdown-toggle" type="button" aria-expanded="false" aria-controls="modern-nav-categories">
                         <?= __('categories') ?>
@@ -705,7 +829,7 @@
                 </div>
                 <a href="/products"><?php echo function_exists('__') ? __('products') : 'Products'; ?></a>
                 <?php if (!empty($_SESSION['user'])): ?>
-                    <a href="/profile"><?php // echo function_exists('__') ? __('profile') : 'Profile'; ?> (<?php echo htmlspecialchars($_SESSION['user']['first_name'] ?? $_SESSION['user']['email']); ?>)</a>
+                    <a href="/profile">(<?php echo htmlspecialchars($_SESSION['user']['first_name'] ?? $_SESSION['user']['email']); ?>)</a>
                     <form action="/logout" method="POST" style="display:inline;">
                         <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf'] ?? ''); ?>">
                         <button type="submit" style="border:none; background:none; color:inherit; cursor:pointer; padding:0; ">
@@ -717,40 +841,57 @@
                     <a href="/register"><?php echo function_exists('__') ? __('register') : 'Register'; ?></a>
                 <?php endif; ?>
             </div>
-            <div class="language-selector">
-    <?php if (function_exists('get_supported_languages')): ?>
-        <div class="lang-dropdown">
-            <!-- Кнопка поточної мови -->
-            <button class="lang-dropbtn">
-                <?php 
-                $current = get_current_language();
-                echo $current === 'ua' ? (function_exists('__') ? __('ukrainian') : 'Ukrainian') : (function_exists('__') ? __('english') : 'English'); 
-                ?>
-                <span class="arrow">▼</span>
-            </button>
-            
-            <!-- Список інших мов -->
-            <div class="dropdown-menu">
-                <?php foreach (get_supported_languages() as $lang): ?>
-                    <?php if ($lang !== $current): ?>
-                        <a href="/language/<?php echo $lang; ?>">
-                            <?php echo $lang === 'ua' ? (function_exists('__') ? __('ukrainian') : 'Ukrainian') : (function_exists('__') ? __('english') : 'English'); ?>
-                        </a>
-                    <?php endif; ?>
-                <?php endforeach; ?>
-            </div>
-        </div>
-    <?php endif; ?>
 
-    <!-- Кошик залишається на місці -->
-    <a href="/cart" class="nav-cart-link" data-cart-link>
-        <svg xmlns="http://www.w3.org/2000/svg" height="20" width="22" viewBox="0 0 576 512" fill="white" style="margin-right: 0; vertical-align: middle;">
-            <path d="M0 24C0 10.7 10.7 0 24 0H69.5c22 0 41.5 12.8 50.6 32h411c26.3 0 45.5 25 38.6 50.4l-41 152.3c-8.5 31.4-37 53.3-69.5 53.3H170.7l5.4 28.5c2.2 11.3 12.1 19.5 23.6 19.5H488c13.3 0 24 10.7 24 24s-10.7 24-24 24H199.7c-34.6 0-64.3-24.6-70.7-58.5L77.4 54.5c-.7-3.8-4-6.5-7.9-6.5H24C10.7 48 0 37.3 0 24zM128 464a48 48 0 1 1 96 0 48 48 0 1 1-96 0zm336-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"/>
-        </svg>
-        <?php echo function_exists('__') ? __('cart') : 'Cart'; ?>
-        <span class="cart-counter" data-cart-count>0</span>
-    </a>
-</div>
+            <div class="nav-actions">
+                <!-- Мова -->
+                <?php if (function_exists('get_supported_languages')): ?>
+                <div class="lang-dropdown">
+                    <button class="lang-dropbtn">
+                        <?php
+                        $current = get_current_language();
+                        echo $current === 'ua' ? (function_exists('__') ? __('ukrainian') : 'UA') : (function_exists('__') ? __('english') : 'EN');
+                        ?>
+                        <span class="arrow">▼</span>
+                    </button>
+                    <div class="dropdown-menu">
+                        <?php foreach (get_supported_languages() as $lang): ?>
+                            <?php if ($lang !== $current): ?>
+                                <a href="/language/<?php echo $lang; ?>">
+                                    <?php echo $lang === 'ua' ? (function_exists('__') ? __('ukrainian') : 'Ukrainian') : (function_exists('__') ? __('english') : 'English'); ?>
+                                </a>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+                <?php endif; ?>
+
+                <!-- Пошук -->
+                <div class="nav-search-wrap">
+                    <form action="/search" method="GET" role="search" class="nav-search-form">
+                        <input type="search" name="q"
+                            id="modern-search-input"
+                            value="<?= htmlspecialchars($_GET['q'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                            placeholder="<?= htmlspecialchars(__('search_placeholder') ?: 'Пошук...') ?>"
+                            autocomplete="off"
+                            class="nav-search-input">
+                        <button type="submit" class="nav-search-btn" aria-label="Пошук">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#555" viewBox="0 0 16 16">
+                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                            </svg>
+                        </button>
+                    </form>
+                    <div id="modern-search-dropdown" class="nav-search-dropdown"></div>
+                </div>
+
+                <!-- Кошик -->
+                <a href="/cart" class="nav-cart-link" data-cart-link>
+                    <svg xmlns="http://www.w3.org/2000/svg" height="20" width="22" viewBox="0 0 576 512" fill="white">
+                        <path d="M0 24C0 10.7 10.7 0 24 0H69.5c22 0 41.5 12.8 50.6 32h411c26.3 0 45.5 25 38.6 50.4l-41 152.3c-8.5 31.4-37 53.3-69.5 53.3H170.7l5.4 28.5c2.2 11.3 12.1 19.5 23.6 19.5H488c13.3 0 24 10.7 24 24s-10.7 24-24 24H199.7c-34.6 0-64.3-24.6-70.7-58.5L77.4 54.5c-.7-3.8-4-6.5-7.9-6.5H24C10.7 48 0 37.3 0 24zM128 464a48 48 0 1 1 96 0 48 48 0 1 1-96 0zm336-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"/>
+                    </svg>
+                    <?php echo function_exists('__') ? __('cart') : 'Cart'; ?>
+                    <span class="cart-counter" data-cart-count>0</span>
+                </a>
+            </div>
 
         </nav>
     </header>
@@ -811,5 +952,70 @@
             });
         })();
     </script>
+<script>
+(function () {
+    const input    = document.getElementById('modern-search-input');
+    const dropdown = document.getElementById('modern-search-dropdown');
+    if (!input || !dropdown) return;
+    let timer = null;
+    input.addEventListener('input', function () {
+        clearTimeout(timer);
+        const q = this.value.trim();
+        if (q.length < 2) { dropdown.style.display = 'none'; return; }
+        timer = setTimeout(async () => {
+            try {
+                const res  = await fetch('/search/autocomplete?q=' + encodeURIComponent(q));
+                const data = await res.json();
+                if (!data.length) { dropdown.style.display = 'none'; return; }
+                dropdown.innerHTML = data.map(item => `
+                    <a href="${item.url}" style="display:flex;align-items:center;gap:.6rem;padding:.5rem .75rem;text-decoration:none;color:#1e293b;border-bottom:1px solid #f1f5f9;font-size:.88rem;">
+                        ${item.image ? `<img src="${item.image}" style="width:36px;height:36px;object-fit:cover;border-radius:4px;flex-shrink:0;">` : '<span style="width:36px;height:36px;background:#f1f5f9;border-radius:4px;flex-shrink:0;display:block;"></span>'}
+                        <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${item.name}</span>
+                        <span style="font-weight:600;color:#2563eb;flex-shrink:0;">${item.price}</span>
+                    </a>
+                `).join('') + `<a href="/search?q=${encodeURIComponent(q)}" style="display:block;padding:.5rem;text-align:center;font-size:.83rem;color:#64748b;">🔍 Всі результати</a>`;
+                dropdown.style.display = 'block';
+            } catch {}
+        }, 280);
+    });
+    document.addEventListener('click', (e) => {
+        if (!input.contains(e.target) && !dropdown.contains(e.target)) dropdown.style.display = 'none';
+    });
+    input.addEventListener('keydown', (e) => { if (e.key === 'Escape') dropdown.style.display = 'none'; });
+})();
+</script>
+
+<script>
+// ── Burger menu ────────────────────────────────────────────────────────────
+(function () {
+    const burger = document.getElementById('nav-burger');
+    const panel  = document.getElementById('nav-mobile-panel');
+    if (!burger || !panel) return;
+
+    burger.addEventListener('click', function (e) {
+        e.stopPropagation();
+        const isOpen = panel.classList.toggle('is-open');
+        burger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!burger.contains(e.target) && !panel.contains(e.target)) {
+            panel.classList.remove('is-open');
+            burger.setAttribute('aria-expanded', 'false');
+        }
+    });
+
+    // Dropdown у мобільному меню — toggle по кліку
+    panel.querySelectorAll('[data-nav-dropdown]').forEach(function (dd) {
+        const btn = dd.querySelector('.nav-dropdown-toggle');
+        if (!btn) return;
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const isOpen = dd.classList.toggle('is-open');
+            btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+    });
+})();
+</script>
 </body>
 </html>

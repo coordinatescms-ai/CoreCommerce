@@ -495,15 +495,98 @@ class AdminController
         exit;
     }
 
-    public function sendSystemTestEmail()
+    public function saveSecuritySettings(): void
     {
         $this->checkAdmin();
         if (!Csrf::isValid()) {
-            http_response_code(422);
-            $_SESSION['error'] = 'CSRF token validation failed';
+            $_SESSION['error'] = __('csrf_token_invalid');
             header('Location: /admin/system');
             exit;
         }
+
+        // HTTPS редирект
+        $httpsRedirect = isset($_POST['https_redirect']) ? '1' : '0';
+        Setting::setWithMeta('https_redirect', $httpsRedirect, 'security', 'checkbox');
+
+        // HSTS (лише якщо HTTPS увімкнено)
+        if ($httpsRedirect === '1') {
+            $hstsEnabled   = isset($_POST['hsts_enabled'])   ? '1' : '0';
+            $hstsSubdomains= isset($_POST['hsts_subdomains'])? '1' : '0';
+            $hstsPreload   = isset($_POST['hsts_preload'])   ? '1' : '0';
+
+            $allowedMaxAges = [300, 3600, 86400, 2592000, 31536000];
+            $maxAge = (int) ($_POST['hsts_max_age'] ?? 300);
+            if (!in_array($maxAge, $allowedMaxAges, true)) {
+                $maxAge = 300;
+            }
+
+            Setting::setWithMeta('hsts_enabled',    $hstsEnabled,    'security', 'checkbox');
+            Setting::setWithMeta('hsts_max_age',    (string) $maxAge,'security', 'number');
+            Setting::setWithMeta('hsts_subdomains', $hstsSubdomains, 'security', 'checkbox');
+            Setting::setWithMeta('hsts_preload',    $hstsPreload,    'security', 'checkbox');
+        } else {
+            // Якщо HTTPS вимкнено — HSTS теж вимикаємо
+            Setting::setWithMeta('hsts_enabled', '0', 'security', 'checkbox');
+        }
+
+        // CSP
+        $cspMode = $_POST['csp_mode'] ?? 'off';
+        if (!in_array($cspMode, ['off', 'report-only', 'enforce'], true)) {
+            $cspMode = 'off';
+        }
+        Setting::setWithMeta('csp_mode', $cspMode, 'security', 'select');
+
+        $this->logAdminAction('security_settings_saved', [
+            'https_redirect' => $httpsRedirect,
+            'hsts_enabled'   => Setting::get('hsts_enabled', '0'),
+            'csp_mode'       => $cspMode,
+        ]);
+
+        $_SESSION['success'] = __('security_settings_saved');
+        header('Location: /admin/system');
+        exit;
+    }
+
+    public function generateSitemap(): void
+    {
+        $this->checkAdmin();
+        if (!Csrf::isValid()) {
+            $_SESSION['error'] = __('csrf_token_invalid');
+            header('Location: /admin/system');
+            exit;
+        }
+
+        try {
+            $outputDir = dirname(__DIR__, 2) . '/public/sitemaps/';
+            $result    = \App\Services\SitemapService::generate($outputDir);
+
+            Setting::setWithMeta('sitemap_last_generated', date('Y-m-d H:i:s'), 'system', 'text');
+
+            $total = array_sum($result['counts']);
+            $files = count($result['files']);
+            $time  = $result['time'];
+
+            $this->logAdminAction('sitemap_generated', [
+                'files'  => $files,
+                'total'  => $total,
+                'time'   => $time,
+            ]);
+
+            $_SESSION['success'] = sprintf(
+                __('sitemap_generated_ok') ?: 'Sitemap згенеровано: %d URL у %d файлах за %s сек.',
+                $total, $files, $time
+            );
+        } catch (\Throwable $e) {
+            $_SESSION['error'] = __('sitemap_error') ?: ('Помилка генерації Sitemap: ' . $e->getMessage());
+        }
+
+        header('Location: /admin/system');
+        exit;
+    }
+
+    public function sendSystemTestEmail(): void
+    {
+        $this->checkAdmin();
 
         $to = trim((string) ($_POST['test_email'] ?? ''));
         $useDb = isset($_POST['test_email_use_db']);
@@ -514,11 +597,27 @@ class AdminController
         }
 
         $subject = 'Тест листа CoreCommerce';
-        $body = 'Це тестовий лист для перевірки Mail Settings (' . ($useDb ? 'DB settings' : 'config/mail.php') . ').';
-        $sent = $useDb ? (new MailService())->send($to, $subject, nl2br(htmlspecialchars($body, ENT_QUOTES, 'UTF-8'))) : $this->sendMailFromFileConfig($to, $subject, $body);
+        $bodyText = 'Це тестовий лист для перевірки Mail Settings (' . ($useDb ? 'DB settings' : 'config/mail.php') . ').';
+        $bodyHtml = nl2br(htmlspecialchars($bodyText, ENT_QUOTES, 'UTF-8'));
 
-        $_SESSION[$sent ? 'success' : 'error'] = $sent ? 'Тестовий лист успішно відправлено.' : 'Не вдалося відправити тестовий лист. Перевірте SMTP налаштування.';
-        $this->logAdminAction('system_test_mail', ['to' => $to, 'source' => $useDb ? 'db' : 'file', 'success' => $sent]);
+        if ($useDb) {
+            $result = (new MailService())->sendWithDiagnostics($to, $subject, $bodyHtml);
+        } else {
+            $result = $this->sendMailFromFileConfigWithDiagnostics($to, $subject, $bodyHtml);
+        }
+
+        if ($result['success']) {
+            $_SESSION['success'] = 'Тестовий лист успішно відправлено на ' . htmlspecialchars($to) . '.';
+        } else {
+            $_SESSION['error'] = 'Не вдалося відправити лист. SMTP помилка: ' . htmlspecialchars($result['error']);
+        }
+
+        $this->logAdminAction('system_test_mail', [
+            'to'      => $to,
+            'source'  => $useDb ? 'db' : 'file',
+            'success' => $result['success'],
+            'error'   => $result['error'] ?? '',
+        ]);
         header('Location: /admin/system');
         exit;
     }
@@ -683,30 +782,50 @@ class AdminController
         }
     }
 
-    private function sendMailFromFileConfig(string $to, string $subject, string $body): bool
+    /**
+     * @return array{success: bool, error: string}
+     */
+    private function sendMailFromFileConfigWithDiagnostics(string $to, string $subject, string $body): array
     {
         $config = require dirname(__DIR__, 2) . '/config/mail.php';
         $mail = new PHPMailer(true);
 
         try {
             $mail->isSMTP();
-            $mail->Host = (string) ($config['host'] ?? '');
-            $mail->SMTPAuth = true;
-            $mail->Username = (string) ($config['username'] ?? '');
-            $mail->Password = (string) ($config['password'] ?? '');
+            $mail->Host       = (string) ($config['host'] ?? '');
+            $mail->SMTPAuth   = true;
+            $mail->Username   = (string) ($config['username'] ?? '');
+            $mail->Password   = (string) ($config['password'] ?? '');
             $mail->SMTPSecure = (string) ($config['encryption'] ?? 'tls');
-            $mail->Port = (int) ($config['port'] ?? 587);
-            $mail->CharSet = 'UTF-8';
-            $mail->setFrom((string) ($config['from_email'] ?? 'admin@example.com'), (string) ($config['from_name'] ?? 'CoreCommerce'));
+            $mail->Port       = (int)    ($config['port'] ?? 587);
+            $mail->CharSet    = 'UTF-8';
+
+            // Таймаут — щоб сторінка не зависала при недосяжному SMTP
+            $mail->Timeout    = 10;
+            $mail->SMTPOptions = [
+                'ssl' => [
+                    'verify_peer'       => false,
+                    'verify_peer_name'  => false,
+                    'allow_self_signed' => true,
+                ],
+            ];
+
+            $mail->setFrom(
+                (string) ($config['from_email'] ?? 'admin@example.com'),
+                (string) ($config['from_name']  ?? 'CoreCommerce')
+            );
             $mail->addAddress($to);
             $mail->isHTML(true);
             $mail->Subject = $subject;
-            $mail->Body = nl2br(htmlspecialchars($body, ENT_QUOTES, 'UTF-8'));
-            $mail->AltBody = $body;
+            $mail->Body    = $body;
+            $mail->AltBody = strip_tags($body);
             $mail->send();
-            return true;
+
+            return ['success' => true, 'error' => ''];
         } catch (\Throwable $e) {
-            return false;
+            $detail = $mail->ErrorInfo ?: $e->getMessage();
+            error_log('sendMailFromFileConfig error: ' . $detail);
+            return ['success' => false, 'error' => $detail];
         }
     }
 

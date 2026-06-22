@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: MySQL-8.0:3306
--- Час створення: Чрв 13 2026 р., 18:17
+-- Час створення: Чрв 22 2026 р., 18:04
 -- Версія сервера: 8.0.45
 -- Версія PHP: 8.3.30
 
@@ -159,6 +159,7 @@ CREATE TABLE `categories` (
   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `parent_id` int DEFAULT NULL,
   `slug` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `path` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Матеріалізований шлях slug від кореня: /slug1/slug2/slug3',
   `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `sort_order` int DEFAULT '0',
   `image` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -174,10 +175,10 @@ CREATE TABLE `categories` (
 -- Дамп даних таблиці `categories`
 --
 
-INSERT INTO `categories` (`id`, `name`, `parent_id`, `slug`, `description`, `sort_order`, `image`, `is_active`, `meta_title`, `meta_description`, `meta_keywords`, `created_at`, `updated_at`) VALUES
-(1, 'Смартфони', NULL, 'smartfoni', 'Категорія смартфони', 0, NULL, 1, 'Купити Смартфони', 'Великий вибір смартфонів!', NULL, '2026-04-04 07:47:51', '2026-04-27 15:48:21'),
-(2, 'iPhone', 1, 'iphone', 'Смартфони iPhone! Смартфони iPhone! Смартфони iPhone! Смартфони iPhone! Смартфони iPhone! Смартфони iPhone!', 0, NULL, 1, 'Смартфони iPhone!', 'Смартфони iPhone! Смартфони iPhone!', NULL, '2026-04-04 15:31:02', '2026-04-04 15:31:02'),
-(3, 'Телевізори', NULL, 'televzori', 'Телевізори Телевізори Телевізори Телевізори! Телевізори Телевізори Телевізори Телевізори! Телевізори Телевізори Телевізори Телевізори!', 0, NULL, 1, 'Телевізори Телевізори Телевізори Телевізори!', 'Телевізори Телевізори Телевізори Телевізори!', NULL, '2026-04-04 21:23:11', '2026-04-04 21:23:11');
+INSERT INTO `categories` (`id`, `name`, `parent_id`, `slug`, `path`, `description`, `sort_order`, `image`, `is_active`, `meta_title`, `meta_description`, `meta_keywords`, `created_at`, `updated_at`) VALUES
+(1, 'Смартфони', NULL, 'smartfoni', '/smartfoni', 'Категорія смартфони', 0, NULL, 1, 'Купити Смартфони', 'Великий вибір смартфонів!', NULL, '2026-04-04 07:47:51', '2026-06-19 06:30:07'),
+(2, 'iPhone', 1, 'iphone', '/smartfoni/iphone', 'Смартфони iPhone! Смартфони iPhone! Смартфони iPhone! Смартфони iPhone! Смартфони iPhone! Смартфони iPhone!', 0, NULL, 1, 'Смартфони iPhone!', 'Смартфони iPhone! Смартфони iPhone!', NULL, '2026-04-04 15:31:02', '2026-06-19 06:30:07'),
+(3, 'Телевізори', NULL, 'televzori', '/televzori', 'Телевізори Телевізори Телевізори Телевізори! Телевізори Телевізори Телевізори Телевізори! Телевізори Телевізори Телевізори Телевізори!', 0, NULL, 1, 'Телевізори Телевізори Телевізори Телевізори!', 'Телевізори Телевізори Телевізори Телевізори!', NULL, '2026-04-04 21:23:11', '2026-06-19 06:30:07');
 
 -- --------------------------------------------------------
 
@@ -503,7 +504,66 @@ INSERT INTO `crm_user_activity_logs` (`id`, `user_id`, `event_type`, `descriptio
 (243, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-06-01 11:36:18'),
 (244, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-02 14:58:39'),
 (245, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-10 18:00:39'),
-(246, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-10 18:01:01');
+(246, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-10 18:01:01'),
+(247, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-17 06:46:56'),
+(248, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-06-18 16:53:33'),
+(249, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-18 16:54:02'),
+(250, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-06-18 16:54:14'),
+(251, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-18 16:54:18'),
+(252, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-18 16:54:39'),
+(253, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-06-18 16:54:42'),
+(254, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-18 16:55:00'),
+(255, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-18 16:55:05'),
+(256, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-06-18 16:55:07'),
+(257, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-06-18 16:55:15'),
+(258, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-18 16:55:21'),
+(259, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-06-18 16:56:51'),
+(260, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-18 16:57:11'),
+(261, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-06-18 16:57:16'),
+(262, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-18 16:57:48'),
+(263, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-06-18 16:57:55'),
+(264, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-18 16:58:41'),
+(265, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-18 16:59:03'),
+(266, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-06-18 17:04:09'),
+(267, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-06-19 06:26:45'),
+(268, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-06-19 06:26:58'),
+(269, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-19 06:27:06'),
+(270, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-19 06:30:53'),
+(271, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-06-19 06:30:59'),
+(272, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-19 06:35:38'),
+(273, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-06-19 06:35:44'),
+(274, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-06-19 06:35:52'),
+(275, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-06-19 06:40:21'),
+(276, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-06-19 06:40:44'),
+(277, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-06-19 06:44:18'),
+(278, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-06-19 06:44:24'),
+(279, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-06-19 11:48:24'),
+(280, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-19 11:48:44'),
+(281, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-06-19 11:49:30'),
+(282, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-19 11:49:37'),
+(283, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-06-19 11:55:09'),
+(284, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-06-19 12:03:15'),
+(285, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-06-19 12:18:45'),
+(286, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-19 12:19:12'),
+(287, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-06-19 12:21:07'),
+(288, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-20 17:04:16'),
+(289, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-20 17:04:33'),
+(290, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-20 17:06:42'),
+(291, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-20 17:06:47'),
+(292, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-20 17:09:18'),
+(293, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-20 17:20:20'),
+(294, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-20 17:20:24'),
+(295, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-20 17:20:27'),
+(296, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-20 17:20:38'),
+(297, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-20 17:33:43'),
+(298, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-20 17:33:57'),
+(299, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-20 17:33:59'),
+(300, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-20 17:37:01'),
+(301, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-20 17:37:10'),
+(302, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-20 17:37:11'),
+(303, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-20 17:37:12'),
+(304, 2, 'product_view', 'Перегляд товару: iPhone 13', NULL, '2026-06-21 16:41:54'),
+(305, 2, 'product_view', 'Перегляд товару: Сіомі', NULL, '2026-06-21 16:48:26');
 
 -- --------------------------------------------------------
 
@@ -658,6 +718,14 @@ CREATE TABLE `login_attempts` (
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Дамп даних таблиці `login_attempts`
+--
+
+INSERT INTO `login_attempts` (`id`, `ip`, `email`, `success`, `created_at`) VALUES
+(1, '127.0.0.1', 'admin@mysite.test', 0, '2026-06-21 18:39:02'),
+(2, '127.0.0.1', 'systemmaster@meta.ua', 1, '2026-06-21 18:39:57');
+
 -- --------------------------------------------------------
 
 --
@@ -684,6 +752,14 @@ CREATE TABLE `migrations` (
   `migration` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `applied_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Дамп даних таблиці `migrations`
+--
+
+INSERT INTO `migrations` (`id`, `migration`, `applied_at`) VALUES
+(1, '2026_06_14_category_path.sql', '2026-06-19 08:28:43'),
+(2, '2026_06_15_rebuild_category_paths.sql', '2026-06-19 08:30:07');
 
 -- --------------------------------------------------------
 
@@ -835,8 +911,8 @@ CREATE TABLE `plugins` (
 --
 
 INSERT INTO `plugins` (`id`, `name`, `slug`, `main_file`, `is_active`, `version`, `created_at`, `updated_at`) VALUES
-(1, 'Test Plugin', 'TestPlugin', 'D:\\OSPanel\\home\\mysite.test/plugins/TestPlugin/plugin.php', 0, '1.0.0', '2026-04-30 19:25:51', '2026-06-10 13:42:15'),
-(2, 'LiqPay — онлайн оплата', 'LiqPayGateway', 'D:\\OSPanel\\home\\mysite.test/plugins/LiqPayGateway/plugin.php', 0, '1.0.0', '2026-06-10 13:42:15', '2026-06-10 13:42:15');
+(1, 'Test Plugin', 'TestPlugin', 'D:\\OSPanel\\home\\mysite.test/plugins/TestPlugin/plugin.php', 0, '1.0.0', '2026-04-30 19:25:51', '2026-06-19 14:39:35'),
+(2, 'LiqPay — онлайн оплата', 'LiqPayGateway', 'D:\\OSPanel\\home\\mysite.test/plugins/LiqPayGateway/plugin.php', 0, '1.0.0', '2026-06-10 13:42:15', '2026-06-19 14:39:35');
 
 -- --------------------------------------------------------
 
@@ -864,7 +940,7 @@ CREATE TABLE `products` (
   `is_visible` tinyint(1) DEFAULT '1',
   `category_id` int DEFAULT NULL,
   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
   `image` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `slug` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `meta_title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
@@ -873,6 +949,7 @@ CREATE TABLE `products` (
   `price` decimal(10,2) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `views_count` int UNSIGNED NOT NULL DEFAULT '0' COMMENT 'Кількість переглядів для ранжування в пошуку',
   `prom_product_id` bigint UNSIGNED DEFAULT NULL COMMENT 'ID товару на Prom.ua'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -880,9 +957,9 @@ CREATE TABLE `products` (
 -- Дамп даних таблиці `products`
 --
 
-INSERT INTO `products` (`id`, `sku`, `is_visible`, `category_id`, `name`, `description`, `image`, `slug`, `meta_title`, `meta_description`, `meta_keywords`, `price`, `created_at`, `updated_at`, `prom_product_id`) VALUES
-(1, 'ID-1', 1, 2, 'iPhone 13', 'Крутий смартфон, по дуже низьким цінам! Доступна ціна за круту якість!', '/uploads/products/gallery/original/product_69e6092591658980274602.jpg', 'iphone-13', '', '', NULL, 999.00, '2026-03-30 07:45:12', '2026-05-10 10:57:17', NULL),
-(2, 'ID-2', 1, 3, 'Сіомі', 'Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі!', '/uploads/products/gallery/original/product_69e608b6ddae3707094810.webp', 'siomi', 'Сіомі крутий продукт', '', NULL, 2050.00, '2026-04-05 08:11:57', '2026-05-09 17:26:10', NULL);
+INSERT INTO `products` (`id`, `sku`, `is_visible`, `category_id`, `name`, `description`, `image`, `slug`, `meta_title`, `meta_description`, `meta_keywords`, `price`, `created_at`, `updated_at`, `views_count`, `prom_product_id`) VALUES
+(1, 'ID-1', 1, 2, 'iPhone 13', 'Крутий смартфон, по дуже низьким цінам! Доступна ціна за круту якість!', '/uploads/products/gallery/original/product_69e6092591658980274602.jpg', 'iphone-13', '', '', NULL, 999.00, '2026-03-30 07:45:12', '2026-05-10 10:57:17', 0, NULL),
+(2, 'ID-2', 1, 3, 'Сіомі', 'Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі!', '/uploads/products/gallery/original/product_69e608b6ddae3707094810.webp', 'siomi', 'Сіомі крутий продукт', '', NULL, 2050.00, '2026-04-05 08:11:57', '2026-06-20 17:41:14', 50, NULL);
 
 -- --------------------------------------------------------
 
@@ -1041,6 +1118,58 @@ CREATE TABLE `prom_sync_queue` (
 -- --------------------------------------------------------
 
 --
+-- Структура таблиці `search_cache`
+--
+
+CREATE TABLE `search_cache` (
+  `id` int UNSIGNED NOT NULL,
+  `query_hash` char(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'SHA-256 від нормалізованого запиту',
+  `query_text` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Оригінальний запит',
+  `results` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'JSON з результатами',
+  `hits` int UNSIGNED NOT NULL DEFAULT '1' COMMENT 'Кількість звернень',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `expires_at` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Дамп даних таблиці `search_cache`
+--
+
+INSERT INTO `search_cache` (`id`, `query_hash`, `query_text`, `results`, `hits`, `created_at`, `expires_at`) VALUES
+(1, '6425bdfc130e5368454444b1efecdc46a9d9beb1e698a3cb1b95920e685f81bc', 'сіомі', '{\"results\":[{\"id\":2,\"sku\":\"ID-2\",\"is_visible\":1,\"category_id\":3,\"name\":\"Сіомі\",\"description\":\"Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі!\",\"image\":\"\\/uploads\\/products\\/gallery\\/original\\/product_69e608b6ddae3707094810.webp\",\"slug\":\"siomi\",\"meta_title\":\"Сіомі крутий продукт\",\"meta_description\":\"\",\"meta_keywords\":null,\"price\":\"2050.00\",\"created_at\":\"2026-04-05 10:11:57\",\"updated_at\":\"2026-06-20 19:37:18\",\"views_count\":48,\"prom_product_id\":null,\"category_name\":\"Телевізори\",\"stock_qty\":10,\"relevance\":3.5384288351535798}],\"total\":1,\"page\":1,\"pages\":1,\"query\":\"сіомі\",\"tokens\":[\"сіомі\"],\"suggestion\":null,\"strategy\":\"fulltext\",\"from_cache\":false}', 16, '2026-06-20 19:03:01', '2026-06-20 17:51:12'),
+(3, 'f43e648ddbdf7b3384f6181760945ab2a111fd84a88c3ff606c24c22d8f9537f', 'сіомі', '{\"results\":[{\"id\":2,\"sku\":\"ID-2\",\"is_visible\":1,\"category_id\":3,\"name\":\"Сіомі\",\"description\":\"Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі!\",\"image\":\"\\/uploads\\/products\\/gallery\\/original\\/product_69e608b6ddae3707094810.webp\",\"slug\":\"siomi\",\"meta_title\":\"Сіомі крутий продукт\",\"meta_description\":\"\",\"meta_keywords\":null,\"price\":\"2050.00\",\"created_at\":\"2026-04-05 10:11:57\",\"updated_at\":\"2026-06-20 19:41:12\",\"views_count\":49,\"prom_product_id\":null,\"category_name\":\"Телевізори\",\"stock_qty\":10,\"relevance\":3.5394288351535796}],\"total\":1,\"page\":1,\"pages\":1,\"query\":\"сіомі\",\"tokens\":[\"сіомі\"],\"suggestion\":null,\"strategy\":\"fulltext\",\"from_cache\":false}', 34, '2026-06-20 19:03:33', '2026-06-20 17:51:14'),
+(51, 'cee603f301ba871344dd4e01073284462f13af5d9656b8e75b8ea38580a08c23', 'ас', '{\"results\":[],\"total\":0,\"page\":1,\"pages\":1,\"query\":\"ас\",\"tokens\":[\"ас\"],\"suggestion\":null,\"strategy\":\"fuzzy\",\"from_cache\":false}', 1, '2026-06-20 19:41:37', '2026-06-20 17:51:37'),
+(52, '2de405c6892a11f3a5d31e1daa67acf4bef1b6338624b282cbd8d8191cbdc34f', 'асу', '{\"results\":[],\"total\":0,\"page\":1,\"pages\":1,\"query\":\"асу\",\"tokens\":[\"асу\"],\"suggestion\":null,\"strategy\":\"fuzzy\",\"from_cache\":false}', 1, '2026-06-20 19:41:37', '2026-06-20 17:51:37'),
+(53, 'dd3f5734e5e28f20f5d75a9274a1af7b393c7404dc4e0e4b2f9995115506f46e', 'асус', '{\"results\":[],\"total\":0,\"page\":1,\"pages\":1,\"query\":\"асус\",\"tokens\":[\"асус\"],\"suggestion\":null,\"strategy\":\"fuzzy\",\"from_cache\":false}', 1, '2026-06-20 19:41:38', '2026-06-20 17:51:38'),
+(54, '0b5ec06d8d2a36d4465e462182cd196b59448c03d42effba3802f541176b988b', 'асус', '{\"results\":[],\"total\":0,\"page\":1,\"pages\":1,\"query\":\"асус\",\"tokens\":[\"асус\"],\"suggestion\":null,\"strategy\":\"fuzzy\",\"from_cache\":false}', 1, '2026-06-20 19:41:40', '2026-06-20 17:51:40');
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблиці `search_queries`
+--
+
+CREATE TABLE `search_queries` (
+  `id` int UNSIGNED NOT NULL,
+  `query` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `results_count` int UNSIGNED NOT NULL DEFAULT '0',
+  `search_count` int UNSIGNED NOT NULL DEFAULT '1',
+  `last_searched` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Дамп даних таблиці `search_queries`
+--
+
+INSERT INTO `search_queries` (`id`, `query`, `results_count`, `search_count`, `last_searched`) VALUES
+(1, 'сіомі', 1, 50, '2026-06-20 19:41:14'),
+(51, 'ас', 0, 1, '2026-06-20 19:41:37'),
+(52, 'асу', 0, 1, '2026-06-20 19:41:37'),
+(53, 'асус', 0, 2, '2026-06-20 19:41:40');
+
+-- --------------------------------------------------------
+
+--
 -- Структура таблиці `seo_settings`
 --
 
@@ -1092,40 +1221,46 @@ CREATE TABLE `settings` (
 INSERT INTO `settings` (`key`, `value`, `group`, `type`, `created_at`, `updated_at`) VALUES
 ('active_logotype', '/uploads/logotypes/logotype_69ef99d44d2d0241246888.jpg', 'general', 'text', '2026-04-27 16:44:28', '2026-04-27 17:16:05'),
 ('active_theme', 'modern', 'appearance', 'select', '2026-04-03 08:17:13', '2026-05-09 12:54:14'),
-('contact_email', 'admin@mysite.test', 'contact', 'text', '2026-04-03 08:17:13', '2026-05-09 12:54:14'),
-('contact_phone', '+380 00 000 00 00', 'contact', 'text', '2026-04-03 08:17:13', '2026-05-09 12:54:14'),
+('contact_email', 'admin@mysite.test', 'contact', 'text', '2026-04-03 08:17:13', '2026-06-14 14:55:15'),
+('contact_phone', '+380 00 000 00 00', 'contact', 'text', '2026-04-03 08:17:13', '2026-06-14 14:55:15'),
 ('currency_source', 'manual', 'currency', 'select', '2026-06-05 10:00:00', '2026-06-05 10:00:00'),
+('date_format', 'd.m.Y H:i', 'general', 'text', '2026-06-13 18:37:31', '2026-06-14 14:55:14'),
 ('default_currency', 'UAH', 'localization', 'select', '2026-04-03 08:17:13', '2026-05-09 12:54:14'),
-('default_language', 'ua', 'localization', 'select', '2026-04-03 08:17:13', '2026-05-09 12:54:14'),
-('email', 'admin@mysite.test', 'general', 'text', '2026-04-12 16:35:40', '2026-05-09 12:54:14'),
-('facebook_auth_enabled', '0', 'social_auth', 'checkbox', '2026-05-09 12:03:51', '2026-05-09 12:54:15'),
-('facebook_client_id', '', 'social_auth', 'text', '2026-05-09 12:01:55', '2026-05-09 12:54:15'),
-('facebook_client_secret', '', 'social_auth', 'text', '2026-05-09 12:01:55', '2026-05-09 12:54:15'),
+('default_language', 'ua', 'localization', 'select', '2026-04-03 08:17:13', '2026-06-14 14:55:13'),
+('email', 'admin@localhost.local', 'general', 'text', '2026-04-12 16:35:40', '2026-06-13 18:37:31'),
+('facebook_auth_enabled', '0', 'social_auth', 'checkbox', '2026-05-09 12:03:51', '2026-06-14 14:55:15'),
+('facebook_client_id', '', 'social_auth', 'text', '2026-05-09 12:01:55', '2026-06-14 14:55:15'),
+('facebook_client_secret', '', 'social_auth', 'text', '2026-05-09 12:01:55', '2026-06-14 14:55:16'),
 ('facebook_redirect_url', 'https://mysite.test', 'social_auth', 'text', '2026-05-09 12:02:18', '2026-05-09 12:54:15'),
 ('force_https', '0', 'general', 'checkbox', '2026-05-01 17:21:57', '2026-05-01 17:21:57'),
-('google_auth_enabled', '1', 'social_auth', 'checkbox', '2026-05-09 12:03:51', '2026-05-09 12:54:14'),
-('google_client_id', '', 'social_auth', 'text', '2026-05-09 12:01:55', '2026-05-09 12:54:15'),
-('google_client_secret', '', 'social_auth', 'text', '2026-05-09 12:01:55', '2026-05-09 12:54:15'),
+('google_auth_enabled', '1', 'social_auth', 'checkbox', '2026-05-09 12:03:51', '2026-06-14 14:55:15'),
+('google_client_id', '', 'social_auth', 'text', '2026-05-09 12:01:55', '2026-06-14 14:55:15'),
+('google_client_secret', '', 'social_auth', 'text', '2026-05-09 12:01:55', '2026-06-14 14:55:15'),
 ('google_redirect_url', 'https://mysite.test', 'social_auth', 'text', '2026-05-09 12:02:18', '2026-05-09 12:54:15'),
-('maintenance_message', 'Вибачте, магазин тимчасово закритий на технічне обслуговування.', 'general', 'textarea', '2026-04-03 08:17:13', '2026-05-09 12:54:14'),
-('media_apply_watermark', '0', 'media', 'checkbox', '2026-04-13 09:12:17', '2026-05-09 12:54:15'),
-('media_auto_webp', '0', 'media', 'checkbox', '2026-04-13 09:12:17', '2026-05-09 12:54:15'),
-('media_watermark_position', 'bottom-right', 'media', 'select', '2026-04-13 09:12:17', '2026-05-09 12:54:15'),
-('phone_mask', '+38 (000) 000-00-00', 'general', 'text', '2026-05-16 09:39:11', '2026-05-16 09:39:11'),
+('maintenance_message', 'Вибачте, магазин тимчасово закритий на технічне обслуговування.', 'general', 'textarea', '2026-04-03 08:17:13', '2026-06-14 14:55:13'),
+('media_apply_watermark', '0', 'media', 'checkbox', '2026-04-13 09:12:17', '2026-06-14 14:55:16'),
+('media_auto_webp', '0', 'media', 'checkbox', '2026-04-13 09:12:17', '2026-06-14 14:55:16'),
+('media_watermark_position', 'bottom-right', 'media', 'select', '2026-04-13 09:12:17', '2026-06-14 14:55:16'),
+('phone_mask', '+38 (###) ###-##-##', 'contact', 'text', '2026-05-16 09:39:11', '2026-06-14 14:55:13'),
 ('prom_api_key', '', 'prom', 'text', '2026-06-10 17:52:36', '2026-06-10 17:52:36'),
 ('prom_enabled', '0', 'prom', 'checkbox', '2026-06-10 17:52:36', '2026-06-10 17:52:36'),
 ('prom_last_sync', '', 'prom', 'text', '2026-06-10 17:52:36', '2026-06-10 17:52:36'),
 ('prom_sync_method', 'xml', 'prom', 'select', '2026-06-10 17:52:36', '2026-06-10 17:52:36'),
 ('prom_webhook_secret', '', 'prom', 'text', '2026-06-10 17:52:36', '2026-06-10 17:52:36'),
-('seo_desc_template', 'Пропонуємо {name} за найкращою ціною {price} грн. Категорія: {category}. Доставка по Україні!', 'seo', 'textarea', '2026-04-13 08:34:14', '2026-05-09 12:54:14'),
-('seo_title_template', '{name} купити за {price} грн у магазині MyStore', 'seo', 'text', '2026-04-13 08:34:14', '2026-05-09 12:54:14'),
-('site_description', 'Найкращий інтернет-магазин на PHP', 'general', 'textarea', '2026-04-03 08:17:13', '2026-05-09 12:54:14'),
-('site_name', 'MySite', 'general', 'text', '2026-04-03 08:17:13', '2026-05-09 12:54:14'),
-('site_timezone', 'Europe/Kiev', 'general', 'text', '2026-04-12 16:52:37', '2026-05-09 12:54:14'),
-('smtp_pass', 'password123', 'general', 'text', '2026-04-12 16:47:28', '2026-05-09 12:54:14'),
-('smtp_port', '587', 'general', 'text', '2026-04-12 16:42:48', '2026-05-09 12:54:14'),
-('smtr', '//gmail.com', 'general', 'text', '2026-04-12 16:28:35', '2026-05-09 12:54:14'),
-('store_status', 'open', 'general', 'select', '2026-04-03 08:17:13', '2026-05-09 12:54:14'),
+('seo_desc_template', 'Пропонуємо {name} за найкращою ціною {price} грн. Категорія: {category}. Доставка по Україні!', 'seo', 'textarea', '2026-04-13 08:34:14', '2026-06-14 14:55:15'),
+('seo_title_template', '{name} купити за {price} грн у магазині MyStore', 'seo', 'text', '2026-04-13 08:34:14', '2026-06-14 14:55:15'),
+('site_description', 'Найкращий інтернет-магазин на PHP', 'general', 'textarea', '2026-04-03 08:17:13', '2026-06-14 14:55:13'),
+('site_name', 'MySite', 'general', 'text', '2026-04-03 08:17:13', '2026-06-14 14:55:13'),
+('site_timezone', 'Europe/Kiev', 'general', 'text', '2026-04-12 16:52:37', '2026-06-14 14:55:13'),
+('smtp_encryption', '', 'general', 'text', '2026-06-14 14:55:14', '2026-06-14 14:55:14'),
+('smtp_from_email', 'no-reply@mysite.test', 'general', 'text', '2026-06-14 14:55:14', '2026-06-14 14:55:14'),
+('smtp_from_name', 'MySite Store', 'general', 'text', '2026-06-14 14:55:14', '2026-06-14 14:55:14'),
+('smtp_host', '127.0.0.1', 'general', 'text', '2026-06-14 14:55:14', '2026-06-14 14:55:14'),
+('smtp_pass', '', 'general', 'text', '2026-04-12 16:47:28', '2026-06-14 14:55:14'),
+('smtp_port', '25', 'general', 'text', '2026-04-12 16:42:48', '2026-06-14 14:55:14'),
+('smtp_username', '', 'general', 'text', '2026-06-14 14:55:14', '2026-06-14 14:55:14'),
+('smtr', '127.0.0.1', 'general', 'text', '2026-04-12 16:28:35', '2026-06-13 18:37:31'),
+('store_status', 'open', 'general', 'select', '2026-04-03 08:17:13', '2026-06-14 14:55:13'),
 ('upload_max_filesize', '10M', 'general', 'text', '2026-05-16 09:39:11', '2026-05-16 09:39:11');
 
 -- --------------------------------------------------------
@@ -1238,7 +1373,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `email`, `password`, `first_name`, `last_name`, `phone`, `avatar`, `role_id`, `is_active`, `email_verified`, `email_verified_at`, `last_login`, `password_reset_token`, `password_reset_expires`, `remember_token`, `created_at`, `updated_at`) VALUES
-(2, 'systemmaster@meta.ua', '$2y$12$knhVn0wIOYbnqx3TRccf1OrGmEGu3JWSZsbLQ/c9tvLrmZElAaU86', 'Василь', 'Присяжнюк', NULL, NULL, 1, 1, 0, NULL, '2026-06-13 16:12:34', NULL, NULL, '5a4117784b1531506b42a8f5d1335fd5199ae5dea17a9738150944d249e97431', '2026-03-31 09:57:24', '2026-06-13 16:12:34');
+(2, 'systemmaster@meta.ua', '$2y$12$knhVn0wIOYbnqx3TRccf1OrGmEGu3JWSZsbLQ/c9tvLrmZElAaU86', 'Василь', 'Присяжнюк', NULL, NULL, 1, 1, 0, NULL, '2026-06-21 16:39:57', NULL, NULL, 'e9ff8eb8230832c8158a28b53ee08c88431dd7b170740ff4be3ae449b5ba882e', '2026-03-31 09:57:24', '2026-06-21 16:39:57');
 
 -- --------------------------------------------------------
 
@@ -1300,7 +1435,8 @@ ALTER TABLE `categories`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_slug` (`slug`),
   ADD KEY `idx_parent` (`parent_id`),
-  ADD KEY `idx_category_parent` (`parent_id`);
+  ADD KEY `idx_category_parent` (`parent_id`),
+  ADD KEY `idx_categories_path` (`path`(255));
 
 --
 -- Індекси таблиці `category_attributes`
@@ -1461,7 +1597,11 @@ ALTER TABLE `products`
   ADD KEY `idx_products_category` (`category_id`),
   ADD KEY `idx_products_price` (`price`),
   ADD KEY `idx_products_visible` (`is_visible`),
-  ADD KEY `idx_prom_product_id` (`prom_product_id`);
+  ADD KEY `idx_prom_product_id` (`prom_product_id`),
+  ADD KEY `idx_products_views` (`views_count`);
+ALTER TABLE `products` ADD FULLTEXT KEY `ft_products_name` (`name`);
+ALTER TABLE `products` ADD FULLTEXT KEY `ft_products_description` (`description`);
+ALTER TABLE `products` ADD FULLTEXT KEY `ft_products_combined` (`name`,`description`,`sku`);
 
 --
 -- Індекси таблиці `product_attributes`
@@ -1509,6 +1649,22 @@ ALTER TABLE `prom_sync_queue`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_status_created` (`status`,`created_at`),
   ADD KEY `idx_product_id` (`product_id`);
+
+--
+-- Індекси таблиці `search_cache`
+--
+ALTER TABLE `search_cache`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_query_hash` (`query_hash`),
+  ADD KEY `idx_expires_at` (`expires_at`);
+
+--
+-- Індекси таблиці `search_queries`
+--
+ALTER TABLE `search_queries`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_query` (`query`(191)),
+  ADD KEY `idx_search_count` (`search_count` DESC);
 
 --
 -- Індекси таблиці `seo_settings`
@@ -1626,7 +1782,7 @@ ALTER TABLE `crm_user_action_audit`
 -- AUTO_INCREMENT для таблиці `crm_user_activity_logs`
 --
 ALTER TABLE `crm_user_activity_logs`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=247;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=306;
 
 --
 -- AUTO_INCREMENT для таблиці `cron_tasks`
@@ -1656,7 +1812,7 @@ ALTER TABLE `inventory_log`
 -- AUTO_INCREMENT для таблиці `login_attempts`
 --
 ALTER TABLE `login_attempts`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT для таблиці `login_logs`
@@ -1668,7 +1824,7 @@ ALTER TABLE `login_logs`
 -- AUTO_INCREMENT для таблиці `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT для таблиці `orders`
@@ -1741,6 +1897,18 @@ ALTER TABLE `product_stocks`
 --
 ALTER TABLE `prom_sync_queue`
   MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT для таблиці `search_cache`
+--
+ALTER TABLE `search_cache`
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
+
+--
+-- AUTO_INCREMENT для таблиці `search_queries`
+--
+ALTER TABLE `search_queries`
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
 
 --
 -- AUTO_INCREMENT для таблиці `seo_settings`

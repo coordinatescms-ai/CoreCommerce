@@ -97,8 +97,8 @@ $lastOrderAt = $lastOrderRaw !== '' ? date('d.m.Y H:i', strtotime($lastOrderRaw)
         </div>
 
         <h3 style="margin: 1rem 0 .5rem;">Email</h3>
-        <div class="form-group"><input class="form-control" id="crm-email-subject" type="text" placeholder="Тема листа"></div>
-        <div class="form-group"><textarea class="form-control" id="crm-email-message" rows="4" placeholder="Текст повідомлення"></textarea></div>
+        <div class="form-group"><input class="form-control" id="crm-email-subject" type="text" placeholder="<?= __('crm_email_subject') ?>"></div>
+        <div class="form-group"><textarea class="form-control" id="crm-email-message" rows="4" placeholder="<?= __('attr_type_text') ?> повідомлення"></textarea></div>
         <button type="button" id="crm-send-email" class="btn btn-outline"><?php echo __('crm_action_send_email'); ?></button>
     </div></div>
 
@@ -155,15 +155,15 @@ $lastOrderAt = $lastOrderRaw !== '' ? date('d.m.Y H:i', strtotime($lastOrderRaw)
     document.querySelectorAll('[data-bonus-adjust]').forEach((button) => {
         button.addEventListener('click', async function () {
             const delta = Number(this.getAttribute('data-bonus-adjust') || 0);
-            const reason = prompt('Вкажіть причину зміни бонусів:');
+            const reason = prompt(window.LANG.bonus_reason_prompt);
             if (!reason || reason.trim().length < 5) {
-                alert('Причина обов\'язкова (мінімум 5 символів).');
+                alert(window.LANG.reason_required);
                 return;
             }
 
             const response = await postForm('/admin/users/bonus/' + userId, new URLSearchParams({csrf, delta: String(delta), reason: reason.trim()}));
             const data = await response.json();
-            if (!data.success) { alert(data.message || 'Помилка'); return; }
+            if (!data.success) { alert(data.message || window.LANG.error); return; }
             if (bonusBalance) bonusBalance.textContent = "<?php echo addslashes(__('crm_bonus_balance')); ?>: " + data.balance;
         });
     });
@@ -171,11 +171,11 @@ $lastOrderAt = $lastOrderRaw !== '' ? date('d.m.Y H:i', strtotime($lastOrderRaw)
     const blockCheckbox = document.getElementById('crm-is-blocked');
     if (blockCheckbox) {
         blockCheckbox.addEventListener('change', async function () {
-            const reason = prompt('Вкажіть причину для бану/розбану:');
-            if (!reason || reason.trim().length < 5) { this.checked = !this.checked; alert('Причина обов\'язкова (мінімум 5 символів).'); return; }
+            const reason = prompt(window.LANG.ban_reason_prompt);
+            if (!reason || reason.trim().length < 5) { this.checked = !this.checked; alert(window.LANG.reason_required); return; }
             const response = await postForm('/admin/users/block/' + userId, new URLSearchParams({csrf, is_blocked: this.checked ? '1' : '0', reason: reason.trim()}));
             const data = await response.json();
-            if (!data.success) { this.checked = !this.checked; alert(data.message || 'Помилка'); }
+            if (!data.success) { this.checked = !this.checked; alert(data.message || window.LANG.error); }
         });
     }
 
@@ -184,7 +184,7 @@ $lastOrderAt = $lastOrderRaw !== '' ? date('d.m.Y H:i', strtotime($lastOrderRaw)
         emailSubscription.addEventListener('change', async function () {
             const response = await postForm('/admin/users/subscription/' + userId, new URLSearchParams({csrf, marketing_email: this.checked ? '1' : '0'}));
             const data = await response.json();
-            if (!data.success) { this.checked = !this.checked; alert(data.message || 'Помилка'); }
+            if (!data.success) { this.checked = !this.checked; alert(data.message || window.LANG.error); }
         });
     }
 
@@ -197,8 +197,8 @@ $lastOrderAt = $lastOrderRaw !== '' ? date('d.m.Y H:i', strtotime($lastOrderRaw)
             const message = (messageEl?.value || '').trim();
             const response = await postForm('/admin/users/send-email/' + userId, new URLSearchParams({csrf, subject, message}));
             const data = await response.json();
-            if (!data.success) { alert(data.message || 'Помилка'); return; }
-            alert('Лист відправлено');
+            if (!data.success) { alert(data.message || window.LANG.error); return; }
+            alert(window.LANG.mail_sent);
             if (messageEl) messageEl.value = '';
         });
     }

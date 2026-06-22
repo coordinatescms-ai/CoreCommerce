@@ -33,7 +33,7 @@
 </style>
 
 <div class="page-header">
-    <h1 class="page-title"><i class="fas fa-puzzle-piece" style="color:#6366f1;"></i> Керування плагінами</h1>
+    <h1 class="page-title"><i class="fas fa-puzzle-piece" style="color:#6366f1;"></i> <?= __('plugins_manage') ?></h1>
 </div>
 
 <?php if (!empty($flash)): ?>
@@ -43,7 +43,7 @@
 <?php endif; ?>
 
 <div class="card" style="margin-bottom:1.25rem;">
-    <div class="card-header">Завантаження плагіна (.zip)</div>
+    <div class="card-header"><?= __('plugin_upload') ?></div>
     <div class="card-body">
         <form method="POST" action="/admin/plugins/upload" enctype="multipart/form-data"
               style="display:flex; gap:.75rem; align-items:flex-end; flex-wrap:wrap;">
@@ -110,9 +110,9 @@
                             <?= htmlspecialchars($depSlug) ?>
                             <?= $depVer !== '*' ? ' ' . htmlspecialchars($depVer) : '' ?>
                             <?php if ($depMissing): ?>
-                                (не встановлено)
+                                <?= __('not_specified') ?>
                             <?php elseif (!$depActive): ?>
-                                (неактивний)
+                                <?= __('inactive') ?>
                             <?php endif; ?>
                         </span>
                     <?php endforeach; ?>
@@ -129,7 +129,7 @@
         <div class="plug-actions">
             <span class="plug-status <?= $isMissing ? 'err' : ($isActive ? 'on' : 'off') ?>">
                 <i class="fas fa-<?= $isMissing ? 'times-circle' : ($isActive ? 'check-circle' : 'circle') ?>"></i>
-                <?= $isMissing ? 'Відсутній' : ($isActive ? 'Активний' : 'Неактивний') ?>
+                <?= $isMissing ? __('missing') : ($isActive ? __('active') : __('inactive')) ?>
             </span>
 
             <?php if (!$isMissing): ?>

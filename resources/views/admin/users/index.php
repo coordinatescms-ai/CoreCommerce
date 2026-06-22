@@ -9,8 +9,8 @@
                 <tr style="border-bottom: 2px solid #eee; text-align: left;">
                     <th style="padding: 1rem;">ID</th>
                     <th style="padding: 1rem;">Email</th>
-                    <th style="padding: 1rem;">Дата реєстрації</th>
-                    <th style="padding: 1rem;">Роль</th>
+                    <th style="padding: 1rem;"><?= __('user_registered_at') ?></th>
+                    <th style="padding: 1rem;"><?= __('user_role') ?></th>
                     <th style="padding: 1rem;">Телефон</th>
                     <th style="padding: 1rem; text-align: right;">Дії</th>
                 </tr>
@@ -39,7 +39,7 @@
                 <?php endforeach; ?>
                 <?php if (empty($users)): ?>
                     <tr>
-                        <td colspan="6" style="padding: 2rem; text-align: center; color: #64748b;">Користувачів не знайдено.</td>
+                        <td colspan="6" style="padding: 2rem; text-align: center; color: #64748b;"><?= __('users_not_found') ?></td>
                     </tr>
                 <?php endif; ?>
             </tbody>

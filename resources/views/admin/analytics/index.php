@@ -27,7 +27,7 @@
         <input type="date" name="to"
                value="<?= htmlspecialchars($date_to ?? $_GET['to'] ?? '') ?>"
                max="<?= date('Y-m-d') ?>">
-        <button type="submit" class="apply-btn">Застосувати</button>
+        <button type="submit" class="apply-btn"><?= __('apply') ?></button>
         <?php if (!empty($use_custom_range)): ?>
             <a href="/admin/analytics/<?= htmlspecialchars($period) ?>"
                style="margin-left:6px; font-size:12px; color:#94a3b8; text-decoration:none;"
@@ -59,13 +59,13 @@
         </h3>
     </div>
     
-    <table class="admin-table">
+    <div class="admin-table-wrap"><table class="admin-table">
         <thead>
             <tr>
                 <th>Період</th>
                 <th>Замовлень</th> <!-- Нова колонка -->
                 <th>Сума виручки</th>
-                <th style="text-align: right;">Частка</th>
+                <th style="text-align: right;"><?= __('analytics_share') ?></th>
             </tr>
         </thead>
         <tbody>
@@ -110,7 +110,7 @@
         <h3><i class="fa-solid fa-fire" style="color: #f97316;"></i> Популярні товари (ТОП-5)</h3>
     </div>
     
-    <table class="admin-table">
+    <div class="admin-table-wrap"><table class="admin-table">
         <thead>
             <tr>
                 <th>Товар</th>
@@ -120,7 +120,7 @@
         </thead>
         <tbody>
             <?php if (empty($popular_products)): ?>
-                <tr><td colspan="3" style="text-align: center; padding: 20px;">Даних за цей період немає</td></tr>
+                <tr><td colspan="3" style="text-align: center; padding: 20px;"><?= __('analytics_no_data') ?></td></tr>
             <?php else: ?>
                 <?php foreach ($popular_products as $item): ?>
                 <tr>
@@ -149,7 +149,7 @@
         <span class="status-badge" style="background: #fee2e2; color: #b91c1c;">Увага</span>
     </div>
     
-    <table class="admin-table">
+    <div class="admin-table-wrap"><table class="admin-table">
         <thead>
             <tr>
                 <th>Назва товару</th>
@@ -177,7 +177,7 @@
                         </span>
                     </td>
                     <td style="text-align: right;">
-                        <a href="/admin/products/edit/<?= $item['id'] ?>" class="btn-edit" title="Оновити склад">
+                        <a href="/admin/products/edit/<?= $item['id'] ?>" class="btn-edit" title="<?= __('stock_update') ?>">
                             <i class="fa-solid fa-plus-square"></i>
                         </a>
                     </td>
@@ -202,7 +202,7 @@
         const rawData = <?php echo json_encode($values ?? []); ?>;
 
         // Перевірка на наявність даних (якщо порожньо — покажемо пусту сітку для краси)
-        const labels = rawLabels.length > 0 ? rawLabels : ['Немає даних'];
+        const labels = rawLabels.length > 0 ? rawLabels : [window.LANG.no_data];
         const data = rawData.length > 0 ? rawData : [0];
 
         const ctx = document.getElementById('myChart');

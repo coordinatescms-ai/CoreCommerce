@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Core\Database\DB;
 use App\Core\Http\Csrf;
 use App\Core\View\View;
+use App\Services\SeoService;
 use App\Models\Cart;
 use App\Models\Setting;
 use App\Models\CrmUserService;
@@ -108,6 +109,7 @@ class OrderController
         $paymentMethods = array_map([$this, 'normalizeShopMethod'], $paymentMethods);
 
         return View::render('checkout/index', [
+            'seo' => SeoService::forSystem('checkout', '/checkout'),
             'items' => $items,
             'total' => $total,
             'csrf' => Csrf::token(),

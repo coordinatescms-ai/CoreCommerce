@@ -21,7 +21,7 @@
             <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
                 <h5 class="mb-0 text-primary"><?= htmlspecialchars($method['name']) ?></h5>
 
-                <a href="#" onclick="if(confirm('Видалити цей метод?')) { document.getElementById('delete-form-<?= $method['id'] ?>').submit(); } return false;" class="btn btn-sm btn-outline-danger">
+                <a href="#" onclick="if(confirm(window.LANG.confirm_delete_method)) { document.getElementById('delete-form-<?= $method['id'] ?>').submit(); } return false;" class="btn btn-sm btn-outline-danger">
                     Видалити
                 </a>
 
@@ -41,7 +41,7 @@
                 <div class="row">
                     <!-- Поле для зміни НАЗВИ -->
                     <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold">Назва методу (для покупця)</label>
+                        <label class="form-label fw-bold"><?= __('settings_payment_name') ?></label>
                         <input type="text" name="methods[<?= $method['id'] ?>][name]" 
                                value="<?= htmlspecialchars($method['name']) ?>" class="form-control">
                     </div>
@@ -68,7 +68,7 @@
                                    value="<?= htmlspecialchars($extra['api_key'] ?? '') ?>" class="form-control">
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label class="form-label">Фіксована вартість, грн</label>
+                            <label class="form-label"><?= __('settings_delivery_cost') ?></label>
                             <input type="number" name="methods[<?= $method['id'] ?>][settings][cost]" 
                                    value="<?= htmlspecialchars($extra['cost'] ?? '') ?>" class="form-control">
                         </div>

@@ -64,8 +64,8 @@
         </div>
 
         <div class="form-actions">
-            <button type="submit" class="btn-save" style="background: #2ecc71; color: white; padding: 10px 20px; border: none; cursor: pointer;">Зберегти сторінку</button>
-            <a href="/admin/content" style="margin-left: 10px;">Скасувати</a>
+            <button type="submit" class="btn-save" style="background: #2ecc71; color: white; padding: 10px 20px; border: none; cursor: pointer;"><?= __('content_save_page') ?></button>
+            <a href="/admin/content" style="margin-left: 10px;"><?= __('cancel') ?></a>
         </div>
     </form>
 </div>
@@ -125,7 +125,7 @@ function uploadEditorImage(input) {
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Помилка завантаження зображення');
+        alert(window.LANG.image_upload_error);
     });
     
     input.value = ''; // Очищуємо інпут, щоб можна було вибрати те саме фото ще раз

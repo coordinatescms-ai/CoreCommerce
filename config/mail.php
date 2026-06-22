@@ -1,11 +1,11 @@
 <?php
 
 return [
-    'host'       => $_ENV['MAIL_HOST'] ?? 'localhost',
-    'port'       => $_ENV['MAIL_PORT'] ?? 25,
-    'username'   => $_ENV['MAIL_USER'] ?? '',
-    'password'   => $_ENV['MAIL_PASS'] ?? '',
-    'encryption' => $_ENV['MAIL_ENCRYPTION'] ?? 'tls',
-    'from_email' => $_ENV['MAIL_FROM_ADDRESS'] ?? 'admin@example.com',
-    'from_name'  => $_ENV['MAIL_FROM_NAME'] ?? 'My App',
+    'host'       => '127.0.0.1', // або 'localhost'
+    'port'       => 25,        // Стандартний SMTP-порт для Mailpit в OSPanel
+    'username'   => '',          // Залишайте порожнім, авторизація не потрібна
+    'password'   => '',          // Залишайте порожнім
+    'encryption' => null,        // Без шифрування
+    'from_email' => 'no-reply@mysite.test',
+    'from_name'  => 'MySite Store',
 ];

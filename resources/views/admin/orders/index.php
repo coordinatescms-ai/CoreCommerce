@@ -12,15 +12,15 @@
  */
 
 $statusLabels = [
-    'pending'    => 'Очікує оплати',
-    'new'        => 'Новий',
-    'confirmed'  => 'Підтверджено',
-    'processing' => 'Комплектується',
-    'shipped'    => 'Відправлено',
-    'delivered'  => 'Доставлено',
-    'completed'  => 'Завершено',
-    'cancelled'  => 'Скасовано',
-    'returned'   => 'Повернено',
+    'pending'    => __('status_pending'),
+    'new'        => __('status_new'),
+    'confirmed'  => __('status_confirmed'),
+    'processing' => __('status_processing'),
+    'shipped'    => __('status_shipped'),
+    'delivered'  => __('status_delivered'),
+    'completed'  => __('status_completed'),
+    'cancelled'  => __('status_cancelled'),
+    'returned'   => __('status_returned'),
 ];
 
 $statusColors = [
@@ -117,7 +117,7 @@ $statusColors = [
                 <i class="fas fa-sync-alt"></i> Синхронізувати ТТН
             </button>
             <button type="button" class="btn" id="createOrderBtn">
-                + Нове замовлення
+                + <?= __('order') ?>
             </button>
             <div class="orders-switcher" role="tablist">
                 <button type="button" data-view="kanban" class="<?= ($activeView ?? 'kanban') !== 'table' ? 'active' : '' ?>">
@@ -193,7 +193,7 @@ $statusColors = [
                            value="<?= htmlspecialchars($searchFilter ?? '') ?>"
                            placeholder="Пошук: ім'я, телефон, ID…">
                     <select name="status">
-                        <option value="">Всі статуси</option>
+                        <option value=""><?= __('all_statuses') ?></option>
                         <?php foreach (($allStatuses ?? []) as $s): ?>
                             <option value="<?= htmlspecialchars($s) ?>"
                                 <?= ($statusFilter ?? '') === $s ? 'selected' : '' ?>>
@@ -201,10 +201,10 @@ $statusColors = [
                             </option>
                         <?php endforeach; ?>
                     </select>
-                    <button type="submit" class="btn">Застосувати</button>
+                    <button type="submit" class="btn"><?= __('apply') ?></button>
                     <?php if (($statusFilter ?? '') !== '' || ($searchFilter ?? '') !== ''): ?>
                         <a href="<?= ordersUrl(['view' => 'table', 'status' => '', 'search' => '', 'tpage' => '']) ?>"
-                           class="btn secondary">Скинути</a>
+                           class="btn secondary"><?= __('reset') ?></a>
                     <?php endif; ?>
                 </form>
             </div>
@@ -213,9 +213,9 @@ $statusColors = [
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Клієнт</th>
+                        <th><?= __('order_client') ?></th>
                         <th>Телефон</th>
-                        <th>Сума</th>
+                        <th><?= __('order_sum') ?></th>
                         <th>Статус</th>
                         <th>Оплата</th>
                         <th>Доставка</th>
@@ -299,7 +299,7 @@ $statusColors = [
                     <thead><tr><th>Product ID</th><th>Назва</th><th>Опції</th><th>К-сть</th><th>Ціна</th><th></th></tr></thead>
                     <tbody></tbody>
                 </table>
-                <button type="button" class="btn secondary" id="addItemRowBtn" style="margin-top:8px;">+ Додати товар</button>
+                <button type="button" class="btn secondary" id="addItemRowBtn" style="margin-top:8px;"><?= __('order_add_product') ?></button>
                 <p><b>Загальна сума: <span id="orderComputedTotal">0.00</span> <?= htmlspecialchars($activeCurrencySymbol ?? '₴') ?></b></p>
             </div>
 
@@ -309,8 +309,8 @@ $statusColors = [
             </div>
 
             <div class="modal-actions">
-                <button type="button" class="btn secondary" id="closeOrderModal">Закрити</button>
-                <button type="submit" class="btn">Зберегти</button>
+                <button type="button" class="btn secondary" id="closeOrderModal"><?= __('close') ?></button>
+                <button type="submit" class="btn"><?= __('save') ?></button>
             </div>
         </form>
     </div>
@@ -380,7 +380,7 @@ $statusColors = [
     document.getElementById('addItemRowBtn').addEventListener('click', () => addItemRow());
 
     const fillForm = (data, isCreate = false) => {
-        document.getElementById('modalTitle').textContent = isCreate ? 'Нове замовлення' : `Замовлення #${data.order.id}`;
+        document.getElementById('modalTitle').textContent = isCreate ? window.LANG.order_new : `Замовлення #${data.order.id}`;
         document.getElementById('orderIdField').value     = data.order.id || '';
         document.getElementById('customerName').value    = data.order.customer_name || '';
         document.getElementById('customerPhone').value   = data.order.customer_phone || '';
@@ -407,7 +407,7 @@ $statusColors = [
                 `<div style="font-size:.85rem; padding:.3rem 0; border-bottom:1px solid #f1f5f9;">
                     ${h.changed_at}: <b>${statusLabels[h.old_status] || h.old_status || '—'}</b>
                     → <b>${statusLabels[h.new_status] || h.new_status}</b>
-                    ${h.ttn_code ? ` (ТТН: ${h.ttn_code})` : ''}
+                    ${h.ttn_code ? ` (<?= __('ttn_code') ?>: ${h.ttn_code})` : ''}
                 </div>`);
             historyBox.innerHTML = rows.length ? rows.join('') : '<div style="color:#94a3b8;">Історія порожня.</div>';
         }
@@ -421,7 +421,7 @@ $statusColors = [
         const rawText = await res.text();
         let data;
         try { data = JSON.parse(rawText); } catch { throw new Error('Сервер повернув некоректну відповідь.'); }
-        if (!res.ok || !data.success) throw new Error(data.message || 'Не вдалося завантажити замовлення');
+        if (!res.ok || !data.success) throw new Error(data.message || window.LANG.load_order_error);
         return data;
     };
 
@@ -472,7 +472,7 @@ $statusColors = [
             body: JSON.stringify(payload),
         });
         const data = await res.json();
-        if (!res.ok || !data.success) { alert(data.message || 'Помилка збереження'); return; }
+        if (!res.ok || !data.success) { alert(data.message || window.LANG.save_error); return; }
         alert(data.message);
         closeModal();
         location.reload();
@@ -522,7 +522,7 @@ $statusColors = [
             let ttnCode = '';
             if (targetStatus === 'shipped') {
                 ttnCode = window.prompt('Введіть ТТН для відправлення:') || '';
-                if (!ttnCode.trim()) return alert('ТТН обов\'язкова для статусу «Відправлено».');
+                if (!ttnCode.trim()) return alert('ТТН обов\'язкова для статусу «<?= __('status_shipped') ?>».');
             }
 
             card.style.pointerEvents = 'none';
@@ -542,7 +542,7 @@ $statusColors = [
     document.getElementById('syncLogisticsBtn').addEventListener('click', async () => {
         const res  = await fetch('/admin/orders/sync-logistics', { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
         const data = await res.json();
-        if (!res.ok || !data.success) return alert(data.message || 'Помилка синхронізації');
+        if (!res.ok || !data.success) return alert(data.message || window.LANG.sync_error);
         (data.updated || []).forEach((change) => {
             if (change.to === 'completed') {
                 const card = document.querySelector(`.order-card[data-order-id="${change.order_id}"]`);

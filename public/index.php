@@ -28,6 +28,9 @@ if ($siteTimezone === '' || !in_array($siteTimezone, timezone_identifiers_list()
 }
 date_default_timezone_set($siteTimezone);
 
+// 3.1 Заголовки безпеки (CSP, HSTS, HTTPS-редирект, X-Frame-Options...)
+\App\Services\SecurityHeadersService::apply();
+
 // 3. Ініціалізація CSRF токена
 if (empty($_SESSION['csrf'])) {
     $_SESSION['csrf'] = bin2hex(random_bytes(32));

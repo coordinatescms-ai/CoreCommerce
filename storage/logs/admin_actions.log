@@ -1,3 +1,4 @@
-[2026-05-11 12:52:36] admin_id=2 admin_email=systemmaster@meta.ua action=clear_cache cleared=["active_plugins.json"] errors=["Не вдалося оновити asset version: Call to undefined method App\\Models\\Setting::set()"]
-[2026-05-12 06:43:25] admin_id=2 admin_email=systemmaster@meta.ua action=clear_cache cleared=["active_plugins.json"] errors=["Не вдалося оновити asset version: Call to undefined method App\\Models\\Setting::set()"]
-[2026-05-24 18:47:04] admin_id=2 admin_email=systemmaster@meta.ua action=backup_database meta={"file":"backup_20260524_184704.sql"}
+[2026-06-14 14:41:28] admin_id=2 admin_email=systemmaster@meta.ua action=clear_logs meta={"deleted":["admin_actions.log"]}
+[2026-06-14 14:41:57] admin_id=2 admin_email=systemmaster@meta.ua action=system_test_mail meta={"to":"systemmaster@meta.ua","source":"db","success":false,"error":"SMTP Error: Could not connect to SMTP host. Failed to connect to server SMTP server error: Failed to connect to server SMTP code: 10061 Additional SMTP info: No connection could be made because the target machine actively refused it"}
+[2026-06-14 14:56:02] admin_id=2 admin_email=systemmaster@meta.ua action=system_test_mail meta={"to":"systemmaster@meta.ua","source":"db","success":true,"error":""}
+[2026-06-17 06:53:55] admin_id=2 admin_email=systemmaster@meta.ua action=clear_cache cleared=["active_plugins.json"] errors=["Не вдалося оновити asset version: Call to undefined method App\\Models\\Setting::set()"]

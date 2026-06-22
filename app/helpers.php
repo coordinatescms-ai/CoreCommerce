@@ -136,3 +136,12 @@ function is_phone_matching_mask(string $phone, string $mask): bool
 
     return (bool) preg_match(phone_mask_to_regex($mask), trim($phone));
 }
+
+/**
+ * Повернути абсолютний шлях до файлу views.
+ * Напр.: view_path('components/breadcrumb') → /path/to/resources/views/components/breadcrumb.php
+ */
+function view_path(string $view): string
+{
+    return dirname(__DIR__) . '/resources/views/' . ltrim($view, '/') . '.php';
+}

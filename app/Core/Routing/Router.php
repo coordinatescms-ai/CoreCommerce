@@ -23,7 +23,18 @@ class Router
 
     private function matchRoute(string $pattern, string $uri, array &$params): bool
     {
-        $pattern = preg_replace('#\{([^/]+)\}#', '([^/]+)', $pattern);
+        // Підтримка {param:regex} — напр. {path:.+} для вкладених ЧПУ
+        $pattern = preg_replace_callback(
+            '#\{([^}]+)\}#',
+            function (array $m): string {
+                if (str_contains($m[1], ':')) {
+                    [, $regex] = explode(':', $m[1], 2);
+                    return '(' . $regex . ')';
+                }
+                return '([^/]+)';
+            },
+            $pattern
+        );
         $pattern = '#^' . $pattern . '$#';
 
         if (preg_match($pattern, $uri, $matches)) {

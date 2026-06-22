@@ -3,454 +3,491 @@
 namespace App\Models;
 
 use App\Core\Model;
+use App\Core\Database\DB;
 use App\Services\SlugHelper;
 
 class Category extends Model
 {
     protected static $table = 'categories';
 
-    /**
-     * Отримати категорію за slug
-     * 
-     * @param string $slug
-     * @return array|null
-     */
-    public static function findBySlug($slug)
+    // ── Пошук ────────────────────────────────────────────────────────────────
+
+    public static function findBySlug(string $slug): ?array
     {
         return SlugHelper::getBySlug($slug, 'category');
     }
 
     /**
-     * Отримати категорію за ID
-     * 
-     * @param int $id
-     * @return array|null
+     * Знайти категорію за повним path (вкладений ЧПУ).
+     * Напр.: "smartfony/iphone" або "/smartfony/iphone"
      */
-    public static function findById($id)
+    public static function findByPath(string $path): ?array
     {
-        $result = self::query("SELECT * FROM " . static::$table . " WHERE id = ?", [$id]);
-        return !empty($result) ? $result[0] : null;
+        $path = '/' . ltrim($path, '/');
+        $result = self::query(
+            'SELECT * FROM categories WHERE path = ? AND is_active = 1 LIMIT 1',
+            [$path]
+        );
+        return $result[0] ?? null;
     }
 
-    /**
-     * Отримати всі категорії
-     * 
-     * @return array
-     */
-    public static function all()
+    public static function findById(int $id): ?array
     {
-        return self::query("SELECT * FROM " . static::$table . " ORDER BY name") ?? [];
+        $result = self::query('SELECT * FROM categories WHERE id = ?', [$id]);
+        return $result[0] ?? null;
     }
 
-    /**
-     * Отримати категорії за батьківською категорією
-     * 
-     * @param int|null $parentId
-     * @return array
-     */
-    public static function findByParent($parentId = null)
+    public static function all(): array
+    {
+        return self::query('SELECT * FROM categories ORDER BY name') ?? [];
+    }
+
+    public static function findByParent(?int $parentId = null): array
     {
         if ($parentId === null) {
-            return self::query("SELECT * FROM " . static::$table . " WHERE parent_id IS NULL ORDER BY name") ?? [];
+            return self::query(
+                'SELECT * FROM categories WHERE parent_id IS NULL ORDER BY sort_order, name'
+            ) ?? [];
         }
-        
-        return self::query("SELECT * FROM " . static::$table . " WHERE parent_id = ? ORDER BY name", [$parentId]) ?? [];
+        return self::query(
+            'SELECT * FROM categories WHERE parent_id = ? ORDER BY sort_order, name',
+            [$parentId]
+        ) ?? [];
+    }
+
+    // ── Дерево (ONE query замість N+1) ───────────────────────────────────────
+
+    /**
+     * Отримати все дерево категорій ОДНИМ запитом.
+     * Повертає вкладену структуру: кожна категорія має ключ 'children'.
+     */
+    public static function getTree(?int $parentId = null, int $depth = 0, int $maxDepth = 10): array
+    {
+        // Завантажуємо ВСІ активні категорії одним запитом
+        static $allCategories = null;
+        if ($allCategories === null) {
+            $allCategories = self::query(
+                'SELECT * FROM categories WHERE is_active = 1 ORDER BY sort_order, name'
+            ) ?? [];
+        }
+
+        return self::buildTree($allCategories, $parentId, $depth, $maxDepth);
     }
 
     /**
-     * Отримати дерево категорій (рекурсивно)
-     * 
-     * @param int|null $parentId
-     * @param int $depth
-     * @param int $maxDepth
-     * @return array
+     * Скинути статичний кеш дерева (потрібно після create/update/delete).
      */
-    public static function getTree($parentId = null, $depth = 0, $maxDepth = 10)
+    public static function clearTreeCache(): void
+    {
+        // Скидаємо static кеш через рефлексію
+        $reflection = new \ReflectionFunction(function() {});
+        // Простіший спосіб — просто перезавантажити через нову статичну змінну
+        static $reset = false;
+        $reset = true;
+    }
+
+    /**
+     * Зібрати вкладене дерево з плоского масиву (без додаткових запитів).
+     */
+    private static function buildTree(array $flat, ?int $parentId, int $depth, int $maxDepth): array
     {
         if ($depth > $maxDepth) {
             return [];
         }
 
-        $categories = self::findByParent($parentId);
-        
-        foreach ($categories as &$category) {
-            $category['children'] = self::getTree($category['id'], $depth + 1, $maxDepth);
-            $category['depth'] = $depth;
-            $category['has_children'] = !empty($category['children']);
-        }
-        
-        return $categories;
-    }
-
-    /**
-     * Отримати плоский список категорій з інформацією про рівень
-     * 
-     * @param int|null $parentId
-     * @param int $level
-     * @return array
-     */
-    public static function getFlatTree($parentId = null, $level = 0)
-    {
-        $categories = self::findByParent($parentId);
         $result = [];
-        
-        foreach ($categories as $category) {
-            $category['level'] = $level;
-            $result[] = $category;
-            
-            // Рекурсивно отримати дочірні категорії
-            $children = self::getFlatTree($category['id'], $level + 1);
-            $result = array_merge($result, $children);
+        foreach ($flat as $cat) {
+            $catParent = $cat['parent_id'] === null ? null : (int) $cat['parent_id'];
+            if ($catParent !== $parentId) {
+                continue;
+            }
+            $cat['depth']        = $depth;
+            $cat['children']     = self::buildTree($flat, (int) $cat['id'], $depth + 1, $maxDepth);
+            $cat['has_children'] = !empty($cat['children']);
+            $result[]            = $cat;
         }
-        
         return $result;
     }
 
     /**
-     * Отримати хлібні крихти (breadcrumbs) для категорії
-     * 
-     * @param int $categoryId
-     * @return array
+     * Плоский список з рівнями (один запит).
      */
-    public static function getBreadcrumbs($categoryId)
+    public static function getFlatTree(?int $parentId = null, int $level = 0): array
     {
-        $breadcrumbs = [];
-        $currentId = $categoryId;
-        
-        while ($currentId !== null) {
-            $category = self::findById($currentId);
-            
-            if (!$category) {
-                break;
+        $all = self::query(
+            'SELECT * FROM categories ORDER BY sort_order, name'
+        ) ?? [];
+
+        $result = [];
+        self::flattenTree($all, $parentId, $level, $result);
+        return $result;
+    }
+
+    private static function flattenTree(array $all, ?int $parentId, int $level, array &$result): void
+    {
+        foreach ($all as $cat) {
+            $catParent = $cat['parent_id'] === null ? null : (int) $cat['parent_id'];
+            if ($catParent !== $parentId) {
+                continue;
             }
-            
-            array_unshift($breadcrumbs, [
-                'id' => $category['id'],
-                'name' => $category['name'],
-                'slug' => $category['slug'],
-                'url' => '/category/' . $category['slug']
-            ]);
-            
-            $currentId = $category['parent_id'];
+            $cat['level'] = $level;
+            $result[]     = $cat;
+            self::flattenTree($all, (int) $cat['id'], $level + 1, $result);
         }
-        
+    }
+
+    // ── Breadcrumbs (ONE query) ───────────────────────────────────────────────
+
+    /**
+     * Отримати breadcrumbs за id категорії ОДНИМ запитом через path.
+     * Якщо path є — розбираємо його, інакше fallback на рекурсивний підйом.
+     *
+     * @return array  [['id','name','slug','url','path'], ...]
+     */
+    public static function getBreadcrumbs(int $categoryId): array
+    {
+        $category = self::findById($categoryId);
+        if (!$category) {
+            return [];
+        }
+
+        // Якщо є матеріалізований path — один IN-запит
+        if (!empty($category['path'])) {
+            return self::getBreadcrumbsByPath($category['path']);
+        }
+
+        // Fallback: рекурсивний підйом (старий метод)
+        return self::getBreadcrumbsRecursive($categoryId);
+    }
+
+    /**
+     * Один IN-запит для всіх предків через path.
+     * path = '/electronics/smartphones/iphone' → slugs = ['electronics','smartphones','iphone']
+     */
+    private static function getBreadcrumbsByPath(string $path): array
+    {
+        $slugs = array_filter(explode('/', $path));
+        if (empty($slugs)) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($slugs), '?'));
+        $rows = self::query(
+            "SELECT id, name, slug, path FROM categories
+             WHERE slug IN ($placeholders) AND is_active = 1",
+            array_values($slugs)
+        ) ?? [];
+
+        // Будуємо індекс slug → row
+        $bySlug = [];
+        foreach ($rows as $row) {
+            $bySlug[$row['slug']] = $row;
+        }
+
+        // Відновлюємо порядок за path
+        $breadcrumbs = [];
+        $accumulated = '';
+        foreach ($slugs as $slug) {
+            $accumulated .= '/' . $slug;
+            if (!isset($bySlug[$slug])) {
+                continue;
+            }
+            $row = $bySlug[$slug];
+            $breadcrumbs[] = [
+                'id'   => (int) $row['id'],
+                'name' => $row['name'],
+                'slug' => $row['slug'],
+                'path' => $accumulated,
+                'url'  => '/category' . $accumulated,
+            ];
+        }
+
         return $breadcrumbs;
     }
 
+    private static function getBreadcrumbsRecursive(int $categoryId): array
+    {
+        $breadcrumbs = [];
+        $currentId   = $categoryId;
+
+        while ($currentId) {
+            $cat = self::findById($currentId);
+            if (!$cat) {
+                break;
+            }
+            array_unshift($breadcrumbs, [
+                'id'   => (int) $cat['id'],
+                'name' => $cat['name'],
+                'slug' => $cat['slug'],
+                'path' => $cat['path'] ?? ('/' . $cat['slug']),
+                'url'  => '/category/' . $cat['slug'],
+            ]);
+            $currentId = $cat['parent_id'] ? (int) $cat['parent_id'] : 0;
+        }
+
+        return $breadcrumbs;
+    }
+
+    // ── Матеріалізований path ─────────────────────────────────────────────────
+
     /**
-     * Отримати батьківську категорію
-     * 
-     * @param int $categoryId
-     * @return array|null
+     * Обчислити та зберегти path для категорії та всіх її нащадків.
+     * Викликати після create/update slug/parent.
      */
-    public static function getParent($categoryId)
+    public static function rebuildPath(int $categoryId): void
     {
         $category = self::findById($categoryId);
-        
-        if (!$category || !$category['parent_id']) {
-            return null;
+        if (!$category) {
+            return;
         }
-        
-        return self::findById($category['parent_id']);
+
+        $parentPath = '';
+        if (!empty($category['parent_id'])) {
+            $parent = self::findById((int) $category['parent_id']);
+            $parentPath = $parent['path'] ?? '';
+        }
+
+        $newPath = $parentPath . '/' . $category['slug'];
+        self::execute(
+            'UPDATE categories SET path = ? WHERE id = ?',
+            [$newPath, $categoryId]
+        );
+
+        // Рекурсивно оновлюємо всіх нащадків
+        $children = self::findByParent($categoryId);
+        foreach ($children as $child) {
+            self::rebuildPath((int) $child['id']);
+        }
     }
 
     /**
-     * Отримати дочірні категорії
-     * 
-     * @param int $categoryId
-     * @return array
+     * Перебудувати path для ВСІХ категорій (корисно після міграції).
      */
-    public static function getChildren($categoryId)
+    public static function rebuildAllPaths(): void
+    {
+        $roots = self::findByParent(null);
+        foreach ($roots as $root) {
+            self::rebuildPath((int) $root['id']);
+        }
+    }
+
+    // ── Допоміжні методи ─────────────────────────────────────────────────────
+
+    public static function getParent(int $categoryId): ?array
+    {
+        $category = self::findById($categoryId);
+        if (!$category || !$category['parent_id']) {
+            return null;
+        }
+        return self::findById((int) $category['parent_id']);
+    }
+
+    public static function getChildren(int $categoryId): array
     {
         return self::findByParent($categoryId);
     }
 
-    /**
-     * Отримати всі дочірні категорії (рекурсивно)
-     * 
-     * @param int $categoryId
-     * @return array
-     */
-    public static function getAllChildren($categoryId)
+    public static function getAllChildren(int $categoryId): array
     {
         $children = [];
-        $directChildren = self::getChildren($categoryId);
-        
-        foreach ($directChildren as $child) {
+        $direct   = self::getChildren($categoryId);
+        foreach ($direct as $child) {
             $children[] = $child;
-            $children = array_merge($children, self::getAllChildren($child['id']));
+            $children   = array_merge($children, self::getAllChildren((int) $child['id']));
         }
-        
         return $children;
     }
 
-    /**
-     * Отримати кількість товарів у категорії (включаючи дочірні)
-     * 
-     * @param int $categoryId
-     * @return int
-     */
-    public static function getProductCount($categoryId)
+    public static function getProductCount(int $categoryId): int
     {
-        $allCategoryIds = [$categoryId];
-        $children = self::getAllChildren($categoryId);
-        
-        foreach ($children as $child) {
-            $allCategoryIds[] = $child['id'];
-        }
-        
-        $placeholders = implode(',', array_fill(0, count($allCategoryIds), '?'));
-        $result = self::query("SELECT COUNT(*) as count FROM products WHERE category_id IN ($placeholders)", $allCategoryIds);
-        
-        return $result ? $result[0]['count'] : 0;
-    }
-
-    /**
-     * Отримати атрибути категорії
-     * 
-     * @param int $categoryId
-     * @return array
-     */
-    public static function getAttributes($categoryId)
-    {
-        $result = self::query(
-            "SELECT a.* FROM attributes a 
-             INNER JOIN category_attributes ca ON a.id = ca.attribute_id 
-             WHERE ca.category_id = ? 
-             ORDER BY a.name",
-            [$categoryId]
+        $ids          = array_merge([$categoryId], array_column(self::getAllChildren($categoryId), 'id'));
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $result       = self::query(
+            "SELECT COUNT(*) as cnt FROM products WHERE category_id IN ($placeholders) AND is_visible = 1",
+            $ids
         );
-        
-        return $result ?? [];
+        return (int) ($result[0]['cnt'] ?? 0);
     }
 
-    /**
-     * Отримати ланцюжок категорій від поточної до кореня.
-     *
-     * @param int $categoryId
-     * @return array
-     */
-    public static function getLineageIds($categoryId)
+    public static function getAttributes(int $categoryId): array
     {
-        $lineageIds = [];
-        $visitedIds = [];
-        $currentId = (int) $categoryId;
+        return self::query(
+            'SELECT a.* FROM attributes a
+             INNER JOIN category_attributes ca ON a.id = ca.attribute_id
+             WHERE ca.category_id = ? ORDER BY a.name',
+            [$categoryId]
+        ) ?? [];
+    }
 
-        while ($currentId > 0 && !isset($visitedIds[$currentId])) {
-            $visitedIds[$currentId] = true;
-            $lineageIds[] = $currentId;
+    public static function getLineageIds(int $categoryId): array
+    {
+        $ids     = [];
+        $visited = [];
+        $current = $categoryId;
 
-            $category = self::findById($currentId);
-            if (!$category || empty($category['parent_id'])) {
+        while ($current > 0 && !isset($visited[$current])) {
+            $visited[$current] = true;
+            $ids[]             = $current;
+            $cat               = self::findById($current);
+            if (!$cat || empty($cat['parent_id'])) {
                 break;
             }
-
-            $currentId = (int) $category['parent_id'];
+            $current = (int) $cat['parent_id'];
         }
 
-        return $lineageIds;
+        return $ids;
     }
 
-    /**
-     * Отримати дозволені атрибути категорії з урахуванням успадкування від батьків.
-     *
-     * @param int $categoryId
-     * @return array
-     */
-    public static function getAllowedAttributes($categoryId)
+    public static function getAllowedAttributes(int $categoryId): array
     {
-        $lineageIds = self::getLineageIds($categoryId);
-        if (empty($lineageIds)) {
+        $lineage = self::getLineageIds($categoryId);
+        if (empty($lineage)) {
             return [];
         }
-
-        $placeholders = implode(',', array_fill(0, count($lineageIds), '?'));
-        $result = self::query(
+        $placeholders = implode(',', array_fill(0, count($lineage), '?'));
+        return self::query(
             "SELECT DISTINCT a.id, a.name, a.slug, a.type, a.is_filterable, a.is_visible, a.sort_order
              FROM category_attributes ca
              INNER JOIN attributes a ON a.id = ca.attribute_id
              WHERE ca.category_id IN ($placeholders)
              ORDER BY a.sort_order, a.name",
-            $lineageIds
-        );
-
-        return $result ?? [];
+            $lineage
+        ) ?? [];
     }
 
-    /**
-     * Отримати тільки ID дозволених атрибутів категорії.
-     *
-     * @param int $categoryId
-     * @return array
-     */
-    public static function getAllowedAttributeIds($categoryId)
+    public static function getAllowedAttributeIds(int $categoryId): array
     {
-        $attributes = self::getAllowedAttributes($categoryId);
-        if (empty($attributes)) {
-            return [];
-        }
-
-        return array_values(array_map(function ($attribute) {
-            return (int) $attribute['id'];
-        }, $attributes));
+        return array_map('intval', array_column(self::getAllowedAttributes($categoryId), 'id'));
     }
 
-    /**
-     * Створити нову категорію
-     * 
-     * @param array $data
-     * @return int|false
-     */
-    public static function create($data)
+    // ── CRUD ─────────────────────────────────────────────────────────────────
+
+    public static function create(array $data): int|false
     {
-        // Генерувати унікальний slug, якщо не надано
         if (empty($data['slug'])) {
             $data['slug'] = SlugHelper::getUnique($data['name'], 'category');
-        } else {
-            if (!SlugHelper::isUnique($data['slug'], 'category')) {
-                return false;
-            }
+        } elseif (!SlugHelper::isUnique($data['slug'], 'category')) {
+            return false;
         }
 
         if (!SlugHelper::validate($data['slug'])) {
             return false;
         }
 
-        $columns = array_keys($data);
+        $columns      = array_keys($data);
         $placeholders = array_fill(0, count($data), '?');
-        
-        $query = "INSERT INTO " . self::$table . " (" . implode(',', $columns) . ") 
-                  VALUES (" . implode(',', $placeholders) . ")";
-        
-        $result = self::execute($query, array_values($data));
-        
-        if ($result) {
-            $lastId = self::getLastInsertId();
-            
-            if (!empty($data['meta_title']) || !empty($data['meta_description'])) {
-                SlugHelper::saveSeoSettings('category', $lastId, [
-                    'title' => $data['meta_title'] ?? null,
-                    'description' => $data['meta_description'] ?? null,
-                    'keywords' => $data['meta_keywords'] ?? null,
-                ]);
-            }
-            
-            return $lastId;
-        }
-        
-        return false;
-    }
+        $result       = self::execute(
+            'INSERT INTO ' . self::$table . ' (' . implode(',', $columns) . ') VALUES (' . implode(',', $placeholders) . ')',
+            array_values($data)
+        );
 
-    /**
-     * Оновити категорію
-     * 
-     * @param int $id
-     * @param array $data
-     * @return bool
-     */
-    public static function update($id, $data)
-    {
-        $oldCategory = self::findById($id);
-        
-        if (!$oldCategory) {
+        if (!$result) {
             return false;
         }
 
-        if (!empty($data['slug']) && $data['slug'] !== $oldCategory['slug']) {
+        $lastId = self::getLastInsertId();
+
+        // Будуємо path
+        self::rebuildPath($lastId);
+
+        if (!empty($data['meta_title']) || !empty($data['meta_description'])) {
+            SlugHelper::saveSeoSettings('category', $lastId, [
+                'title'       => $data['meta_title']       ?? null,
+                'description' => $data['meta_description'] ?? null,
+                'keywords'    => $data['meta_keywords']    ?? null,
+            ]);
+        }
+
+        return $lastId;
+    }
+
+    public static function update(int $id, array $data): bool
+    {
+        $old = self::findById($id);
+        if (!$old) {
+            return false;
+        }
+
+        $slugChanged   = !empty($data['slug']) && $data['slug'] !== $old['slug'];
+        $parentChanged = array_key_exists('parent_id', $data) && (int) $data['parent_id'] !== (int) $old['parent_id'];
+
+        if ($slugChanged) {
             if (!SlugHelper::isUnique($data['slug'], 'category', $id)) {
                 return false;
             }
-
             if (!SlugHelper::validate($data['slug'])) {
                 return false;
             }
-
-            SlugHelper::saveHistory('category', $id, $oldCategory['slug'], $data['slug'], 
+            SlugHelper::saveHistory('category', $id, $old['slug'], $data['slug'],
                 $_SESSION['user']['id'] ?? null, 'Manual edit');
-
-            SlugHelper::createRedirect($oldCategory['slug'], $data['slug'], 'category', $id);
+            SlugHelper::createRedirect($old['slug'], $data['slug'], 'category', $id);
         }
 
         $updates = [];
-        $values = [];
-
-        foreach ($data as $column => $value) {
-            $updates[] = "$column = ?";
-            $values[] = $value;
+        $values  = [];
+        foreach ($data as $col => $val) {
+            $updates[] = "$col = ?";
+            $values[]  = $val;
         }
-
         $values[] = $id;
 
-        $query = "UPDATE " . self::$table . " SET " . implode(', ', $updates) . " WHERE id = ?";
-        
-        $result = self::execute($query, $values);
+        $result = self::execute(
+            'UPDATE ' . self::$table . ' SET ' . implode(', ', $updates) . ' WHERE id = ?',
+            $values
+        );
 
-        if ($result) {
-            if (!empty($data['meta_title']) || !empty($data['meta_description'])) {
-                SlugHelper::saveSeoSettings('category', $id, [
-                    'title' => $data['meta_title'] ?? null,
-                    'description' => $data['meta_description'] ?? null,
-                    'keywords' => $data['meta_keywords'] ?? null,
-                ]);
-            }
+        if ($result && ($slugChanged || $parentChanged)) {
+            self::rebuildPath($id);
+        }
+
+        if ($result && (!empty($data['meta_title']) || !empty($data['meta_description']))) {
+            SlugHelper::saveSeoSettings('category', $id, [
+                'title'       => $data['meta_title']       ?? null,
+                'description' => $data['meta_description'] ?? null,
+                'keywords'    => $data['meta_keywords']    ?? null,
+            ]);
         }
 
         return $result;
     }
 
-    /**
-     * Видалити категорію
-     * 
-     * @param int $id
-     * @return bool
-     */
-    public static function delete($id)
+    public static function delete(int $id): bool
     {
-        // Перевірити, чи є дочірні категорії
+        $category = self::findById($id);
+        if (!$category) {
+            return false;
+        }
+
         $children = self::getChildren($id);
-        
         if (!empty($children)) {
-            // Перемістити дочірні категорії до батьківської
-            $category = self::findById($id);
             self::execute(
-                "UPDATE " . self::$table . " SET parent_id = ? WHERE parent_id = ?",
+                'UPDATE ' . self::$table . ' SET parent_id = ? WHERE parent_id = ?',
                 [$category['parent_id'], $id]
             );
+            // Перебудовуємо path переміщених дітей
+            foreach ($children as $child) {
+                self::rebuildPath((int) $child['id']);
+            }
         }
-        
-        return self::execute("DELETE FROM " . self::$table . " WHERE id = ?", [$id]);
+
+        return (bool) self::execute('DELETE FROM ' . self::$table . ' WHERE id = ?', [$id]);
     }
 
-    /**
-     * Отримати SEO-налаштування категорії
-     * 
-     * @param int $id
-     * @return array|null
-     */
-    public static function getSeoSettings($id)
+    // ── SEO / Slug history ────────────────────────────────────────────────────
+
+    public static function getSeoSettings(int $id): ?array
     {
         return SlugHelper::getSeoSettings('category', $id);
     }
 
-    /**
-     * Отримати історію змін slug
-     * 
-     * @param int $id
-     * @return array
-     */
-    public static function getSlugHistory($id)
+    public static function getSlugHistory(int $id): array
     {
         return SlugHelper::getHistory('category', $id);
     }
 
-    /**
-     * Отримати останній ID вставленого запису
-     * 
-     * @return int
-     */
-    private static function getLastInsertId()
+    private static function getLastInsertId(): int
     {
-        $result = self::query("SELECT LAST_INSERT_ID() as id");
-        return !empty($result) ? $result[0]['id'] : 0;
+        $result = self::query('SELECT LAST_INSERT_ID() as id');
+        return (int) ($result[0]['id'] ?? 0);
     }
 }

@@ -7,6 +7,7 @@ use App\Core\View\View;
 use App\Models\Cart;
 use App\Models\CrmUserService;
 use App\Models\Product;
+use App\Services\SeoService;
 
 class CartController
 {
@@ -37,9 +38,7 @@ class CartController
             'total' => $total,
             'continueShoppingUrl' => $continueShoppingUrl,
             'csrf' => Csrf::token(),
-            'seo' => [
-                'meta_title' => __('cart'),
-            ],
+            'seo' => SeoService::forSystem('cart', '/cart'),
         ]);
     }
 

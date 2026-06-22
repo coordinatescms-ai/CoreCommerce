@@ -78,7 +78,7 @@ if (!function_exists('renderCategorySidebarAccordion')) {
 
             echo '<li class="category-royal-item" role="treeitem" aria-expanded="' . ($isExpanded ? 'true' : 'false') . '">';
             echo '<div class="category-royal-row">';
-            echo '<a href="/category/' . htmlspecialchars((string) ($item['slug'] ?? '')) . '" class="category-royal-link';
+            echo '<a href="/category/' . htmlspecialchars(ltrim((string) ($item['path'] ?? $item['slug'] ?? ''), '/')) . '" class="category-royal-link';
             echo $isActive ? ' is-active' : '';
             echo '" style="padding-left:' . $padding . 'px">';
             echo htmlspecialchars((string) ($item['name'] ?? ''));
@@ -130,31 +130,20 @@ if (isset($_SESSION['user']['id'])) {
 ?>
 
 <section class="pdp" data-category-page>
-    <nav class="category-breadcrumbs" aria-label="Breadcrumb">
-        <ol>
-            <li>
-                <a class="breadcrumb-link breadcrumb-link-home" href="/">
-                    <svg class="breadcrumb-home-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M3 10.5L12 3L21 10.5V20A1 1 0 0 1 20 21H4A1 1 0 0 1 3 20V10.5Z" stroke="currentColor" stroke-width="1.8"/>
-                    </svg>
-                    <span><?= __('breadcrumb_home') ?></span>
-                </a>
-            </li>
-            <?php foreach ($breadcrumbs as $index => $crumb): ?>
-                <?php $isLast = $index === count($breadcrumbs) - 1; ?>
-                <li class="breadcrumb-divider" aria-hidden="true">/</li>
-                <li>
-                    <a class="breadcrumb-link" href="<?= htmlspecialchars($crumb['url'] ?? '#') ?>">
-                        <?= htmlspecialchars($crumb['name'] ?? '') ?>
-                    </a>
-                </li>
-            <?php endforeach; ?>
-            <li class="breadcrumb-divider" aria-hidden="true">/</li>
-            <li>
-                <span class="breadcrumb-current"><?= htmlspecialchars($productName ?? '') ?></span>
-            </li>
-        </ol>
-    </nav>
+    <?php
+    $current    = $productName ?? ($product['name'] ?? '');
+    $currentUrl = '/products/' . ($product['slug'] ?? '');
+    include view_path('components/breadcrumb');
+    ?>
+
+    <!-- Image Modal -->
+    <div id="image-modal" class="pdp-modal" aria-hidden="true">
+        <span class="pdp-modal-close">&times;</span>
+        <button type="button" class="pdp-modal-prev" aria-label="Previous image">&#10094;</button>
+        <button type="button" class="pdp-modal-next" aria-label="Next image">&#10095;</button>
+        <img class="pdp-modal-content" id="modal-img" alt="Product original image">
+        <div id="modal-caption" class="pdp-modal-caption"></div>
+    </div>
 
     <div class="pdp-layout">
         <aside class="pdp-sidebar">
@@ -1053,6 +1042,100 @@ if (isset($_SESSION['user']['id'])) {
         grid-template-columns: 1fr;
     }
 }
+
+/* Image Modal Styles */
+.pdp-modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    padding-top: 60px;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.9);
+    cursor: zoom-out;
+}
+
+.pdp-modal-content {
+    margin: auto;
+    display: block;
+    width: auto;
+    max-width: 90%;
+    max-height: 80vh;
+    border-radius: 4px;
+    cursor: default;
+}
+
+.pdp-modal-caption {
+    margin: auto;
+    display: block;
+    width: 80%;
+    max-width: 700px;
+    text-align: center;
+    color: #ccc;
+    padding: 15px 0;
+}
+
+.pdp-modal-close {
+    position: absolute;
+    top: 20px;
+    right: 35px;
+    color: #f1f1f1;
+    font-size: 40px;
+    font-weight: bold;
+    transition: 0.3s;
+    cursor: pointer;
+}
+
+.pdp-modal-close:hover,
+.pdp-modal-close:focus {
+    color: #bbb;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.pdp-modal-prev, .pdp-modal-next {
+    cursor: pointer;
+    position: absolute;
+    top: 50%;
+    width: auto;
+    padding: 16px;
+    margin-top: -50px;
+    color: white;
+    font-weight: bold;
+    font-size: 30px;
+    transition: 0.6s ease;
+    border-radius: 0 3px 3px 0;
+    user-select: none;
+    background-color: rgba(0, 0, 0, 0.3);
+    border: none;
+    z-index: 2001;
+}
+
+.pdp-modal-next {
+    right: 0;
+    border-radius: 3px 0 0 3px;
+}
+
+.pdp-modal-prev {
+    left: 0;
+}
+
+.pdp-modal-prev:hover, .pdp-modal-next:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+@media only screen and (max-width: 700px){
+    .pdp-modal-content {
+        width: 100%;
+    }
+}
+
+.pdp-main-image {
+    cursor: zoom-in;
+}
 </style>
 
 <script>
@@ -1114,13 +1197,75 @@ if (isset($_SESSION['user']['id'])) {
 
     // --- 2. ГАЛЕРЕЯ ТА АКОРДЕОНИ ---
     const mainImage = document.getElementById('pdp-main-image');
+    const modal = document.getElementById('image-modal');
+    const modalImg = document.getElementById('modal-img');
+    const captionText = document.getElementById('modal-caption');
+    const galleryImages = <?php echo json_encode(array_column($galleryImages, 'original')); ?>;
+    let currentImgIndex = 0;
+
+    const updateModalImage = (index) => {
+        if (index < 0) index = galleryImages.length - 1;
+        if (index >= galleryImages.length) index = 0;
+        currentImgIndex = index;
+        modalImg.src = galleryImages[currentImgIndex];
+        captionText.innerHTML = `Фото ${currentImgIndex + 1} із ${galleryImages.length}`;
+    };
+
     if (mainImage) {
-        document.querySelectorAll('[data-pdp-thumb]').forEach((thumb) => {
+        // Thumbnail click logic
+        document.querySelectorAll('[data-pdp-thumb]').forEach((thumb, idx) => {
             thumb.addEventListener('click', () => {
                 mainImage.src = thumb.getAttribute('data-image');
                 document.querySelectorAll('[data-pdp-thumb]').forEach(b => b.classList.remove('is-active'));
                 thumb.classList.add('is-active');
+                currentImgIndex = idx;
             });
+        });
+
+        // Modal open logic
+        mainImage.onclick = function() {
+            modal.style.display = "block";
+            modal.setAttribute('aria-hidden', 'false');
+            
+            // Find current index based on main image src
+            const currentSrc = this.src;
+            const foundIndex = galleryImages.findIndex(src => currentSrc.includes(src));
+            if (foundIndex !== -1) currentImgIndex = foundIndex;
+            
+            updateModalImage(currentImgIndex);
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    // Modal navigation
+    const prevBtn = document.querySelector('.pdp-modal-prev');
+    const nextBtn = document.querySelector('.pdp-modal-next');
+
+    if (prevBtn) prevBtn.onclick = (e) => { e.stopPropagation(); updateModalImage(currentImgIndex - 1); };
+    if (nextBtn) nextBtn.onclick = (e) => { e.stopPropagation(); updateModalImage(currentImgIndex + 1); };
+
+    // Modal close logic
+    if (modal) {
+        const closeBtn = document.querySelector(".pdp-modal-close");
+        const closeModal = () => {
+            modal.style.display = "none";
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = 'auto';
+        };
+
+        if (closeBtn) closeBtn.onclick = closeModal;
+        modal.onclick = (e) => {
+            if (e.target === modal || e.target.classList.contains('pdp-modal-close')) {
+                closeModal();
+            }
+        };
+
+        document.addEventListener('keydown', (e) => {
+            if (modal.style.display === "block") {
+                if (e.key === "Escape") closeModal();
+                if (e.key === "ArrowLeft") updateModalImage(currentImgIndex - 1);
+                if (e.key === "ArrowRight") updateModalImage(currentImgIndex + 1);
+            }
         });
     }
 

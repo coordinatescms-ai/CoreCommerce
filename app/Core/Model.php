@@ -17,7 +17,7 @@ class Model
         return DB::query("SELECT * FROM " . static::$table . " WHERE id=?", [$id])->fetch();
     }
 
-    public static function create($data)
+    public static function create(array $data): int|false
     {
         $keys = array_keys($data);
         $fields = implode(',', $keys);

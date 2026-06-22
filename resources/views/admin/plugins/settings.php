@@ -29,7 +29,7 @@
 <?php endif; ?>
 
 <div class="card">
-    <div class="card-header">Параметри плагіна</div>
+    <div class="card-header"><?= __('plugin_settings') ?></div>
     <div class="card-body">
         <form method="POST" action="/admin/plugins/settings/<?= htmlspecialchars($plugin['slug']) ?>">
             <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
