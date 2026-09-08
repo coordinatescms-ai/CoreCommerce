@@ -42,7 +42,7 @@ class OrderController
         )->fetchAll();
 
         if (count($rows) !== count($optionIds)) {
-            throw new \RuntimeException('Обрані опції для товару більше недоступні.');
+            throw new \RuntimeException(__('checkout_selected_options_unavailable'));
         }
 
         $seenAttributes = [];
@@ -50,7 +50,7 @@ class OrderController
         foreach ($rows as $row) {
             $attributeId = (int) ($row['attribute_id'] ?? 0);
             if ($attributeId <= 0 || isset($seenAttributes[$attributeId])) {
-                throw new \RuntimeException('Обрані опції для товару некоректні.');
+                throw new \RuntimeException(__('checkout_selected_options_invalid'));
             }
             $seenAttributes[$attributeId] = true;
 
@@ -68,7 +68,7 @@ class OrderController
         $cartItems = Cart::getItems();
 
         if (empty($cartItems)) {
-            $_SESSION['error'] = 'Кошик порожній. Додайте товари перед оформленням.';
+            $_SESSION['error'] = __('checkout_cart_empty_before_order');
             header('Location: /cart');
             exit;
         }
@@ -86,7 +86,7 @@ class OrderController
         }
 
         if (empty($items)) {
-            $_SESSION['error'] = 'Не вдалося знайти товари з кошика.';
+            $_SESSION['error'] = __('checkout_cart_products_unavailable');
             header('Location: /cart');
             exit;
         }
@@ -116,6 +116,25 @@ class OrderController
             'user' => $_SESSION['user'] ?? null,
             'deliveryMethods' => $deliveryMethods,
             'paymentMethods' => $paymentMethods,
+            'phoneMask' => normalize_phone_mask((string) get_setting('phone_mask', '+38 (###) ###-##-##')),
+        ]);
+    }
+
+    public function success($orderId)
+    {
+        $orderId = (int) $orderId;
+        $sessionOrderId = (int) ($_SESSION['checkout_success_order_id'] ?? 0);
+
+        // Дозволяємо перегляд лише щойно створеного замовлення в поточній сесії.
+        // Це не змінює доступ до замовлень в особистому кабінеті.
+        if ($orderId <= 0 || $sessionOrderId !== $orderId) {
+            header('Location: /');
+            exit;
+        }
+
+        return View::render('checkout/success', [
+            'seo' => SeoService::forSystem('checkout', '/checkout'),
+            'orderNumber' => $orderId,
         ]);
     }
 
@@ -125,20 +144,20 @@ class OrderController
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
-            echo json_encode(['success' => false, 'message' => 'Метод не підтримується']);
+            echo json_encode(['success' => false, 'message' => __('admin_order_method_not_supported')]);
             return;
         }
 
         if (!Csrf::isValid()) {
             http_response_code(419);
-            echo json_encode(['success' => false, 'message' => 'CSRF токен недійсний']);
+            echo json_encode(['success' => false, 'message' => __('csrf_token_invalid')]);
             return;
         }
 
         $cartItems = Cart::getItems();
         if (empty($cartItems)) {
             http_response_code(422);
-            echo json_encode(['success' => false, 'message' => 'Кошик порожній']);
+            echo json_encode(['success' => false, 'message' => __('cart_is_empty')]);
             return;
         }
 
@@ -156,7 +175,7 @@ class OrderController
 
         if (empty($items)) {
             http_response_code(422);
-            echo json_encode(['success' => false, 'message' => 'Товари кошика недоступні']);
+            echo json_encode(['success' => false, 'message' => __('checkout_cart_products_unavailable')]);
             return;
         }
 
@@ -165,7 +184,7 @@ class OrderController
 
         if (!empty($errors)) {
             http_response_code(422);
-            echo json_encode(['success' => false, 'message' => 'Помилка валідації', 'errors' => $errors]);
+            echo json_encode(['success' => false, 'message' => __('checkout_validation_error'), 'errors' => $errors]);
             return;
         }
 
@@ -186,25 +205,37 @@ class OrderController
                 $product = $lockedMap[$productId] ?? null;
 
                 if (!$product) {
-                    throw new \RuntimeException('Один із товарів більше не існує.');
+                    throw new \RuntimeException(__('checkout_product_missing'));
                 }
 
                 $sku = (string) ($product['sku'] ?? '');
                 if ($sku === '') {
-                    throw new \RuntimeException('У товару відсутній SKU: ' . $product['name']);
+                    throw new \RuntimeException(sprintf(__('checkout_product_sku_missing'), $product['name']));
                 }
 
                 if ($quantity > $stockService->getAvailableQuantity($sku)) {
-                    throw new \RuntimeException('Немає в наявності: ' . $product['name']);
+                    throw new \RuntimeException(sprintf(__('checkout_product_out_of_stock'), $product['name']));
                 }
 
                 $optionStockLimit = $this->resolveOptionStockLimit($productId, (array) ($item['selected_options'] ?? []));
                 if ($optionStockLimit !== null && $quantity > $optionStockLimit) {
-                    throw new \RuntimeException('Недостатньо залишків вибраної опції для товару: ' . $product['name']);
+                    throw new \RuntimeException(sprintf(__('checkout_option_stock_insufficient'), $product['name']));
                 }
 
                 $total += ((float) $item['price'] * $quantity);
             }
+
+            // Визначаємо платіжний шлюз ДО створення замовлення, щоб встановити
+            // коректний початковий статус:
+            //   - CodGateway ("Оплата при отриманні") — гроші ще не рухались,
+            //     клієнт просто оформив замовлення → статус 'new' (Новий)
+            //   - Реальний онлайн-шлюз (LiqPay тощо) — очікуємо підтвердження
+            //     оплати від платіжної системи → статус 'pending' (Очікує оплати)
+            $gateway = \App\Core\Payment\PaymentManager::findForOrder(
+                $payload['payment_method_code']
+            );
+            $isCodPayment = $gateway === null || $gateway->getName() === 'cod';
+            $initialStatus = $isCodPayment ? 'new' : 'pending';
 
             DB::query(
                 'INSERT INTO orders (user_id, total, customer_name, customer_phone, customer_email, delivery_method, delivery_city, delivery_warehouse, delivery_address, payment_method, payment_id, delivery_id, comment, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())',
@@ -222,7 +253,7 @@ class OrderController
                     $payload['payment_id'],
                     $payload['delivery_id'],
                     $payload['comment'],
-                    'pending',
+                    $initialStatus,
                 ]
             );
 
@@ -247,25 +278,27 @@ class OrderController
 
                 $sku = (string) ($lockedMap[$productId]['sku'] ?? '');
                 if (!$stockService->reserve($sku, $quantity)) {
-                    throw new \RuntimeException('Немає в наявності');
+                    throw new \RuntimeException(__('checkout_stock_unavailable'));
                 }
             }
 
             DB::commit();
 
             if (!empty($_SESSION['user']['id'])) {
-                CrmUserService::recordActivity((int) $_SESSION['user']['id'], 'order_created', 'Оформив замовлення #' . $orderId);
+                CrmUserService::recordActivity((int) $_SESSION['user']['id'], 'order_created', __('order_created') . ' ' . $orderId);
             }
 
             // Очищаємо кошик у БД (поточний scope: user_id або session_id)
             Cart::clear();
 
-            // ── Платіжний шлюз ──────────────────────────────────────────────
-            $gateway = \App\Core\Payment\PaymentManager::findForOrder(
-                $payload['payment_method_code']
-            );
+            // Запам'ятовуємо створене замовлення для одноразового показу
+            // сторінки успіху в поточній checkout-сесії.
+            $_SESSION['checkout_success_order_id'] = $orderId;
 
-            // Якщо шлюз не знайдено — fallback до COD (показуємо сторінку подяки)
+            // ── Платіжний шлюз ──────────────────────────────────────────────
+            // $gateway вже визначений вище (перед INSERT замовлення) —
+            // використовується там же для встановлення початкового статусу.
+            // Тут лише застосовуємо fallback до COD, якщо шлюз не знайдено.
             if ($gateway === null) {
                 $gateway = new \App\Core\Payment\Gateways\CodGateway();
             }
@@ -277,13 +310,13 @@ class OrderController
                     'email'       => $payload['email'],
                     'phone'       => $payload['phone'],
                     'name'        => $payload['full_name'],
-                    'description' => 'Замовлення #' . $orderId,
+                    'description' => __('order_created') . ' ' . $orderId,
                 ]
             );
 
             echo json_encode([
                 'success'        => true,
-                'message'        => 'Замовлення успішно оформлено.',
+                'message'        => __('checkout_order_success'),
                 'order_id'       => $orderId,
                 'payment_action' => $paymentResult->action,
                 'payment_url'    => $paymentResult->url,
@@ -329,21 +362,21 @@ class OrderController
         $errors = [];
 
         if ($payload['full_name'] === '' || mb_strlen($payload['full_name']) < 5) {
-            $errors['full_name'] = 'Вкажіть ПІБ (мінімум 5 символів).';
+            $errors['full_name'] = __('checkout_specify_pib');
         }
 
         $phoneMask = normalize_phone_mask((string) get_setting('phone_mask', '+38 (###) ###-##-##'));
         if (!is_phone_matching_mask($payload['phone'], $phoneMask)) {
-            $errors['phone'] = 'Вкажіть коректний номер телефону.';
+            $errors['phone'] = __('checkout_specify_phone');
         }
 
         if (!filter_var($payload['email'], FILTER_VALIDATE_EMAIL)) {
-            $errors['email'] = 'Вкажіть коректний Email.';
+            $errors['email'] = __('checkout_specify_email');
         }
 
         $deliveryMethod = $this->getActiveShopMethodById('shipping', (int) $payload['delivery_id']);
         if ($deliveryMethod === null) {
-            $errors['delivery_id'] = 'Оберіть спосіб доставки.';
+            $errors['delivery_id'] = __('checkout_specify_delivery');
         } else {
             $payload['delivery_method_code'] = (string) ($deliveryMethod['code'] ?? '');
             $payload['delivery_method_settings'] = $this->decodeSettings($deliveryMethod['settings'] ?? null);
@@ -351,23 +384,23 @@ class OrderController
 
         $paymentMethod = $this->getActiveShopMethodById('payment', (int) $payload['payment_id']);
         if ($paymentMethod === null) {
-            $errors['payment_id'] = 'Оберіть спосіб оплати.';
+            $errors['payment_id'] = __('checkout_specify_payment');
         } else {
             $payload['payment_method_code'] = (string) ($paymentMethod['code'] ?? '');
         }
 
         if (($payload['delivery_method_code'] ?? '') === 'nova_poshta') {
             if ($payload['delivery_city'] === '') {
-                $errors['delivery_city'] = 'Оберіть місто Нової Пошти.';
+                $errors['delivery_city'] = __('checkout_specify_city');
             }
 
             if ($payload['delivery_warehouse'] === '') {
-                $errors['delivery_warehouse'] = 'Оберіть відділення Нової Пошти.';
+                $errors['delivery_warehouse'] = __('checkout_specify_warehouse');
             }
         }
 
         if (($payload['delivery_method_code'] ?? '') === 'courier' && $payload['delivery_address'] === '') {
-            $errors['delivery_address'] = 'Вкажіть адресу для курʼєра.';
+            $errors['delivery_address'] = __('checkout_specify_address');
         }
 
         return $errors;
@@ -414,6 +447,6 @@ class OrderController
         }
 
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
-        return DB::query("SELECT id, sku, name, price, stock FROM products WHERE id IN ($placeholders) FOR UPDATE", $ids)->fetchAll();
+        return DB::query("SELECT id, sku, name, price FROM products WHERE id IN ($placeholders) FOR UPDATE", $ids)->fetchAll();
     }
 }

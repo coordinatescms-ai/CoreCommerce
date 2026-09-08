@@ -72,14 +72,20 @@ class Setting extends Model
         $name = $data['name'] ?? '';
         $description = $data['description'] ?? null;
 
-        $settingsJson = null;
+        // Якщо settings не передано у POST — зберігаємо старе значення з БД,
+        // щоб не затерти API ключ та інші налаштування методу
         if (isset($data['settings']) && is_array($data['settings'])) {
             $settingsJson = json_encode($data['settings'], JSON_UNESCAPED_UNICODE);
+            return self::execute(
+                "UPDATE shop_methods SET `name` = ?, `description` = ?, `is_active` = ?, `is_test_mode` = ?, `sort_order` = ?, `settings` = ?, `updated_at` = NOW() WHERE `id` = ?",
+                [$name, $description, $isActive, $isTestMode, $sortOrder, $settingsJson, $id]
+            );
         }
 
+        // settings не передано — оновлюємо все крім settings
         return self::execute(
-            "UPDATE shop_methods SET `name` = ?, `description` = ?, `is_active` = ?, `is_test_mode` = ?, `sort_order` = ?, `settings` = ?, `updated_at` = NOW() WHERE `id` = ?",
-            [$name, $description, $isActive, $isTestMode, $sortOrder, $settingsJson, $id]
+            "UPDATE shop_methods SET `name` = ?, `description` = ?, `is_active` = ?, `is_test_mode` = ?, `sort_order` = ?, `updated_at` = NOW() WHERE `id` = ?",
+            [$name, $description, $isActive, $isTestMode, $sortOrder, $id]
         );
     }
 

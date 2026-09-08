@@ -196,8 +196,19 @@
         <div class="card-body">
             <form method="POST" action="/admin/system/environment">
                 <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf'] ?? ''); ?>">
-                <p><label><input type="checkbox" name="display_errors" value="1" <?php echo ($environment['display_errors'] ?? '0') === '1' ? 'checked' : ''; ?>> <?= __('system_debug_mode') ?></label></p>
-                <p><label><input type="checkbox" name="maintenance_mode" value="1" <?php echo ($environment['store_status'] ?? 'open') === 'closed' ? 'checked' : ''; ?>> <?= __('system_maintenance_mode') ?></label></p>
+                <?php
+                    // Один режим із трьох взаємовиключних станів, похідний від
+                    // двох існуючих налаштувань (display_errors, store_status) —
+                    // без нової колонки в БД. Технічні роботи мають пріоритет
+                    // (якщо магазин закритий, це і є поточний режим, незалежно
+                    // від display_errors).
+                    $currentMode = ($environment['store_status'] ?? 'open') === 'closed'
+                        ? 'maintenance'
+                        : (($environment['display_errors'] ?? '0') === '1' ? 'development' : 'release');
+                ?>
+                <p><label><input type="radio" name="mode" value="development" <?php echo $currentMode === 'development' ? 'checked' : ''; ?>> <?= __('system_debug_mode') ?></label></p>
+                <p><label><input type="radio" name="mode" value="release" <?php echo $currentMode === 'release' ? 'checked' : ''; ?>> <?= __('system_release_mode') ?></label></p>
+                <p><label><input type="radio" name="mode" value="maintenance" <?php echo $currentMode === 'maintenance' ? 'checked' : ''; ?>> <?= __('system_maintenance_mode') ?></label></p>
                 <button class="btn btn-primary" type="submit"><?= __('settings_save_modes') ?></button>
             </form>
         </div>
@@ -231,7 +242,12 @@
 </div>
 
 <div class="card">
-    <div class="card-header"><?= __('cron_tasks') ?></div>
+    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+        <span><i class="fas fa-clock"></i> <?= __('cron_tasks') ?></span>
+        <button class="btn btn-primary" style="padding:.4rem .9rem; font-size:.85rem;" onclick="cronOpenAddModal()">
+            <i class="fas fa-plus"></i> <?= __('cron_add') ?>
+        </button>
+    </div>
     <div class="card-body">
         <table class="table" id="cronTasksTable">
             <thead><tr><th><?= __('name') ?></th><th><?= __('cron_period') ?></th><th><?= __('cron_last_run') ?></th><th><?= __('cron_next_run') ?></th><th><?= __('status') ?></th><th><?= __('result') ?></th><th><?= __('actions') ?></th></tr></thead>
@@ -250,8 +266,9 @@
                     <td>
                         <div class="cron-actions">
                             <button class="btn btn-primary js-edit-task" type="button" title="<?= __('edit') ?>"><i class="fas fa-edit"></i></button>
-                            <button class="btn btn-secondary js-toggle-task" type="button"><?php echo $task['status'] === 'active' ? 'Disable' : 'Enable'; ?></button>
-                            <button class="btn btn-success js-run-task" type="button" title="<?= __('run_now') ?>"><i class="fas fa-plug"></i></button>
+                            <button class="btn btn-secondary js-toggle-task" type="button"><?php echo $task['status'] === 'active' ? "<i class='fas fa-window-close'></i>" : "<i class='fas fa-external-link-square-alt'></i>"; ?></button>
+                            <button class="btn btn-success js-run-task" type="button" title="<?= __('run_now') ?>"><i class="fas fa-play"></i></button>
+                            <button class="btn btn-danger js-delete-task" type="button" title="<?= __('cron_delete') ?>"><i class="fas fa-trash"></i></button>
                         </div>
                     </td>
                 </tr>
@@ -261,19 +278,23 @@
     </div>
 </div>
 
+<!-- Модал редагування існуючого завдання -->
 <div class="cron-modal-backdrop" id="cronModalBackdrop">
     <div class="cron-modal">
         <div class="cron-modal-header"><strong><?= __('cron_edit') ?></strong></div>
         <div class="cron-modal-body">
             <input type="hidden" id="cronTaskId">
             <label for="cronTaskName"><?= __('name') ?></label>
-            <input type="text" id="cronTaskName">
-            <label for="cronTaskSchedule">Cron string</label>
+            <input type="text" id="cronTaskName" placeholder="Генерація Sitemap">
+            <label for="cronTaskSchedule"><?= __('cron_schedule_label') ?></label>
             <input type="text" id="cronTaskSchedule" placeholder="*/30 * * * *">
-            <label for="cronTaskCommand"><?= __('migration_file_path') ?></label>
-            <input type="text" id="cronTaskCommand" placeholder="tasks/import_products.php">
-            <label for="cronTaskParams">Params (JSON)</label>
-            <textarea id="cronTaskParams"></textarea>
+            <small style="color:#64748b;font-size:.8rem;margin-top:-.2rem;display:block;"><?= __('cron_schedule_hint') ?></small>
+            <label for="cronTaskCommand" style="margin-top:.5rem;"><?= __('cron_command_label') ?></label>
+            <input type="text" id="cronTaskCommand" placeholder="tasks/sitemap.php">
+            <small style="color:#64748b;font-size:.8rem;margin-top:-.2rem;display:block;"><?= __('cron_command_hint') ?></small>
+            <label for="cronTaskParams" style="margin-top:.5rem;"><?= __('cron_params_label') ?></label>
+            <textarea id="cronTaskParams" placeholder='{"key": "value"}'></textarea>
+            <small style="color:#64748b;font-size:.8rem;margin-top:-.2rem;display:block;"><?= __('cron_params_hint') ?></small>
         </div>
         <div class="cron-modal-footer">
             <button type="button" class="btn btn-secondary" id="cronModalCancel"><?= __('cancel') ?></button>
@@ -282,13 +303,60 @@
     </div>
 </div>
 
-<script src="/js/cron_tasks.js"></script>
+<!-- Модал додавання нового завдання -->
+<div class="cron-modal-backdrop" id="cronAddModalBackdrop">
+    <div class="cron-modal">
+        <div class="cron-modal-header">
+            <strong><?= __('cron_add_title') ?></strong>
+        </div>
+        <div class="cron-modal-body">
+            <label for="cronAddName"><?= __('name') ?> *</label>
+            <input type="text" id="cronAddName" placeholder="Генерація Sitemap" required>
+            <label for="cronAddSchedule" style="margin-top:.5rem;"><?= __('cron_schedule_label') ?> *</label>
+            <input type="text" id="cronAddSchedule" placeholder="0 * * * *" required>
+            <small style="color:#64748b;font-size:.8rem;margin-top:-.2rem;display:block;"><?= __('cron_schedule_hint') ?></small>
+            <label for="cronAddCommand" style="margin-top:.5rem;"><?= __('cron_command_label') ?> *</label>
+            <input type="text" id="cronAddCommand" placeholder="tasks/sitemap.php" required>
+            <small style="color:#64748b;font-size:.8rem;margin-top:-.2rem;display:block;"><?= __('cron_command_hint') ?></small>
+            <label for="cronAddParams" style="margin-top:.5rem;"><?= __('cron_params_label') ?></label>
+            <textarea id="cronAddParams" placeholder='{"key": "value"}'></textarea>
+            <small style="color:#64748b;font-size:.8rem;margin-top:-.2rem;display:block;"><?= __('cron_params_hint') ?></small>
+            <label for="cronAddStatus" style="margin-top:.5rem;"><?= __('cron_status_label') ?></label>
+            <select id="cronAddStatus" style="width:100%;padding:8px 10px;border:1px solid #cbd5e1;border-radius:7px;">
+                <option value="active"><?= __('active') ?></option>
+                <option value="disabled"><?= __('disabled') ?></option>
+            </select>
+        </div>
+        <div class="cron-modal-footer">
+            <button type="button" class="btn btn-secondary" id="cronAddModalCancel"><?= __('cancel') ?></button>
+            <button type="button" class="btn btn-primary" id="cronAddModalSave"><?= __('save') ?></button>
+        </div>
+    </div>
+</div>
+
 <script>
 window.CRON_TASKS_CONFIG = {
     endpoint: '/cron_tasks_ajax.php',
-    csrf: <?php echo json_encode($_SESSION['csrf'] ?? ''); ?>
+    csrf: <?php echo json_encode($_SESSION['csrf'] ?? ''); ?>,
+    lang: {
+        delete_confirm: <?php echo json_encode(__('cron_delete_confirm')); ?>,
+        error: <?php echo json_encode(__('cron_error')); ?>,
+        disable: <?php echo json_encode(__('cron_disable')); ?>,
+        enable: <?php echo json_encode(__('cron_enable')); ?>,
+        running: <?php echo json_encode(__('cron_running')); ?>,
+        success: <?php echo json_encode(__('cron_success')); ?>,
+        failed: <?php echo json_encode(__('cron_failed')); ?>,
+        delete_error: <?php echo json_encode(__('cron_delete_error')); ?>,
+        fill_required: <?php echo json_encode(__('cron_fill_required')); ?>,
+        save_error: <?php echo json_encode(__('cron_save_error')); ?>,
+        form_not_found: <?php echo json_encode(__('cron_form_not_found')); ?>,
+        fill_all_required: <?php echo json_encode(__('cron_fill_all_required')); ?>,
+        request_error: <?php echo json_encode(__('cron_request_error')); ?>,
+        create_error: <?php echo json_encode(__('cron_create_error')); ?>
+    }
 };
 </script>
+<script src="/js/cron_tasks.js"></script>
 
 <div class="card">
     <div class="card-header"><?= __('system_actions') ?></div>
@@ -296,7 +364,7 @@ window.CRON_TASKS_CONFIG = {
         <form method="POST" action="/admin/clear-cache"><input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf'] ?? ''); ?>"><button class="btn btn-primary" type="submit"><i class="fas fa-broom"></i> <?= __('system_clear_cache') ?></button></form>
         <form method="POST" action="/admin/system/logs/clear"><input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf'] ?? ''); ?>"><button class="btn btn-danger" type="submit" onclick="return confirm('<?= __('system_confirm_clear_logs') ?>');"><i class="fas fa-trash"></i> <?= __('system_clear_logs') ?></button></form>
         <form method="POST" action="/admin/system/database/backup"><input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf'] ?? ''); ?>"><button class="btn btn-success" type="submit"><i class="fas fa-database"></i> <?= __('system_backup') ?></button></form>
-        <form method="POST" action="/admin/system/database/optimize"><input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf'] ?? ''); ?>"><button class="btn btn-primary" type="submit"><i class="fas fa-bolt"></i> OPTIMIZE TABLE</button></form>
+        <form method="POST" action="/admin/system/database/optimize"><input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf'] ?? ''); ?>"><button class="btn btn-primary" type="submit"><i class="fas fa-bolt"></i> <?= __('optimize_table') ?></button></form>
     </div>
 </div>
 

@@ -32,6 +32,7 @@ $router = new Router();
 $router->get('/',[HomeController::class,'index']);
 $router->get('/products',[ProductController::class,'index']);
 $router->get('/search',              [SearchController::class, 'index']);
+$router->get('/robots.txt',          [\App\Controllers\RobotsController::class, 'index']);
 $router->get('/search/autocomplete', [SearchController::class, 'autocomplete']);
 $router->get('/product/{slug}',[ProductController::class,'show']);
 $router->get('/product/{slug}/reviews',[ProductController::class,'reviews']);
@@ -48,7 +49,9 @@ $router->delete('/cart/remove/{id}',[CartController::class,'remove']);
 $router->delete('/cart/clear',[CartController::class,'clear']);
 
 $router->get('/checkout',[OrderController::class,'checkout']);
+$router->get('/order-success/{id}', [OrderController::class, 'success']);
 $router->post('/place-order',[OrderController::class,'placeOrder']);
+$router->get('/logistics/{carrier}/lookup', [\App\Controllers\LogisticsLookupController::class, 'lookup']);
 
 // Платіжні вебхуки — універсальний endpoint для всіх шлюзів
 $router->post('/payment/webhook/{gateway}', [\App\Controllers\PaymentWebhookController::class, 'handle']);
@@ -157,6 +160,7 @@ $router->post('/admin/orders/update-status', [AdminOrderController::class, 'upda
 $router->get('/admin/orders/details/{id}', [AdminOrderController::class, 'orderDetails']);
 $router->post('/admin/orders/save', [AdminOrderController::class, 'saveOrder']);
 $router->post('/admin/orders/sync-logistics', [AdminOrderController::class, 'syncLogistics']);
+$router->post('/admin/orders/delete/{id}', [AdminOrderController::class, 'deleteOrder']);
 
 // Управління товарами в адмінці
 $router->get('/admin/products', [AdminProductController::class, 'index']);
@@ -218,13 +222,16 @@ $router->post('/admin/users/send-email/{id}', [AdminUserController::class, 'send
 $router->delete('/admin/users/delete/{id}', [AdminUserController::class, 'delete']);
 
 // Модуль оновлення
-$router->get('/admin/update/check', [UpdateController::class, 'check']);
-$router->post('/admin/update/init', [UpdateController::class, 'init']);
-$router->post('/admin/update/backup', [UpdateController::class, 'backup']);
-$router->post('/admin/update/download', [UpdateController::class, 'download']);
-$router->post('/admin/update/extract', [UpdateController::class, 'extract']);
-$router->post('/admin/update/database', [UpdateController::class, 'database']);
-$router->post('/admin/update/finish', [UpdateController::class, 'finish']);
+$router->get('/admin/update/check',       [UpdateController::class, 'check']);
+$router->get('/admin/update/auto-check',  [UpdateController::class, 'autoCheck']);
+$router->post('/admin/update/init',       [UpdateController::class, 'init']);
+$router->post('/admin/update/backup',     [UpdateController::class, 'backup']);
+$router->post('/admin/update/download',   [UpdateController::class, 'download']);
+$router->post('/admin/update/extract',    [UpdateController::class, 'extract']);
+$router->post('/admin/update/database',   [UpdateController::class, 'database']);
+$router->post('/admin/update/finish',     [UpdateController::class, 'finish']);
+$router->post('/admin/update/rollback',   [UpdateController::class, 'rollback']);
+$router->post('/admin/update/confirm',    [UpdateController::class, 'confirmUpdate']);
 
 
 $router->get('/admin/stocks', [StockController::class, 'index']);

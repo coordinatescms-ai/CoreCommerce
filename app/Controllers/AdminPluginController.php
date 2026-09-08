@@ -61,20 +61,25 @@ class AdminPluginController
     {
         $this->checkAdmin();
 
-        $slug     = preg_replace('/[^a-z0-9\-]/', '', strtolower($slug));
+        // ВАЖЛИВО: slug плагіна чутливий до регістру (напр. "SEOAnalytics",
+        // "PromoCodes") — раніше тут був strtolower(), через що будь-який
+        // плагін зі змішаним регістром у назві теки завжди давав
+        // "Плагін не знайдено." Прибираємо лише небезпечні символи,
+        // регістр лишаємо як є.
+        $slug     = preg_replace('/[^A-Za-z0-9_\-]/', '', $slug);
         $manager  = PluginManager::getInstance();
         $settings = $manager->getPluginSettings($slug);
         $meta     = $manager->getPluginsForAdmin();
         $plugin   = current(array_filter($meta, fn($p) => $p['slug'] === $slug));
 
         if (!$plugin) {
-            $_SESSION['plugins_flash'] = ['success' => false, 'message' => 'Плагін не знайдено.'];
+            $_SESSION['plugins_flash'] = ['success' => false, 'message' => __('admin_plugin_not_found')];
             header('Location: /admin/plugins');
             exit;
         }
 
         if (empty($settings)) {
-            $_SESSION['plugins_flash'] = ['success' => false, 'message' => 'Цей плагін не має налаштувань.'];
+            $_SESSION['plugins_flash'] = ['success' => false, 'message' => __('admin_plugin_no_settings')];
             header('Location: /admin/plugins');
             exit;
         }
@@ -93,7 +98,7 @@ class AdminPluginController
         $this->checkAdmin();
         Csrf::abortIfInvalid();
 
-        $slug   = preg_replace('/[^a-z0-9\-]/', '', strtolower($slug));
+        $slug   = preg_replace('/[^A-Za-z0-9_\-]/', '', $slug);
         $result = PluginManager::getInstance()->savePluginSettings($slug, $_POST);
 
         $_SESSION['plugins_flash'] = $result;

@@ -98,8 +98,14 @@
                     
                     <div style="display: flex; justify-content: space-between; margin-bottom: 20px; color: #666;">
                         <span><?php echo __('shipping'); ?></span>
-                        <span style="color: #28a745; font-weight: 700;"><?php echo __('free'); ?></span>
+                        <?php if ($shippingIsFree): ?>
+                            <span style="color: #28a745; font-weight: 700;"><?php echo __('free'); ?></span>
+                        <?php else: ?>
+                            <span style="color: #999; font-weight: 600; font-size: 13px;"><?php echo __('shipping_varies_by_method'); ?></span>
+                        <?php endif; ?>
                     </div>
+
+                    <?php do_action('cart.summary.before_total'); ?>
 
                     <hr style="border: 0; border-top: 1px solid #eee; margin-bottom: 20px;">
 

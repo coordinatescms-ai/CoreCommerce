@@ -137,13 +137,18 @@ class ProductFilterService
             $existsParams = [(int) $attributeId];
 
             if ($attributeFilter['type'] === 'range') {
-                $existsSql .= " AND pa.value REGEXP '^-?[0-9]+(\\\\.[0-9]+)?$'";
+                // Значення атрибута може бути введене адміном як "2.5" АБО "2,5"
+                // (українська локаль часто використовує кому як десятковий роздільник).
+                // REGEXP приймає обидва варіанти; REPLACE(...,',','.') нормалізує
+                // кому в крапку перед CAST, інакше CAST AS DECIMAL поверне 0 або
+                // NULL для "2,5" і товар випаде з вибірки за числовим фільтром.
+                $existsSql .= " AND pa.value REGEXP '^-?[0-9]+([\\\\.,][0-9]+)?$'";
                 if ($attributeFilter['min'] !== null) {
-                    $existsSql .= ' AND CAST(pa.value AS DECIMAL(12,2)) >= ?';
+                    $existsSql .= " AND CAST(REPLACE(pa.value, ',', '.') AS DECIMAL(12,2)) >= ?";
                     $existsParams[] = $attributeFilter['min'];
                 }
                 if ($attributeFilter['max'] !== null) {
-                    $existsSql .= ' AND CAST(pa.value AS DECIMAL(12,2)) <= ?';
+                    $existsSql .= " AND CAST(REPLACE(pa.value, ',', '.') AS DECIMAL(12,2)) <= ?";
                     $existsParams[] = $attributeFilter['max'];
                 }
             } else {

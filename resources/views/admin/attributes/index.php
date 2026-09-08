@@ -8,18 +8,18 @@
 <div class="card">
     <div class="card-body">
         <p style="margin-top: 0; color: #64748b;">
-            Якщо атрибут відв’язати від категорії, значення товарів <strong>не видаляються</strong> — вони просто не показуються для цієї категорії.
+            <?= __('attribute_detach_hint') ?>
         </p>
 
         <table style="width: 100%; border-collapse: collapse;">
             <thead>
                 <tr style="border-bottom: 2px solid #eee; text-align: left;">
-                    <th style="padding: 1rem;">Назва</th>
-                    <th style="padding: 1rem;">Тип</th>
-                    <th style="padding: 1rem;">Slug</th>
-                    <th style="padding: 1rem;">Категорій</th>
-                    <th style="padding: 1rem;">Товарів</th>
-                    <th style="padding: 1rem; text-align: right;">Дії</th>
+                    <th style="padding: 1rem;"><?= __('name') ?></th>
+                    <th style="padding: 1rem;"><?= __('type') ?></th>
+                    <th style="padding: 1rem;"><?= __('slug') ?></th>
+                    <th style="padding: 1rem;"><?= __('dashboard_categories_count') ?></th>
+                    <th style="padding: 1rem;"><?= __('dashboard_products_count') ?></th>
+                    <th style="padding: 1rem; text-align: right;"><?= __('actions') ?></th>
                 </tr>
             </thead>
             <tbody>
@@ -45,7 +45,7 @@
                             <a href="/admin/attributes/edit/<?php echo (int)$attribute['id']; ?>" class="btn btn-outline" style="border: 1px solid #ddd; color: #2563eb;">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <form action="/admin/attributes/delete/<?php echo (int)$attribute['id']; ?>" method="POST" style="display: inline-block; margin: 0;" onsubmit="return confirm('Ви впевнені, що хочете видалити цей атрибут?')">
+                            <form action="/admin/attributes/delete/<?php echo (int)$attribute['id']; ?>" method="POST" style="display: inline-block; margin: 0;" onsubmit="return confirm('<?php echo htmlspecialchars(__('attribute_delete_confirm')); ?>')">
                                 <input type="hidden" name="_method" value="DELETE">
                                 <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf']); ?>">
                                 <button type="submit"
@@ -60,7 +60,7 @@
                 <?php if (empty($attributes)): ?>
                     <tr>
                         <td colspan="6" style="padding: 2rem; text-align: center; color: #64748b;">
-                            Атрибутів поки що немає.
+                            <?= __('attributes_not_found') ?>
                         </td>
                     </tr>
                 <?php endif; ?>

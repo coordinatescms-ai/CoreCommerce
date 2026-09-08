@@ -36,7 +36,7 @@ class AdminUserController
     private function requireReason(string $reason): void
     {
         if (mb_strlen(trim($reason)) < 5) {
-            $_SESSION['error'] = 'Причина зміни обовʼязкова (мінімум 5 символів).';
+            $_SESSION['error'] = __('admin_user_reason_required');
             header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? '/admin/users'));
             exit;
         }
@@ -61,7 +61,7 @@ class AdminUserController
         $user = User::findById($userId);
 
         if (!$user) {
-            $_SESSION['error'] = 'Користувача не знайдено.';
+            $_SESSION['error'] = __('admin_user_not_found');
             header('Location: /admin/users');
             exit;
         }
@@ -127,7 +127,7 @@ class AdminUserController
         $user = User::findById($userId);
 
         if (!$user) {
-            $_SESSION['error'] = 'Користувача не знайдено.';
+            $_SESSION['error'] = __('admin_user_not_found');
             header('Location: /admin/users');
             exit;
         }
@@ -139,26 +139,26 @@ class AdminUserController
         $groupReason = trim((string) ($_POST['group_reason'] ?? ''));
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $_SESSION['error'] = 'Введіть коректний email.';
+            $_SESSION['error'] = __('admin_user_email_invalid');
             header('Location: /admin/users/edit/' . $userId);
             exit;
         }
 
         if ($roleId <= 0 || !User::roleExists($roleId)) {
-            $_SESSION['error'] = 'Оберіть коректну роль.';
+            $_SESSION['error'] = __('admin_user_role_invalid');
             header('Location: /admin/users/edit/' . $userId);
             exit;
         }
 
         $existingUser = User::findByEmail($email);
         if ($existingUser && (int) $existingUser['id'] !== $userId) {
-            $_SESSION['error'] = 'Цей email вже використовується іншим користувачем.';
+            $_SESSION['error'] = __('admin_user_email_taken');
             header('Location: /admin/users/edit/' . $userId);
             exit;
         }
 
         if ($roleId !== (int) ($user['role_id'] ?? 0) && mb_strlen($groupReason) < 5) {
-            $_SESSION['error'] = 'Для зміни групи користувача вкажіть причину (мінімум 5 символів).';
+            $_SESSION['error'] = __('admin_user_group_reason_required');
             header('Location: /admin/users/edit/' . $userId);
             exit;
         }
@@ -184,14 +184,14 @@ class AdminUserController
 
         if ($password !== '') {
             if (mb_strlen($password) < 8) {
-                $_SESSION['error'] = 'Пароль повинен містити щонайменше 8 символів.';
+                $_SESSION['error'] = __('admin_user_password_min');
                 header('Location: /admin/users/edit/' . $userId);
                 exit;
             }
             User::updatePassword($userId, $password);
         }
 
-        $_SESSION['success'] = 'Дані користувача оновлено.';
+        $_SESSION['success'] = __('admin_user_updated');
         header('Location: /admin/users/edit/' . $userId);
         exit;
     }
@@ -206,7 +206,7 @@ class AdminUserController
         $reason = trim((string) ($_POST['reason'] ?? ''));
 
         if ($delta === 0 || mb_strlen($reason) < 5) {
-            $this->jsonResponse(['success' => false, 'message' => 'Вкажіть коректну зміну бонусів та причину (мінімум 5 символів).'], 422);
+            $this->jsonResponse(['success' => false, 'message' => __('admin_user_bonus_invalid')], 422);
         }
 
         $newBalance = CrmUserService::adjustBonus($userId, (int) ($_SESSION['user']['id'] ?? 0), $delta, $reason);
@@ -227,12 +227,12 @@ class AdminUserController
         $reason = trim((string) ($_POST['reason'] ?? ''));
 
         if (mb_strlen($reason) < 5) {
-            $this->jsonResponse(['success' => false, 'message' => 'Причина для бану/розбану обовʼязкова (мінімум 5 символів).'], 422);
+            $this->jsonResponse(['success' => false, 'message' => __('admin_user_block_reason_required')], 422);
         }
 
         $targetUser = User::findById($userId);
         if (!$targetUser) {
-            $this->jsonResponse(['success' => false, 'message' => 'Користувача не знайдено.'], 404);
+            $this->jsonResponse(['success' => false, 'message' => __('admin_user_not_found')], 404);
         }
 
         User::setActive($userId, !$isBlocked);
@@ -248,7 +248,7 @@ class AdminUserController
         CrmUserService::recordActivity(
             $userId,
             $isBlocked ? 'ban' : 'unban',
-            $isBlocked ? 'Користувача заблоковано адміністратором' : 'Користувача розблоковано адміністратором'
+            $isBlocked ? __('admin_user_activity_blocked') : __('admin_user_activity_unblocked')
         );
 
         $this->jsonResponse(['success' => true]);
@@ -282,24 +282,24 @@ class AdminUserController
         $user = User::findById($userId);
 
         if (!$user) {
-            $this->jsonResponse(['success' => false, 'message' => 'Користувача не знайдено.'], 404);
+            $this->jsonResponse(['success' => false, 'message' => __('admin_user_not_found')], 404);
         }
 
         $subject = trim((string) ($_POST['subject'] ?? ''));
         $message = trim((string) ($_POST['message'] ?? ''));
 
         if ($subject === '' || $message === '') {
-            $this->jsonResponse(['success' => false, 'message' => 'Тема та текст листа є обовʼязковими.'], 422);
+            $this->jsonResponse(['success' => false, 'message' => __('admin_user_email_required')], 422);
         }
 
         $mailService = new MailService();
         $sent = $mailService->send((string) $user['email'], $subject, nl2br(htmlspecialchars($message, ENT_QUOTES, 'UTF-8')));
 
         if (!$sent) {
-            $this->jsonResponse(['success' => false, 'message' => 'Не вдалося відправити лист. Перевірте SMTP налаштування.'], 500);
+            $this->jsonResponse(['success' => false, 'message' => __('admin_user_email_send_failed')], 500);
         }
 
-        CrmUserService::recordActivity($userId, 'email_sent', 'Адміністратор надіслав email: ' . $subject);
+        CrmUserService::recordActivity($userId, 'email_sent', sprintf(__('admin_user_activity_email_sent'), $subject));
 
         $this->jsonResponse(['success' => true]);
     }
@@ -312,7 +312,7 @@ class AdminUserController
         $user = User::findById($userId);
 
         if (!$user) {
-            $_SESSION['error'] = 'Користувача не знайдено.';
+            $_SESSION['error'] = __('admin_user_not_found');
             header('Location: /admin/users');
             exit;
         }
@@ -345,7 +345,7 @@ class AdminUserController
         $userId = (int) $id;
 
         if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
-            $this->jsonResponse(['success' => false, 'message' => 'Метод не підтримується'], 405);
+            $this->jsonResponse(['success' => false, 'message' => __('admin_user_method_not_supported')], 405);
         }
 
         $rawInput = file_get_contents('php://input') ?: '';
@@ -357,12 +357,12 @@ class AdminUserController
         // Перевірка CSRF
         $token = trim((string)($payload['csrf'] ?? ''));
         if (!hash_equals((string)($_SESSION['csrf'] ?? ''), $token)) {
-            $this->jsonResponse(['success' => false, 'message' => 'CSRF токен недійсний'], 419);
+            $this->jsonResponse(['success' => false, 'message' => __('csrf_token_invalid')], 419);
         }
 
         $user = User::findById($userId);
         if (!$user) {
-            $this->jsonResponse(['success' => false, 'message' => 'Користувача не знайдено'], 404);
+            $this->jsonResponse(['success' => false, 'message' => __('admin_user_not_found')], 404);
         }
 
         // Делегуємо нормалізацію та збереження AdminOrderController
@@ -388,22 +388,22 @@ class AdminUserController
             $status         = trim((string)($payload['status'] ?? 'new'));
 
             if ($customerName === '' || mb_strlen($customerName) < 2) {
-                throw new \InvalidArgumentException('Вкажіть коректне імʼя клієнта');
+                throw new \InvalidArgumentException(__('admin_user_customer_name_invalid'));
             }
             $phoneMask = normalize_phone_mask((string)\App\Models\Setting::get('phone_mask', '+38 (###) ###-##-##'));
             if (!is_phone_matching_mask($customerPhone, $phoneMask)) {
-                throw new \InvalidArgumentException('Вкажіть коректний номер телефону');
+                throw new \InvalidArgumentException(__('admin_user_phone_invalid'));
             }
             if ($customerEmail !== '' && filter_var($customerEmail, FILTER_VALIDATE_EMAIL) === false) {
-                throw new \InvalidArgumentException('Невірний формат email');
+                throw new \InvalidArgumentException(__('admin_user_email_format_invalid'));
             }
             if (!in_array($status, $allowedStatuses, true)) {
-                throw new \InvalidArgumentException('Невідомий статус замовлення');
+                throw new \InvalidArgumentException(__('admin_user_order_status_invalid'));
             }
 
             $itemsPayload = $payload['items'] ?? [];
             if (!is_array($itemsPayload) || count($itemsPayload) === 0) {
-                throw new \InvalidArgumentException('Додайте хоча б один товар');
+                throw new \InvalidArgumentException(__('admin_user_order_items_required'));
             }
 
             $normalizedItems = [];
@@ -412,19 +412,19 @@ class AdminUserController
                 $productId = (int)($item['product_id'] ?? 0);
                 $qty       = (int)($item['qty'] ?? 0);
                 if ($productId <= 0 || $qty <= 0) {
-                    throw new \InvalidArgumentException('Некоректні дані товару у рядку ' . ($i + 1));
+                    throw new \InvalidArgumentException(sprintf(__('admin_user_order_item_invalid'), $i + 1));
                 }
                 $product = \App\Core\Database\DB::query(
                     'SELECT id, price FROM products WHERE id = ?', [$productId]
                 )->fetch(\PDO::FETCH_ASSOC);
                 if (!$product) {
-                    throw new \InvalidArgumentException('Товар ID ' . $productId . ' не знайдено');
+                    throw new \InvalidArgumentException(sprintf(__('admin_user_product_not_found'), $productId));
                 }
                 $price = isset($item['price']) && $item['price'] !== ''
                     ? (float)$item['price']
                     : (float)($product['price'] ?? 0);
                 if ($price < 0) {
-                    throw new \InvalidArgumentException('Ціна не може бути відʼємною');
+                    throw new \InvalidArgumentException(__('admin_user_price_negative'));
                 }
                 $normalizedItems[] = [
                     'product_id' => $productId,
@@ -472,12 +472,12 @@ class AdminUserController
             \App\Models\CrmUserService::recordActivity(
                 $userId,
                 'order_created',
-                'Адміністратор створив замовлення #' . $orderId
+                sprintf(__('admin_user_activity_order_created'), $orderId)
             );
 
             $this->jsonResponse([
                 'success'  => true,
-                'message'  => 'Замовлення #' . $orderId . ' створено',
+                'message'  => sprintf(__('admin_user_order_created'), $orderId),
                 'order_id' => $orderId,
                 'redirect' => '/admin/orders/details/' . $orderId,
             ]);
@@ -516,15 +516,15 @@ class AdminUserController
         $userId = (int) $id;
 
         if (!empty($_SESSION['user']['id']) && (int) $_SESSION['user']['id'] === $userId) {
-            $_SESSION['error'] = 'Неможливо видалити власний обліковий запис.';
+            $_SESSION['error'] = __('admin_user_cannot_delete_self');
             header('Location: /admin/users');
             exit;
         }
 
         if (User::delete($userId)) {
-            $_SESSION['success'] = 'Користувача видалено.';
+            $_SESSION['success'] = __('admin_user_deleted');
         } else {
-            $_SESSION['error'] = 'Помилка при видаленні користувача.';
+            $_SESSION['error'] = __('admin_user_delete_failed');
         }
 
         header('Location: /admin/users');

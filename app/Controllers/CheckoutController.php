@@ -5,13 +5,13 @@ use App\Services\SeoService;
 use App\Core\Http\Csrf;
 
 class CheckoutController{
-function index(){return "Checkout";}
+function index(){return __('checkout_title');}
 function process(){
         // 🔐 CSRF CHECK
-        Csrf::abortIfInvalid('CSRF token mismatch');
+        Csrf::abortIfInvalid(__('csrf_token_invalid'));
 $cart=$_SESSION['cart']??[];
 $user=$_SESSION['user']??null;
-if(!$user)return "Login required";
+if(!$user)return __('checkout_login_required');
 
 $products=DB::query("SELECT * FROM products")->fetchAll();
 $map=[]; foreach($products as $p){$map[$p['id']]=$p;}
@@ -26,5 +26,5 @@ DB::query("INSERT INTO order_items(order_id,product_id,qty,price) VALUES(?,?,?,?
 
 $_SESSION['cart']=[];
 do_action('order.placed', ['order_id' => (int) $orderId, 'user_id' => (int) $user['id'], 'total' => (float) $total]);
-return "Order placed";
+return __('order_placed');
 }}

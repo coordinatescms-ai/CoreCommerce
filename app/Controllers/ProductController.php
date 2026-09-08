@@ -55,7 +55,7 @@ class ProductController
         $pager = \App\Core\Pagination\Paginator::fromRequest('page', $perPage);
         $filters['offset'] = $pager->offset;
 
-        $products      = ProductFilterService::filter($filters);
+        $products      = attach_stock_status(apply_product_price_filter(ProductFilterService::filter($filters)));
         $totalProducts = ProductFilterService::count($filters);
 
         $pager = $pager->setTotal($totalProducts);
@@ -105,7 +105,7 @@ class ProductController
     header('Content-Type: application/json');
 
     if (!isset($_SESSION['user']['id'])) {
-        echo json_encode(['status' => 'error', 'message' => 'Авторизуйтесь']);
+        echo json_encode(['status' => 'error', 'message' => __('favorite_login_required')]);
         exit;
     }
 
@@ -119,14 +119,14 @@ class ProductController
         if ($check) {
             // Видаляємо
             DB::execute("DELETE FROM favorites WHERE user_id = ? AND product_id = ?", [$userId, $productId]);
-            echo json_encode(['status' => 'removed', 'message' => 'Видалено']);
+            echo json_encode(['status' => 'removed', 'message' => __('favorite_removed')]);
         } else {
             // Додаємо
             DB::execute("INSERT INTO favorites (user_id, product_id) VALUES (?, ?)", [$userId, $productId]);
-            echo json_encode(['status' => 'added', 'message' => 'Додано']);
+            echo json_encode(['status' => 'added', 'message' => __('favorite_added')]);
         }
     } catch (\Exception $e) {
-        echo json_encode(['status' => 'error', 'message' => 'Помилка бази даних']);
+        echo json_encode(['status' => 'error', 'message' => __('favorite_database_error')]);
     }
     exit;
 }
@@ -197,7 +197,7 @@ class ProductController
         $categories = Category::getTree();
 
         return View::render('products/index', [
-            'products' => $products,
+            'products' => attach_stock_status(apply_product_price_filter($products)),
             'categories' => $categories,
             'total' => $total,
             'page' => $page,
@@ -214,17 +214,26 @@ class ProductController
      */
     public function show($slug)
     {
-        // Перевірити, чи є редирект для цього slug
-        $redirect = SlugHelper::getRedirect($slug, 'product');
-        
-        if ($redirect) {
-            header("HTTP/1.1 301 Moved Permanently");
-            header("Location: /product/" . $redirect['new_slug']);
-            exit;
-        }
+    // Отримуємо редірект
+    $redirect = SlugHelper::getRedirect($slug, 'product');
+    
+    // МАКСИМАЛЬНО СТРОГА ПЕРЕВІРКА: 
+    // Перенаправляємо лише якщо $redirect є непустим масивом, 
+    // ключ new_slug існує, він не порожній І він не дорівнює поточному slug
+    if (
+        !empty($redirect) && 
+        isset($redirect['new_slug']) && 
+        (string)$redirect['new_slug'] !== '' && 
+        (string)$redirect['new_slug'] !== (string)$slug
+    ) {
+        header("HTTP/1.1 301 Moved Permanently");
+        header("Location: /product/" . $redirect['new_slug']);
+        exit;
+    }
 
-        // Отримати товар за slug
-        $product = Product::findVisibleBySlug($slug);
+    // Отримати товар за slug
+    $product = Product::findVisibleBySlug($slug);
+    // ... далі ваш стандартний код
         
         if (!$product) {
             http_response_code(404);
@@ -272,7 +281,7 @@ class ProductController
         $product['description'] = (string) apply_filters('product.description', (string) ($product['description'] ?? ''), (int) $product['id']);
 
         if (!empty($_SESSION['user']['id'])) {
-            CrmUserService::recordActivity((int) $_SESSION['user']['id'], 'product_view', 'Перегляд товару: ' . (string) ($product['name'] ?? ''));
+            CrmUserService::recordActivity((int) $_SESSION['user']['id'], 'product_view', __('viewed_product') . ' ' . (string) ($product['name'] ?? ''));
         }
 
         return View::render('products/show', [
@@ -364,7 +373,7 @@ class ProductController
         $product = Product::findVisibleBySlug($slug);
         if (!$product) {
             http_response_code(404);
-            echo json_encode(['success' => false, 'message' => 'Товар не знайдено']);
+            echo json_encode(['success' => false, 'message' => __('product_not_found')]);
             return;
         }
 
@@ -387,20 +396,20 @@ class ProductController
         header('Content-Type: application/json; charset=utf-8');
         if (empty($_SESSION['user']['id'])) {
             http_response_code(401);
-            echo json_encode(['success' => false, 'message' => 'Потрібна авторизація']);
+            echo json_encode(['success' => false, 'message' => __('reviews_auth_required')]);
             return;
         }
 
         if (!\App\Core\Http\Csrf::isValid()) {
             http_response_code(422);
-            echo json_encode(['success' => false, 'message' => 'Невірний CSRF токен']);
+            echo json_encode(['success' => false, 'message' => __('review_csrf_invalid')]);
             return;
         }
 
         $product = Product::findVisibleBySlug($slug);
         if (!$product) {
             http_response_code(404);
-            echo json_encode(['success' => false, 'message' => 'Товар не знайдено']);
+            echo json_encode(['success' => false, 'message' => __('product_not_found')]);
             return;
         }
 
@@ -410,13 +419,13 @@ class ProductController
 
         if ($body === '' || mb_strlen($body) < 3 || mb_strlen($body) > 2000) {
             http_response_code(422);
-            echo json_encode(['success' => false, 'message' => 'Текст від 3 до 2000 символів']);
+            echo json_encode(['success' => false, 'message' => __('review_body_length')]);
             return;
         }
 
         if ($parentId === null && ($rating === null || $rating < 1 || $rating > 5)) {
             http_response_code(422);
-            echo json_encode(['success' => false, 'message' => 'Оцінка від 1 до 5 обовʼязкова']);
+            echo json_encode(['success' => false, 'message' => __('review_rating_required')]);
             return;
         }
 
@@ -424,14 +433,14 @@ class ProductController
             $parent = Review::findById($parentId);
             if (!$parent || (int) $parent['product_id'] !== (int) $product['id'] || !empty($parent['parent_id'])) {
                 http_response_code(422);
-                echo json_encode(['success' => false, 'message' => 'Некоректний батьківський коментар']);
+                echo json_encode(['success' => false, 'message' => __('review_parent_invalid')]);
                 return;
             }
         }
 
         $authorName = trim((string) (($_SESSION['user']['first_name'] ?? '') . ' ' . ($_SESSION['user']['last_name'] ?? '')));
         if ($authorName === '') {
-            $authorName = (string) ($_SESSION['user']['email'] ?? 'User');
+            $authorName = (string) ($_SESSION['user']['email'] ?? __('auth_default_user_name'));
         }
 
         $id = Review::create([
@@ -450,7 +459,15 @@ class ProductController
                 if (!empty($author['email'])) {
                     $mail = new MailService();
                     $link = 'http://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/product/' . $slug;
-                    $mail->send((string) $author['email'], 'Нова відповідь на ваш відгук', 'Вам відповіли на відгук до товару <b>' . htmlspecialchars((string) $product['name']) . '</b>.<br><a href="' . $link . '">Переглянути</a>');
+                    $mail->send(
+                        (string) $author['email'],
+                        __('review_reply_email_subject'),
+                        sprintf(
+                            __('review_reply_email_body'),
+                            htmlspecialchars((string) $product['name'], ENT_QUOTES, 'UTF-8'),
+                            $link
+                        )
+                    );
                 }
             }
         }

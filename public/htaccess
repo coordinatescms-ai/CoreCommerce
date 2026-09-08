@@ -1,0 +1,17 @@
+# Правильний Content-Type для стиснутих Sitemap файлів (.xml.gz)
+# Без цього Google Search Console може не розпізнати sitemap
+<IfModule mod_mime.c>
+    AddType application/x-gzip .gz
+    AddEncoding gzip .gz
+</IfModule>
+<FilesMatch "\.xml\.gz$">
+    <IfModule mod_headers.c>
+        Header set Content-Type "application/x-gzip"
+        Header set Content-Encoding "gzip"
+    </IfModule>
+</FilesMatch>
+
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [L]

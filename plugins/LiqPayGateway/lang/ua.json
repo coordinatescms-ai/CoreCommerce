@@ -1,0 +1,6 @@
+{
+    "label_liqpay": "LiqPay — оплата карткою",
+    "error_not_configured": "LiqPay не налаштовано: відсутні Public Key або Private Key.",
+    "order_fallback_name": "Замовлення #",
+    "redirecting_message": "Перенаправляємо на сторінку оплати LiqPay…"
+}

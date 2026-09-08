@@ -33,19 +33,36 @@ return new class implements PluginInterface {
     {
         return [
             'show_footer_message' => [
-                'label'    => 'Показувати повідомлення у футері',
+                'label'    => $this->t('settings_show_footer_message_label', 'Показувати повідомлення у футері'),
                 'type'     => 'checkbox',
                 'default'  => '0',
                 'required' => false,
-                'hint'     => 'Вивести повідомлення у HTML-коментарі футера сторінки.',
+                'hint'     => $this->t('settings_show_footer_message_hint', 'Вивести повідомлення у HTML-коментарі футера сторінки.'),
             ],
             'footer_message' => [
-                'label'    => 'Текст повідомлення',
+                'label'    => $this->t('settings_footer_message_label', 'Текст повідомлення'),
                 'type'     => 'text',
-                'default'  => 'Hello from TestPlugin!',
+                'default'  => $this->t('footer_message_default', 'Hello from TestPlugin!'),
                 'required' => false,
-                'hint'     => 'Цей текст буде виведено у <!-- коментарі --> тега footer.',
+                'hint'     => $this->t('settings_footer_message_hint', 'Цей текст буде виведено у <!-- коментарі --> тега footer.'),
             ],
         ];
+    }
+
+    /**
+     * Переклад customer/admin-facing текстів (label/hint у getSettingsSchema()).
+     * Той самий підхід, що й у LiqPayGateway/StripeGateway.
+     */
+    private function t(string $key, string $default = ''): string
+    {
+        static $translations = null;
+
+        if ($translations === null) {
+            $lang = function_exists('get_current_language') ? get_current_language() : 'ua';
+            $file = __DIR__ . '/lang/' . ($lang === 'en' ? 'en' : 'ua') . '.json';
+            $translations = is_file($file) ? (json_decode((string) file_get_contents($file), true) ?: []) : [];
+        }
+
+        return $translations[$key] ?? $default;
     }
 };

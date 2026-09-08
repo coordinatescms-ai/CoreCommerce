@@ -1,0 +1,14 @@
+{
+    "button_title": "Request a call",
+    "modal_title": "Request a callback",
+    "placeholder_name": "Your name",
+    "placeholder_phone": "Your phone",
+    "submit_button": "Call me back",
+    "success_message": "Thank you! We will call you back shortly.",
+    "error_message": "Please fill in all required fields.",
+    "validation_error": "Please fill in all fields correctly.",
+    "server_error": "Server error. Please try again later.",
+    "csrf_error": "Your session has expired, please refresh the page and try again.",
+    "email_subject": "New callback request",
+    "email_body": "Name: {name}\nPhone: {phone}\nDate: {date}"
+}

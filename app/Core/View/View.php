@@ -28,6 +28,9 @@ class View
         if ($layout === 'theme' && !array_key_exists('footerPages', $data)) {
             $pageModel = new \App\Models\Page();
             $data['footerPages'] = $pageModel->getPublished();
+            
+            // Додаємо активні соціальні мережі
+            $data['activeSocialLinks'] = \App\Models\SocialLink::getActive();
         }
 
         if ($layout === 'theme') {

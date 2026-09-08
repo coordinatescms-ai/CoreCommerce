@@ -280,13 +280,13 @@ class ProductAttribute extends Model
         $params = array_merge($categoryIds, [$attributeId]);
 
         $result = self::query(
-            "SELECT MIN(CAST(pa.value AS DECIMAL(12,2))) as min_value,
-                    MAX(CAST(pa.value AS DECIMAL(12,2))) as max_value
+            "SELECT MIN(CAST(REPLACE(pa.value, ',', '.') AS DECIMAL(12,2))) as min_value,
+                    MAX(CAST(REPLACE(pa.value, ',', '.') AS DECIMAL(12,2))) as max_value
              FROM " . static::$table . " pa
              INNER JOIN products p ON p.id = pa.product_id
              WHERE p.category_id IN ($placeholders)
                AND pa.attribute_id = ?
-               AND pa.value REGEXP '^-?[0-9]+(\\\\.[0-9]+)?$'",
+               AND pa.value REGEXP '^-?[0-9]+([\\\\.,][0-9]+)?$'",
             $params
         );
 

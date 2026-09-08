@@ -28,7 +28,7 @@ return new class implements PluginInterface {
         PaymentManager::register(new class implements PaymentGatewayInterface {
 
             public function getName(): string  { return 'liqpay'; }
-            public function getLabel(): string { return 'LiqPay — оплата карткою'; }
+            public function getLabel(): string { return $this->t('label_liqpay', 'LiqPay — оплата карткою'); }
 
             // ── Ініціація платежу ────────────────────────────────────────────
 
@@ -38,7 +38,7 @@ return new class implements PluginInterface {
 
                 if ($publicKey === '' || $privateKey === '') {
                     return PaymentResult::error(
-                        'LiqPay не налаштовано: відсутні Public Key або Private Key.'
+                        $this->t('error_not_configured', 'LiqPay не налаштовано: відсутні Public Key або Private Key.')
                     );
                 }
 
@@ -48,7 +48,7 @@ return new class implements PluginInterface {
                     'action'      => 'pay',
                     'amount'      => number_format($amount, 2, '.', ''),
                     'currency'    => 'UAH',
-                    'description' => $meta['description'] ?? 'Замовлення #' . $orderId,
+                    'description' => $meta['description'] ?? $this->t('order_fallback_name', 'Замовлення #') . $orderId,
                     'order_id'    => (string)$orderId,
                     'result_url'  => $this->siteUrl() . '/thank-you?order_id=' . $orderId,
                     'server_url'  => $this->siteUrl() . '/payment/webhook/liqpay',
@@ -64,12 +64,13 @@ return new class implements PluginInterface {
                         <input type="hidden" name="data"      value="%s">
                         <input type="hidden" name="signature" value="%s">
                         <p style="text-align:center; padding:1rem; color:#64748b;">
-                            Перенаправляємо на сторінку оплати LiqPay…
+                            %s
                         </p>
                     </form>
                     <script>document.getElementById("liqpay-form").submit();</script>',
                     htmlspecialchars($data),
-                    htmlspecialchars($signature)
+                    htmlspecialchars($signature),
+                    htmlspecialchars($this->t('redirecting_message', 'Перенаправляємо на сторінку оплати LiqPay…'))
                 );
 
                 return PaymentResult::render($html, ['order_id' => $orderId]);
@@ -124,12 +125,10 @@ return new class implements PluginInterface {
                     );
                 }
 
-                // Проміжні статуси (wait_*, processing) — нічого не робимо
-                return WebhookResult::failed(
+                // Проміжні статуси (wait_*, processing) — не змінюємо статус замовлення
+                return WebhookResult::pending(
                     $orderId,
-                    "LiqPay: проміжний статус {$status}, очікуємо",
-                    'OK',
-                    200
+                    "LiqPay: проміжний статус {$status}, очікуємо"
                 );
             }
 
@@ -172,6 +171,25 @@ return new class implements PluginInterface {
                     sprintf("[%s] [LIQPAY] %s\n", date('Y-m-d H:i:s'), $message),
                     FILE_APPEND | LOCK_EX
                 );
+            }
+
+            /**
+             * Переклад customer-facing текстів (getLabel(), помилки initiate(),
+             * текст авто-редіректу). Внутрішні діагностичні записи в payment.log
+             * НЕ перекладаються — лог для розробника/адміна, читається grep-ом,
+             * а не для кінцевого користувача.
+             */
+            private function t(string $key, string $default = ''): string
+            {
+                static $translations = null;
+
+                if ($translations === null) {
+                    $lang = function_exists('get_current_language') ? get_current_language() : 'ua';
+                    $file = __DIR__ . '/lang/' . ($lang === 'en' ? 'en' : 'ua') . '.json';
+                    $translations = is_file($file) ? (json_decode((string) file_get_contents($file), true) ?: []) : [];
+                }
+
+                return $translations[$key] ?? $default;
             }
         });
     }

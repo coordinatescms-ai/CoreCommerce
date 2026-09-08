@@ -190,15 +190,38 @@ class LoginRateLimiter
 
     /**
      * Визначити реальний IP-адрес клієнта.
-     * Враховує проксі/балансувальники.
+     *
+     * ВАЖЛИВО: заголовки X-Forwarded-For, X-Real-IP, CF-Connecting-IP може
+     * підробити будь-який клієнт напряму, якщо запит не проходить через
+     * довірений проксі. Без перевірки REMOTE_ADDR (реальний TCP-peer) проти
+     * списку довірених проксі — зловмисник підставляє довільний IP в заголовок
+     * і повністю обходить rate limiting (кожен запит "з іншого" IP).
+     *
+     * Довірені проксі задаються в config/security.php -> trusted_proxies.
+     * Якщо REMOTE_ADDR не входить у цей список — довіряємо ТІЛЬКИ REMOTE_ADDR.
      */
     private function resolveIp(): string
     {
+        $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? '';
+
+        $trustedProxies = [];
+        $securityConfigPath = __DIR__ . '/../../config/security.php';
+        if (is_file($securityConfigPath)) {
+            $securityConfig = require $securityConfigPath;
+            $trustedProxies = (array) ($securityConfig['trusted_proxies'] ?? []);
+        }
+
+        // Якщо реальне TCP-з'єднання не від довіреного проксі —
+        // заголовки клієнта повністю ігноруємо, довіряємо лише REMOTE_ADDR.
+        if (!in_array($remoteAddr, $trustedProxies, true)) {
+            return filter_var($remoteAddr, FILTER_VALIDATE_IP) ? $remoteAddr : '0.0.0.0';
+        }
+
         $candidates = [
             $_SERVER['HTTP_CF_CONNECTING_IP']  ?? '', // Cloudflare
             $_SERVER['HTTP_X_REAL_IP']          ?? '', // nginx proxy
             $_SERVER['HTTP_X_FORWARDED_FOR']    ?? '', // load balancer (перший IP)
-            $_SERVER['REMOTE_ADDR']             ?? '',
+            $remoteAddr,
         ];
 
         foreach ($candidates as $candidate) {

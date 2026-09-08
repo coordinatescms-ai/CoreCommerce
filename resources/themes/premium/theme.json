@@ -1,0 +1,21 @@
+{
+  "id": "premium",
+  "name": "Premium Luxury",
+  "description": "A high-end, elegant design for luxury brands and premium stores.",
+  "version": "1.0.0",
+  "author": "Manus AI",
+  "colors": {
+    "primary": "#b89552",
+    "secondary": "#1a1a1a",
+    "success": "#27ae60",
+    "danger": "#c0392b",
+    "warning": "#f39c12",
+    "info": "#2980b9",
+    "light": "#ffffff",
+    "dark": "#0a0a0a"
+  },
+  "fonts": {
+    "primary": "'Inter', sans-serif",
+    "heading": "'Playfair Display', serif"
+  }
+}

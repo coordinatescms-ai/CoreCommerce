@@ -107,13 +107,8 @@ class SearchService
 
         $pages = max(1, (int) ceil($total / $limit));
 
-        // Логуємо запит
+        // Логуємо запит (тільки для звичайного пошуку, не autocomplete)
         self::logQuery($query, $total);
-
-        // Збільшуємо лічильник переглядів
-        foreach ($results as $r) {
-            self::incrementViews((int) $r['id']);
-        }
 
         $payload = [
             'results'    => $results,
@@ -346,6 +341,28 @@ class SearchService
         }
 
         return $text;
+    }
+
+    // ── Легкий пошук для autocomplete (без логування та кешу) ──────────────
+
+    public static function searchAutocomplete(string $rawQuery, int $limit = 5): array
+    {
+        $query  = self::sanitize($rawQuery);
+        $tokens = self::tokenize($query);
+
+        if (empty($tokens)) {
+            return [];
+        }
+
+        // Спробуємо FULLTEXT
+        [$results] = self::fullTextSearch($query, $tokens, $limit, 0);
+
+        // Fallback: LIKE
+        if (empty($results)) {
+            [$results] = self::likeSearch($tokens, $limit, 0);
+        }
+
+        return $results;
     }
 
     // ── Популярні запити ──────────────────────────────────────────────────────

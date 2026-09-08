@@ -14,7 +14,7 @@ class BankCurrencyService
      * @return float           Курс до гривні
      * @throws \RuntimeException  Якщо запит або розбір даних невдалий
      */
-    public function fetchRate(string $code, string $apiKey = ''): float
+    public function fetchRate(string $code): float
     {
         $code = strtoupper(trim($code));
 
@@ -24,17 +24,13 @@ class BankCurrencyService
 
         $url = sprintf(self::NBU_API_URL, urlencode($code));
 
-        $headers = "Accept: application/json\r\n";
-        if ($apiKey !== '') {
-            $headers .= "Authorization: Bearer {$apiKey}\r\n";
-        }
-
+        // НБУ API є публічним — авторизація не потрібна
         $context = stream_context_create([
             'http' => [
                 'method'        => 'GET',
                 'timeout'       => 10,
                 'ignore_errors' => true,
-                'header'        => $headers,
+                'header'        => "Accept: application/json\r\n",
             ],
         ]);
 

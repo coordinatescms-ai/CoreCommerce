@@ -193,16 +193,13 @@ class SitemapService
      */
     private static function generateProducts(string $dir, string $base): array
     {
-        $fileIndex = 1;         // номер поточного файлу
+        $fileIndex  = 1;         // номер поточного файлу
         $urlsInFile = 0;        // URL у поточному файлі
         $totalCount = 0;        // загальна кількість
         $lastId     = 0;        // курсор для батчевої вибірки
         $filenames  = [];
-
-        // Відкриваємо перший файл
-        $filename = "sitemap-products-{$fileIndex}.xml";
-        $writer   = self::openWriter($dir . $filename);
-        $filenames[] = $filename;
+        $writer     = null;
+        $filename   = '';
 
         do {
             // Батч: наступні BATCH_SIZE товарів після $lastId
@@ -216,8 +213,12 @@ class SitemapService
             )->fetchAll(\PDO::FETCH_ASSOC);
 
             foreach ($batch as $row) {
-                // Перевіряємо ліміт файлу перед записом
-                if ($urlsInFile >= self::MAX_URLS_PER_FILE) {
+                // Відкриваємо перший файл лише коли є хоча б один товар
+                if ($writer === null) {
+                    $filename    = "sitemap-products-{$fileIndex}.xml";
+                    $writer      = self::openWriter($dir . $filename);
+                    $filenames[] = $filename;
+                } elseif ($urlsInFile >= self::MAX_URLS_PER_FILE) {
                     // Закриваємо поточний файл і відкриваємо наступний
                     self::closeWriter($writer);
                     self::compress($dir . $filename);
@@ -242,9 +243,11 @@ class SitemapService
 
         } while (count($batch) === self::BATCH_SIZE); // якщо менше BATCH_SIZE — це останній батч
 
-        // Закриваємо останній файл
-        self::closeWriter($writer);
-        self::compress($dir . $filename);
+        // Закриваємо останній файл (якщо взагалі був відкритий — товари можуть бути відсутні)
+        if ($writer !== null) {
+            self::closeWriter($writer);
+            self::compress($dir . $filename);
+        }
 
         return [$filenames, $totalCount];
     }

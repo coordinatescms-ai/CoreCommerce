@@ -117,11 +117,11 @@ class AdminProductController
             $value = trim((string) ($values[$i] ?? ''));
 
             if ($attributeId > 0 && $value === '') {
-                return 'Для обраної характеристики потрібно заповнити поле "Значення".';
+                return __('products_attribute_value_required');
             }
 
             if ($attributeId <= 0 && $value !== '') {
-                return 'Вказано значення без характеристики. Будь ласка, оберіть характеристику.';
+                return __('products_attribute_select_required');
             }
         }
 
@@ -413,20 +413,20 @@ class AdminProductController
 
         $file = $_FILES['products_csv'] ?? null;
         if (!is_array($file)) {
-            $_SESSION['error'] = 'Файл для імпорту не передано.';
+            $_SESSION['error'] = __('products_import_file_not_sent');
             header('Location: /admin/products');
             exit;
         }
 
         if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-            $_SESSION['error'] = 'Помилка завантаження CSV-файлу.';
+            $_SESSION['error'] = __('products_import_upload_error');
             header('Location: /admin/products');
             exit;
         }
 
         $extension = strtolower((string) pathinfo((string) ($file['name'] ?? ''), PATHINFO_EXTENSION));
         if ($extension !== 'csv') {
-            $_SESSION['error'] = 'Дозволено імпорт лише CSV-файлів (.csv).';
+            $_SESSION['error'] = __('products_import_csv_only');
             header('Location: /admin/products');
             exit;
         }
@@ -438,28 +438,50 @@ class AdminProductController
 
         $allowedCsvMimes = ['text/plain', 'text/csv', 'application/csv', 'application/octet-stream'];
         if ($realMime !== '' && !in_array($realMime, $allowedCsvMimes, true)) {
-            $_SESSION['error'] = 'Файл не є текстовим CSV (перевірено за вмістом).';
+            $_SESSION['error'] = __('products_import_not_csv');
             header('Location: /admin/products');
             exit;
         }
 
         $handle = fopen((string) ($file['tmp_name'] ?? ''), 'r');
         if ($handle === false) {
-            $_SESSION['error'] = 'Не вдалося відкрити CSV-файл для читання.';
+            $_SESSION['error'] = __('products_import_cannot_open');
             header('Location: /admin/products');
             exit;
         }
 
         $processedRows = 0;
         $lineNumber = 0;
+        $importErrors = [];
 
         while (($row = fgetcsv($handle, 0, ',')) !== false) {
             $lineNumber++;
+
+            // Fallback: якщо файл використовує крапку з комою як роздільник
             if (count($row) < 6) {
                 $row = str_getcsv((string) ($row[0] ?? ''), ';');
             }
 
             if ($lineNumber === 1 && isset($row[0]) && mb_strtolower(trim((string) $row[0])) === 'sku') {
+                continue;
+            }
+
+            // Очікується 6 або 7 колонок: sku,name,price,quantity,description,category[,vendor].
+            // 7-ма колонка (vendor/бренд) — необов'язкова, додана для вивантаження
+            // на прайс-агрегатори (Hotline.ua тощо). Старі CSV з 6 колонками
+            // продовжують працювати як і раніше — vendor просто лишається порожнім.
+            // Якщо колонок БІЛЬШЕ як 7 — найімовірніша причина: текст в description
+            // (або іншому текстовому полі) містить кому, а сама кома не була взята в
+            // лапки "..." при створенні CSV. Це ламає позиції колонок: категорія
+            // "з'їжджає" в опис, а справжня категорія опиняється за межами рядка.
+            // Замість тихого пропуску — явно повідомляємо адміну, що не так.
+            if (count($row) > 7) {
+                $this->logCsvImportError(
+                    $lineNumber,
+                    sprintf(__('products_import_columns_error'), count($row)),
+                    $row,
+                    $importErrors
+                );
                 continue;
             }
 
@@ -470,31 +492,49 @@ class AdminProductController
             $description = trim((string) ($row[4] ?? ''));
             $categoryRaw = trim((string) ($row[5] ?? ''));
             $categoryId = $this->resolveCategoryIdForImport($categoryRaw);
+            $vendor = trim((string) ($row[6] ?? ''));
+            $vendor = $vendor !== '' ? $vendor : null;
 
             if ($sku === '' || $name === '' || $price <= 0) {
-                $this->logCsvImportError($lineNumber, "Обов'язкові поля невалідні (sku/name/price).", $row);
+                $this->logCsvImportError($lineNumber, __('products_import_required_invalid'), $row, $importErrors);
                 continue;
             }
 
             if ($categoryRaw !== '' && $categoryId === null) {
-                $this->logCsvImportError($lineNumber, 'Категорію не знайдено: ' . $categoryRaw, $row);
+                $this->logCsvImportError($lineNumber, sprintf(__('products_import_category_not_found'), $categoryRaw), $row, $importErrors);
                 continue;
+            }
+
+            // Slug потрібен для URL товару (/product/{slug}) і є UNIQUE полем в БД.
+            // При оновленні існуючого товару (ON DUPLICATE KEY UPDATE по sku) — slug
+            // НЕ чіпаємо, щоб не зламати вже проіндексовані пошуковиками посилання.
+            // Для нового товару генеруємо унікальний slug з назви одразу, інакше
+            // товар потрапляє в базу без URL і сторінка /product/{slug} недоступна.
+            $existingProduct = \App\Core\Database\DB::query(
+                'SELECT id, slug FROM products WHERE sku = ? LIMIT 1',
+                [$sku]
+            )->fetch();
+
+            $slug = $existingProduct['slug'] ?? null;
+            if (empty($slug)) {
+                $slug = SlugHelper::getUnique($name, 'product');
             }
 
             try {
                 \App\Core\Database\DB::query(
-                    'INSERT INTO products (sku, name, price, description, category_id, is_visible, updated_at)
-                     VALUES (?, ?, ?, ?, ?, 1, NOW())
+                    'INSERT INTO products (sku, name, slug, price, description, category_id, vendor, is_visible, updated_at)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, 1, NOW())
                      ON DUPLICATE KEY UPDATE
                         name = VALUES(name),
                         price = VALUES(price),
                         description = VALUES(description),
                         category_id = VALUES(category_id),
+                        vendor = COALESCE(VALUES(vendor), vendor),
                         updated_at = NOW()',
-                    [$sku, $name, $price, $description, $categoryId]
+                    [$sku, $name, $slug, $price, $description, $categoryId, $vendor]
                 );
             } catch (\Throwable $e) {
-                $this->logCsvImportError($lineNumber, 'Помилка upsert products: ' . $e->getMessage(), $row);
+                $this->logCsvImportError($lineNumber, sprintf(__('products_import_upsert_error'), $e->getMessage()), $row, $importErrors);
                 continue;
             }
 
@@ -511,7 +551,7 @@ class AdminProductController
                     [$productId > 0 ? $productId : null, $sku, $quantity]
                 );
             } catch (\Throwable $e) {
-                $this->logCsvImportError($lineNumber, 'Помилка upsert product_stocks: ' . $e->getMessage(), $row);
+                $this->logCsvImportError($lineNumber, sprintf(__('products_import_stock_upsert_error'), $e->getMessage()), $row, $importErrors);
                 continue;
             }
 
@@ -520,7 +560,21 @@ class AdminProductController
 
         fclose($handle);
 
-        $_SESSION['success'] = 'Імпорт завершено. Успішно оброблено рядків: ' . $processedRows . '.';
+        if ($processedRows === 0 && !empty($importErrors)) {
+            // Жодного рядка не імпортовано — показуємо причину одразу,
+            // а не просимо адміна лізти в storage/logs/product_csv_import_errors.log
+            $preview = array_slice($importErrors, 0, 5);
+            $more    = count($importErrors) > 5 ? sprintf(__('products_import_more_errors'), count($importErrors) - 5) : '';
+            $lines   = array_map('htmlspecialchars', $preview);
+            $_SESSION['error'] = __('products_import_failed') . '<br>'
+                . implode('<br>', $lines) . htmlspecialchars($more)
+                . '<br>' . __('products_import_full_log');
+        } elseif (!empty($importErrors)) {
+            $_SESSION['success'] = sprintf(__('products_import_completed_with_errors'), $processedRows, count($importErrors));
+        } else {
+            $_SESSION['success'] = sprintf(__('products_import_completed'), $processedRows);
+        }
+
         header('Location: /admin/products');
         exit;
     }
@@ -551,7 +605,7 @@ class AdminProductController
         return null;
     }
 
-    private function logCsvImportError(int $lineNumber, string $reason, array $row = []): void
+    private function logCsvImportError(int $lineNumber, string $reason, array $row = [], ?array &$errorsOut = null): void
     {
         $logDir = __DIR__ . '/../../storage/logs';
         if (!is_dir($logDir)) {
@@ -567,6 +621,10 @@ class AdminProductController
         $message = sprintf("[%s] line=%d reason=%s row=%s
 ", date('Y-m-d H:i:s'), $lineNumber, $reason, $rowJson);
         @file_put_contents($logFile, $message, FILE_APPEND);
+
+        if ($errorsOut !== null) {
+            $errorsOut[] = sprintf(__('products_import_error_line'), $lineNumber, $reason);
+        }
     }
 
     public function create()
@@ -643,12 +701,12 @@ class AdminProductController
         }
 
         if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-            return 'Помилка завантаження файлу: ' . ($file['name'] ?? 'невідомий файл') . '.';
+            return sprintf(__('products_image_upload_error'), $file['name'] ?? __('admin_unknown_file'));
         }
 
         $size = (int) ($file['size'] ?? 0);
         if ($size <= 0 || $size > $maxSizeBytes) {
-            return 'Максимальний розмір одного зображення — 5MB.';
+            return __('products_image_max_size');
         }
 
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
@@ -659,7 +717,7 @@ class AdminProductController
 
         $allowedMime = ['image/jpeg', 'image/png', 'image/webp'];
         if (!is_string($mime) || !in_array($mime, $allowedMime, true)) {
-            return 'Дозволені формати зображень: jpg, jpeg, png, webp.';
+            return __('products_image_allowed_formats');
         }
 
         return null;
@@ -699,7 +757,7 @@ class AdminProductController
 
         $limit = $this->getGalleryImagesLimit();
         if ($alreadyStoredCount + count($files) > $limit) {
-            return ['paths' => [], 'error' => 'Можна завантажити максимум ' . $limit . ' фото для одного товару.'];
+            return ['paths' => [], 'error' => sprintf(__('products_gallery_max_images'), $limit)];
         }
 
         foreach ($files as $file) {
@@ -720,7 +778,7 @@ class AdminProductController
                     }
                 }
 
-                return ['paths' => [], 'error' => 'Не вдалося зберегти одне із зображень.'];
+                return ['paths' => [], 'error' => __('products_image_save_error')];
             }
             $uploadedPaths[] = $path;
         }
@@ -782,7 +840,9 @@ class AdminProductController
             'description' => trim((string) ($_POST['description'] ?? '')),
             'meta_title' => trim((string) ($_POST['meta_title'] ?? '')),
             'meta_description' => trim((string) ($_POST['meta_description'] ?? '')),
-            'sku' => trim((string) ($_POST['sku'] ?? ''))
+            'sku' => trim((string) ($_POST['sku'] ?? '')),
+            'vendor' => trim((string) ($_POST['vendor'] ?? '')) !== '' ? trim((string) $_POST['vendor']) : null,
+            'hotline_excluded' => isset($_POST['hotline_excluded']) ? 1 : 0,
         ];
         $stockQty = max(0, (int) ($_POST['stock_qty'] ?? 0));
         $stockComment = trim((string) ($_POST['stock_comment'] ?? ''));
@@ -798,7 +858,7 @@ class AdminProductController
             $exists = \App\Core\Database\DB::query('SELECT id FROM products WHERE sku = ? LIMIT 1', [$data['sku']])->fetch();
             if ($exists) {
                 $this->flashProductFormData($data, $attributeRows);
-                $_SESSION['error'] = 'SKU вже використовується іншим товаром.';
+                $_SESSION['error'] = __('admin_product_sku_duplicate');
                 header('Location: /admin/products/create');
                 exit;
             }
@@ -828,7 +888,7 @@ class AdminProductController
             if (!$this->validateAttributesForCategory($data['category_id'], $attributeRows)) {
                 Product::delete((int) $productId);
                 $this->flashProductFormData($data, $attributeRows);
-                $_SESSION['error'] = 'Неможливо зберегти характеристики: обрано атрибути, які не дозволені для категорії товару.';
+                $_SESSION['error'] = __('admin_product_attributes_category_invalid');
                 header('Location: /admin/products/create');
                 exit;
             }
@@ -846,7 +906,7 @@ class AdminProductController
             if (!$this->applyStockAdjustment((string) $data['sku'], $stockQty, 'add', $stockComment)) {
                 Product::delete((int) $productId);
                 $this->flashProductFormData($data, $attributeRows);
-                $_SESSION['error'] = 'Не вдалося оновити залишки на складі.';
+                $_SESSION['error'] = __('admin_product_stock_update_error');
                 header('Location: /admin/products/create');
                 exit;
             }
@@ -857,11 +917,11 @@ class AdminProductController
             }
 
             unset($_SESSION[self::PRODUCT_FORM_FLASH_KEY]);
-            $_SESSION['success'] = 'Товар успішно додано!';
+            $_SESSION['success'] = __('admin_product_created');
             header('Location: /admin/products');
         } else {
             $this->flashProductFormData($data, $attributeRows);
-            $_SESSION['error'] = 'Помилка при додаванні товару. Перевірте унікальність slug.';
+            $_SESSION['error'] = __('admin_product_create_error');
             header('Location: /admin/products/create');
         }
 
@@ -926,7 +986,9 @@ class AdminProductController
             'description' => trim((string) ($_POST['description'] ?? '')),
             'meta_title' => trim((string) ($_POST['meta_title'] ?? '')),
             'meta_description' => trim((string) ($_POST['meta_description'] ?? '')),
-            'sku' => trim((string) ($_POST['sku'] ?? ''))
+            'sku' => trim((string) ($_POST['sku'] ?? '')),
+            'vendor' => trim((string) ($_POST['vendor'] ?? '')) !== '' ? trim((string) $_POST['vendor']) : null,
+            'hotline_excluded' => isset($_POST['hotline_excluded']) ? 1 : 0,
         ];
         $stockQty = max(0, (int) ($_POST['stock_qty'] ?? 0));
         $stockType = (string) ($_POST['stock_type'] ?? 'add') === 'remove' ? 'remove' : 'add';
@@ -955,7 +1017,7 @@ class AdminProductController
             $exists = \App\Core\Database\DB::query('SELECT id FROM products WHERE sku = ? AND id != ? LIMIT 1', [$data['sku'], (int) $id])->fetch();
             if ($exists) {
                 $this->flashProductFormData($data, $attributeRows);
-                $_SESSION['error'] = 'SKU вже використовується іншим товаром.';
+                $_SESSION['error'] = __('admin_product_sku_duplicate');
                 header('Location: /admin/products/edit/' . $id);
                 exit;
             }
@@ -989,7 +1051,7 @@ class AdminProductController
         if (Product::update($id, $data)) {
             if (!$this->validateAttributesForCategory($data['category_id'], $attributeRows)) {
                 $this->flashProductFormData($data, $attributeRows);
-                $_SESSION['error'] = 'Неможливо зберегти характеристики: обрано атрибути, які не дозволені для категорії товару.';
+                $_SESSION['error'] = __('admin_product_attributes_category_invalid');
                 header('Location: /admin/products/edit/' . $id);
                 exit;
             }
@@ -1010,7 +1072,7 @@ class AdminProductController
             }
             if (!$this->applyStockAdjustment((string) $data['sku'], $stockQty, $stockType, $stockComment)) {
                 $this->flashProductFormData($data, $attributeRows);
-                $_SESSION['error'] = 'Не вдалося оновити залишки на складі.';
+                $_SESSION['error'] = __('admin_product_stock_update_error');
                 header('Location: /admin/products/edit/' . $id);
                 exit;
             }
@@ -1034,7 +1096,7 @@ class AdminProductController
             }
 
             unset($_SESSION[self::PRODUCT_FORM_FLASH_KEY]);
-            $_SESSION['success'] = 'Товар успішно оновлено!';
+            $_SESSION['success'] = __('admin_product_updated');
 
             // Інвалідуємо кеш товарів
             \App\Core\Database\QueryCache::flush('products');
@@ -1042,7 +1104,7 @@ class AdminProductController
             header('Location: /admin/products');
         } else {
             $this->flashProductFormData($data, $attributeRows);
-            $_SESSION['error'] = 'Помилка при оновленні товару. Перевірте унікальність slug.';
+            $_SESSION['error'] = __('admin_product_update_error');
             header('Location: /admin/products/edit/' . $id);
         }
 
@@ -1057,13 +1119,13 @@ class AdminProductController
         $imageId = (int) ($_POST['main_gallery_image_id'] ?? 0);
         $image = ProductImage::findById($imageId);
         if (!$image || (int) ($image['product_id'] ?? 0) !== (int) $id) {
-            $_SESSION['error'] = 'Не вдалося знайти обране фото.';
+            $_SESSION['error'] = __('admin_product_main_image_not_found');
             header('Location: /admin/products/edit/' . (int) $id);
             exit;
         }
 
         Product::update((int) $id, ['image' => (string) $image['image_path']]);
-        $_SESSION['success'] = 'Головне фото оновлено.';
+        $_SESSION['success'] = __('admin_product_main_image_updated');
         header('Location: /admin/products/edit/' . (int) $id);
         exit;
     }
@@ -1080,9 +1142,9 @@ class AdminProductController
         ProductImage::deleteByProduct((int) $id);
 
         if (Product::delete($id)) {
-            $_SESSION['success'] = 'Товар видалено!';
+            $_SESSION['success'] = __('admin_product_deleted');
         } else {
-            $_SESSION['error'] = 'Помилка при видаленні.';
+            $_SESSION['error'] = __('admin_product_delete_error');
         }
 
         header('Location: /admin/products');
@@ -1106,7 +1168,7 @@ class AdminProductController
             http_response_code(400);
             echo json_encode([
                 'success' => false,
-                'message' => 'Некоректний ID категорії.',
+                'message' => __('admin_product_category_id_invalid'),
                 'attributes' => []
             ]);
             return;
@@ -1117,7 +1179,7 @@ class AdminProductController
             http_response_code(404);
             echo json_encode([
                 'success' => false,
-                'message' => 'Категорію не знайдено.',
+                'message' => __('admin_product_category_not_found'),
                 'attributes' => []
             ]);
             return;
@@ -1136,24 +1198,24 @@ class AdminProductController
     private function validateProductPayload(array $data)
     {
         if (trim((string) ($data['name'] ?? '')) === '') {
-            return 'Поле "Назва товару" є обов’язковим.';
+            return __('admin_product_name_required');
         }
 
         $priceValue = str_replace(',', '.', (string) ($data['price'] ?? ''));
         if ($priceValue === '' || !is_numeric($priceValue)) {
-            return 'Поле "Ціна" повинно містити коректне число.';
+            return __('admin_product_price_invalid');
         }
 
         if ((float) $priceValue <= 0) {
-            return 'Поле "Ціна" повинно бути більше 0.';
+            return __('admin_product_price_positive');
         }
 
         if (trim((string) ($data['description'] ?? '')) === '') {
-            return 'Поле "Опис товару" є обов’язковим.';
+            return __('admin_product_description_required');
         }
 
         if ((int) ($data['category_id'] ?? 0) <= 0) {
-            return 'Потрібно обрати категорію товару.';
+            return __('admin_product_category_required');
         }
 
         return null;
@@ -1176,6 +1238,8 @@ class AdminProductController
             'meta_title' => (string) ($data['meta_title'] ?? ''),
             'meta_description' => (string) ($data['meta_description'] ?? ''),
             'sku' => (string) ($data['sku'] ?? ''),
+            'vendor' => (string) ($data['vendor'] ?? ''),
+            'hotline_excluded' => (int) ($data['hotline_excluded'] ?? 0),
             'stock_qty' => (int) ($_POST['stock_qty'] ?? 0),
             'stock_type' => (string) ($_POST['stock_type'] ?? 'add'),
             'stock_comment' => (string) ($_POST['stock_comment'] ?? ''),
@@ -1198,7 +1262,7 @@ class AdminProductController
     {
         if (empty($_SESSION['user']) || ($_SESSION['user']['role'] ?? '') !== 'admin') {
             http_response_code(403);
-            echo json_encode(['success' => false, 'message' => 'Доступ заборонено']);
+            echo json_encode(['success' => false, 'message' => __('admin_product_access_denied')]);
             exit;
         }
 

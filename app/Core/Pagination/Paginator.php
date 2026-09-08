@@ -170,7 +170,7 @@ class Paginator
     /**
      * Згенерувати HTML блоку пагінації.
      *
-     * @param array $options  ['class' => '...', 'show_info' => true, 'window' => 2]
+     * @param array $options  ['class' => '...', 'show_info' => true, 'window' => 2, 'showing_text' => 'Показано %d–%d з %s']
      */
     public function render(array $options = []): string
     {
@@ -181,11 +181,12 @@ class Paginator
         $showInfo = $options['show_info'] ?? true;
         $window   = max(1, (int)($options['window'] ?? 2));
         $class    = $options['class'] ?? 'pag-wrap';
+        $showingText = $options['showing_text'] ?? 'Показано %d–%d з %s';
 
         $info = '';
         if ($showInfo && $this->total > 0) {
             $info = sprintf(
-                '<div class="pag-info">Показано %d–%d з %s</div>',
+                '<div class="pag-info">' . $showingText . '</div>',
                 $this->from(),
                 $this->to(),
                 number_format($this->total)

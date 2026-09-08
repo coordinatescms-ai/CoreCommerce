@@ -1,0 +1,6 @@
+{
+    "label_liqpay": "LiqPay — card payment",
+    "error_not_configured": "LiqPay is not configured: Public Key or Private Key is missing.",
+    "order_fallback_name": "Order #",
+    "redirecting_message": "Redirecting to the LiqPay payment page…"
+}

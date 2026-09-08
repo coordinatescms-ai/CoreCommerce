@@ -45,7 +45,7 @@ class StockController
         $service = StockServiceFactory::make();
         $ok = $type === 'remove' ? $service->removeStock($sku, $qty, $comment) : $service->addStock($sku, $qty, $comment);
 
-        $_SESSION[$ok ? 'success' : 'error'] = $ok ? 'Залишки оновлено.' : 'Не вдалося оновити залишки.';
+        $_SESSION[$ok ? 'success' : 'error'] = $ok ? __('stock_updated') : __('stock_update_failed');
         header('Location: /admin/stocks');
         exit;
     }
@@ -60,7 +60,7 @@ class StockController
         $payload = json_decode((string) file_get_contents('php://input'), true);
         if (!is_array($payload)) {
             http_response_code(422);
-            echo json_encode(['success' => false, 'message' => 'Invalid JSON']);
+            echo json_encode(['success' => false, 'message' => __('stock_invalid_json')]);
             return;
         }
 

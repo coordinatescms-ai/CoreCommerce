@@ -23,6 +23,39 @@ $lastOrderAt = $lastOrderRaw !== '' ? date('d.m.Y H:i', strtotime($lastOrderRaw)
 .crm-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
 .crm-actions .btn { font-size: .9rem; }
 .crm-note { margin-top: .75rem; color: #64748b; font-size: .85rem; }
+
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-input-wrapper input {
+    padding-right: 3rem;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 0.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    transition: color 0.2s ease;
+}
+
+.password-toggle:hover {
+    color: #2563eb;
+}
+
+.password-toggle svg {
+    width: 20px;
+    height: 20px;
+}
 </style>
 
 <div class="page-header">
@@ -89,12 +122,23 @@ $lastOrderAt = $lastOrderRaw !== '' ? date('d.m.Y H:i', strtotime($lastOrderRaw)
         <h3 style="margin: 1rem 0 .5rem;"><?php echo __('crm_activity_log_title'); ?></h3>
         <ul class="crm-list"><?php foreach (($crmData['activity_log'] ?? []) as $entry): ?><li><?php echo htmlspecialchars((string) ($entry['created_at'] ?? '')); ?> — <?php echo htmlspecialchars((string) ($entry['description'] ?? '')); ?></li><?php endforeach; ?></ul>
 
+        <?php /*
+            Бонусна система: backend повністю реалізований і протестований
+            (CrmUserService::adjustBonus() — транзакція, аудит, activity log;
+            POST /admin/users/bonus/{id} — CSRF, валідація причини).
+            UI навмисно прихований у цьому релізі: нараховані бали ніде
+            не можна витратити (немає списання на чекауті, немає показу
+            балансу клієнту в кабінеті) — кнопка вводила б продавця в оману.
+            Розкоментувати h3+div нижче, коли з'явиться повноцінна програма
+            лояльності зі списанням бонусів при оформленні замовлення.
+
         <h3 style="margin: 1rem 0 .5rem;"><?php echo __('crm_bonus_title'); ?></h3>
         <div class="crm-actions">
             <button type="button" class="btn btn-outline" data-bonus-adjust="50"><?php echo __('crm_bonus_add_points'); ?></button>
             <button type="button" class="btn btn-outline" data-bonus-adjust="-50"><?php echo __('crm_bonus_subtract_points'); ?></button>
             <span id="crm-bonus-balance"><?php echo __('crm_bonus_balance'); ?>: <?php echo (int) ($crmData['bonus']['balance'] ?? 0); ?></span>
         </div>
+        */ ?>
 
         <h3 style="margin: 1rem 0 .5rem;">Email</h3>
         <div class="form-group"><input class="form-control" id="crm-email-subject" type="text" placeholder="<?= __('crm_email_subject') ?>"></div>
@@ -107,6 +151,8 @@ $lastOrderAt = $lastOrderRaw !== '' ? date('d.m.Y H:i', strtotime($lastOrderRaw)
         <div class="form-group"><label><input type="checkbox" id="crm-is-blocked" <?php echo $isBlocked ? 'checked' : ''; ?>> <?php echo __('crm_security_block_user'); ?></label></div>
         <div class="form-group"><label><input type="checkbox" id="crm-subscribe-email" <?php echo !empty($crmData['subscriptions']['marketing_email']) ? 'checked' : ''; ?>> <?php echo __('crm_subscriptions_email'); ?></label></div>
     </div></div>
+
+    <?php do_action('admin.user_edit.after', $user); ?>
 </div>
 
 <div class="card" style="margin-top: 1rem; max-width: 760px;"><div class="card-body">
@@ -114,20 +160,39 @@ $lastOrderAt = $lastOrderRaw !== '' ? date('d.m.Y H:i', strtotime($lastOrderRaw)
     <form action="/admin/users/update/<?php echo (int) $user['id']; ?>" method="POST" id="crm-user-edit-form">
         <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf']); ?>">
         <div class="form-group"><label for="email"><?php echo __('crm_profile_email'); ?></label><input class="form-control" type="email" id="email" name="email" required value="<?php echo htmlspecialchars((string) ($user['email'] ?? '')); ?>"></div>
-        <div class="form-group"><label for="phone"><?php echo __('crm_profile_phone'); ?></label><input class="form-control" type="text" id="phone" name="phone" inputmode="numeric" pattern="[0-9]+" oninput="this.value=this.value.replace(/[^0-9]/g,'')" value="<?php echo htmlspecialchars((string) ($user['phone'] ?? '')); ?>"></div>
+        <div class="form-group"><label for="phone"><?php echo __('crm_profile_phone'); ?></label><input class="form-control" type="text" id="phone" name="phone"
+            data-phone-mask="<?php echo htmlspecialchars(normalize_phone_mask((string) get_setting('phone_mask', '+38 (###) ###-##-##'))); ?>"
+            placeholder="<?php echo htmlspecialchars(normalize_phone_mask((string) get_setting('phone_mask', '+38 (###) ###-##-##'))); ?>"
+            value="<?php echo htmlspecialchars((string) ($user['phone'] ?? '')); ?>"></div>
         <div class="form-group">
             <label for="role_id"><?php echo __('crm_role_label'); ?></label>
             <select class="form-control" id="role_id" name="role_id" required data-initial-role="<?php echo (int) ($user['role_id'] ?? 0); ?>">
                 <?php foreach ($roles as $role): ?><option value="<?php echo (int) $role['id']; ?>" <?php echo ((int) $role['id'] === (int) ($user['role_id'] ?? 0)) ? 'selected' : ''; ?>><?php echo htmlspecialchars((string) $role['name']); ?></option><?php endforeach; ?>
             </select>
-            <small style="display:block;margin-top:6px;color:#64748b;">При зміні групи потрібно вказати причину.</small>
-            <input class="form-control" type="text" id="group_reason" name="group_reason" placeholder="Причина зміни групи (обов'язково при зміні)">
+            <small style="display:block;margin-top:6px;color:#64748b;"><?php echo __('crm_group_change_reason'); ?></small>
+            <input class="form-control" type="text" id="group_reason" name="group_reason" placeholder="<?php echo __('crm_group_change_reason_placeholder'); ?>">
         </div>
-        <div class="form-group"><label for="password"><?php echo __('crm_change_password'); ?></label><input class="form-control" type="password" id="password" name="password" minlength="8" placeholder="<?php echo __('crm_change_password_placeholder'); ?>"></div>
+        <div class="form-group">
+            <label for="password"><?php echo __('crm_change_password'); ?></label>
+            <div class="password-input-wrapper">
+                <input class="form-control" type="password" id="password" name="password" minlength="8" placeholder="<?php echo __('crm_change_password_placeholder'); ?>">
+                <button type="button" class="password-toggle" data-target="password" aria-label="Toggle password visibility">
+                    <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    <svg class="eye-off-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                        <line x1="1" y1="1" x2="23" y2="23"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
         <div style="display: flex; gap: 0.75rem; justify-content: flex-end;"><button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> <?php echo __('crm_save'); ?></button></div>
     </form>
 </div></div>
 
+<script src="/js/phone_mask.js"></script>
 <script>
 (function () {
     const csrf = <?php echo json_encode((string) ($_SESSION['csrf'] ?? '')); ?>;
@@ -202,5 +267,24 @@ $lastOrderAt = $lastOrderRaw !== '' ? date('d.m.Y H:i', strtotime($lastOrderRaw)
             if (messageEl) messageEl.value = '';
         });
     }
+
+    document.querySelectorAll('.password-toggle').forEach(button => {
+        button.addEventListener('click', function() {
+            const targetId = this.getAttribute('data-target');
+            const input = document.getElementById(targetId);
+            const eyeIcon = this.querySelector('.eye-icon');
+            const eyeOffIcon = this.querySelector('.eye-off-icon');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                eyeIcon.style.display = 'none';
+                eyeOffIcon.style.display = 'block';
+            } else {
+                input.type = 'password';
+                eyeIcon.style.display = 'block';
+                eyeOffIcon.style.display = 'none';
+            }
+        });
+    });
 })();
 </script>

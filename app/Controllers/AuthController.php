@@ -33,7 +33,7 @@ class AuthController
     {
         // Перевірити CSRF токен
         if (!Csrf::isValid()) {
-            return 'CSRF token validation failed';
+            return __('csrf_token_invalid');
         }
 
         $email    = trim((string)($_POST['email']    ?? ''));
@@ -52,10 +52,7 @@ class AuthController
         $block = $limiter->check($email);
         if ($block !== null) {
             $minutes = (int) ceil($block['retry_after'] / 60);
-            $_SESSION['error'] = sprintf(
-                'Забагато невдалих спроб входу. Спробуйте через %d хв.',
-                max(1, $minutes)
-            );
+            $_SESSION['error'] = sprintf(__('login_too_many_attempts'), max(1, $minutes));
             header('Location: /login');
             exit;
         }
@@ -73,11 +70,7 @@ class AuthController
             $left      = min($remaining['by_ip'], $remaining['by_email']);
 
             if ($left <= 2 && $left > 0) {
-                $_SESSION['error'] = sprintf(
-                    '%s. Залишилось спроб: %d.',
-                    __('invalid_email_or_password'),
-                    $left
-                );
+                $_SESSION['error'] = sprintf(__('login_attempts_remaining'), __('invalid_email_or_password'), $left);
             } else {
                 $_SESSION['error'] = __('invalid_email_or_password');
             }
@@ -99,6 +92,13 @@ class AuthController
 
         $oldSessionId = session_id();
 
+        // Захист від Session Fixation: генеруємо новий ID сесії після автентифікації.
+        // Без цього зловмисник, який заздалегідь підсунув жертві відомий йому
+        // session_id (наприклад через посилання виду ?PHPSESSID=xxx), після
+        // входу жертви отримав би доступ до вже автентифікованої сесії під
+        // тим самим ID. true — видаляє старий файл сесії на сервері.
+        session_regenerate_id(true);
+
         // Встановити сесію
         $_SESSION['user'] = [
             'id'         => $user['id'],
@@ -108,7 +108,7 @@ class AuthController
             'role'       => $user['role'],
         ];
 
-        // Перенести кошик з сесії до користувача
+        // Перенести кошик з сесії до користувача (за старим ID, зафіксованим до регенерації)
         \App\Models\Cart::migrate($oldSessionId, $user['id']);
 
         // Якщо користувач вибрав "Запам'ятати мене"
@@ -143,7 +143,7 @@ class AuthController
     {
         // Перевірити CSRF токен
         if (!Csrf::isValid()) {
-            return 'CSRF token validation failed';
+            return __('csrf_token_invalid');
         }
 
         $email = $_POST['email'] ?? '';
@@ -213,7 +213,7 @@ class AuthController
             'confirmation_link' => $confirmation_link
         ]);
 
-        $this->mailService->send($email, 'Підтвердження реєстрації - MySite', $body);
+        $this->mailService->send($email, __('registration_confirmation_email_subject'), $body);
 
         $_SESSION['success'] = __('registration_successful_check_email');
         header('Location: /login');
@@ -248,7 +248,7 @@ class AuthController
     {
         if (!Csrf::isValid()) {
             http_response_code(419);
-            $_SESSION['error'] = 'CSRF token validation failed';
+            $_SESSION['error'] = __('csrf_token_invalid');
             header('Location: /');
             exit;
         }
@@ -284,7 +284,7 @@ class AuthController
     {
         // Перевірити CSRF токен
         if (!Csrf::isValid()) {
-            return 'CSRF token validation failed';
+            return __('csrf_token_invalid');
         }
 
         $email = $_POST['email'] ?? '';
@@ -315,11 +315,11 @@ class AuthController
         // Відправити email
         $reset_link = "http://" . $_SERVER['HTTP_HOST'] . "/reset-password/" . $token;
         $body = $this->mailService->renderTemplate('password_reset', [
-            'first_name' => $user['first_name'] ?? 'Користувач',
+            'first_name' => $user['first_name'] ?? __('auth_default_user_name'),
             'reset_link' => $reset_link
         ]);
         
-        $this->mailService->send($user['email'], 'Відновлення пароля - MySite', $body);
+        $this->mailService->send($user['email'], __('password_reset_email_subject'), $body);
 
         $_SESSION['success'] = __('password_reset_link_sent_to_email');
         header('Location: /login');
@@ -359,7 +359,7 @@ class AuthController
     {
         // Перевірити CSRF токен
         if (!Csrf::isValid()) {
-            return 'CSRF token validation failed';
+            return __('csrf_token_invalid');
         }
 
         $token = $_POST['token'] ?? '';
@@ -443,7 +443,7 @@ class AuthController
     {
         $userId = $this->requireAuth();
         $user = User::findById($userId);
-        $orders = User::query("SELECT id, total, status, created_at FROM orders WHERE user_id = ? ORDER BY created_at DESC", [$userId]);
+        $orders = User::query("SELECT id, total, status, created_at, delivery_method, delivery_city, delivery_warehouse, delivery_address, payment_method, comment FROM orders WHERE user_id = ? ORDER BY created_at DESC", [$userId]);
         $orderIds = array_map(static fn(array $order): int => (int) ($order['id'] ?? 0), $orders);
         $orderIds = array_values(array_filter($orderIds, static fn(int $id): bool => $id > 0));
 
@@ -507,7 +507,7 @@ class AuthController
 
         View::render('auth/profile', [
             'user' => $user,
-            'favorites' => $favorites,
+            'favorites' => apply_product_price_filter($favorites),
             'activeTab' => 'favorites',
             'seo' => ['meta_title' => __('profile')],
         ]);

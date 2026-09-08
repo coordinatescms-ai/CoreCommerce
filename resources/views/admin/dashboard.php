@@ -46,7 +46,7 @@
         </div>
         <div class="stat-info">
             <h3><?= __('dashboard_sales') ?></h3>
-            <p><?php echo number_format($stats['total_sales'], 2); ?></p>
+            <p><?php echo number_format($stats['total_sales'] ?? 0, 2); ?></p>
         </div>
     </div>
 </div>
@@ -145,7 +145,7 @@
             <form action="/admin/clear-cache" method="POST" style="display:inline;">
                 <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf'] ?? ''); ?>">
                 <button type="submit" class="btn" style="background:#f59e0b;color:#fff;border-color:#d97706;">
-                    <i class="fas fa-broom"></i> <?= __('system_actions') ?>
+                    <i class="fas fa-broom"></i> <?= __('system_clear_cache') ?>
                 </button>
             </form>
         </div>

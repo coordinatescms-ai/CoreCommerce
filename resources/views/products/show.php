@@ -152,7 +152,7 @@ if (isset($_SESSION['user']['id'])) {
                     <svg class="category-royal-title-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                         <path d="M4 6H20M4 12H20M4 18H14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                     </svg>
-                    Категорії
+                    <?= __('categories') ?>
                 </h2>
                 <div class="category-royal-nav">
                     <?php renderCategorySidebarAccordion($categoryTree, $currentCategoryId, $expandedCategoryIds); ?>
@@ -184,7 +184,7 @@ if (isset($_SESSION['user']['id'])) {
 
                 <div class="pdp-info">
                     <h1><?= $productName ?></h1>
-                    <div class="pdp-price" data-base-price="<?= htmlspecialchars((string) number_format((float) ($product['price'] ?? 0), 2, '.', '')) ?>"><?= format_price($product['price'] ?? 0) ?></div>
+                    <div class="pdp-price" data-base-price="<?= htmlspecialchars((string) number_format((float) ($product['price'] ?? 0), 2, '.', '')) ?>"><?= render_product_price($product) ?></div>
 
                     <p class="pdp-short-description">
                         <strong><?= __('short_description') ?>:</strong>
@@ -192,7 +192,7 @@ if (isset($_SESSION['user']['id'])) {
                     </p>
 
                     <div class="pdp-options" aria-label="Product options">
-                        <h3>Оберіть характеристики</h3>
+                        <h3><?= __('choose_options') ?></h3>
                         <?php if (!empty($groupedSelectableAttributes)): ?>
                             <?php foreach ($groupedSelectableAttributes as $attributeId => $group): ?>
                                 <div class="pdp-option-group">
@@ -202,6 +202,7 @@ if (isset($_SESSION['user']['id'])) {
                                             <label class="pdp-chip" style="display:inline-flex; align-items:center; gap:0.45rem;">
                                                 <input
                                                     type="radio"
+                                                    form="product-add-to-cart-form"
                                                     name="selected_option_ids[<?= (int) $attributeId ?>]"
                                                     value="<?= (int) ($option['option_id'] ?? 0) ?>"
                                                     data-option-price="<?= htmlspecialchars((string) number_format((float) ($option['price'] ?? 0), 2, '.', '')) ?>"
@@ -213,19 +214,23 @@ if (isset($_SESSION['user']['id'])) {
                                     </div>
                                 </div>
                             <?php endforeach; ?>
+                            <button type="button" id="clear-product-options" class="pdp-options-reset" disabled>
+                                <?= __('reset') ?>
+                            </button>
                         <?php else: ?>
                             <div class="pdp-option-group">
-                                <div class="pdp-option-label">Для цього товару немає варіантів вибору.</div>
+                                <div class="pdp-option-label"><?= __('no_options_available') ?></div>
                             </div>
                         <?php endif; ?>
                     </div>
 
                     <div class="pdp-actions">
-                        <form action="/cart/add/<?= (int) $product['id'] ?>" method="POST" class="d-flex align-items-center">
+                        <?php $outOfStock = render_stock_badge($product) !== ''; ?>
+                        <form id="product-add-to-cart-form" action="/cart/add/<?= (int) $product['id'] ?>" method="POST" class="d-flex align-items-center">
                             <input type="hidden" name="csrf" value="<?= $_SESSION['csrf'] ?? '' ?>">
                             <input type="hidden" name="return_url" value="<?= htmlspecialchars($_SERVER['REQUEST_URI'] ?? '/products') ?>">
-                            <input type="number" name="quantity" value="1" min="1" max="<?= (int)($product['stock'] ?? 0) ?>" class="form-control me-2" style="width: 80px;">
-                            <button type="submit" class="pdp-btn pdp-btn-primary"><?= __('add_to_cart') ?></button>
+                            <input type="number" name="quantity" value="1" min="1" max="<?= (int)($product['stock'] ?? 0) ?>" class="form-control me-2" style="width: 80px;" <?= $outOfStock ? 'disabled' : '' ?>>
+                            <button type="submit" class="pdp-btn pdp-btn-primary" <?= $outOfStock ? 'disabled' : '' ?>><?= $outOfStock ? __('out_of_stock') : __('add_to_cart') ?></button>
                         </form>
                         <button type="button" 
                             class="pdp-btn pdp-btn-ghost <?= $isFavorite ? 'active' : '' ?>" 
@@ -236,7 +241,11 @@ if (isset($_SESSION['user']['id'])) {
                             </button>
                     </div>
                     <div class="mt-2 small text-muted">
-                        <?= __('in_stock') ?>: <?= (int)($product['stock'] ?? 0) ?>
+                        <?php if ($outOfStock): ?>
+                            <?= render_stock_badge($product) ?>
+                        <?php else: ?>
+                            <?= __('in_stock') ?>: <?= (int)($product['stock'] ?? 0) ?>
+                        <?php endif; ?>
                     </div>
 
                     <?php do_action('product.summary.after', $product); ?>
@@ -261,11 +270,7 @@ if (isset($_SESSION['user']['id'])) {
                         <?php endforeach; ?>
                     <?php endif; ?>
 
-                    <?php if (empty($groupedDetailAttributes) && !empty($productDescription)): ?>
-                        <p><?= nl2br(htmlspecialchars($productDescription)) ?></p>
-                    <?php elseif (empty($groupedDetailAttributes)): ?>
-                        <p>Детальні характеристики відсутні.</p>
-                    <?php endif; ?>
+                    <p><?= nl2br(htmlspecialchars($productDescription)) ?></p>
                 </details>
 
                 <details class="pdp-reviews-details">
@@ -345,25 +350,41 @@ if (isset($_SESSION['user']['id'])) {
 
             </section>
 
-            <section class="pdp-similar" aria-label="<?= __('similar_products') ?>">
-                <h2><?= __('similar_products') ?></h2>
-                <div class="pdp-similar-grid">
+            <section class="pdp-similar" aria-label="<?= __('similar_products') ?>" style="margin-top: 2rem;">
+                <h2 style="font-size: 1.35rem; margin-bottom: 1rem;"><?= __('similar_products') ?></h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem;">
                     <?php foreach (array_slice($similarProducts, 0, 4) as $item): ?>
-                        <article class="pdp-similar-card">
-                            <a href="/product/<?= htmlspecialchars($item['slug']) ?>" class="pdp-similar-image-link">
-                                <img src="<?= htmlspecialchars(!empty($item['image']) ? $item['image'] : $placeholderImage) ?>" alt="<?= htmlspecialchars($item['name']) ?>">
-                            </a>
-                            <h3><a href="/product/<?= htmlspecialchars($item['slug']) ?>"><?= htmlspecialchars($item['name']) ?></a></h3>
-                            <div class="pdp-similar-price"><?= format_price((float) ($item['price'] ?? 0)) ?></div>
+                        <?php $outOfStock = render_stock_badge($item) !== ''; ?>
+                        <article style="border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1rem; background: #fff; display: flex; flex-direction: column;">
+                            <?php if (!empty($item['image'])): ?>
+                                <img src="<?= htmlspecialchars(product_image_variant_path((string) $item['image'], 'medium')) ?>" alt="<?= htmlspecialchars($item['name']) ?>" style="width: 100%; height: 180px; object-fit: cover; border-radius: 0.5rem; margin-bottom: 0.75rem;<?= $outOfStock ? ' opacity: 0.55;' : '' ?>">
+                            <?php endif; ?>
+                            <h3 style="margin: 0 0 0.5rem; font-size: 1rem;">
+                                <a href="/product/<?= htmlspecialchars($item['slug']) ?>" style="text-decoration: none; color: #111827;"><?= htmlspecialchars($item['name']) ?></a>
+                            </h3>
+                            <?php if ($outOfStock): ?>
+                                <p style="margin: 0 0 0.5rem;"><?= render_stock_badge($item) ?></p>
+                            <?php endif; ?>
+                            <p style="margin: 0 0 0.75rem; margin-top: auto;"><?= render_product_price($item) ?></p>
+                            <form action="/cart/add/<?= (int)$item['id'] ?>" method="POST" style="display: inline-block; margin: 0;">
+                                <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
+                                <input type="hidden" name="return_url" value="<?= htmlspecialchars($_SERVER['REQUEST_URI'] ?? '/products') ?>">
+                                <button type="submit" <?= $outOfStock ? 'disabled' : '' ?> style="display: inline-block; padding: 0.5rem 0.85rem; background: <?= $outOfStock ? '#9ca3af' : '#111827' ?>; color: #fff; text-decoration: none; border-radius: 0.45rem; border: 0; cursor: <?= $outOfStock ? 'not-allowed' : 'pointer' ?>;">
+                                    <?= $outOfStock ? __('out_of_stock') : __('add_to_cart') ?>
+                                </button>
+                            </form>
                         </article>
                     <?php endforeach; ?>
 
                     <?php if (empty($similarProducts)): ?>
                         <?php for ($i = 0; $i < 4; $i++): ?>
-                            <article class="pdp-similar-card is-placeholder">
-                                <div class="pdp-similar-image-link"><img src="<?= htmlspecialchars($placeholderImage) ?>" alt="placeholder"></div>
-                                <h3>Product <?= $i + 1 ?></h3>
-                                <div class="pdp-similar-price">0.00 <?= htmlspecialchars($currencySymbol ?? '₴') ?></div>
+                            <article style="border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1rem; background: #fff; display: flex; flex-direction: column; opacity: 0.5;">
+                                <div style="width: 100%; height: 180px; background: #f3f4f6; border-radius: 0.5rem; margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: center; color: #9ca3af;">No Image</div>
+                                <h3 style="margin: 0 0 0.5rem; font-size: 1rem;">Product <?= $i + 1 ?></h3>
+                                <p style="margin: 0 0 0.75rem; margin-top: auto;">0.00 <?= htmlspecialchars($currencySymbol ?? '₴') ?></p>
+                                <button disabled style="display: inline-block; padding: 0.5rem 0.85rem; background: #9ca3af; color: #fff; border-radius: 0.45rem; border: 0; cursor: not-allowed;">
+                                    <?= __('add_to_cart') ?>
+                                </button>
                             </article>
                         <?php endfor; ?>
                     <?php endif; ?>
@@ -919,6 +940,8 @@ if (isset($_SESSION['user']['id'])) {
     border-radius: 10px;
     padding: 0.75rem;
     background: #fff;
+    display: flex;
+    flex-direction: column;
 }
 
 .pdp-similar-image-link {
@@ -939,11 +962,13 @@ if (isset($_SESSION['user']['id'])) {
 .pdp-similar-card h3 {
     font-size: 0.98rem;
     margin: 0 0 0.35rem;
+    flex: 1;
 }
 
 .pdp-similar-price {
-    color: var(--pdp-primary);
+    color: #16a34a;
     font-weight: 700;
+    margin-top: auto;
 }
 
 #auth-popup {
@@ -1136,6 +1161,316 @@ if (isset($_SESSION['user']['id'])) {
 .pdp-main-image {
     cursor: zoom-in;
 }
+
+/* Product card refresh: deliberately scoped to the public product page. */
+.pdp {
+    --pdp-primary: var(--primary, #2563eb);
+    --pdp-ink: #0f172a;
+    --pdp-soft-ink: #475569;
+    --pdp-border: #e6edf5;
+    --pdp-surface: #ffffff;
+    --pdp-soft-surface: #f8fafc;
+}
+
+.pdp-main-grid {
+    gap: 0;
+    overflow: hidden;
+    border: 1px solid var(--pdp-border);
+    border-radius: 24px;
+    background: var(--pdp-surface);
+    box-shadow: 0 18px 55px rgba(15, 23, 42, 0.09);
+}
+
+.pdp-gallery {
+    min-width: 0;
+    padding: clamp(1rem, 3vw, 2rem);
+    background:
+        radial-gradient(circle at 15% 10%, rgba(219, 234, 254, 0.85), transparent 38%),
+        linear-gradient(145deg, #f8fbff 0%, #eef4fb 100%);
+}
+
+.pdp-main-image-wrap {
+    position: relative;
+    border: 0;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 12px 30px rgba(30, 64, 175, 0.1);
+}
+
+.pdp-main-image {
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
+    padding: clamp(0.75rem, 2vw, 1.5rem);
+    transition: transform 0.35s ease;
+}
+
+.pdp-main-image-wrap:hover .pdp-main-image {
+    transform: scale(1.025);
+}
+
+.pdp-thumbs {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.65rem;
+    margin-top: 0.9rem;
+}
+
+.pdp-thumb {
+    border-color: rgba(148, 163, 184, 0.35);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.7);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.pdp-thumb:hover {
+    border-color: rgba(37, 99, 235, 0.55);
+    transform: translateY(-2px);
+}
+
+.pdp-thumb.is-active,
+.pdp-thumb:focus-visible {
+    outline: 0;
+    border-color: var(--pdp-primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+}
+
+.pdp-info {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    justify-content: center;
+    padding: clamp(1.25rem, 4vw, 3rem);
+    background: var(--pdp-surface);
+}
+
+.pdp-info h1 {
+    color: var(--pdp-ink);
+    margin-bottom: 0.85rem;
+    font-size: clamp(1.7rem, 3vw, 2.55rem);
+    line-height: 1.12;
+    letter-spacing: -0.035em;
+}
+
+.pdp-price {
+    display: inline-flex;
+    width: fit-content;
+    align-items: baseline;
+    margin-bottom: 1.35rem;
+    padding: 0.6rem 0.9rem;
+    border: 1px solid rgba(37, 99, 235, 0.14);
+    border-radius: 12px;
+    background: linear-gradient(135deg, #eff6ff 0%, #f8fbff 100%);
+    color: #1d4ed8;
+    font-size: clamp(1.55rem, 2.7vw, 2.15rem);
+    line-height: 1;
+    letter-spacing: -0.025em;
+}
+
+.pdp-short-description {
+    margin-bottom: 1.4rem;
+    padding: 0.9rem 1rem;
+    border-left: 3px solid #93c5fd;
+    border-radius: 0 10px 10px 0;
+    background: #f8fafc;
+    color: var(--pdp-soft-ink);
+    line-height: 1.65;
+}
+
+.pdp-short-description strong {
+    display: block;
+    margin-bottom: 0.2rem;
+    color: var(--pdp-ink);
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.pdp-options {
+    margin-bottom: 1.35rem;
+    border: 1px solid var(--pdp-border);
+    border-radius: 16px;
+    padding: 1.1rem;
+    background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.045);
+}
+
+.pdp-options h3 {
+    margin-bottom: 1rem;
+    color: var(--pdp-ink);
+    font-size: 0.9rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.pdp-option-group + .pdp-option-group {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eef2f7;
+}
+
+.pdp-option-label {
+    margin-bottom: 0.55rem;
+    color: var(--pdp-ink);
+    font-size: 0.9rem;
+}
+
+.pdp-option-values {
+    gap: 0.55rem;
+}
+
+.pdp-options-reset {
+    margin-top: 1rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--pdp-primary);
+    cursor: pointer;
+    font-size: 0.86rem;
+    font-weight: 600;
+}
+
+.pdp-options-reset:disabled {
+    color: #94a3b8;
+    cursor: default;
+}
+
+.pdp-chip {
+    position: relative;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 0.45rem;
+    border: 1px solid #dbe5f0;
+    border-radius: 10px;
+    padding: 0.55rem 0.8rem;
+    background: #fff;
+    color: #334155;
+    font-size: 0.9rem;
+    transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pdp-chip input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.pdp-chip:hover,
+.pdp-chip:has(input:checked) {
+    border-color: var(--pdp-primary);
+    background: #eff6ff;
+    color: #1d4ed8;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
+}
+
+.pdp-chip:has(input:focus-visible) {
+    outline: 3px solid rgba(37, 99, 235, 0.18);
+    outline-offset: 2px;
+}
+
+.pdp-actions {
+    align-items: stretch;
+    gap: 0.7rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid #eef2f7;
+}
+
+.pdp-actions form.pdp-cart-form,
+.pdp-actions form.d-flex {
+    min-width: 0;
+    gap: 0.65rem;
+}
+
+.pdp-actions .form-control {
+    width: 5.25rem !important;
+    min-height: 48px;
+    border: 1px solid #dbe5f0;
+    border-radius: 11px;
+    background: #fff;
+    color: var(--pdp-ink);
+    font-weight: 600;
+    text-align: center;
+}
+
+.pdp-actions .form-control:focus {
+    border-color: var(--pdp-primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+    outline: 0;
+}
+
+.pdp-actions .pdp-btn {
+    min-height: 48px;
+    border-radius: 11px;
+    padding: 0.8rem 1.05rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.pdp-actions .pdp-btn-primary {
+    flex: 1;
+    background: linear-gradient(135deg, var(--pdp-primary) 0%, #1d4ed8 100%);
+    box-shadow: 0 8px 18px rgba(37, 99, 235, 0.22);
+}
+
+.pdp-actions .pdp-btn-primary:hover:not(:disabled) {
+    filter: none;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(37, 99, 235, 0.28);
+}
+
+.pdp-actions .pdp-btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 48px;
+    border-color: #dbe5f0;
+    background: #fff;
+}
+
+.pdp-actions .pdp-btn-ghost:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    transform: translateY(-2px);
+}
+
+.pdp-info > .mt-2.small.text-muted {
+    margin-top: 0.85rem !important;
+    color: #64748b !important;
+    font-size: 0.86rem;
+}
+
+@media (max-width: 1024px) {
+    .pdp-main-grid {
+        gap: 0;
+    }
+
+    .pdp-info {
+        padding-top: 1.5rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .pdp-main-grid {
+        border-radius: 18px;
+    }
+
+    .pdp-gallery,
+    .pdp-info {
+        padding: 1rem;
+    }
+
+    .pdp-thumbs {
+        gap: 0.45rem;
+    }
+
+    .pdp-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .pdp-actions form.pdp-cart-form,
+    .pdp-actions form.d-flex {
+        width: 100%;
+    }
+}
 </style>
 
 <script>
@@ -1293,7 +1628,23 @@ if (isset($_SESSION['user']['id'])) {
         });
         priceNode.textContent = `${(Number(priceNode.dataset.basePrice) + delta).toFixed(2)} ${window.CURRENCY_SYMBOL || '₴'}`;
     }
-    optionRadios.forEach(r => r.addEventListener('change', updatePrice));
+
+    const clearOptionsButton = document.getElementById('clear-product-options');
+    function updateSelectedOptions() {
+        updatePrice();
+        if (clearOptionsButton) {
+            clearOptionsButton.disabled = !document.querySelector('.pdp-options input[type="radio"]:checked');
+        }
+    }
+
+    optionRadios.forEach(r => r.addEventListener('change', updateSelectedOptions));
+    if (clearOptionsButton) {
+        clearOptionsButton.addEventListener('click', () => {
+            optionRadios.forEach(r => { r.checked = false; });
+            updateSelectedOptions();
+        });
+    }
+    updateSelectedOptions();
 
     // --- 4. ВІДГУКИ (ОСНОВНА ЛОГІКА) ---
     const reviewsPanel = document.getElementById('pdp-reviews-panel');

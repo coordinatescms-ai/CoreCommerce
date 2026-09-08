@@ -1,5 +1,4 @@
 # Залежності Composer (їх не можна пушити!)
-vendor/
 .osp/
 
 # Файли конфігурації (там зазвичай паролі до БД)
@@ -8,3 +7,7 @@ vendor/
 # Local updater packages
 storage/local_updates/*.zip
 storage/local_updates/*.ZIP
+
+# Local release/test artifacts
+storage/backups/*.sql
+storage/testing/

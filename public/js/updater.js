@@ -3,7 +3,7 @@ document.addEventListener('click', function(event) {
     if (event.target && (event.target.id === 'check-update-btn' || event.target.closest('#check-update-btn'))) {
         const checkBtn = document.getElementById('check-update-btn');
         checkBtn.disabled = true;
-        checkBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Перевірка...';
+        checkBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> ' + (window.UPDATER_TRANSLATIONS?.checking || 'Перевірка...');
         
         fetch('/admin/update/check')
             .then(res => res.json())
@@ -17,19 +17,19 @@ document.addEventListener('click', function(event) {
                     setTimeout(() => {
                         const w = document.getElementById('check-writable');
                         const p = document.getElementById('check-php');
-                        if(w) w.innerHTML = '<i class="fas fa-check-circle" style="color: #10b981;"></i> Права на запис: OK';
-                        if(p) p.innerHTML = '<i class="fas fa-check-circle" style="color: #10b981;"></i> Версія PHP (8.x): OK';
+                        if(w) w.innerHTML = '<i class="fas fa-check-circle" style="color: #10b981;"></i> ' + (window.UPDATER_TRANSLATIONS?.write_ok || 'Права на запис: OK');
+                        if(p) p.innerHTML = '<i class="fas fa-check-circle" style="color: #10b981;"></i> ' + (window.UPDATER_TRANSLATIONS?.php_ok || 'Версія PHP (8.x): OK');
                     }, 500);
                 } else {
-                    alert(data.message || 'Оновлень не знайдено');
+                    alert(data.message || (window.UPDATER_TRANSLATIONS?.no_updates || 'Оновлень не знайдено'));
                     checkBtn.disabled = false;
-                    checkBtn.innerHTML = '<i class="fas fa-search"></i> Перевірити наявність оновлень';
+                    checkBtn.innerHTML = '<i class="fas fa-search"></i> ' + (window.UPDATER_TRANSLATIONS?.check_button || 'Перевірити наявність оновлень');
                 }
             })
             .catch(err => {
-                alert('Помилка при перевірці оновлень');
+                alert(window.UPDATER_TRANSLATIONS?.check_error || 'Помилка при перевірці оновлень');
                 checkBtn.disabled = false;
-                checkBtn.innerHTML = '<i class="fas fa-search"></i> Перевірити наявність оновлень';
+                checkBtn.innerHTML = '<i class="fas fa-search"></i> ' + (window.UPDATER_TRANSLATIONS?.check_button || 'Перевірити наявність оновлень');
             });
     }
 
@@ -38,11 +38,11 @@ document.addEventListener('click', function(event) {
         const startBtn = document.getElementById('start-update-btn');
         const password = document.getElementById('admin-password').value;
         if (!password) {
-            alert('Будь ласка, введіть пароль');
+            alert(window.UPDATER_TRANSLATIONS?.enter_password || 'Будь ласка, введіть пароль');
             return;
         }
 
-        if (!confirm('Ви впевнені, що хочете розпочати оновлення? Це може змінити файли ядра.')) {
+        if (!confirm(window.UPDATER_TRANSLATIONS?.confirm_start || 'Ви впевнені, що хочете розпочати оновлення? Це може змінити файли ядра.')) {
             return;
         }
 
@@ -55,12 +55,12 @@ document.addEventListener('click', function(event) {
 });
 
 const updateSteps = {
-    'init': { label: 'Ініціалізація', progress: 10 },
-    'backup': { label: 'Резервне копіювання', progress: 30 },
-    'download': { label: 'Завантаження', progress: 50 },
-    'extract': { label: 'Розпакування', progress: 70 },
-    'database': { label: 'Міграція БД', progress: 90 },
-    'finish': { label: 'Завершення', progress: 100 }
+    'init': { label: window.UPDATER_TRANSLATIONS?.step_init || 'Ініціалізація', progress: 10 },
+    'backup': { label: window.UPDATER_TRANSLATIONS?.step_backup || 'Резервне копіювання', progress: 30 },
+    'download': { label: window.UPDATER_TRANSLATIONS?.step_download || 'Завантаження', progress: 50 },
+    'extract': { label: window.UPDATER_TRANSLATIONS?.step_extract || 'Розпакування', progress: 70 },
+    'database': { label: window.UPDATER_TRANSLATIONS?.step_database || 'Міграція БД', progress: 90 },
+    'finish': { label: window.UPDATER_TRANSLATIONS?.step_finish || 'Завершення', progress: 100 }
 };
 
 function addUpdateLog(msg, type = 'info') {
@@ -115,23 +115,23 @@ function runUpdateProcess(step, password = null) {
             if (data.next_step) {
                 setTimeout(() => runUpdateProcess(data.next_step), 1000);
             } else {
-                if (statusText) statusText.textContent = 'Оновлення завершено!';
+                if (statusText) statusText.textContent = window.UPDATER_TRANSLATIONS?.complete || 'Оновлення завершено!';
                 if (progressBar) progressBar.style.background = '#10b981';
-                addUpdateLog('Система готова до роботи', 'success');
+                addUpdateLog(window.UPDATER_TRANSLATIONS?.ready || 'Система готова до роботи', 'success');
                 setTimeout(() => {
                     window.location.reload();
                 }, 2000);
             }
         } else {
-            addUpdateLog('ПОМИЛКА: ' + data.message, 'error');
-            if (statusText) statusText.textContent = 'Оновлення зупинено через помилку';
+            addUpdateLog((window.UPDATER_TRANSLATIONS?.error_prefix || 'ПОМИЛКА: ') + data.message, 'error');
+            if (statusText) statusText.textContent = window.UPDATER_TRANSLATIONS?.stopped || 'Оновлення зупинено через помилку';
             if (progressBar) progressBar.style.background = '#ef4444';
             const startBtn = document.getElementById('start-update-btn');
             if (startBtn) startBtn.disabled = false;
         }
     })
     .catch(err => {
-        addUpdateLog('Критична помилка запиту', 'error');
+        addUpdateLog(window.UPDATER_TRANSLATIONS?.critical_error || 'Критична помилка запиту', 'error');
         const startBtn = document.getElementById('start-update-btn');
         if (startBtn) startBtn.disabled = false;
     });

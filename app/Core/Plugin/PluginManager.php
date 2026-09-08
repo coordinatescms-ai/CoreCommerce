@@ -99,6 +99,10 @@ class PluginManager
                 'is_active'     => (int) ($row['is_active'] ?? 0),
                 'is_missing'    => !$exists,
                 'has_settings'  => $hasSettings,
+                // Необов'язкове поле в info.json: посилання на власну
+                // сторінку керування плагіном (напр. "/plugins/Slug/admin.php"),
+                // якщо у плагіна повноцінний CRUD, а не проста схема налаштувань.
+                'admin_url'     => $meta['admin_url'] ?? null,
             ];
         }
 
@@ -411,6 +415,24 @@ class PluginManager
     public function getPluginDB(string $slug): PluginDB
     {
         return new PluginDB($slug);
+    }
+
+    /**
+     * Чи активний плагін зі вказаним slug.
+     * Використовується Router-ом, щоб виконувати PHP-ендпоінти
+     * плагінів (наприклад /plugins/{slug}/ajax.php) лише для активних плагінів.
+     */
+    public function isPluginActive(string $slug): bool
+    {
+        return in_array($slug, $this->getActivePlugins(), true);
+    }
+
+    /**
+     * Абсолютний шлях до кореневої теки плагінів (plugins/).
+     */
+    public function getPluginsPath(): string
+    {
+        return $this->pluginsPath;
     }
 
     public function clearCache(): void

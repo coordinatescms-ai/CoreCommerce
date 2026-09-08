@@ -19,6 +19,33 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+// Захист: перевіряємо що запит йде з нашого сайту
+$allowedHosts = [parse_url((string)(getenv('APP_URL') ?: ''), PHP_URL_HOST), $_SERVER['HTTP_HOST'] ?? ''];
+$origin = parse_url($_SERVER['HTTP_ORIGIN'] ?? $_SERVER['HTTP_REFERER'] ?? '', PHP_URL_HOST);
+if ($origin !== null && !in_array($origin, array_filter($allowedHosts), true)) {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => 'Forbidden']);
+    exit;
+}
+
+// Rate limiting: не більше 30 запитів на хвилину на сесію
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+$now = time();
+$rlKey = 'np_api_rl';
+$rl = $_SESSION[$rlKey] ?? ['count' => 0, 'start' => $now];
+if ($now - $rl['start'] > 60) {
+    $rl = ['count' => 0, 'start' => $now];
+}
+$rl['count']++;
+$_SESSION[$rlKey] = $rl;
+if ($rl['count'] > 30) {
+    http_response_code(429);
+    echo json_encode(['success' => false, 'message' => 'Забагато запитів. Спробуйте пізніше.']);
+    exit;
+}
+
 $rawBody = file_get_contents('php://input');
 $payload = json_decode($rawBody ?: '{}', true);
 
@@ -75,13 +102,27 @@ function npApiRequest(string $apiKey, string $modelName, string $calledMethod, a
     ];
 
     $ch = curl_init(NOVA_POSHTA_API_URL);
-    curl_setopt_array($ch, [
+
+    $curlOpts = [
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_POST => true,
-        CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
-        CURLOPT_POSTFIELDS => json_encode($requestBody, JSON_UNESCAPED_UNICODE),
-        CURLOPT_TIMEOUT => 15,
-    ]);
+        CURLOPT_POST           => true,
+        CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
+        CURLOPT_POSTFIELDS     => json_encode($requestBody, JSON_UNESCAPED_UNICODE),
+        CURLOPT_TIMEOUT        => 15,
+    ];
+
+    // На Windows (OSPanel) часто відсутній cacert.pem — підключаємо вручну якщо є,
+    // або вимикаємо перевірку (прийнятно для серверного запиту до відомого API)
+    $cacert = __DIR__ . '/../config/cacert.pem';
+    if (file_exists($cacert)) {
+        $curlOpts[CURLOPT_CAINFO]         = $cacert;
+        $curlOpts[CURLOPT_SSL_VERIFYPEER] = true;
+    } else {
+        $curlOpts[CURLOPT_SSL_VERIFYPEER] = false;
+        $curlOpts[CURLOPT_SSL_VERIFYHOST] = 0;
+    }
+
+    curl_setopt_array($ch, $curlOpts);
 
     $responseBody = curl_exec($ch);
 

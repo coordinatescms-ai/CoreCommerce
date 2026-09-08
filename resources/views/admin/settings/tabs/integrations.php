@@ -71,18 +71,14 @@ $webhookUrl = rtrim($siteUrl, '/') . '/prom/webhook';
             <span class="sw-slider"></span>
         </label>
         <div>
-            <div class="int-toggle-label">
-                Інтеграція з Prom.ua
-                <span id="enabledBadge" style="margin-left:.5rem; font-size:.75rem; font-weight:700;
+            <div class="int-toggle-label"><?= __("admin_settings_prom_integration") ?> <span id="enabledBadge" style="margin-left:.5rem; font-size:.75rem; font-weight:700;
                       padding:2px 10px; border-radius:20px;
                       background:<?= $isEnabled ? '#dcfce7' : '#f1f5f9' ?>;
                       color:<?= $isEnabled ? '#166534' : '#64748b' ?>;">
                     <?= $isEnabled ? __('enabled') : __('disabled') ?>
                 </span>
             </div>
-            <div class="int-toggle-desc">
-                Отримання замовлень через вебхук, синхронізація товарів та статусів із маркетплейсом Prom.ua.
-            </div>
+            <div class="int-toggle-desc"><?= __("admin_settings_prom_description") ?></div>
         </div>
     </div>
 </div>
@@ -92,39 +88,19 @@ $webhookUrl = rtrim($siteUrl, '/') . '/prom/webhook';
 
     <!-- API ключ -->
     <div class="card int-section">
-        <div class="card-header"><i class="fas fa-key"></i> API ключ Prom.ua</div>
+        <div class="card-header"><i class="fas fa-key"></i> <?= __("admin_settings_prom_api_title") ?></div>
         <div class="card-body">
             <div class="form-group">
-                <label>Ваш API ключ</label>
-                <div style="display:flex; gap:.5rem;">
-                    <input type="text" id="promApiKey" class="form-control"
-                           value="<?= htmlspecialchars($prom['prom_api_key']) ?>"
-                           placeholder="Вставте API ключ з кабінету Prom.ua"
-                           style="font-family:monospace; flex:1;">
-                    <button type="button" class="btn btn-outline" id="testConnBtn"
-                            style="border:1px solid #ddd; white-space:nowrap;">
-                        <i class="fas fa-plug"></i> Перевірити зв'язок
-                    </button>
-                </div>
-                <div class="conn-result" id="connResult"></div>
-                <small style="color:#64748b; font-size:.8rem; display:block; margin-top:.35rem;">
-                    Знайти ключ: Кабінет Prom.ua → Налаштування → API → Згенерувати токен.
-                </small>
-            </div>
-
-            <div class="form-group">
-                <label>Webhook Secret (необов'язково)</label>
+                <label><?= __("admin_settings_prom_webhook_secret") ?></label>
                 <input type="text" id="promWebhookSecret" class="form-control"
                        value="<?= htmlspecialchars($prom['prom_webhook_secret']) ?>"
-                       placeholder="Секретний ключ для верифікації підпису вебхука"
+                       placeholder="<?= __("admin_settings_prom_webhook_secret_placeholder") ?>"
                        style="font-family:monospace;">
-                <small style="color:#64748b; font-size:.8rem; display:block; margin-top:.3rem;">
-                    Якщо заповнено — кожен вебхук від Prom перевіряється через HMAC-SHA256.
-                </small>
+                <small style="color:#64748b; font-size:.8rem; display:block; margin-top:.3rem;"><?= __("admin_settings_prom_webhook_hint") ?></small>
             </div>
 
             <div class="form-group" style="margin-bottom:0;">
-                <label>URL вебхука — вкажіть у кабінеті Prom.ua</label>
+                <label><?= __("admin_settings_prom_webhook_label") ?></label>
                 <div class="url-field">
                     <input type="text" class="form-control" readonly
                            value="<?= htmlspecialchars($webhookUrl) ?>" id="webhookUrlField">
@@ -140,35 +116,27 @@ $webhookUrl = rtrim($siteUrl, '/') . '/prom/webhook';
 
     <!-- Синхронізація товарів -->
     <div class="card int-section">
-        <div class="card-header"><i class="fas fa-sync-alt"></i> Синхронізація товарів</div>
+        <div class="card-header"><i class="fas fa-sync-alt"></i> <?= __("admin_settings_prom_sync_title") ?></div>
         <div class="card-body">
             <?php if ($lastSync): ?>
                 <div style="font-size:.82rem; color:#64748b; margin-bottom:1rem;">
-                    <i class="fas fa-clock"></i> Остання синхронізація:
-                    <strong><?= htmlspecialchars(date('d.m.Y H:i', strtotime($lastSync))) ?></strong>
+                    <i class="fas fa-clock"></i> <?= __("admin_settings_prom_last_sync") ?> <strong><?= htmlspecialchars(date('d.m.Y H:i', strtotime($lastSync))) ?></strong>
                 </div>
             <?php endif; ?>
 
             <div class="sync-tabs">
                 <button type="button" class="sync-tab <?= $syncMethod === 'xml' ? 'active' : '' ?>"
-                        onclick="switchSync('xml', this)">
-                    <i class="fas fa-file-code"></i> Підхід А: XML/YML фід
-                </button>
+                        onclick="switchSync('xml', this)"><i class="fas fa-file-code"></i> <?= __("admin_settings_prom_method_xml") ?></button>
                 <button type="button" class="sync-tab <?= $syncMethod === 'api' ? 'active' : '' ?>"
-                        onclick="switchSync('api', this)">
-                    <i class="fas fa-bolt"></i> Підхід Б: API (миттєво)
-                </button>
+                        onclick="switchSync('api', this)"><i class="fas fa-bolt"></i> <?= __("admin_settings_prom_method_api") ?></button>
             </div>
             <input type="hidden" id="promSyncMethod" value="<?= htmlspecialchars($syncMethod) ?>">
 
             <!-- Підхід А -->
             <div class="sync-panel <?= $syncMethod === 'xml' ? 'active' : '' ?>" id="panel-xml">
-                <p style="font-size:.875rem; color:#475569; margin-bottom:1rem;">
-                    <?= __('prom_hint') ?>
-                    Вкажіть URL фіду в кабінеті Prom: <strong>Товари → Імпорт → YML</strong>.
-                </p>
+                <p style="font-size:.875rem; color:#475569; margin-bottom:1rem;"><?= __("admin_settings_prom_feed_hint") ?></p>
                 <div class="form-group">
-                    <label>URL вашого XML-фіду</label>
+                    <label><?= __("admin_settings_prom_feed_url") ?></label>
                     <div class="url-field">
                         <input type="text" class="form-control" readonly
                                value="<?= htmlspecialchars($feedUrl) ?>" id="feedUrlField">
@@ -179,52 +147,41 @@ $webhookUrl = rtrim($siteUrl, '/') . '/prom/webhook';
                         </button>
                     </div>
                 </div>
-                <button type="button" class="btn btn-primary" id="generateFeedBtn">
-                    <i class="fas fa-file-export"></i> Згенерувати XML зараз
-                </button>
+                <button type="button" class="btn btn-primary" id="generateFeedBtn"><i class="fas fa-file-export"></i> <?= __("admin_settings_prom_generate_xml") ?></button>
                 <div id="feedResult" style="margin-top:.75rem; font-size:.875rem;"></div>
             </div>
 
             <!-- Підхід Б -->
             <div class="sync-panel <?= $syncMethod === 'api' ? 'active' : '' ?>" id="panel-api">
-                <p style="font-size:.875rem; color:#475569; margin-bottom:1rem;">
-                    Зміни цін та залишків ставляться в чергу і надсилаються в Prom через API.
-                    Підходить для миттєвого оновлення окремих позицій.
-                </p>
+                <p style="font-size:.875rem; color:#475569; margin-bottom:1rem;"><?= __("admin_settings_prom_api_sync_hint") ?></p>
 
                 <?php if (!empty($queueStats)): ?>
                 <div class="queue-grid">
                     <div class="queue-stat pending">
                         <div class="num" id="qPending"><?= (int)$queueStats['pending'] ?></div>
-                        <div class="lbl">В черзі</div>
+                        <div class="lbl"><?= __("admin_settings_prom_queue_pending") ?></div>
                     </div>
                     <div class="queue-stat">
                         <div class="num" id="qProcessing"><?= (int)$queueStats['processing'] ?></div>
-                        <div class="lbl">Обробляється</div>
+                        <div class="lbl"><?= __("admin_settings_prom_queue_processing") ?></div>
                     </div>
                     <div class="queue-stat done">
                         <div class="num" id="qDone"><?= (int)$queueStats['done'] ?></div>
-                        <div class="lbl">Виконано</div>
+                        <div class="lbl"><?= __("admin_settings_prom_queue_done") ?></div>
                     </div>
                     <div class="queue-stat failed">
                         <div class="num" id="qFailed"><?= (int)$queueStats['failed'] ?></div>
-                        <div class="lbl">Помилок</div>
+                        <div class="lbl"><?= __("admin_settings_prom_queue_failed") ?></div>
                     </div>
                 </div>
                 <?php endif; ?>
 
                 <div style="display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:.75rem;">
-                    <button type="button" class="btn btn-primary" id="enqueueBtn">
-                        <i class="fas fa-layer-group"></i> Додати всі товари в чергу
-                    </button>
+                    <button type="button" class="btn btn-primary" id="enqueueBtn"><i class="fas fa-layer-group"></i> <?= __("admin_settings_prom_enqueue") ?></button>
                     <button type="button" class="btn btn-outline"
-                            style="border:1px solid #6366f1; color:#6366f1;" id="processQueueBtn">
-                        <i class="fas fa-play"></i> Обробити чергу (50 шт.)
-                    </button>
+                            style="border:1px solid #6366f1; color:#6366f1;" id="processQueueBtn"><i class="fas fa-play"></i> <?= __("admin_settings_prom_process_queue") ?></button>
                     <button type="button" class="btn btn-outline"
-                            style="border:1px solid #ddd; color:#94a3b8;" id="clearQueueBtn">
-                        <i class="fas fa-trash"></i> Очистити виконані
-                    </button>
+                            style="border:1px solid #ddd; color:#94a3b8;" id="clearQueueBtn"><i class="fas fa-trash"></i> <?= __("admin_settings_prom_clear_queue") ?></button>
                 </div>
                 <div id="queueResult" style="font-size:.875rem;"></div>
             </div>
@@ -281,7 +238,7 @@ $webhookUrl = rtrim($siteUrl, '/') . '/prom/webhook';
                 + (data.message || window.LANG.unknown_error);
         } catch {
             result.className  = 'conn-result fail';
-            result.textContent = 'Помилка мережі.';
+            result.textContent = <?= json_encode(__("admin_settings_prom_network_error")) ?>;
         }
 
         btn.disabled  = false;
@@ -312,7 +269,7 @@ $webhookUrl = rtrim($siteUrl, '/') . '/prom/webhook';
             result.textContent = data.message;
         } catch {
             result.style.color = '#ef4444';
-            result.textContent = 'Помилка мережі.';
+            result.textContent = <?= json_encode(__("admin_settings_prom_network_error")) ?>;
         }
 
         btn.disabled  = false;
@@ -349,7 +306,7 @@ $webhookUrl = rtrim($siteUrl, '/') . '/prom/webhook';
                 + data.message;
         } catch {
             result.style.color = '#ef4444';
-            result.textContent = 'Помилка мережі.';
+            result.textContent = <?= json_encode(__("admin_settings_prom_network_error")) ?>;
         }
 
         btn.disabled  = false;
@@ -388,7 +345,7 @@ $webhookUrl = rtrim($siteUrl, '/') . '/prom/webhook';
             }
         } catch {
             result.style.color = '#ef4444';
-            result.textContent = 'Помилка мережі.';
+            result.textContent = <?= json_encode(__("admin_settings_prom_network_error")) ?>;
         }
 
         btn.disabled = false;

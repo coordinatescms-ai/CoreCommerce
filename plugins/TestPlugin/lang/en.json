@@ -1,0 +1,7 @@
+{
+    "footer_message_default": "Hello from TestPlugin!",
+    "settings_show_footer_message_label": "Show message in footer",
+    "settings_show_footer_message_hint": "Output the message inside an HTML comment in the page footer.",
+    "settings_footer_message_label": "Message text",
+    "settings_footer_message_hint": "This text will be output inside the <!-- comment --> of the footer tag."
+}

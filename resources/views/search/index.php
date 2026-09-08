@@ -138,7 +138,7 @@
                 <?php endif; ?>
                 <div class="search-card-footer">
                     <span class="search-card-price">
-                        <?= format_price($product['price']) ?>
+                        <?= render_product_price($product) ?>
                     </span>
                     <?php
                     $inStock = (int)($product['stock_qty'] ?? 0) > 0;

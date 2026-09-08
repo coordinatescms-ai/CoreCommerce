@@ -51,14 +51,14 @@ class AdminContentController
 
         // Валідація
         if (empty($data['title']) || empty($data['slug'])) {
-            die("Заповніть назву та посилання.");
+            die(__('admin_content_title_required'));
         }
 
         $pageModel = new \App\Models\Page();
 
         // Перевірка на дублікат URL
         if (!$pageModel->isSlugUnique($data['slug'])) {
-            die("Сторінка з таким посиланням вже існує.");
+            die(__('admin_content_slug_exists'));
         }
 
         if ($pageModel->create($data)) {
@@ -87,7 +87,7 @@ class AdminContentController
         $page = $pageModel->getById($id);
 
         if (!$page) {
-            die("Сторінку не знайдено");
+            die(__('admin_content_not_found'));
         }
 
         View::render('admin/content/edit', [
@@ -160,7 +160,7 @@ public function uploadImage()
         $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 
         if (!in_array($ext, $allowed)) {
-            echo json_encode(['error' => 'Недопустимий тип файлу']);
+            echo json_encode(['error' => __('admin_content_invalid_file_type')]);
             exit;
         }
 
@@ -171,7 +171,7 @@ public function uploadImage()
 
         $allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         if (!in_array($realMime, $allowedMimes, true)) {
-            echo json_encode(['error' => 'Файл не є зображенням (перевірено за вмістом)']);
+            echo json_encode(['error' => __('admin_content_not_image')]);
             exit;
         }
 
@@ -191,12 +191,12 @@ public function uploadImage()
             echo json_encode(['url' => '/uploads/pages/' . $filename]);
             exit;
         } else {
-            echo json_encode(['error' => 'Не вдалося перемістити файл. Перевірте права папки.']);
+            echo json_encode(['error' => __('admin_content_move_failed')]);
             exit;
         }
     }
     
-    echo json_encode(['error' => 'Файл не отримано або помилка завантаження']);
+    echo json_encode(['error' => __('admin_content_file_missing')]);
     exit;
 }
 }

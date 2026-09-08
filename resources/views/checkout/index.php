@@ -1,5 +1,5 @@
 <div class="checkout-page">
-    <h1>Оформлення замовлення</h1>
+    <h1><?= __('checkout_title') ?></h1>
 
     <div id="checkout-status" class="checkout-status" hidden></div>
 
@@ -7,62 +7,77 @@
         <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf) ?>">
 
         <section class="checkout-card">
-            <h2>Контактні дані</h2>
+            <h2><?= __('checkout_contact_info') ?></h2>
 
-            <label class="field-label" for="full_name">ПІБ</label>
+            <label class="field-label" for="full_name"><?= __('checkout_full_name') ?></label>
             <input id="full_name" name="full_name" type="text" minlength="5" required value="<?= htmlspecialchars(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?>">
             <small class="field-error" data-error-for="full_name"></small>
 
-            <label class="field-label" for="phone">Телефон</label>
-            <input id="phone" name="phone" type="tel" required inputmode="numeric" pattern="[0-9]+" oninput="this.value=this.value.replace(/[^0-9]/g,'')" value="<?= htmlspecialchars((string)($user['phone'] ?? '')) ?>">
+            <label class="field-label" for="phone"><?= __('checkout_phone') ?></label>
+            <input id="phone" name="phone" type="tel" required
+                   data-phone-mask="<?= htmlspecialchars($phoneMask ?? '+38 (###) ###-##-##') ?>"
+                   placeholder="<?= htmlspecialchars($phoneMask ?? '+38 (###) ###-##-##') ?>"
+                   value="<?= htmlspecialchars((string)($user['phone'] ?? '')) ?>">
             <small class="field-error" data-error-for="phone"></small>
 
-            <label class="field-label" for="email">Email</label>
+            <label class="field-label" for="email"><?= __('checkout_email') ?></label>
             <input id="email" name="email" type="email" required value="<?= htmlspecialchars($user['email'] ?? '') ?>">
             <small class="field-error" data-error-for="email"></small>
         </section>
 
         <section class="checkout-card">
-            <h2>Доставка</h2>
+            <h2><?= __('checkout_delivery') ?></h2>
             <div class="radio-group">
                 <?php foreach ($deliveryMethods as $idx => $method): ?>
+                    <?php $deliveryCost = (float) ($method['settings']['cost'] ?? 0); ?>
                     <label>
                         <input
                             type="radio"
                             name="delivery_id"
                             value="<?= (int) $method['id'] ?>"
                             data-code="<?= htmlspecialchars((string) ($method['code'] ?? '')) ?>"
+                            data-pickup-address="<?= htmlspecialchars((string) ($method['settings']['address'] ?? '')) ?>"
                             <?= $idx === 0 ? 'checked' : '' ?>
                         >
                         <?= htmlspecialchars((string) $method['name']) ?>
+                        <?php if ($deliveryCost > 0): ?>
+                            <small style="display:block; color:#999; font-weight:400;"><?= __('checkout_delivery_extra_cost', ['amount' => format_price($deliveryCost)]) ?></small>
+                        <?php endif; ?>
                     </label>
                 <?php endforeach; ?>
             </div>
             <small class="field-error" data-error-for="delivery_id"></small>
 
             <div id="delivery-np-fields" class="delivery-block">
-                <label class="field-label" for="delivery_city">Місто</label>
-                <input id="delivery_city" name="delivery_city" type="text" list="np-city-list" autocomplete="off" placeholder="Введіть мінімум 3 символи">
+                <label class="field-label" for="delivery_city"><?= __('checkout_city') ?></label>
+                <input id="delivery_city" name="delivery_city" type="text" list="np-city-list" autocomplete="off" placeholder="<?= __('checkout_city_placeholder') ?>">
                 <input id="delivery_city_ref" type="hidden" name="delivery_city_ref">
                 <datalist id="np-city-list"></datalist>
                 <small class="field-error" data-error-for="delivery_city"></small>
 
-                <label class="field-label" for="delivery_warehouse">Відділення</label>
+                <label class="field-label" for="delivery_warehouse"><?= __('checkout_warehouse') ?></label>
                 <select id="delivery_warehouse" name="delivery_warehouse">
-                    <option value="">Оберіть місто спочатку</option>
+                    <option value=""><?= __('checkout_select_city_first') ?></option>
                 </select>
                 <small class="field-error" data-error-for="delivery_warehouse"></small>
             </div>
 
             <div id="delivery-courier-fields" class="delivery-block" hidden>
-                <label class="field-label" for="delivery_address">Адреса доставки</label>
-                <input id="delivery_address" name="delivery_address" type="text" placeholder="Вулиця, будинок, квартира">
+                <label class="field-label" for="delivery_address"><?= __('checkout_delivery_address') ?></label>
+                <input id="delivery_address" name="delivery_address" type="text" placeholder="<?= __('checkout_delivery_address_placeholder') ?>">
                 <small class="field-error" data-error-for="delivery_address"></small>
             </div>
+
+            <div id="delivery-pickup-fields" class="delivery-block" hidden>
+                <p class="field-label"><?= __('settings_shop_address') ?></p>
+                <p id="pickup-address-text" style="margin:0; padding: 0.5rem 0.75rem; background:#f9fafb; border:1px solid #e5e7eb; border-radius:6px;"></p>
+            </div>
+
+            <?php do_action('checkout.delivery_fields', $deliveryMethods); ?>
         </section>
 
         <section class="checkout-card">
-            <h2>Оплата</h2>
+            <h2><?= __('checkout_payment') ?></h2>
             <div class="radio-group">
                 <?php foreach ($paymentMethods as $idx => $method): ?>
                     <label>
@@ -78,12 +93,12 @@
             </div>
             <small class="field-error" data-error-for="payment_id"></small>
 
-            <label class="field-label" for="comment">Коментар до замовлення</label>
-            <textarea id="comment" name="comment" rows="4" placeholder="За потреби додайте коментар"></textarea>
+            <label class="field-label" for="comment"><?= __('checkout_comment') ?></label>
+            <textarea id="comment" name="comment" rows="4" placeholder="<?= __('checkout_comment_placeholder') ?>"></textarea>
         </section>
 
         <section class="checkout-card checkout-summary">
-            <h2>Ваше замовлення</h2>
+            <h2><?= __('checkout_your_order') ?></h2>
             <ul class="summary-list">
                 <?php foreach ($items as $item): ?>
                     <li>
@@ -101,12 +116,15 @@
                     </li>
                 <?php endforeach; ?>
             </ul>
+
+            <?php do_action('checkout.summary.before_total', $total); ?>
+
             <div class="summary-total">
-                <span>Разом</span>
+                <span><?= __('checkout_total') ?></span>
                 <strong><?= format_price($total) ?></strong>
             </div>
 
-            <button type="submit" id="checkout-submit" class="checkout-submit">Підтвердити замовлення</button>
+            <button type="submit" id="checkout-submit" class="checkout-submit"><?= __('checkout_submit') ?></button>
         </section>
     </form>
 </div>
@@ -131,4 +149,28 @@ input.invalid, select.invalid, textarea.invalid { border-color: #ef4444; }
 @media (max-width: 768px) { .checkout-grid { grid-template-columns: 1fr; } }
 </style>
 
+<script>
+window.CHECKOUT_TRANSLATIONS = {
+    specify_pib: <?= json_encode(__('checkout_specify_pib')) ?>,
+    specify_phone: <?= json_encode(__('checkout_specify_phone')) ?>,
+    specify_email: <?= json_encode(__('checkout_specify_email')) ?>,
+    specify_delivery: <?= json_encode(__('checkout_specify_delivery')) ?>,
+    specify_payment: <?= json_encode(__('checkout_specify_payment')) ?>,
+    specify_city: <?= json_encode(__('checkout_specify_city')) ?>,
+    specify_warehouse: <?= json_encode(__('checkout_specify_warehouse')) ?>,
+    specify_address: <?= json_encode(__('checkout_specify_address')) ?>,
+    fix_errors: <?= json_encode(__('checkout_fix_errors')) ?>,
+    sending: <?= json_encode(__('checkout_sending')) ?>,
+    order_error: <?= json_encode(__('checkout_order_error')) ?>,
+    order_success: <?= json_encode(__('checkout_order_success')) ?>,
+    connection_error: <?= json_encode(__('checkout_connection_error')) ?>,
+    submit_button: <?= json_encode(__('checkout_submit_button')) ?>,
+    loading_cities: <?= json_encode(__('checkout_loading_cities')) ?>,
+    loading_warehouses: <?= json_encode(__('checkout_loading_warehouses')) ?>,
+    loading: <?= json_encode(__('checkout_loading')) ?>,
+    select_warehouse: <?= json_encode(__('checkout_select_warehouse')) ?>,
+    load_failed: <?= json_encode(__('checkout_load_failed')) ?>,
+    select_city_first: <?= json_encode(__('checkout_select_city_first')) ?>
+};
+</script>
 <script src="/js/checkout.js"></script>

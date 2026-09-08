@@ -4,6 +4,10 @@
     <?php $assetVersion = urlencode((string) (get_setting('asset_version', '1'))); ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/uploads/logotypes/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/uploads/logotypes/apple-touch-icon.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <meta name="theme-color" content="#008080">
 
     <title><?= htmlspecialchars((string) ($pageSeo['meta_title'] ?? get_setting('site_name', 'My Shop'))) ?></title>
 
@@ -26,16 +30,23 @@
     <?php if (!empty($pageSeo['og_description'])): ?>
         <meta property="og:description" content="<?= htmlspecialchars((string) $pageSeo['og_description']) ?>">
     <?php endif; ?>
-    <?php if (!empty($pageSeo['og_image'])): ?>
-        <meta property="og:image" content="<?= htmlspecialchars((string) $pageSeo['og_image']) ?>">
-    <?php endif; ?>
+    <meta property="og:image" content="<?= !empty($pageSeo['og_image']) ? htmlspecialchars((string) $pageSeo['og_image']) : get_setting('site_url') . '/uploads/logotypes/og-image.png' ?>">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
     <?php if (!empty($pageSeo['canonical'])): ?>
         <meta property="og:url" content="<?= htmlspecialchars((string) $pageSeo['canonical']) ?>">
     <?php endif; ?>
     <meta property="og:site_name" content="<?= htmlspecialchars((string) ($pageSeo['shop_name'] ?? get_setting('site_name', ''))) ?>">
 
+    <!-- Twitter Cards -->
+    <meta name="twitter:card"        content="summary_large_image">
+    <meta name="twitter:title"       content="<?= htmlspecialchars((string) ($pageSeo['og_title'] ?? $pageSeo['meta_title'] ?? get_setting('site_name', ''))) ?>">
+    <meta name="twitter:description" content="<?= htmlspecialchars((string) ($pageSeo['og_description'] ?? $pageSeo['meta_description'] ?? '')) ?>">
+    <meta name="twitter:image"       content="<?= !empty($pageSeo['og_image']) ? htmlspecialchars((string) $pageSeo['og_image']) : get_setting('site_url') . '/uploads/logotypes/og-image.png' ?>">
+
     <link rel="stylesheet" href="<?php echo class_exists('App\\Core\\View\\View') ? \App\Core\View\View::getThemeStyle() : '/resources/themes/modern/style.css'; ?>?v=<?php echo $assetVersion; ?>">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Segoe+UI:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --primary: #2563eb;
@@ -68,45 +79,102 @@
             background: linear-gradient(135deg, var(--primary) 0%, #1e40af 100%);
             color: white;
             padding: 0;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
             position: sticky;
             top: 0;
             z-index: 1000;
         }
 
         nav {
-            max-width: 1200px;
+            max-width: 1300px;
             margin: 0 auto;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 2.5rem;
+            padding: 0.8rem 2rem;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .nav-right {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            gap: 0.8rem;
+        }
+
+        .nav-top-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1rem 2rem;
-            flex-wrap: wrap;
-            gap: 1rem;
+            width: 100%;
+            gap: 1.5rem;
+        }
+
+        .nav-bottom-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding-top: 0.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-phone {
+            font-weight: 600;
+            color: white;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: var(--transition);
+        }
+        
+        .nav-phone:hover {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
         }
 
         .nav-brand {
-            display: inline-flex;
+            display: flex;
             align-items: center;
-            gap: 0.55rem;
-            font-size: 1.2rem;
-            font-weight: 700;
+            gap: 1rem;
+            font-size: 1.8rem;
+            font-weight: 800;
             font-family: 'Poppins', sans-serif;
             text-decoration: none;
             color: white;
             min-width: 0;
+            transition: transform 0.2s ease;
+        }
+        
+        .nav-brand:hover {
+            transform: scale(1.02);
+            text-decoration: none;
+            color: white;
         }
 
         .nav-brand-logo {
-            max-height: 36px;
-            max-width: 140px;
+            max-height: 50px; /* Оптимальна висота для горизонтального логотипу */
+            max-width: 200px; /* Достатня ширина для прямокутного формату */
             width: auto;
             display: block;
             border-radius: 6px;
             background: rgba(255, 255, 255, 0.1);
-            padding: 2px;
+            padding: 4px;
             object-fit: contain;
             flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-brand:hover .nav-brand-logo {
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
         .nav-brand span {
@@ -547,14 +615,139 @@
         footer {
             background-color: var(--dark);
             color: white;
-            text-align: center;
-            padding: 2rem;
-            margin-top: 3rem;
+            padding: 4rem 0 2rem;
+            margin-top: 4rem;
+            border-top: 4px solid var(--primary);
         }
 
-        footer p {
-            color: #cbd5e1;
+        .footer-container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr 1fr;
+            gap: 3rem;
+        }
+
+        .footer-col h4 {
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+
+        .footer-col h4::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 40px;
+            height: 2px;
+            background-color: var(--primary);
+        }
+
+        .footer-about p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-links-list {
+            list-style: none;
+            padding: 0;
             margin: 0;
+        }
+
+        .footer-links-list li {
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-links-list a {
+            color: #94a3b8;
+            text-decoration: none;
+            transition: var(--transition);
+            font-size: 0.95rem;
+        }
+
+        .footer-links-list a:hover {
+            color: white;
+            padding-left: 5px;
+        }
+
+        .footer-contact-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 1rem;
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+
+        .footer-contact-item i {
+            color: var(--primary);
+            width: 20px;
+        }
+
+        .footer-social {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .footer-social a {
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: white;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .footer-social a:hover {
+            background: var(--primary);
+            transform: translateY(-3px);
+        }
+
+        .footer-bottom {
+            max-width: 1300px;
+            margin: 2rem auto 0;
+            padding: 2rem 2rem 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .footer-bottom p {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        @media (max-width: 992px) {
+            .footer-container {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 2rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .footer-container {
+                grid-template-columns: 1fr;
+            }
+            .footer-bottom {
+                flex-direction: column;
+                text-align: center;
+            }
         }
 
         /* Alerts */
@@ -675,26 +868,27 @@
         }
 
         @media (max-width: 900px) {
+            nav { padding: 1rem 1.5rem; }
+            .nav-phone { font-size: 1rem; }
             .nav-search-form { width: 160px; }
             .nav-search-form:focus-within { width: 200px; }
         }
 
-        @media (max-width: 768px) {
-            nav {
-                flex-wrap: wrap;
-                padding: .75rem 1rem;
-                gap: .5rem;
-            }
-
+        @media (max-width: 992px) {
+            nav { flex-direction: column; align-items: stretch; gap: 1rem; padding: 1rem; }
+            .nav-left { justify-content: space-between; width: 100%; }
+            .nav-right { width: 100%; }
+            .nav-top-row { flex-direction: column; gap: 1rem; align-items: stretch; }
+            .nav-search-wrap { max-width: 100% !important; order: 2; }
+            .nav-actions { justify-content: space-between; order: 1; width: 100%; }
             .nav-burger { display: flex; }
 
-            /* Мобільне меню — приховано за замовчуванням */
+            /* Мобільне меню */
             .nav-links {
                 display: none;
                 flex-direction: column;
                 align-items: flex-start;
                 width: 100%;
-                order: 10;
                 background: rgba(255,255,255,.06);
                 border-radius: 10px;
                 padding: .5rem 0;
@@ -728,15 +922,6 @@
 
             .nav-dropdown-menu a { color: rgba(255,255,255,.9) !important; padding: .5rem 1.5rem; }
             .nav-dropdown-menu a:hover { background: rgba(255,255,255,.1) !important; }
-
-            /* Actions — пошук + кошик залишаються в рядку поруч з burger */
-            .nav-actions {
-                margin-left: auto;
-                gap: .5rem;
-            }
-            .nav-search-form { width: 130px; }
-            .nav-search-form:focus-within { width: 160px; }
-            .lang-dropdown { display: none; } /* Мову ховаємо — є в меню */
         }
 
         @media (max-width: 480px) {
@@ -800,115 +985,214 @@
     <header>
         <nav>
             <?php $headerLogo = trim((string) get_setting('active_logotype', '')); ?>
-            <a href="/" class="nav-brand">
-                <?php if ($headerLogo !== ''): ?>
-                    <img src="<?php echo htmlspecialchars($headerLogo); ?>" alt="<?php echo htmlspecialchars((string) get_setting('site_name', 'Мій Магазин')); ?>" class="nav-brand-logo">
-                <?php endif; ?>
-                <span><?php echo htmlspecialchars((string) get_setting('site_name', 'Мій Магазин')); ?></span>
-            </a>
-
-            <!-- Burger button (mobile only) -->
-            <button class="nav-burger" id="nav-burger" aria-label="Меню" aria-expanded="false" aria-controls="nav-mobile-panel" type="button">
-                <span class="nav-burger-line"></span>
-                <span class="nav-burger-line"></span>
-                <span class="nav-burger-line"></span>
-            </button>
-
-            <!-- Desktop nav links -->
-            <div class="nav-links" id="nav-mobile-panel">
-                <div class="nav-dropdown" data-nav-dropdown>
-                    <button class="nav-dropdown-toggle" type="button" aria-expanded="false" aria-controls="modern-nav-categories">
-                        <?= __('categories') ?>
-                    </button>
-                    <?php
-                    $headerCategories = $headerCategories ?? [];
-                    if (!empty($headerCategories)) {
-                        renderModernThemeHeaderCategories($headerCategories, 0, 3, 'modern-nav-categories');
-                    }
-                    ?>
-                </div>
-                <a href="/products"><?php echo function_exists('__') ? __('products') : 'Products'; ?></a>
-                <?php if (!empty($_SESSION['user'])): ?>
-                    <a href="/profile">(<?php echo htmlspecialchars($_SESSION['user']['first_name'] ?? $_SESSION['user']['email']); ?>)</a>
-                    <form action="/logout" method="POST" style="display:inline;">
-                        <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf'] ?? ''); ?>">
-                        <button type="submit" style="border:none; background:none; color:inherit; cursor:pointer; padding:0; ">
-                            <?php echo function_exists('__') ? __('logout') : 'Logout'; ?>
-                        </button>
-                    </form>
-                <?php else: ?>
-                    <a href="/login"><?php echo function_exists('__') ? __('login') : 'Login'; ?></a>
-                    <a href="/register"><?php echo function_exists('__') ? __('register') : 'Register'; ?></a>
-                <?php endif; ?>
-            </div>
-
-            <div class="nav-actions">
-                <!-- Мова -->
-                <?php if (function_exists('get_supported_languages')): ?>
-                <div class="lang-dropdown">
-                    <button class="lang-dropbtn">
-                        <?php
-                        $current = get_current_language();
-                        echo $current === 'ua' ? (function_exists('__') ? __('ukrainian') : 'UA') : (function_exists('__') ? __('english') : 'EN');
-                        ?>
-                        <span class="arrow">▼</span>
-                    </button>
-                    <div class="dropdown-menu">
-                        <?php foreach (get_supported_languages() as $lang): ?>
-                            <?php if ($lang !== $current): ?>
-                                <a href="/language/<?php echo $lang; ?>">
-                                    <?php echo $lang === 'ua' ? (function_exists('__') ? __('ukrainian') : 'Ukrainian') : (function_exists('__') ? __('english') : 'English'); ?>
-                                </a>
-                            <?php endif; ?>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-                <?php endif; ?>
-
-                <!-- Пошук -->
-                <div class="nav-search-wrap">
-                    <form action="/search" method="GET" role="search" class="nav-search-form">
-                        <input type="search" name="q"
-                            id="modern-search-input"
-                            value="<?= htmlspecialchars($_GET['q'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                            placeholder="<?= htmlspecialchars(__('search_placeholder') ?: 'Пошук...') ?>"
-                            autocomplete="off"
-                            class="nav-search-input">
-                        <button type="submit" class="nav-search-btn" aria-label="Пошук">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#555" viewBox="0 0 16 16">
-                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
-                            </svg>
-                        </button>
-                    </form>
-                    <div id="modern-search-dropdown" class="nav-search-dropdown"></div>
-                </div>
-
-                <!-- Кошик -->
-                <a href="/cart" class="nav-cart-link" data-cart-link>
-                    <svg xmlns="http://www.w3.org/2000/svg" height="20" width="22" viewBox="0 0 576 512" fill="white">
-                        <path d="M0 24C0 10.7 10.7 0 24 0H69.5c22 0 41.5 12.8 50.6 32h411c26.3 0 45.5 25 38.6 50.4l-41 152.3c-8.5 31.4-37 53.3-69.5 53.3H170.7l5.4 28.5c2.2 11.3 12.1 19.5 23.6 19.5H488c13.3 0 24 10.7 24 24s-10.7 24-24 24H199.7c-34.6 0-64.3-24.6-70.7-58.5L77.4 54.5c-.7-3.8-4-6.5-7.9-6.5H24C10.7 48 0 37.3 0 24zM128 464a48 48 0 1 1 96 0 48 48 0 1 1-96 0zm336-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"/>
-                    </svg>
-                    <?php echo function_exists('__') ? __('cart') : 'Cart'; ?>
-                    <span class="cart-counter" data-cart-count>0</span>
+            
+            <div class="nav-left">
+                <a href="/" class="nav-brand">
+                    <?php if ($headerLogo !== ''): ?>
+                        <img src="<?php echo htmlspecialchars($headerLogo); ?>" alt="<?php echo htmlspecialchars((string) get_setting('site_name', 'Мій Магазин')); ?>" class="nav-brand-logo">
+                    <?php endif; ?>
+                    <span><?php echo htmlspecialchars((string) get_setting('site_name', 'Мій Магазин')); ?></span>
                 </a>
             </div>
 
+            <div class="nav-right">
+                <div class="nav-top-row">
+                    <!-- Пошук -->
+                    <div class="nav-search-wrap" style="flex: 1; max-width: 450px;">
+                        <form action="/search" method="GET" role="search" class="nav-search-form">
+                            <input type="search" name="q"
+                                id="modern-search-input"
+                                value="<?= htmlspecialchars($_GET['q'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                                placeholder="<?= htmlspecialchars(__('search_placeholder') ?: 'Пошук...') ?>"
+                                autocomplete="off"
+                                class="nav-search-input">
+                            <button type="submit" class="nav-search-btn" aria-label="Пошук">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#555" viewBox="0 0 16 16">
+                                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="nav-actions">
+                        <!-- Мова -->
+                        <?php if (function_exists('get_supported_languages')): ?>
+                        <div class="lang-dropdown">
+                            <button class="lang-dropbtn">
+                                <?php
+                                $current = get_current_language();
+                                echo $current === 'ua' ? (function_exists('__') ? __('ukrainian') : 'UA') : (function_exists('__') ? __('english') : 'EN');
+                                ?>
+                                <span class="arrow">▼</span>
+                            </button>
+                            <div class="dropdown-menu">
+                                <?php foreach (get_supported_languages() as $lang): ?>
+                                    <?php if ($lang !== $current): ?>
+                                        <a href="/language/<?php echo $lang; ?>">
+                                            <?php echo $lang === 'ua' ? (function_exists('__') ? __('ukrainian') : 'Ukrainian') : (function_exists('__') ? __('english') : 'English'); ?>
+                                        </a>
+                                    <?php endif; ?>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+
+                        <!-- Кошик -->
+                        <a href="/cart" class="nav-cart-link" data-cart-link>
+                            <svg xmlns="http://www.w3.org/2000/svg" height="20" width="22" viewBox="0 0 576 512" fill="white">
+                                <path d="M0 24C0 10.7 10.7 0 24 0H69.5c22 0 41.5 12.8 50.6 32h411c26.3 0 45.5 25 38.6 50.4l-41 152.3c-8.5 31.4-37 53.3-69.5 53.3H170.7l5.4 28.5c2.2 11.3 12.1 19.5 23.6 19.5H488c13.3 0 24 10.7 24 24s-10.7 24-24 24H199.7c-34.6 0-64.3-24.6-70.7-58.5L77.4 54.5c-.7-3.8-4-6.5-7.9-6.5H24C10.7 48 0 37.3 0 24zM128 464a48 48 0 1 1 96 0 48 48 0 1 1-96 0zm336-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"/>
+                            </svg>
+                            <?php echo function_exists('__') ? __('cart') : 'Cart'; ?>
+                        <span class="cart-counter" data-cart-count>0</span>
+                    </a>
+
+                    <!-- Burger button (mobile only) -->
+                    <button class="nav-burger" id="nav-burger" aria-label="Меню" aria-expanded="false" aria-controls="nav-mobile-panel" type="button">
+                        <span class="nav-burger-line"></span>
+                        <span class="nav-burger-line"></span>
+                        <span class="nav-burger-line"></span>
+                    </button>
+                </div>
+            </div>
+
+                <div class="nav-bottom-row">
+                    <!-- Desktop nav links -->
+                    <div class="nav-links" id="nav-mobile-panel">
+                        <div class="nav-dropdown" data-nav-dropdown>
+                            <button class="nav-dropdown-toggle" type="button" aria-expanded="false" aria-controls="modern-nav-categories">
+                                <?= __('categories') ?>
+                            </button>
+                            <?php
+                            $headerCategories = $headerCategories ?? [];
+                            if (!empty($headerCategories)) {
+                                renderModernThemeHeaderCategories($headerCategories, 0, 3, 'modern-nav-categories');
+                            }
+                            ?>
+                        </div>
+                        <a href="/products"><?php echo function_exists('__') ? __('products') : 'Products'; ?></a>
+                        <?php if (!empty($_SESSION['user'])): ?>
+                            <a href="/profile">(<?php echo htmlspecialchars($_SESSION['user']['first_name'] ?? $_SESSION['user']['email']); ?>)</a>
+                            <form action="/logout" method="POST" style="display:inline;">
+                                <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf'] ?? ''); ?>">
+                                <button type="submit" style="border:none; background:none; color:inherit; cursor:pointer; padding:0; ">
+                                    <?php echo function_exists('__') ? __('logout') : 'Logout'; ?>
+                                </button>
+                            </form>
+                        <?php else: ?>
+                            <a href="/login"><?php echo function_exists('__') ? __('login') : 'Login'; ?></a>
+                            <a href="/register"><?php echo function_exists('__') ? __('register') : 'Register'; ?></a>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+
+                <div class="nav-phone">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="white" viewBox="0 0 16 16">
+                        <path d="M3.654 1.328a.678.678 0 0 0-1.015-.063L1.605 2.3c-.483.484-.661 1.169-.45 1.77a17.568 17.568 0 0 0 4.168 6.608 17.569 17.569 0 0 0 6.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 0 0-.063-1.015l-2.307-1.794a.676.676 0 0 0-.58-.122l-2.19.547a1.748 1.748 0 0 1-1.657-.459L5.482 8.062a1.748 1.748 0 0 1-.46-1.657l.548-2.19a.678.678 0 0 0-.122-.58L3.654 1.328zM1.884.511a1.745 1.745 0 0 1 2.612.163L6.29 2.98c.329.423.445.974.315 1.494l-.547 2.19a.678.678 0 0 0 .178.643l2.457 2.457a.678.678 0 0 0 .644.178l2.189-.547a1.745 1.745 0 0 1 1.494.315l2.306 1.794c.829.645.905 1.87.163 2.611l-1.034 1.034c-.74.74-1.846 1.065-2.877.702a18.634 18.634 0 0 1-7.01-4.42 18.634 18.634 0 0 1-4.42-7.009c-.362-1.03-.037-2.137.703-2.877L1.885.511z"/>
+                    </svg>
+                    <?= htmlspecialchars(get_setting('contact_phone', '')) ?>
+                </div>
+            </div>
         </nav>
     </header>
 
     <div class="container">
         <main>
+            <?php if (!empty($_SESSION['success'])): ?>
+                <div class="site-flash site-flash-success" style="margin: 1rem 0; padding: 0.85rem 1.1rem; background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; border-radius: 0.5rem;">
+                    <?= htmlspecialchars((string) $_SESSION['success']) ?>
+                </div>
+                <?php unset($_SESSION['success']); ?>
+            <?php endif; ?>
+            <?php if (!empty($_SESSION['error'])): ?>
+                <div class="site-flash site-flash-error" style="margin: 1rem 0; padding: 0.85rem 1.1rem; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 0.5rem;">
+                    <?= htmlspecialchars((string) $_SESSION['error']) ?>
+                </div>
+                <?php unset($_SESSION['error']); ?>
+            <?php endif; ?>
             <?php echo isset($content) ? $content : '<p>No content available</p>'; ?>
         </main>
     </div>
 
     <footer>
-    <div class="footer-links">
-        <?php foreach ($footerPages as $page): ?>
-            <a href="/<?= $page['slug'] ?>"><?= htmlspecialchars($page['title']) ?></a>
-        <?php endforeach; ?>
-    </div>
-        <p>&copy; 2026 MySite. <?php echo function_exists('__') ? (__('all_rights_reserved') ?? 'All rights reserved.') : 'All rights reserved.'; ?></p>
+        <div class="footer-container">
+            <div class="footer-col footer-about">
+                <a href="/" class="nav-brand" style="margin-bottom: 1.5rem; display: inline-flex;">
+                    <?php if ($headerLogo !== ''): ?>
+                        <img src="<?php echo htmlspecialchars($headerLogo); ?>" alt="<?php echo htmlspecialchars((string) get_setting('site_name', 'Мій Магазин')); ?>" class="nav-brand-logo" style="max-height: 50px;">
+                    <?php endif; ?>
+                    <span style="font-size: 1.4rem;"><?php echo htmlspecialchars((string) get_setting('site_name', 'Мій Магазин')); ?></span>
+                </a>
+                <p>
+                    <?php 
+                        $footerAbout = \App\Models\Setting::get('footer_about_text');
+                        echo $footerAbout ? nl2br(htmlspecialchars($footerAbout)) : (function_exists('__') ? __('footer_about_text') : 'Найкращий вибір товарів для вашого дому та бізнесу. Ми гарантуємо якість та швидку доставку.'); 
+                    ?>
+                </p>
+                <?php if (!empty($activeSocialLinks)): ?>
+                    <div class="footer-social">
+                        <?php foreach ($activeSocialLinks as $link): ?>
+                            <a href="<?= htmlspecialchars($link['url']) ?>" 
+                               target="_blank" 
+                               rel="noopener noreferrer" 
+                               aria-label="<?= htmlspecialchars($link['name']) ?>">
+                                <i class="fab fa-<?= htmlspecialchars($link['slug']) ?><?= $link['slug'] === 'telegram' ? '-plane' : '' ?>"></i>
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <div class="footer-col">
+                <h4><?php echo function_exists('__') ? __('categories') : 'Категорії'; ?></h4>
+                <ul class="footer-links-list">
+                    <?php 
+                    $footerCategories = array_slice($headerCategories ?? [], 0, 6);
+                    foreach ($footerCategories as $cat): 
+                    ?>
+                        <li><a href="/category/<?php echo htmlspecialchars(ltrim($cat['path'] ?? $cat['slug'], '/')); ?>"><?php echo htmlspecialchars($cat['name']); ?></a></li>
+                    <?php endforeach; ?>
+                    <li><a href="/products"><?php echo function_exists('__') ? __('view_all') : 'Всі товари'; ?></a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4><?php echo function_exists('__') ? __('information') : 'Інформація'; ?></h4>
+                <ul class="footer-links-list">
+                    <?php foreach ($footerPages as $page): ?>
+                        <li><a href="/<?= $page['slug'] ?>"><?= htmlspecialchars($page['title']) ?></a></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4><?php echo function_exists('__') ? __('contacts') : 'Контакти'; ?></h4>
+                <div class="footer-contact-item">
+                    <i class="fas fa-phone"></i>
+                    <span><?php echo htmlspecialchars((string) get_setting('contact_phone', '+38 (000) 000-00-00')); ?></span>
+                </div>
+                <div class="footer-contact-item">
+                    <i class="fas fa-envelope"></i>
+                    <span><?php echo htmlspecialchars((string) get_setting('contact_email', 'info@mysite.test')); ?></span>
+                </div>
+                <?php $contactAddress = trim((string) get_setting('contact_address', '')); ?>
+                <?php if ($contactAddress !== ''): ?>
+                <div class="footer-contact-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span><?php echo htmlspecialchars($contactAddress); ?></span>
+                </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; <?php echo date('Y'); ?> <?php echo htmlspecialchars((string) get_setting('site_name', 'MySite')); ?>. <?php echo function_exists('__') ? (__('all_rights_reserved') ?? 'Всі права захищені.') : 'All rights reserved.'; ?></p>
+            <div class="footer-payments" style="display: flex; gap: 0.5rem; opacity: 0.6;">
+                <i class="fab fa-cc-visa fa-2x"></i>
+                <i class="fab fa-cc-mastercard fa-2x"></i>
+                <i class="fab fa-cc-apple-pay fa-2x"></i>
+            </div>
+        </div>
         <?php do_action('theme.footer'); ?>
     </footer>
     <script>

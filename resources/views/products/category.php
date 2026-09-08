@@ -79,7 +79,6 @@ if (!function_exists('renderCategorySidebarAccordion')) {
 
 <div class="category-page" data-category-page>
     <?php include view_path('components/breadcrumb'); ?>
-
     <section class="category-heading">
         <div class="category-heading-top">
             <h1 class="category-title"><?= htmlspecialchars($category['name'] ?? __('categories')) ?></h1>
@@ -99,7 +98,7 @@ if (!function_exists('renderCategorySidebarAccordion')) {
                     <svg class="category-royal-title-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                         <path d="M4 6H20M4 12H20M4 18H14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                     </svg>
-                    Категорії
+                    <?= __('categories') ?>
                 </h2>
                 <div class="category-royal-nav">
                     <?php renderCategorySidebarAccordion($categoryTree, $currentCategoryId, $expandedCategoryIds); ?>
@@ -317,6 +316,24 @@ if (!function_exists('renderCategorySidebarAccordion')) {
 
 .category-products-grid {
     margin-top: 0;
+    align-items: stretch !important;
+    grid-auto-rows: 1fr !important;
+}
+
+.category-product-card {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+}
+
+.category-product-content {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 !important;
+}
+
+.category-product-content .btn {
+    margin-top: auto !important;
 }
 
 .category-product-image-link {

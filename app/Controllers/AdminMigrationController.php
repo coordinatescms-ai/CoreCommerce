@@ -55,7 +55,7 @@ class AdminMigrationController
         $this->checkAdmin();
 
         if (!Csrf::isValid()) {
-            $this->json(['success' => false, 'message' => 'CSRF токен недійсний'], 419);
+            $this->json(['success' => false, 'message' => __('migration_csrf_invalid')], 419);
         }
 
         $result = (new MigrationRunner())->run();
@@ -66,8 +66,8 @@ class AdminMigrationController
             'skipped' => $result['skipped'],
             'failed'  => $result['failed'],
             'message' => empty($result['failed'])
-                ? 'Виконано міграцій: ' . count($result['run'])
-                : 'Є помилки: ' . implode(', ', array_keys($result['failed'])),
+                ? sprintf(__('migration_run_success'), count($result['run']))
+                : sprintf(__('migration_run_error'), implode(', ', array_keys($result['failed']))),
         ]);
     }
 
@@ -79,15 +79,15 @@ class AdminMigrationController
         $this->checkAdmin();
 
         if (!Csrf::isValid()) {
-            $this->json(['success' => false, 'message' => 'CSRF токен недійсний'], 419);
+            $this->json(['success' => false, 'message' => __('migration_csrf_invalid')], 419);
         }
 
         $name = trim((string)($_POST['name'] ?? ''));
         if ($name === '') {
-            $this->json(['success' => false, 'message' => 'Назву міграції не вказано'], 422);
+            $this->json(['success' => false, 'message' => __('migration_name_required')], 422);
         }
 
         (new MigrationRunner())->reset($name);
-        $this->json(['success' => true, 'message' => "Міграцію «{$name}» скинуто"]);
+        $this->json(['success' => true, 'message' => sprintf(__('migration_reset_success'), $name)]);
     }
 }

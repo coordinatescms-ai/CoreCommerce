@@ -245,7 +245,8 @@ class PromApiClient
         }
 
         $this->log('OK', $method, $path, "HTTP {$httpCode}", $httpCode);
-        return $decoded;
+        // Завжди додаємо http_code щоб testConnection() міг перевірити статус
+        return array_merge($decoded, ['http_code' => $httpCode]);
     }
 
     /**

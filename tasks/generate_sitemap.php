@@ -19,8 +19,8 @@ declare(strict_types=1);
 
 $root = dirname(__DIR__);
 
-// Захист: скрипт лише для CLI
-if (PHP_SAPI !== 'cli') {
+// Захист: лише CLI або запуск через cron_manager/адмінку
+if (PHP_SAPI !== 'cli' && !defined('CRON_RUNNER')) {
     header('HTTP/1.1 403 Forbidden');
     exit('This script must be run from the command line.');
 }
@@ -29,7 +29,7 @@ require_once $root . '/vendor/autoload.php';
 
 // Завантажуємо конфігурацію БД і хелпери як в index.php
 $config = require $root . '/config/database.php';
-\App\Core\Database\DB::connect($config);
+\App\Core\Database\DB::connect($config['dsn'], $config['user'], $config['pass']);
 
 // Завантажуємо settings (потрібно для site_url)
 require_once $root . '/app/helpers.php';

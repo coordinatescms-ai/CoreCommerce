@@ -59,10 +59,10 @@ class AdminOrderController
         $this->checkAdmin();
 
         $kanbanColumns = [
-            'new'        => 'Новий',
-            'confirmed'  => 'Підтверджено',
-            'processing' => 'Комплектується',
-            'shipped'    => 'Відправлено',
+            'new'        => __('status_new'),
+            'confirmed'  => __('status_confirmed'),
+            'processing' => __('status_processing'),
+            'shipped'    => __('status_shipped'),
         ];
 
         $view         = $_GET['view']  ?? 'kanban';
@@ -135,7 +135,7 @@ class AdminOrderController
         $this->checkAdmin();
 
         if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
-            $this->respondJson(['success' => false, 'message' => 'Метод не підтримується'], 405);
+            $this->respondJson(['success' => false, 'message' => __('admin_order_method_not_supported')], 405);
             return;
         }
 
@@ -145,17 +145,17 @@ class AdminOrderController
         $ttnCode = trim((string) ($payload['ttn_code'] ?? ''));
 
         if ($orderId <= 0 || $newStatus === '') {
-            $this->respondJson(['success' => false, 'message' => 'Некоректні дані'], 422);
+            $this->respondJson(['success' => false, 'message' => __('admin_order_invalid_data')], 422);
             return;
         }
 
         if (!in_array($newStatus, $this->allowedStatuses, true)) {
-            $this->respondJson(['success' => false, 'message' => 'Невідомий статус'], 422);
+            $this->respondJson(['success' => false, 'message' => __('admin_order_unknown_status')], 422);
             return;
         }
 
         if ($newStatus === 'shipped' && $ttnCode === '') {
-            $this->respondJson(['success' => false, 'message' => 'Для статусу "Відправлено" вкажіть ТТН'], 422);
+            $this->respondJson(['success' => false, 'message' => __('admin_order_ttn_required')], 422);
             return;
         }
 
@@ -165,13 +165,13 @@ class AdminOrderController
 
             $order = DB::query('SELECT * FROM orders WHERE id = ? FOR UPDATE', [$orderId])->fetch(\PDO::FETCH_ASSOC);
             if (!$order) {
-                throw new \RuntimeException('Замовлення не знайдено');
+                throw new \RuntimeException(__('admin_order_not_found'));
             }
 
             $currentStatus = (string) ($order['status'] ?? 'new');
             if ($currentStatus === $newStatus) {
                 DB::commit();
-                $this->respondJson(['success' => true, 'message' => 'Статус не змінено', 'status' => $currentStatus]);
+                $this->respondJson(['success' => true, 'message' => __('admin_order_status_unchanged'), 'status' => $currentStatus]);
                 return;
             }
 
@@ -215,7 +215,7 @@ class AdminOrderController
 
             $this->respondJson([
                 'success'  => true,
-                'message'  => 'Статус оновлено',
+                'message'  => __('admin_order_status_updated'),
                 'status'   => $newStatus,
                 'ttn_code' => $ttnCode,
             ]);
@@ -241,13 +241,13 @@ class AdminOrderController
 
             $orderId = (int) $id;
             if ($orderId <= 0) {
-                $this->respondJson(['success' => false, 'message' => 'Некоректний ID замовлення'], 422);
+                $this->respondJson(['success' => false, 'message' => __('admin_order_id_invalid')], 422);
                 return;
             }
 
             $order = DB::query('SELECT * FROM orders WHERE id = ?', [$orderId])->fetch(\PDO::FETCH_ASSOC);
             if (!$order) {
-                $this->respondJson(['success' => false, 'message' => 'Замовлення не знайдено'], 404);
+                $this->respondJson(['success' => false, 'message' => __('admin_order_not_found')], 404);
                 return;
             }
 
@@ -313,7 +313,7 @@ class AdminOrderController
 
             $this->respondJson([
                 'success' => false,
-                'message' => 'Не вдалося завантажити деталі замовлення',
+                'message' => __('admin_order_details_load_error'),
             ], 500);
         } finally {
             if ($previousDisplayErrors !== false) {
@@ -370,7 +370,7 @@ class AdminOrderController
         $this->checkAdmin();
 
         if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
-            $this->respondJson(['success' => false, 'message' => 'Метод не підтримується'], 405);
+            $this->respondJson(['success' => false, 'message' => __('admin_order_method_not_supported')], 405);
             return;
         }
 
@@ -387,7 +387,7 @@ class AdminOrderController
             if ($isUpdate) {
                 $currentOrder = DB::query('SELECT status FROM orders WHERE id = ? FOR UPDATE', [$normalized['id']])->fetch(\PDO::FETCH_ASSOC);
                 if (!$currentOrder) {
-                    throw new \InvalidArgumentException('Замовлення для редагування не знайдено');
+                    throw new \InvalidArgumentException(__('admin_order_edit_not_found'));
                 }
 
                 $oldStatus = (string) ($currentOrder['status'] ?? 'new');
@@ -460,7 +460,7 @@ class AdminOrderController
 
             $this->respondJson([
                 'success' => true,
-                'message' => $isUpdate ? 'Замовлення оновлено' : 'Замовлення створено',
+                'message' => $isUpdate ? __('admin_order_updated') : __('admin_order_created'),
                 'order_id' => $orderId,
             ]);
         } catch (\InvalidArgumentException $e) {
@@ -481,12 +481,12 @@ class AdminOrderController
         $this->checkAdmin();
 
         if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
-            $this->respondJson(['success' => false, 'message' => 'Метод не підтримується'], 405);
+            $this->respondJson(['success' => false, 'message' => __('admin_order_method_not_supported')], 405);
             return;
         }
 
         if (!$this->hasTtnCodeColumn()) {
-            $this->respondJson(['success' => true, 'updated' => [], 'message' => 'Колонка ttn_code відсутня']);
+            $this->respondJson(['success' => true, 'updated' => [], 'message' => __('admin_order_ttn_column_missing')]);
             return;
         }
 
@@ -509,7 +509,11 @@ class AdminOrderController
                     continue;
                 }
 
-                $nextStatus = $carrierStatus === 'received' ? 'completed' : 'shipped';
+                // Плагіни повертають внутрішній статус замовлення. Старий адаптер
+                // Нової пошти лишається сумісним і повертає службове "received".
+                $nextStatus = in_array($carrierStatus, $this->allowedStatuses, true)
+                    ? $carrierStatus
+                    : ($carrierStatus === 'received' ? 'completed' : 'shipped');
 
                 if ($nextStatus !== ($order['status'] ?? '')) {
                     DB::query('UPDATE orders SET status = ? WHERE id = ?', [$nextStatus, (int) $order['id']]);
@@ -529,8 +533,8 @@ class AdminOrderController
                 'success' => true,
                 'updated' => $updated,
                 'message' => empty($updated)
-                    ? ($skipped > 0 ? 'Змін не знайдено. Частину ТТН пропущено через неактивну або неналаштовану службу доставки' : 'Нових змін статусів не знайдено')
-                    : 'Статуси оновлено',
+                    ? ($skipped > 0 ? __('admin_logistics_no_changes_skipped') : __('admin_logistics_no_changes'))
+                    : __('admin_logistics_statuses_updated'),
                 'skipped' => $skipped,
             ]);
         } catch (\Throwable $e) {
@@ -538,6 +542,59 @@ class AdminOrderController
                 DB::rollBack();
             }
             $this->respondJson(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function deleteOrder($id): void
+    {
+        $this->checkAdmin();
+
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+            $this->respondJson(['success' => false, 'message' => __('admin_order_method_not_supported')], 405);
+            return;
+        }
+
+        $orderId = (int) $id;
+        if ($orderId <= 0) {
+            $this->respondJson(['success' => false, 'message' => __('admin_order_id_invalid')], 422);
+            return;
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Перевіряємо чи існує замовлення
+            $order = DB::query('SELECT id, status FROM orders WHERE id = ? FOR UPDATE', [$orderId])->fetch(\PDO::FETCH_ASSOC);
+            if (!$order) {
+                throw new \RuntimeException(__('admin_order_not_found'));
+            }
+
+            // Видаляємо елементи замовлення
+            DB::query('DELETE FROM order_items WHERE order_id = ?', [$orderId]);
+
+            // Видаляємо історію статусів якщо існує таблиця
+            if ($this->hasStatusHistoryTable()) {
+                DB::query('DELETE FROM order_status_history WHERE order_id = ?', [$orderId]);
+            }
+
+            // Видаляємо саме замовлення
+            DB::query('DELETE FROM orders WHERE id = ?', [$orderId]);
+
+            DB::commit();
+
+            $this->respondJson([
+                'success' => true,
+                'message' => __('order_delete_success'),
+            ]);
+        } catch (\Throwable $e) {
+            if (DB::inTransaction()) {
+                DB::rollBack();
+            }
+
+            $this->respondJson([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
         }
     }
 
@@ -556,25 +613,25 @@ class AdminOrderController
         $status = trim((string) ($payload['status'] ?? 'new'));
 
         if ($customerName === '' || mb_strlen($customerName) < 2) {
-            throw new \InvalidArgumentException('Вкажіть коректне імʼя клієнта');
+            throw new \InvalidArgumentException(__('admin_order_customer_name_invalid'));
         }
 
         $phoneMask = normalize_phone_mask((string) Setting::get('phone_mask', '+38 (###) ###-##-##'));
         if (!is_phone_matching_mask($customerPhone, $phoneMask)) {
-            throw new \InvalidArgumentException('Вкажіть коректний номер телефону');
+            throw new \InvalidArgumentException(__('admin_order_phone_invalid'));
         }
 
         if ($customerEmail !== '' && filter_var($customerEmail, FILTER_VALIDATE_EMAIL) === false) {
-            throw new \InvalidArgumentException('Невірний формат email');
+            throw new \InvalidArgumentException(__('admin_order_email_invalid'));
         }
 
         if (!in_array($status, $this->allowedStatuses, true)) {
-            throw new \InvalidArgumentException('Невідомий статус замовлення');
+            throw new \InvalidArgumentException(__('admin_order_status_invalid'));
         }
 
         $itemsPayload = $payload['items'] ?? [];
         if (!is_array($itemsPayload) || count($itemsPayload) === 0) {
-            throw new \InvalidArgumentException('Додайте хоча б один товар');
+            throw new \InvalidArgumentException(__('admin_order_items_required'));
         }
 
         $normalizedItems = [];
@@ -582,24 +639,24 @@ class AdminOrderController
 
         foreach ($itemsPayload as $index => $item) {
             if (!is_array($item)) {
-                throw new \InvalidArgumentException('Помилка формату товарів у рядку ' . ($index + 1));
+                throw new \InvalidArgumentException(sprintf(__('admin_order_item_format_error'), $index + 1));
             }
 
             $productId = (int) ($item['product_id'] ?? 0);
             $qty = (int) ($item['qty'] ?? 0);
 
             if ($productId <= 0 || $qty <= 0) {
-                throw new \InvalidArgumentException('Некоректні дані товару у рядку ' . ($index + 1));
+                throw new \InvalidArgumentException(sprintf(__('admin_order_item_invalid'), $index + 1));
             }
 
             $product = DB::query('SELECT id, price FROM products WHERE id = ?', [$productId])->fetch(\PDO::FETCH_ASSOC);
             if (!$product) {
-                throw new \InvalidArgumentException('Товар ID ' . $productId . ' не знайдено');
+                throw new \InvalidArgumentException(sprintf(__('admin_order_product_not_found'), $productId));
             }
 
             $price = isset($item['price']) ? (float) $item['price'] : (float) ($product['price'] ?? 0);
             if ($price < 0) {
-                throw new \InvalidArgumentException('Ціна не може бути відʼємною');
+                throw new \InvalidArgumentException(__('admin_order_price_negative'));
             }
 
             $normalizedItems[] = [
@@ -648,7 +705,12 @@ class AdminOrderController
             return $this->fetchNovaPoshtaStatus($method, $ttnCode, $customerPhone);
         }
 
-        return null;
+        /**
+         * Плагіни повертають внутрішній статус замовлення або null, якщо
+         * синхронізація для цього перевізника не виконується.
+         */
+        $status = apply_filters('logistics.carrier_status', null, $order, $method);
+        return is_string($status) && $status !== '' ? $status : null;
     }
 
     private function fetchNovaPoshtaStatus(array $method, string $ttnCode, string $phone): ?string
@@ -679,6 +741,11 @@ class AdminOrderController
                 'content' => json_encode($payload, JSON_UNESCAPED_UNICODE),
                 'timeout' => 10,
                 'ignore_errors' => true,
+            ],
+            // SSL для Windows/OSPanel де може бути відсутній cacert
+            'ssl' => [
+                'verify_peer'      => false,
+                'verify_peer_name' => false,
             ],
         ]);
 
@@ -763,8 +830,8 @@ class AdminOrderController
                 continue;
             }
 
-            if (!$stockService->removeStock($sku, $qty, 'Списання по замовленню #' . $orderId)) {
-                throw new \RuntimeException('Недостатньо залишків для SKU ' . $sku);
+            if (!$stockService->removeStock($sku, $qty, sprintf(__('admin_order_stock_deduction_reason'), $orderId))) {
+                throw new \RuntimeException(sprintf(__('admin_order_insufficient_stock'), $sku));
             }
             $stockService->releaseReserve($sku, $qty);
         }
