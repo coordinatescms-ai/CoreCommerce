@@ -37,7 +37,7 @@ class CurrencyController
         $this->checkAdmin();
 
         if (!Csrf::isValid()) {
-            $_SESSION['error'] = 'CSRF токен недійсний.';
+            $_SESSION['error'] = __('csrf_token_invalid');
             header('Location: /admin/system');
             exit;
         }
@@ -48,17 +48,17 @@ class CurrencyController
         $rate   = (float)str_replace(',', '.', trim((string)($_POST['rate'] ?? '1')));
 
         if ($code === '' || $symbol === '') {
-            $_SESSION['error'] = 'Код та символ валюти є обов\'язковими.';
+            $_SESSION['error'] = __('admin_currency_code_symbol_required');
             header('Location: /admin/system');
             exit;
         }
         if (!preg_match('/^[A-Z]{3}$/', $code)) {
-            $_SESSION['error'] = 'Код валюти має складатися з 3 латинських літер (напр. USD).';
+            $_SESSION['error'] = __('admin_currency_code_invalid');
             header('Location: /admin/system');
             exit;
         }
         if ($rate <= 0) {
-            $_SESSION['error'] = 'Курс валюти має бути більшим за нуль.';
+            $_SESSION['error'] = __('admin_currency_rate_positive');
             header('Location: /admin/system');
             exit;
         }
@@ -69,13 +69,13 @@ class CurrencyController
                 'UPDATE currencies SET code = ?, symbol = ?, rate = ? WHERE id = ?',
                 [$code, $symbol, $rate, $id]
             );
-            $_SESSION['success'] = "Валюту {$code} оновлено.";
+            $_SESSION['success'] = sprintf(__('admin_currency_updated'), $code);
         } else {
             // Перевірка на дублікат коду
             $exists = DB::query('SELECT id FROM currencies WHERE code = ?', [$code])
                         ->fetch(\PDO::FETCH_ASSOC);
             if ($exists) {
-                $_SESSION['error'] = "Валюта з кодом «{$code}» вже існує.";
+                $_SESSION['error'] = sprintf(__('admin_currency_duplicate'), $code);
                 header('Location: /admin/system');
                 exit;
             }
@@ -83,7 +83,7 @@ class CurrencyController
                 'INSERT INTO currencies (code, symbol, rate, is_active) VALUES (?, ?, ?, 0)',
                 [$code, $symbol, $rate]
             );
-            $_SESSION['success'] = "Валюту {$code} додано.";
+            $_SESSION['success'] = sprintf(__('admin_currency_added'), $code);
         }
 
         header('Location: /admin/system');
@@ -98,7 +98,7 @@ class CurrencyController
         $this->checkAdmin();
 
         if (!Csrf::isValid()) {
-            $_SESSION['error'] = 'CSRF токен недійсний.';
+            $_SESSION['error'] = __('csrf_token_invalid');
             header('Location: /admin/system');
             exit;
         }
@@ -107,18 +107,18 @@ class CurrencyController
                       ->fetch(\PDO::FETCH_ASSOC);
 
         if (!$currency) {
-            $_SESSION['error'] = 'Валюту не знайдено.';
+            $_SESSION['error'] = __('admin_currency_not_found');
             header('Location: /admin/system');
             exit;
         }
         if ((int)$currency['is_active'] === 1) {
-            $_SESSION['error'] = 'Не можна видалити активну валюту сайту.';
+            $_SESSION['error'] = __('admin_currency_delete_active');
             header('Location: /admin/system');
             exit;
         }
 
         DB::query('DELETE FROM currencies WHERE id = ?', [$id]);
-        $_SESSION['success'] = "Валюту {$currency['code']} видалено.";
+        $_SESSION['success'] = sprintf(__('admin_currency_deleted'), $currency['code']);
         header('Location: /admin/system');
         exit;
     }
@@ -140,18 +140,18 @@ class CurrencyController
         $this->checkAdmin();
 
         if (!Csrf::isValid()) {
-            $_SESSION['error'] = 'CSRF токен недійсний.';
+            $_SESSION['error'] = __('csrf_token_invalid');
             header('Location: /admin/settings?tab=general');
             exit;
         }
 
-        $source         = $_POST['currency_source']  === 'api' ? 'api' : 'manual';
-        $targetCode     = strtoupper(trim((string)($_POST['target_currency'] ?? '')));
-        $manualRateRaw  = trim((string)($_POST['manual_rate'] ?? ''));
-        $apiKey         = trim((string)($_POST['currency_api_key'] ?? ''));
+        // БАГ #3 fix: використовуємо ?? щоб уникнути PHP Notice
+        $source        = (($_POST['currency_source'] ?? '') === 'api') ? 'api' : 'manual';
+        $targetCode    = strtoupper(trim((string)($_POST['target_currency'] ?? '')));
+        $manualRateRaw = trim((string)($_POST['manual_rate'] ?? ''));
 
         if ($targetCode === '') {
-            $_SESSION['error'] = 'Не вказано цільову валюту.';
+            $_SESSION['error'] = __('admin_currency_target_required');
             header('Location: /admin/settings?tab=general');
             exit;
         }
@@ -159,38 +159,15 @@ class CurrencyController
         try {
             DB::beginTransaction();
 
-            // 1. Зберігаємо вибір джерела курсу в settings
-            //    Якщо source == 'api' — зберігаємо API-ключ окремо,
-            //    значення currency_source = 'api' (або ключ, якщо він переданий)
-            if ($source === 'api') {
-                // Якщо передали новий ключ — зберігаємо його
-                if ($apiKey !== '') {
-                    DB::query(
-                        "INSERT INTO settings (`key`, `value`, `group`, `type`, updated_at)
-                         VALUES ('currency_source', ?, 'currency', 'select', NOW())
-                         ON DUPLICATE KEY UPDATE `value` = ?, updated_at = NOW()",
-                        [$apiKey, $apiKey]
-                    );
-                }
-                // Якщо ключ не передали — читаємо поточний з БД
-                $storedKey = DB::query(
-                    "SELECT `value` FROM settings WHERE `key` = 'currency_source' LIMIT 1"
-                )->fetchColumn();
-
-                if (empty($storedKey) || $storedKey === 'manual') {
-                    throw new \RuntimeException(
-                        'API-ключ НБУ не заповнено. Вкажіть ключ у полі «API-ключ НБУ».'
-                    );
-                }
-                $apiKey = $storedKey;
-            } else {
-                // manual — зберігаємо просто 'manual'
-                DB::query(
-                    "INSERT INTO settings (`key`, `value`, `group`, `type`, updated_at)
-                     VALUES ('currency_source', 'manual', 'currency', 'select', NOW())
-                     ON DUPLICATE KEY UPDATE `value` = 'manual', updated_at = NOW()"
-                );
-            }
+            // 1. Зберігаємо джерело курсу ('manual' або 'nbu_api')
+            // НБУ API є публічним і не потребує API-ключа
+            $sourceValue = ($source === 'api') ? 'nbu_api' : 'manual';
+            DB::query(
+                "INSERT INTO settings (`key`, `value`, `group`, `type`, updated_at)
+                 VALUES ('currency_source', ?, 'currency', 'select', NOW())
+                 ON DUPLICATE KEY UPDATE `value` = ?, updated_at = NOW()",
+                [$sourceValue, $sourceValue]
+            );
 
             // 2. Поточна активна валюта (до зміни)
             $activeCurrency = DB::query(
@@ -198,7 +175,7 @@ class CurrencyController
             )->fetch(\PDO::FETCH_ASSOC);
 
             if (!$activeCurrency) {
-                throw new \RuntimeException('В базі немає активної валюти.');
+                throw new \RuntimeException(__('admin_currency_no_active'));
             }
 
             $oldRateInUah = (float)$activeCurrency['rate'];
@@ -209,17 +186,18 @@ class CurrencyController
             )->fetch(\PDO::FETCH_ASSOC);
 
             if (!$targetCurrency) {
-                throw new \RuntimeException("Валюту «{$targetCode}» не знайдено в базі.");
+                throw new \RuntimeException(sprintf(__('admin_currency_target_not_found'), $targetCode));
             }
 
             // 4. Визначаємо новий курс
+            // НБУ API публічний — API-ключ не потрібен
             if ($source === 'api') {
                 $service      = new BankCurrencyService();
-                $newRateInUah = $service->fetchRate($targetCode, $apiKey);
+                $newRateInUah = $service->fetchRate($targetCode);
             } else {
                 $newRateInUah = (float)str_replace(',', '.', $manualRateRaw);
                 if ($newRateInUah <= 0) {
-                    throw new \RuntimeException('Курс валюти має бути більшим за нуль.');
+                    throw new \RuntimeException(__('admin_currency_rate_positive'));
                 }
             }
 
@@ -258,7 +236,7 @@ class CurrencyController
             DB::commit();
 
             $_SESSION['success'] = sprintf(
-                'Валюту змінено на %s. Курс: 1 %s = %.4f UAH. Ціни перераховано (коефіцієнт: %.6f).',
+                __('admin_currency_recalculated'),
                 $targetCode,
                 $targetCode,
                 $newRateInUah,
@@ -269,7 +247,7 @@ class CurrencyController
             if (DB::inTransaction()) {
                 DB::rollBack();
             }
-            $_SESSION['error'] = 'Помилка перерахунку: ' . $e->getMessage();
+            $_SESSION['error'] = sprintf(__('admin_currency_recalculation_error'), $e->getMessage());
         }
 
         header('Location: /admin/settings?tab=general');

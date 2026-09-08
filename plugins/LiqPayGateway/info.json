@@ -1,7 +1,7 @@
 {
     "slug": "LiqPayGateway",
-    "name": "LiqPay — онлайн оплата",
-    "description": "Приймає оплату карткою через LiqPay. Підтримує тестовий режим (Sandbox), верифікацію підпису вебхука та автоматичне підтвердження замовлення.",
+    "name": "LiqPay — Online payment",
+    "description": "Accepts card payments via LiqPay. Supports test mode (Sandbox), webhook signature verification, and automatic order confirmation.",
     "version": "1.0.0",
     "author": "CoreCommerce",
     "requires_php": "8.1",

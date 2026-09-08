@@ -1,5 +1,5 @@
 <div class="page-header">
-    <h1 class="page-title">Аналітика</h1>
+    <h1 class="page-title"><?= __('analytics_title') ?></h1>
 </div>
 
 <!-- Блок керування (кнопки та форма) -->
@@ -7,16 +7,16 @@
     <div class="filter-group">
         <i class="fas fa-hand-holding-usd" style="color: #64748b; margin-right: 10px;"></i>
         <a href="/admin/analytics/week" class="filter-btn <?= $period == 'week' ? 'active' : '' ?>">
-            <i class="fa-solid fa-calendar-day"></i> Тиждень
+            <i class="fa-solid fa-calendar-day"></i>  <?= __('week') ?>
         </a>
         <a href="/admin/analytics/month" class="filter-btn <?= $period == 'month' ? 'active' : '' ?>">
-            <i class="fa-solid fa-calendar-week"></i> Місяць
+            <i class="fa-solid fa-calendar-week"></i> <?= __('month') ?>
         </a>
         <a href="/admin/analytics/year" class="filter-btn <?= $period == 'year' ? 'active' : '' ?>">
-            <i class="fa-solid fa-calendar-days"></i> Рік
+            <i class="fa-solid fa-calendar-days"></i> <?= __('year') ?>
         </a>
         <a href="/admin/analytics/<?= $period ?>?export=csv" class="filter-btn" style="background: #22c55e; color: #fff;">
-           <i class="fa-solid fa-file-csv"></i> Експорт CSV
+           <i class="fa-solid fa-file-csv"></i> <?= __('export_csv') ?>
         </a>
     </div>
 
@@ -31,7 +31,7 @@
         <?php if (!empty($use_custom_range)): ?>
             <a href="/admin/analytics/<?= htmlspecialchars($period) ?>"
                style="margin-left:6px; font-size:12px; color:#94a3b8; text-decoration:none;"
-               title="Скинути до стандартного періоду">&#x2715; скинути</a>
+               title="<?= __('reset') ?>">&#x2715; <?= __('reset') ?></a>
         <?php endif; ?>
     </form>
 </div>
@@ -45,13 +45,12 @@
     <div class="card-header">
         <h3>
             <i class="fa-solid fa-table-list"></i>
-            Деталізація:
             <?php if (!empty($use_custom_range)): ?>
                 <span style="color:#64748b; font-weight:400;">
                     <?= date('d.m.Y', strtotime($date_from)) ?> — <?= date('d.m.Y', strtotime($date_to)) ?>
                 </span>
                 <span style="margin-left:8px; background:#eff6ff; color:#3b82f6; font-size:12px; font-weight:600; padding:2px 10px; border-radius:20px; vertical-align:middle;">
-                    довільний діапазон
+                    <?= __('custom_range') ?>
                 </span>
             <?php else: ?>
                 <?= htmlspecialchars($title_text ?? '') ?>
@@ -62,10 +61,10 @@
     <div class="admin-table-wrap"><table class="admin-table">
         <thead>
             <tr>
-                <th>Період</th>
-                <th>Замовлень</th> <!-- Нова колонка -->
-                <th>Сума виручки</th>
-                <th style="text-align: right;"><?= __('analytics_share') ?></th>
+                <th><?= __('csv_period') ?></th>
+                <th><?= __('csv_orders') ?></th> <!-- Нова колонка -->
+                <th><?= __('csv_revenue') ?></th>
+                <th style="text-align: right;"><?= __('csv_share') ?></th>
             </tr>
         </thead>
         <tbody>
@@ -81,7 +80,7 @@
             ?>
             <tr>
                 <td><strong><?= $label ?></strong></td>
-                <td><span style="color: #64748b;"><i class="fa-solid fa-box-open"></i></span> <?= $count ?> шт.</td>
+                <td><span style="color: #64748b;"><i class="fa-solid fa-box-open"></i></span> <?= $count ?> <?= __('pcs') ?></td>
                 <td><?= format_price($val) ?></td>
                 <td style="text-align: right;">
                     <small style="color: #36a2eb; font-weight: 600;"><?= $percent ?>%</small>
@@ -90,15 +89,15 @@
             <?php endforeach; ?>
             
             <tr style="background: #f8fafc; font-weight: bold; border-top: 2px solid #e2e8f0;">
-                <td>РАЗОМ</td>
-                <td><?= $total_orders ?> шт.</td>
+                <td><?= __('csv_total') ?></td>
+                <td><?= $total_orders ?> <?= __('pcs') ?></td>
                 <td><?= format_price($total_sum) ?></td>
                 <td style="text-align: right;">100%</td>
             </tr>
             
             <?php else: ?>
             <tr>
-                <td colspan="4" style="text-align: center; padding: 20px; color: #94a3b8;">Дані відсутні</td>
+                <td colspan="4" style="text-align: center; padding: 20px; color: #94a3b8;"><?= __('analytics_no_data') ?></td>
             </tr>
             <?php endif; ?>
         </tbody>
@@ -107,15 +106,15 @@
 
 <div class="recent-orders-card" style="margin-top: 30px;">
     <div class="card-header">
-        <h3><i class="fa-solid fa-fire" style="color: #f97316;"></i> Популярні товари (ТОП-5)</h3>
+        <h3><i class="fa-solid fa-fire" style="color: #f97316;"></i> <?= __('analytics_popular_products') ?></h3>
     </div>
     
     <div class="admin-table-wrap"><table class="admin-table">
         <thead>
             <tr>
-                <th>Товар</th>
-                <th style="text-align: center;">Продано (шт)</th>
-                <th style="text-align: right;">Виручка</th>
+                <th><?= __('product') ?></th>
+                <th style="text-align: center;"><?= __('analytics_sold') ?></th>
+                <th style="text-align: right;"><?= __('analytics_revenue') ?></th>
             </tr>
         </thead>
         <tbody>
@@ -130,7 +129,7 @@
                     </td>
                     <td style="text-align: center;">
                         <span class="status-badge" style="background: #f1f5f9; color: #475569;">
-                            <?= $item['total_qty'] ?> шт.
+                            <?= $item['total_qty'] ?> <?= __('pcs') ?>
                         </span>
                     </td>
                     <td style="text-align: right; font-weight: bold; color: #059669;">
@@ -145,23 +144,23 @@
 
 <div class="recent-orders-card" style="margin-top: 30px;">
     <div class="card-header">
-        <h3><i class="fa-solid fa-box-open" style="color: #ef4444;"></i> Товари, що закінчуються</h3>
-        <span class="status-badge" style="background: #fee2e2; color: #b91c1c;">Увага</span>
+        <h3><i class="fa-solid fa-box-open" style="color: #ef4444;"></i> <?= __('low_stock_products') ?></h3>
+        <span class="status-badge" style="background: #fee2e2; color: #b91c1c;"><?= __('warning') ?></span>
     </div>
     
     <div class="admin-table-wrap"><table class="admin-table">
         <thead>
             <tr>
-                <th>Назва товару</th>
-                <th style="text-align: center;">Залишок</th>
-                <th style="text-align: right;">Дія</th>
+                <th><?= __('product') ?></th>
+                <th style="text-align: center;"><?= __('analytics_stock') ?></th>
+                <th style="text-align: right;"><?= __('action') ?></th>
             </tr>
         </thead>
         <tbody>
             <?php if (empty($low_stock_products)): ?>
                 <tr>
                     <td colspan="3" style="text-align: center; padding: 20px; color: #94a3b8;">
-                        Всі товари в достатній кількості
+                        <?= __('all_products_in_sufficient_quantity') ?>
                     </td>
                 </tr>
             <?php else: ?>
@@ -169,11 +168,11 @@
                 <tr>
                     <td>
                         <div style="font-weight: 600;"><?= htmlspecialchars($item['name']) ?></div>
-                        <small style="color: #94a3b8;">Ціна: <?= format_price($item['price']) ?></small>
+                        <small style="color: #94a3b8;"><?= __('seo_price_hint') ?>: <?= format_price($item['price']) ?></small>
                     </td>
                     <td style="text-align: center;">
                         <span class="stock-label <?= $item['stock'] == 0 ? 'out-of-stock' : 'low-stock' ?>">
-                            <?= $item['stock'] ?> шт.
+                            <?= $item['stock'] ?> <?= __('pcs') ?>
                         </span>
                     </td>
                     <td style="text-align: right;">

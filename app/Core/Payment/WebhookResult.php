@@ -36,6 +36,15 @@ class WebhookResult
     }
 
     /**
+     * Проміжний статус — платіж ще обробляється (wait_*, processing тощо).
+     * Статус замовлення НЕ змінюється (порожній рядок → updateOrderStatus пропускає оновлення).
+     */
+    public static function pending(int $orderId, string $message = '', string $responseBody = 'OK', int $httpCode = 200): self
+    {
+        return new self(false, $orderId, '', $message, $responseBody, $httpCode);
+    }
+
+    /**
      * Помилка верифікації підпису або некоректні дані.
      */
     public static function invalid(string $message = 'Invalid signature', int $httpCode = 400): self

@@ -1,5 +1,5 @@
 <div class="page-header">
-    <h1 class="page-title">Склад</h1>
+    <h1 class="page-title"><?= __("stock_title") ?></h1>
 </div>
 
 <div class="card">
@@ -9,8 +9,8 @@
             <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf']); ?>">
             <div><label>SKU</label><input class="form-control" name="sku" required value="<?php echo htmlspecialchars((string) ($prefillSku ?? '')); ?>"></div>
             <div><label><?= __('stock_quantity') ?></label><input class="form-control" type="number" min="1" name="qty" required></div>
-            <div><label>Тип</label><select class="form-control" name="type"><option value="add">Додати</option><option value="remove"><?= __('stock_write_off') ?></option></select></div>
-            <div><label>Коментар</label><input class="form-control" name="comment"></div>
+            <div><label><?= __("type") ?></label><select class="form-control" name="type"><option value="add"><?= __("add") ?></option><option value="remove"><?= __('stock_write_off') ?></option></select></div>
+            <div><label><?= __("comment") ?></label><input class="form-control" name="comment"></div>
             <button class="btn btn-primary" type="submit"><?= __('apply') ?></button>
         </form>
     </div>
@@ -20,7 +20,7 @@
     <div class="card-header"><?= __('stock_current') ?></div>
     <div class="card-body">
         <table class="table">
-            <thead><tr><th>ID</th><th>Назва</th><th>SKU</th><th>К-сть</th><th><?= __('stock_reserve') ?></th><th><?= __('stock_available') ?></th></tr></thead>
+            <thead><tr><th>ID</th><th><?= __("name") ?></th><th>SKU</th><th><?= __("stock_quantity") ?></th><th><?= __('stock_reserve') ?></th><th><?= __('stock_available') ?></th></tr></thead>
             <tbody>
             <?php foreach ($products as $product): ?>
                 <tr>
@@ -41,7 +41,7 @@
     <div class="card-header"><?= __('stock_history') ?></div>
     <div class="card-body">
         <table class="table">
-            <thead><tr><th>Дата</th><th>SKU</th><th>Тип</th><th>К-сть</th><th>Коментар</th></tr></thead>
+            <thead><tr><th><?= __("date") ?></th><th>SKU</th><th><?= __("type") ?></th><th><?= __("stock_quantity") ?></th><th><?= __("comment") ?></th></tr></thead>
             <tbody>
             <?php foreach ($logs as $log): ?>
                 <tr><td><?php echo htmlspecialchars((string) $log['created_at']); ?></td><td><?php echo htmlspecialchars((string) $log['sku']); ?></td><td><?php echo htmlspecialchars((string) $log['event_type']); ?></td><td><?php echo (int) $log['qty']; ?></td><td><?php echo htmlspecialchars((string) $log['comment']); ?></td></tr>

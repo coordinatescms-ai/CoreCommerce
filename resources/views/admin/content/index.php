@@ -1,7 +1,7 @@
 <div class="page-header">
     <h1 class="page-title"><?= __('content_manage') ?></h1>
     <a href="/admin/content/create" class="btn btn-primary">
-        <i class="fas fa-plus"></i> Новий контент
+        <i class="fas fa-plus"></i> <?= __('content_new_content_btn') ?>
     </a>
 </div>
 
@@ -9,11 +9,11 @@
     <thead>
         <tr>
             <th>ID</th>
-            <th>Заголовок</th>
-            <th>Slug (URL)</th>
-            <th>Статус</th>
-            <th>Дата</th>
-            <th>Дії</th>
+            <th><?= __('content_title') ?></th>
+            <th><?= __('content_slug_url') ?></th>
+            <th><?= __('content_status') ?></th>
+            <th><?= __('content_date') ?></th>
+            <th><?= __('content_actions') ?></th>
         </tr>
     </thead>
     <tbody>
@@ -24,9 +24,9 @@
             <td><code>/<?= htmlspecialchars($page['slug']) ?></code></td>
             <td>
                 <?php if ($page['is_active']): ?>
-                    <span class="badge badge-success">Опубліковано</span>
+                    <span class="badge badge-success"><?= __('content_published') ?></span>
                 <?php else: ?>
-                    <span class="badge badge-secondary">Чернетка</span>
+                    <span class="badge badge-secondary"><?= __('content_draft') ?></span>
                 <?php endif; ?>
             </td>
             <td><?= date('d.m.Y', strtotime($page['created_at'])) ?></td>
@@ -35,7 +35,7 @@
                     <i class="fas fa-edit"></i>
                 </a>
                 
-                <form action="/admin/content/delete/<?= $page['id'] ?>" method="POST" style="display:inline;" onsubmit="return confirm('Ви впевнені?')">
+                <form action="/admin/content/delete/<?= $page['id'] ?>" method="POST" style="display:inline;" onsubmit="return confirm('<?= htmlspecialchars(__('content_delete_confirm')) ?>')">
                     <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
                     <button type="submit" class="btn-delete" title="<?= __('delete') ?>">
                         <i class="fas fa-trash"></i>

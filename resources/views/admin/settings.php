@@ -1,5 +1,5 @@
 <div class="page-header" style="display:flex; align-items:center; justify-content:space-between; gap:1rem;">
-    <h1 class="page-title">Налаштування магазину</h1>
+    <h1 class="page-title"><?= __("admin_settings_page_title") ?></h1>
 </div>
 
 <div class="card" style="margin-bottom: 1rem;">
@@ -12,7 +12,9 @@
             <button type="button" class="btn btn-outline settings-tab-btn" data-tab="reviews"><?= __('admin_reviews') ?></button>
             <button type="button" class="btn btn-outline settings-tab-btn" data-tab="update"><?= __('settings_update') ?></button>
             <button type="button" class="btn btn-outline settings-tab-btn" data-tab="integrations">
-                <i class="fas fa-plug"></i> Інтеграції
+                <i class="fas fa-plug"></i> <?= __("admin_settings_integrations_tab") ?></button>
+            <button type="button" class="btn btn-outline settings-tab-btn" data-tab="footer">
+                <i class="fas fa-shoe-prints"></i> <?= __('settings_footer') ?>
             </button>
         </div>
     </div>
@@ -40,7 +42,7 @@
 
     function loadTab(tab) {
         setActiveTab(tab);
-        tabContent.innerHTML = '<div class="card"><div class="card-body">Завантаження...</div></div>';
+        tabContent.innerHTML = '<div class="card"><div class="card-body"><?= __("admin_settings_loading") ?></div></div>';
 
         fetch('/admin/settings/tab/' + encodeURIComponent(tab), {
             headers: {
@@ -49,7 +51,7 @@
         })
             .then(function (response) {
                 if (!response.ok) {
-                    throw new Error('Не вдалося завантажити вкладку.');
+                    throw new Error(<?= json_encode(__("admin_settings_tab_load_error")) ?>);
                 }
                 return response.text();
             })
@@ -63,7 +65,7 @@
                 });
             })
             .catch(function () {
-                tabContent.innerHTML = '<div class="card"><div class="card-body" style="color:#ef4444;">Помилка завантаження вкладки.</div></div>';
+                tabContent.innerHTML = '<div class="card"><div class="card-body" style="color:#ef4444;"><?= __("admin_settings_tab_load_error") ?></div></div>';
             });
     }
 

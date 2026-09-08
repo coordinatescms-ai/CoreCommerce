@@ -36,6 +36,7 @@ class SearchController
         }
 
         $data = SearchService::search($rawQuery, $page, $limit);
+        $data['results'] = apply_product_price_filter($data['results'] ?? []);
 
         View::render('search.index', array_merge($data, [
             'safeQuery'      => $safeQuery,
@@ -63,14 +64,14 @@ class SearchController
             return;
         }
 
-        $data    = SearchService::search($rawQuery, 1, 5);
+        // Використовуємо легкий метод без логування та кешу — для autocomplete це правильно
         $results = array_map(fn($r) => [
             'id'    => $r['id'],
             'name'  => $r['name'],
-            'price' => format_price($r['price']),
+            'price' => format_price(apply_filters('product.price', (float) $r['price'], $r)),
             'image' => !empty($r['image']) ? product_image_variant_path($r['image'], 'thumb') : null,
             'url'   => '/product/' . $r['slug'],
-        ], $data['results']);
+        ], SearchService::searchAutocomplete($rawQuery, 5));
 
         echo json_encode($results, JSON_UNESCAPED_UNICODE);
     }

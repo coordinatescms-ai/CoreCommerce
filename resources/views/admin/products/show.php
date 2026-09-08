@@ -1,11 +1,11 @@
 <div class="page-header">
-    <h1 class="page-title">Перегляд товару</h1>
+    <h1 class="page-title"><?= __('product_preview') ?></h1>
     <div style="display: flex; gap: 0.75rem;">
         <a href="/admin/products/edit/<?php echo $product['id']; ?>" class="btn btn-outline" style="border: 1px solid #ddd; color: #2563eb;">
-            <i class="fas fa-edit"></i> Редагувати
+            <i class="fas fa-edit"></i> <?= __('edit') ?>
         </a>
         <a href="/admin/products" class="btn btn-outline" style="border: 1px solid #ddd; color: #64748b;">
-            <i class="fas fa-arrow-left"></i> До списку
+            <i class="fas fa-arrow-left"></i> <?= __('back_to_list') ?>
         </a>
     </div>
 </div>
@@ -46,24 +46,24 @@
                     <div style="color:#64748b;">Slug:</div>
                     <div>/product/<?php echo htmlspecialchars($product['slug']); ?></div>
 
-                    <div style="color:#64748b;">Категорія:</div>
+                    <div style="color:#64748b;"><?= __('products_category'); ?>:</div>
                     <div>
                         <?php if (!empty($product['category_name'])): ?>
                             <?php echo htmlspecialchars($product['category_name']); ?>
                         <?php else: ?>
-                            <span style="color:#94a3b8;">Без категорії</span>
+                            <span style="color:#94a3b8;"><?= __('products_no_category'); ?></span>
                         <?php endif; ?>
                     </div>
 
-                    <div style="color:#64748b;">Ціна:</div>
+                    <div style="color:#64748b;"><?= __('products_price'); ?>:</div>
                     <div style="font-size: 1.2rem; font-weight: 700;"><?php echo format_price((float)$product['price']); ?></div>
                 </div>
 
                 <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 1.25rem 0;">
 
-                <div style="color:#64748b; margin-bottom:0.5rem;">Опис:</div>
+                <div style="color:#64748b; margin-bottom:0.5rem;"><?= __('description'); ?>:</div>
                 <div style="white-space: pre-wrap; line-height: 1.5;">
-                    <?php echo !empty($product['description']) ? nl2br(htmlspecialchars($product['description'])) : '<span style="color:#94a3b8;">Опис відсутній</span>'; ?>
+                    <?php echo !empty($product['description']) ? nl2br(htmlspecialchars($product['description'])) : '<span style="color:#94a3b8;">'.__('description_empty').'</span>'; ?>
                 </div>
             </div>
         </div>
@@ -72,21 +72,21 @@
 
 <div class="card">
     <div class="card-header">
-        <i class="fas fa-search"></i> SEO налаштування
+        <i class="fas fa-search"></i> <?= __('seo_settings'); ?>
     </div>
     <div class="card-body">
         <div style="display:grid; grid-template-columns: 180px 1fr; row-gap:0.75rem; column-gap:1rem;">
             <div style="color:#64748b;">Meta Title:</div>
-            <div><?php echo !empty($product['meta_title']) ? htmlspecialchars($product['meta_title']) : '<span style="color:#94a3b8;">Не вказано</span>'; ?></div>
+            <div><?php echo !empty($product['meta_title']) ? htmlspecialchars($product['meta_title']) : '<span style="color:#94a3b8;">'.__('not_specified').'</span>'; ?></div>
 
             <div style="color:#64748b;">Meta Description:</div>
-            <div><?php echo !empty($product['meta_description']) ? htmlspecialchars($product['meta_description']) : '<span style="color:#94a3b8;">Не вказано</span>'; ?></div>
+            <div><?php echo !empty($product['meta_description']) ? htmlspecialchars($product['meta_description']) : '<span style="color:#94a3b8;">'.__('not_specified').'</span>'; ?></div>
         </div>
     </div>
 </div>
 
 <div style="margin-bottom: 2rem; display: flex; justify-content: flex-end;">
-    <form action="/admin/products/delete/<?php echo (int)$product['id']; ?>" method="POST" style="margin: 0;" onsubmit="return confirm('Ви впевнені, що хочете видалити цей товар?')">
+    <form action="/admin/products/delete/<?php echo (int)$product['id']; ?>" method="POST" style="margin: 0;" onsubmit="return confirm('<?php echo __('confirm_delete_product'); ?>')">
         <input type="hidden" name="_method" value="DELETE">
         <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf']); ?>">
         <button
@@ -94,7 +94,7 @@
             class="btn btn-outline"
             style="border: 1px solid #ddd; color: #ef4444;"
         >
-            <i class="fas fa-trash"></i> Видалити товар
+            <i class="fas fa-trash"></i> <?= __('delete_product'); ?>
         </button>
     </form>
 </div>

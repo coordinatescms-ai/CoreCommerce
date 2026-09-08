@@ -1,5 +1,5 @@
 <div class="page-header">
-    <h1 class="page-title">Користувачі</h1>
+    <h1 class="page-title"><?= __('admin_users') ?></h1>
 </div>
 
 <div class="card">
@@ -11,8 +11,8 @@
                     <th style="padding: 1rem;">Email</th>
                     <th style="padding: 1rem;"><?= __('user_registered_at') ?></th>
                     <th style="padding: 1rem;"><?= __('user_role') ?></th>
-                    <th style="padding: 1rem;">Телефон</th>
-                    <th style="padding: 1rem; text-align: right;">Дії</th>
+                    <th style="padding: 1rem;"><?= __('phone') ?></th>
+                    <th style="padding: 1rem; text-align: right;"><?= __('actions') ?></th>
                 </tr>
             </thead>
             <tbody>
@@ -27,7 +27,7 @@
                             <a href="/admin/users/edit/<?php echo (int) $user['id']; ?>" class="btn btn-outline" style="border: 1px solid #ddd; color: #2563eb;">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <form action="/admin/users/delete/<?php echo (int) $user['id']; ?>" method="POST" style="display: inline-block; margin: 0;" onsubmit="return confirm('Ви впевнені, що хочете видалити цього користувача?')">
+                            <form action="/admin/users/delete/<?php echo (int) $user['id']; ?>" method="POST" style="display: inline-block; margin: 0;" onsubmit="return confirm('<?php echo htmlspecialchars(__('user_delete_confirm')); ?>')">
                                 <input type="hidden" name="_method" value="DELETE">
                                 <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf']); ?>">
                                 <button type="submit" class="btn btn-outline" style="border: 1px solid #ddd; color: #ef4444;">

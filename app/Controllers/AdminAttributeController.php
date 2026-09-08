@@ -134,9 +134,9 @@ class AdminAttributeController
         View::render('admin/attributes/create', [
             'categories' => Category::getFlatTree(),
             'attributeTypes' => [
-                'text' => 'Текст',
-                'number' => 'Число',
-                'select' => 'Список (select)',
+                'text' => __('attr_type_text'),
+                'number' => __('attr_type_number'),
+                'select' => __('attr_type_select'),
             ],
         ], 'admin');
     }
@@ -148,7 +148,7 @@ class AdminAttributeController
 
         $name = trim((string) ($_POST['name'] ?? ''));
         if ($name === '') {
-            $_SESSION['error'] = 'Назва атрибута обовʼязкова.';
+            $_SESSION['error'] = __('admin_attribute_name_required');
             header('Location: /admin/attributes/create');
             exit;
         }
@@ -164,7 +164,7 @@ class AdminAttributeController
         ]);
 
         if (!$attributeId) {
-            $_SESSION['error'] = 'Помилка при створенні атрибута.';
+            $_SESSION['error'] = __('admin_attribute_create_error');
             header('Location: /admin/attributes/create');
             exit;
         }
@@ -172,7 +172,7 @@ class AdminAttributeController
         Attribute::syncCategories($attributeId, $this->getPostCategoryIds());
         $this->syncOptionsByType($attributeId, $_POST['type'] ?? Attribute::TYPE_TEXT);
 
-        $_SESSION['success'] = 'Атрибут успішно створено.';
+        $_SESSION['success'] = __('admin_attribute_created');
         header('Location: /admin/attributes');
         exit;
     }
@@ -196,9 +196,9 @@ class AdminAttributeController
             'categories' => Category::getFlatTree(),
             'assignedCategoryIds' => Attribute::getAssignedCategoryIds((int) $id),
             'attributeTypes' => [
-                'text' => 'Текст',
-                'number' => 'Число',
-                'select' => 'Список (select)',
+                'text' => __('attr_type_text'),
+                'number' => __('attr_type_number'),
+                'select' => __('attr_type_select'),
             ],
             'optionsText' => implode("\n", array_map(function ($option) {
                 return $option['name'] ?? '';
@@ -213,14 +213,14 @@ class AdminAttributeController
 
         $id = (int) $id;
         if (!Attribute::findById($id)) {
-            $_SESSION['error'] = 'Атрибут не знайдено.';
+            $_SESSION['error'] = __('admin_attribute_not_found');
             header('Location: /admin/attributes');
             exit;
         }
 
         $name = trim((string) ($_POST['name'] ?? ''));
         if ($name === '') {
-            $_SESSION['error'] = 'Назва атрибута обовʼязкова.';
+            $_SESSION['error'] = __('admin_attribute_name_required');
             header('Location: /admin/attributes/edit/' . $id);
             exit;
         }
@@ -236,7 +236,7 @@ class AdminAttributeController
         ]);
 
         if (!$result) {
-            $_SESSION['error'] = 'Помилка при оновленні атрибута.';
+            $_SESSION['error'] = __('admin_attribute_update_error');
             header('Location: /admin/attributes/edit/' . $id);
             exit;
         }
@@ -244,7 +244,7 @@ class AdminAttributeController
         Attribute::syncCategories($id, $this->getPostCategoryIds());
         $this->syncOptionsByType($id, $_POST['type'] ?? Attribute::TYPE_TEXT);
 
-        $_SESSION['success'] = 'Атрибут успішно оновлено.';
+        $_SESSION['success'] = __('admin_attribute_updated');
         header('Location: /admin/attributes');
         exit;
     }
@@ -255,9 +255,9 @@ class AdminAttributeController
         $this->validateCsrfOrAbort();
 
         if (Attribute::delete((int) $id)) {
-            $_SESSION['success'] = 'Атрибут видалено.';
+            $_SESSION['success'] = __('admin_attribute_deleted');
         } else {
-            $_SESSION['error'] = 'Не вдалося видалити атрибут.';
+            $_SESSION['error'] = __('admin_attribute_delete_error');
         }
 
         header('Location: /admin/attributes');

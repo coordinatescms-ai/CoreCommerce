@@ -10,7 +10,7 @@
     <div>
         <h1 class="page-title">
             <i class="fas fa-cog" style="color:#6366f1;"></i>
-            Налаштування: <?= htmlspecialchars($plugin['name']) ?>
+            <?= __('plugin_settings_title') ?> <?= htmlspecialchars($plugin['name']) ?>
         </h1>
         <div style="font-size:.85rem; color:#64748b; margin-top:.2rem;">
             v<?= htmlspecialchars($plugin['version']) ?>
@@ -18,7 +18,7 @@
         </div>
     </div>
     <a href="/admin/plugins" class="btn btn-outline" style="border:1px solid #ddd; color:#334155;">
-        <i class="fas fa-arrow-left"></i> До списку плагінів
+        <i class="fas fa-arrow-left"></i> <?= __('plugin_back_to_list') ?>
     </a>
 </div>
 
@@ -72,7 +72,7 @@
                                    id="plug_<?= htmlspecialchars($key) ?>"
                                    value="1"
                                    <?= $field['value'] ? 'checked' : '' ?>>
-                            Увімкнено
+                            <?= __('plugin_enabled') ?>
                         </label>
 
                     <?php else: ?>
@@ -95,10 +95,10 @@
 
             <div style="display:flex; gap:.75rem; margin-top:1.5rem;">
                 <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Зберегти налаштування
+                    <i class="fas fa-save"></i> <?= __('plugin_save_settings') ?>
                 </button>
                 <a href="/admin/plugins" class="btn btn-outline" style="border:1px solid #ddd;">
-                    Скасувати
+                    <?= __('cancel') ?>
                 </a>
             </div>
         </form>

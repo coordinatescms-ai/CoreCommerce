@@ -264,11 +264,11 @@ class User extends Model
      */
     public static function setPasswordResetToken($id, $token, $expiresIn = 3600)
     {
-        $expiresAt = date('Y-m-d H:i:s', time() + $expiresIn);
+        $expiresIn = max(1, (int) $expiresIn);
         
         return self::execute(
-            "UPDATE users SET password_reset_token = ?, password_reset_expires = ? WHERE id = ?",
-            [$token, $expiresAt, $id]
+            "UPDATE users SET password_reset_token = ?, password_reset_expires = DATE_ADD(NOW(), INTERVAL {$expiresIn} SECOND) WHERE id = ?",
+            [$token, $id]
         );
     }
 

@@ -1,31 +1,31 @@
 <div class="admin-container">
-    <h2>Редагувати сторінку</h2>
+    <h2><?= __('content_edit_page') ?></h2>
     
     <form action="/admin/content/update/<?= $page['id'] ?>" method="POST" id="content-form">
         <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
         <div class="form-group" style="margin-bottom: 15px;">
-            <label>Заголовок сторінки:</label>
+            <label><?= __('content_page_title_label') ?></label>
             <input type="text" name="title" id="title" class="form-control" style="width: 100%; padding: 8px;" 
                    value="<?= htmlspecialchars($page['title']) ?>" required>
         </div>
 
         <div class="form-group" style="margin-bottom: 15px;">
-            <label>URL-адреса (slug):</label>
+            <label><?= __('content_url_label') ?></label>
             <input type="text" name="slug" id="slug" class="form-control" style="width: 100%; padding: 8px;" 
                    value="<?= htmlspecialchars($page['slug']) ?>" required>
         </div>
 
         <div class="form-group" style="margin-bottom: 15px;">
-            <label>Контент:</label>
+            <label><?= __('content_body') ?>:</label>
             <div class="editor-toolbar" style="background: #eee; border: 1px solid #ccc; border-bottom: none; padding: 8px;">
                 <button type="button" class="ed-btn" onclick="runCmd('bold')"><b>B</b></button>
                 <button type="button" class="ed-btn" onclick="runCmd('italic')"><i>I</i></button>
-                <button type="button" class="ed-btn" onclick="runCmd('insertUnorderedList')">• Список</button>
+                <button type="button" class="ed-btn" onclick="runCmd('insertUnorderedList')"><?= __('content_editor_list') ?></button>
                 <button type="button" class="ed-btn" onclick="runCmd('formatBlock', 'h2')">H2</button>
                 <button type="button" class="ed-btn" onclick="runCmd('formatBlock', 'p')">P</button>
-                <button type="button" class="ed-btn" onclick="runCmd('createLink', prompt('URL:'))">🔗</button>
+                <button type="button" class="ed-btn" onclick="runCmd('createLink', prompt('<?= __('content_enter_url') ?>'))"><?= __('content_link_btn') ?></button>
                 <!-- Кнопка викликає клік по прихованому інпуту -->
-                <button type="button" class="ed-btn" onclick="document.getElementById('image-upload').click()" title="Завантажити фото">🖼️ Фото</button>
+                <button type="button" class="ed-btn" onclick="document.getElementById('image-upload').click()" title="<?= __('content_upload_photo') ?>">🖼️ <?= __('content_upload_photo') ?></button>
                 <!-- Важливо: type="file", а не checkbox! -->
                 <input type="file" id="image-upload" style="display:none" accept="image/*" onchange="uploadEditorImage(this)">         
             </div>
@@ -40,26 +40,26 @@
         </div>
 
         <div style="margin-top: 20px; padding: 15px; background: #fdfdfd; border: 1px solid #ddd; border-radius: 5px;">
-            <h4 style="margin-top: 0;">SEO налаштування</h4>
+            <h4 style="margin-top: 0;"><?= __('content_seo_settings') ?></h4>
             <div class="form-group" style="margin-bottom: 10px;">
-            <label>Meta Title (заголовок для Google):</label>
+            <label><?= __('content_meta_title_label') ?></label>
             <input type="text" name="meta_title" value="<?= htmlspecialchars($page['meta_title'] ?? '') ?>" class="form-control" style="width: 100%; padding: 8px;">
             </div>
             <div class="form-group">
-                <label>Meta Description (опис для пошуку):</label>
+                <label><?= __('content_meta_desc_label') ?></label>
                 <textarea name="meta_description" class="form-control" rows="3" style="width: 100%; padding: 8px;"><?= htmlspecialchars($page['meta_description'] ?? '') ?></textarea>
             </div>
         </div>        
 
         <div class="form-group" style="margin-bottom: 15px;">
-            <label>Порядок сортування:</label>
+            <label><?= __('content_sort_order') ?></label>
             <input type="number" name="sort_order" value="<?= $page['sort_order'] ?? 0 ?>" class="form-control" style="width: 100px; padding: 8px;">
-            <small>Чим менше число, тим лівіше буде сторінка у футері.</small>
+            <small><?= __('content_sort_order_hint') ?></small>
         </div>
 
         <div class="form-group" style="margin-bottom: 15px;">
             <label>
-                <input type="checkbox" name="is_active" value="1" <?= $page['is_active'] ? 'checked' : '' ?>> Опубліковано
+                <input type="checkbox" name="is_active" value="1" <?= $page['is_active'] ? 'checked' : '' ?>> <?= __('content_published_label') ?>
             </label>
         </div>
 
@@ -124,7 +124,7 @@ function uploadEditorImage(input) {
     })
     .catch(error => {
         console.error('Error:', error);
-        alert(window.LANG.image_upload_error);
+        alert('<?= __('content_image_upload_error') ?>');
     });
     
     input.value = ''; // Очищуємо інпут, щоб можна було вибрати те саме фото ще раз
@@ -143,7 +143,7 @@ document.getElementById('content-form').onsubmit = function() {
 // Слухач кліку по картинці всередині редактора
 document.getElementById('visual-editor').addEventListener('click', function(e) {
     if (e.target.tagName === 'IMG') {
-        let newWidth = prompt('Введіть ширину картинки у % або px (наприклад, 50% або 300px):', e.target.style.width || '100%');
+        let newWidth = prompt('<?= __('content_image_width_prompt') ?>', e.target.style.width || '100%');
         if (newWidth !== null) {
             e.target.style.width = newWidth;
             e.target.style.height = 'auto'; // зберігаємо пропорції

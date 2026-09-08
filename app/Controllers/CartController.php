@@ -7,6 +7,7 @@ use App\Core\View\View;
 use App\Models\Cart;
 use App\Models\CrmUserService;
 use App\Models\Product;
+use App\Models\Setting;
 use App\Services\SeoService;
 
 class CartController
@@ -15,7 +16,7 @@ class CartController
 
     private function validateCsrfOrAbort()
     {
-        Csrf::abortIfInvalid('CSRF token mismatch');
+        Csrf::abortIfInvalid(__('csrf_token_invalid'));
     }
 
     private function logUserActivity(string $eventType, string $description): void
@@ -25,6 +26,32 @@ class CartController
         }
 
         CrmUserService::recordActivity((int) $_SESSION['user']['id'], $eventType, $description);
+    }
+
+    /**
+     * На /cart клієнт ще НЕ обрав конкретний спосіб доставки (це відбувається
+     * на /checkout), тож показати єдину фіксовану ціну неможливо. Але кажемо
+     * "Безкоштовно" тільки якщо це правда для УСІХ активних методів доставки —
+     * інакше показуємо нейтральне повідомлення, а не хибну обіцянку.
+     */
+    private function isShippingActuallyFree(): bool
+    {
+        $shippingMethods = Setting::getShopMethods('shipping');
+
+        foreach ($shippingMethods as $method) {
+            if ((int) ($method['is_active'] ?? 0) !== 1) {
+                continue;
+            }
+
+            $settings = json_decode((string) ($method['settings'] ?? ''), true);
+            $cost = is_array($settings) ? (float) ($settings['cost'] ?? 0) : 0.0;
+
+            if ($cost > 0.0) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public function index()
@@ -37,6 +64,7 @@ class CartController
             'items' => $items,
             'total' => $total,
             'continueShoppingUrl' => $continueShoppingUrl,
+            'shippingIsFree' => $this->isShippingActuallyFree(),
             'csrf' => Csrf::token(),
             'seo' => SeoService::forSystem('cart', '/cart'),
         ]);
@@ -59,7 +87,7 @@ class CartController
         if ($result['success']) {
             $this->storeLastShoppingUrl();
             $product = Product::findVisibleById((int) $id);
-            $this->logUserActivity('cart_add', 'Додав у кошик: ' . (string) ($product['name'] ?? ('ID ' . (int) $id)));
+            $this->logUserActivity('cart_add', __('added_to_cart') . ' ' . (string) ($product['name'] ?? sprintf(__('cart_product_id_fallback'), (int) $id)));
             $_SESSION['success'] = __('product_added_to_cart');
         } else {
             $_SESSION['error'] = __($result['message']);
@@ -101,7 +129,7 @@ class CartController
         if (!$result['success']) {
             $_SESSION['error'] = __($result['message']);
         } else {
-            $this->logUserActivity('cart_update', 'Оновив кількість товару в кошику');
+            $this->logUserActivity('cart_update', __('updated_cart_quantity'));
             $_SESSION['success'] = __('cart_updated');
         }
 
@@ -114,7 +142,7 @@ class CartController
         $this->validateCsrfOrAbort();
 
         Cart::remove($id);
-        $this->logUserActivity('cart_remove', 'Видалив товар із кошика');
+        $this->logUserActivity('cart_remove', __('removed_from_cart'));
         $_SESSION['success'] = __('product_removed_from_cart');
 
         header('Location: /cart');
@@ -126,7 +154,7 @@ class CartController
         $this->validateCsrfOrAbort();
 
         Cart::clear();
-        $this->logUserActivity('cart_clear', 'Очистив кошик');
+        $this->logUserActivity('cart_clear', __('cleared_cart'));
         $_SESSION['success'] = __('cart_cleared');
 
         header('Location: /cart');

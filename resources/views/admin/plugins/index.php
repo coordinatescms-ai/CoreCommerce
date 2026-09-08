@@ -49,12 +49,12 @@
               style="display:flex; gap:.75rem; align-items:flex-end; flex-wrap:wrap;">
             <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
             <div class="form-group" style="margin:0; flex:1; min-width:240px;">
-                <label for="plugin_zip">ZIP файл (макс. <?= (int)$maxUploadSizeMb ?> MB)</label>
+                <label for="plugin_zip"><?= sprintf(__('plugin_zip_file'), (int)$maxUploadSizeMb) ?></label>
                 <input class="form-control" type="file" name="plugin_zip"
                        id="plugin_zip" accept=".zip" required>
             </div>
             <button type="submit" class="btn btn-primary">
-                <i class="fas fa-upload"></i> Завантажити
+                <i class="fas fa-upload"></i> <?= __('plugin_upload_btn') ?>
             </button>
         </form>
     </div>
@@ -64,7 +64,7 @@
     <?php if (empty($plugins)): ?>
         <div style="text-align:center; padding:2rem; color:#94a3b8;">
             <i class="fas fa-puzzle-piece" style="font-size:2rem; display:block; margin-bottom:.5rem;"></i>
-            Плагінів не знайдено
+            <?= __('plugin_not_found') ?>
         </div>
     <?php endif; ?>
 
@@ -121,7 +121,7 @@
 
             <?php if ($isMissing): ?>
                 <div style="margin-top:.5rem; color:#ef4444; font-size:.82rem;">
-                    <i class="fas fa-exclamation-triangle"></i> Файли плагіна відсутні на диску
+                    <i class="fas fa-exclamation-triangle"></i> <?= __('plugin_files_missing') ?>
                 </div>
             <?php endif; ?>
         </div>
@@ -140,13 +140,13 @@
                         <input type="hidden" name="action" value="deactivate">
                         <button class="btn btn-outline"
                                 style="border:1px solid #ddd; color:#ef4444; font-size:.82rem; padding:.35rem .8rem;">
-                            <i class="fas fa-power-off"></i> Вимкнути
+                            <i class="fas fa-power-off"></i> <?= __('plugin_deactivate') ?>
                         </button>
                     <?php else: ?>
                         <input type="hidden" name="action" value="activate">
                         <button class="btn btn-primary"
                                 style="font-size:.82rem; padding:.35rem .8rem;">
-                            <i class="fas fa-power-off"></i> Активувати
+                            <i class="fas fa-power-off"></i> <?= __('plugin_activate') ?>
                         </button>
                     <?php endif; ?>
                 </form>
@@ -155,7 +155,15 @@
                     <a href="/admin/plugins/settings/<?= htmlspecialchars($p['slug']) ?>"
                        class="btn btn-outline"
                        style="border:1px solid #ddd; color:#6366f1; font-size:.82rem; padding:.35rem .8rem; text-align:center;">
-                        <i class="fas fa-cog"></i> Налаштування
+                        <i class="fas fa-cog"></i> <?= __('plugin_settings_btn') ?>
+                    </a>
+                <?php endif; ?>
+
+                <?php if (!empty($p['admin_url']) && str_starts_with((string) $p['admin_url'], '/plugins/')): ?>
+                    <a href="<?= htmlspecialchars($p['admin_url']) ?>"
+                       class="btn btn-outline"
+                       style="border:1px solid #ddd; color:#16a34a; font-size:.82rem; padding:.35rem .8rem; text-align:center;">
+                        <i class="fas fa-sliders-h"></i> <?= __('plugin_manage_btn') ?>
                     </a>
                 <?php endif; ?>
             <?php endif; ?>

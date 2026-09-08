@@ -96,9 +96,9 @@ class RedirectController
         );
 
         if ($result) {
-            $_SESSION['success'] = 'Редирект деактивовано';
+            $_SESSION['success'] = __('admin_redirect_deactivated');
         } else {
-            $_SESSION['error'] = 'Помилка при деактивації редиректу';
+            $_SESSION['error'] = __('admin_redirect_deactivate_failed');
         }
 
         header('Location: /admin/redirects');
@@ -125,9 +125,9 @@ class RedirectController
         );
 
         if ($result) {
-            $_SESSION['success'] = 'Редирект видалено';
+            $_SESSION['success'] = __('admin_redirect_deleted');
         } else {
-            $_SESSION['error'] = 'Помилка при видаленні редиректу';
+            $_SESSION['error'] = __('admin_redirect_delete_failed');
         }
 
         header('Location: /admin/redirects');

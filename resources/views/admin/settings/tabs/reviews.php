@@ -11,15 +11,15 @@ $pages = (int) ($pages ?? 1);
         <input type="text" name="product" value="<?= htmlspecialchars((string)$filters['product']) ?>" placeholder="Пошук товару">
         <input type="text" name="author" value="<?= htmlspecialchars((string)$filters['author']) ?>" placeholder="Пошук автора">
         <select name="status">
-            <option value="" <?= $filters['status']===''?'selected':'' ?>>Всі</option>
-            <option value="1" <?= $filters['status']==='1'?'selected':'' ?>>Видимі</option>
-            <option value="0" <?= $filters['status']==='0'?'selected':'' ?>>Заблоковані</option>
+            <option value="" <?= $filters['status']===''?'selected':'' ?>><?= __("admin_settings_reviews_all") ?></option>
+            <option value="1" <?= $filters['status']==='1'?'selected':'' ?>><?= __("admin_settings_reviews_visible") ?></option>
+            <option value="0" <?= $filters['status']==='0'?'selected':'' ?>><?= __("admin_settings_reviews_blocked") ?></option>
         </select>
         <button class="btn btn-primary" type="submit"><?= __('search') ?></button>
     </form>
 
     <?php if (empty($reviews)): ?>
-        <p>Відгуки не знайдені.</p>
+        <p><?= __("admin_settings_reviews_empty") ?></p>
     <?php else: ?>
         <?php foreach ($reviews as $review): ?>
             <div style="border:1px solid #e5e7eb;border-radius:8px;padding:10px;margin-bottom:10px;<?= !empty($review['parent_id']) ? 'margin-left:24px;' : '' ?>">
@@ -36,7 +36,7 @@ $pages = (int) ($pages ?? 1);
                     <input type="hidden" name="is_visible" value="<?= !empty($review['is_visible']) ? '0' : '1' ?>">
                     <button class="btn btn-warning" type="submit"><?= !empty($review['is_visible']) ? __('block_action_btn') : __('unblock_action_btn') ?></button>
                 </form>
-                <form method="POST" action="/admin/reviews/delete/<?= (int)$review['id'] ?>" onsubmit="return confirm('Видалити відгук?');">
+                <form method="POST" action="/admin/reviews/delete/<?= (int)$review['id'] ?>" onsubmit="return confirm(<?= json_encode(__("admin_settings_reviews_delete_confirm")) ?>);">
                     <input type="hidden" name="csrf" value="<?= htmlspecialchars(\App\Core\Http\Csrf::token()) ?>">
                     <button class="btn btn-danger" type="submit"><?= __('delete') ?></button>
                 </form>

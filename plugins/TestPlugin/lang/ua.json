@@ -1,0 +1,7 @@
+{
+    "footer_message_default": "Привіт від TestPlugin!",
+    "settings_show_footer_message_label": "Показувати повідомлення у футері",
+    "settings_show_footer_message_hint": "Вивести повідомлення у HTML-коментарі футера сторінки.",
+    "settings_footer_message_label": "Текст повідомлення",
+    "settings_footer_message_hint": "Цей текст буде виведено у <!-- коментарі --> тега footer."
+}

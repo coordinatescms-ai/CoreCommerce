@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/uploads/logotypes/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/uploads/logotypes/apple-touch-icon.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <meta name="theme-color" content="#008080">
 
     <title><?= htmlspecialchars((string) ($pageSeo['meta_title'] ?? get_setting('site_name', 'My Shop'))) ?></title>
 
@@ -25,18 +29,24 @@
     <?php if (!empty($pageSeo['og_description'])): ?>
         <meta property="og:description" content="<?= htmlspecialchars((string) $pageSeo['og_description']) ?>">
     <?php endif; ?>
-    <?php if (!empty($pageSeo['og_image'])): ?>
-        <meta property="og:image" content="<?= htmlspecialchars((string) $pageSeo['og_image']) ?>">
-    <?php endif; ?>
+    <meta property="og:image" content="<?= !empty($pageSeo['og_image']) ? htmlspecialchars((string) $pageSeo['og_image']) : get_setting('site_url') . '/uploads/logotypes/og-image.png' ?>">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
     <?php if (!empty($pageSeo['canonical'])): ?>
         <meta property="og:url" content="<?= htmlspecialchars((string) $pageSeo['canonical']) ?>">
     <?php endif; ?>
     <meta property="og:site_name" content="<?= htmlspecialchars((string) ($pageSeo['shop_name'] ?? get_setting('site_name', ''))) ?>">
 
+    <link rel="stylesheet" href="/resources/themes/default/style.css?v=<?= $assetVersion ?? time(); ?>">
+
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; }
-        nav { background: #f4f4f4; padding: 1rem; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        nav { background: #f4f4f4; padding: 1.2rem 1rem; border-bottom: 1px solid #ddd; display: flex; flex-direction: column; gap: 1rem; }
+        .nav-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .nav-bottom { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .nav-bottom-center { display: flex; justify-content: center; flex: 1; }
+        .nav-phone { font-weight: 600; color: #333; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; }
         nav a { margin-right: 1rem; text-decoration: none; color: #333; }
         nav a:hover { color: #007bff; }
         .nav-brand { display: inline-flex; align-items: center; gap: 0.45rem; margin-right: 1rem; text-decoration: none; color: #333; font-weight: 700; }
@@ -109,7 +119,11 @@
         @media (max-width: 640px) { .breadcrumb-list { font-size: .78rem; } .breadcrumb-item--current { max-width: 150px; } }
 
         @media (max-width: 768px) {
-            nav { flex-direction: column; gap: 1rem; }
+            nav { padding: 1rem; }
+            .nav-top { flex-direction: column; gap: 0.5rem; text-align: center; }
+            .nav-phone { font-size: 0.9rem; }
+            .nav-bottom { flex-direction: column; gap: 1rem; }
+            .nav-bottom-center { order: -1; }
             .nav-links { justify-content: center; width: 100%; }
             .nav-dropdown { width: 100%; text-align: center; }
             .nav-dropdown-menu {
@@ -161,7 +175,7 @@
     }
     ?>
     <nav>
-        <div class="nav-links">
+        <div class="nav-top">
             <?php $headerLogo = trim((string) get_setting('active_logotype', '')); ?>
             <a href="/" class="nav-brand">
                 <?php if ($headerLogo !== ''): ?>
@@ -169,66 +183,78 @@
                 <?php endif; ?>
                 <span><?= htmlspecialchars((string) get_setting('site_name', 'Мій Магазин')) ?></span>
             </a>
-            <a href="/"><?= __('home') ?></a> | 
-            <a href="/products"><?= __('products') ?></a> |
-            <div class="nav-dropdown" data-nav-dropdown>
-                <button class="nav-dropdown-toggle" type="button" aria-expanded="false" aria-controls="default-nav-categories">
-                    <?= __('categories') ?>
-                </button>
-                <?php
-                $headerCategories = $headerCategories ?? [];
-                if (!empty($headerCategories)) {
-                    renderDefaultThemeHeaderCategories($headerCategories, 0, 3, 'default-nav-categories');
-                }
-                ?>
-            </div>
-            <span class="nav-separator">|</span>
-            <?php if (!empty($_SESSION['user'])): ?>
-                <a href="/profile"><?= $_SESSION['user']['first_name'] ?? $_SESSION['user']['email'] ?></a> |
-                <form action="/logout" method="POST" style="display: inline;">
-                    <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
-                    <button type="submit" style="border: none; background: none; padding: 0; color: inherit; cursor: pointer; text-decoration: underline;"><?= __('logout') ?></button>
-                </form>
-            <?php else: ?>
-                <a href="/login"><?= __('login') ?></a> |
-                <a href="/register"><?= __('register') ?></a>
-            <?php endif; ?>
-            <span class="nav-separator">|</span>
-            <a href="/cart" class="nav-cart-link" data-cart-link><?= __('cart') ?><span class="cart-counter" data-cart-count>0</span></a>
-        </div>
-
-        <!-- Пошук -->
-        <div class="nav-search" style="position:relative;flex:1 1 220px;max-width:340px;">
-            <form action="/search" method="GET" role="search" style="display:flex;align-items:center;border:1px solid #ddd;border-radius:6px;overflow:hidden;background:#fff;">
-                <input
-                    type="search" name="q"
-                    class="nav-search-input"
-                    value="<?= htmlspecialchars($_GET['q'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                    placeholder="<?= htmlspecialchars(__('search_placeholder') ?: 'Пошук...') ?>"
-                    autocomplete="off"
-                    style="flex:1;border:none;outline:none;padding:.4rem .6rem;font-size:.88rem;min-width:0;"
-                    id="nav-search-input">
-                <button type="submit" style="padding:.4rem .7rem;background:none;border:none;cursor:pointer;color:#666;">
-                    <i class="fas fa-search"></i>
-                </button>
-            </form>
-            <!-- Автодоповнення -->
-            <div id="nav-search-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.1);"></div>
-        </div>
-
-        <div class="language-selector">
-            <span><?= __('language') ?>:</span>
-            <?php foreach (get_supported_languages() as $lang): ?>
-                <?php if ($lang === get_current_language()): ?>
-                    <strong><?= $lang === 'ua' ? __('ukrainian') : __('english') ?></strong>
+            <div class="nav-links">
+                <a href="/"><?= __('home') ?></a> | 
+                <a href="/products"><?= __('products') ?></a> |
+                <div class="nav-dropdown" data-nav-dropdown>
+                    <button class="nav-dropdown-toggle" type="button" aria-expanded="false" aria-controls="default-nav-categories">
+                        <?= __('categories') ?>
+                    </button>
+                    <?php
+                    $headerCategories = $headerCategories ?? [];
+                    if (!empty($headerCategories)) {
+                        renderDefaultThemeHeaderCategories($headerCategories, 0, 3, 'default-nav-categories');
+                    }
+                    ?>
+                </div>
+                <span class="nav-separator">|</span>
+                <?php if (!empty($_SESSION['user'])): ?>
+                    <a href="/profile"><?= $_SESSION['user']['first_name'] ?? $_SESSION['user']['email'] ?></a> |
+                    <form action="/logout" method="POST" style="display: inline;">
+                        <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
+                        <button type="submit" style="border: none; background: none; padding: 0; color: inherit; cursor: pointer; text-decoration: underline;"><?= __('logout') ?></button>
+                    </form>
                 <?php else: ?>
-                    <a href="/language/<?= $lang ?>"><?= $lang === 'ua' ? __('ukrainian') : __('english') ?></a>
+                    <a href="/login"><?= __('login') ?></a> |
+                    <a href="/register"><?= __('register') ?></a>
                 <?php endif; ?>
-            <?php endforeach; ?>
+                <span class="nav-separator">|</span>
+                <a href="/cart" class="nav-cart-link" data-cart-link><?= __('cart') ?><span class="cart-counter" data-cart-count>0</span></a>
+            </div>
+        </div>
+
+        <div class="nav-bottom">
+            <div class="nav-bottom-center">
+                <!-- Пошук -->
+                <div class="nav-search" style="position:relative;flex:1 1 220px;max-width:340px;">
+                    <form action="/search" method="GET" role="search" style="display:flex;align-items:center;border:1px solid #ddd;border-radius:6px;overflow:hidden;background:#fff;">
+                        <input
+                            type="search" name="q"
+                            class="nav-search-input"
+                            value="<?= htmlspecialchars($_GET['q'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                            placeholder="<?= htmlspecialchars(__('search_placeholder') ?: 'Пошук...') ?>"
+                            autocomplete="off"
+                            style="flex:1;border:none;outline:none;padding:.4rem .6rem;font-size:.88rem;min-width:0;"
+                            id="nav-search-input">
+                        <button type="submit" style="padding:.4rem .7rem;background:none;border:none;cursor:pointer;color:#666;">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+                    <!-- Автодоповнення -->
+                    <div id="nav-search-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.1);"></div>
+                </div>
+            </div>
+
+            <div class="nav-phone">
+                <i class="fas fa-phone"></i>
+                <?= htmlspecialchars(get_setting('contact_phone', '')) ?>
+            </div>
         </div>
     </nav>
     <div class="container">
         <main>
+            <?php if (!empty($_SESSION['success'])): ?>
+                <div class="site-flash site-flash-success" style="margin: 1rem 0; padding: 0.85rem 1.1rem; background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; border-radius: 0.5rem;">
+                    <?= htmlspecialchars((string) $_SESSION['success']) ?>
+                </div>
+                <?php unset($_SESSION['success']); ?>
+            <?php endif; ?>
+            <?php if (!empty($_SESSION['error'])): ?>
+                <div class="site-flash site-flash-error" style="margin: 1rem 0; padding: 0.85rem 1.1rem; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 0.5rem;">
+                    <?= htmlspecialchars((string) $_SESSION['error']) ?>
+                </div>
+                <?php unset($_SESSION['error']); ?>
+            <?php endif; ?>
             <?= $content ?>
         </main>
     </div>
@@ -238,7 +264,7 @@
             <a href="/<?= $page['slug'] ?>"><?= htmlspecialchars($page['title']) ?></a>
         <?php endforeach; ?>
     </div>
-        <p>&copy; 2024 MySite. <?= __('all_rights_reserved') ?? 'All rights reserved.' ?></p>
+        <p>&copy; <?php echo date('Y'); ?> <?php echo htmlspecialchars((string) get_setting('site_name', 'MySite')); ?>. <?= __('all_rights_reserved') ?? 'All rights reserved.' ?></p>
         <?php do_action('theme.footer'); ?>
     </footer>
     <script>

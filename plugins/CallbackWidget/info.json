@@ -1,0 +1,10 @@
+{
+    "slug": "CallbackWidget",
+    "name": "Request a call",
+    "description": "Callback request widget with bilingual support (Ukrainian and English).",
+    "version": "1.0.0",
+    "author": "CoreCommerce",
+    "requires_php": "8.1",
+    "requires_core": "1.0",
+    "requires": {}
+}

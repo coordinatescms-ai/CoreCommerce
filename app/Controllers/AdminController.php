@@ -24,7 +24,7 @@ class AdminController
 
     public function dashboard()
     {
-        $this->checkAdmin();
+    $this->checkAdmin();
 
     // Отримуємо дані для графіка
     $results = [];
@@ -36,7 +36,6 @@ class AdminController
             WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
             GROUP BY DATE(created_at)
         ");
-        // DB::query вже виконав запит, тому просто отримуємо результат
         $results = $stmt->fetchAll(\PDO::FETCH_KEY_PAIR);
     } catch (\Exception $e) {
         $results = [];
@@ -57,7 +56,7 @@ class AdminController
         $recentOrders = [];
     }
 
-    // 1. Створюємо список останніх 7 днів (для заповнення нулями, якщо продажів не було)
+    // 1. Створюємо список останніх 7 днів
     $week_data = [];
     for ($i = 6; $i >= 0; $i--) {
         $date = date('Y-m-d', strtotime("-$i days"));
@@ -68,36 +67,43 @@ class AdminController
         ];
     }
 
-    // Масив назв днів тижня
-    $days_ua = ['Нд', 'Пн', 'Вв', 'Ср', 'Чт', 'Пт', 'Сб'];
-
     // 3. Об'єднуємо дані
     $final_labels = [];
     $final_values = [];
 
+    // Масив англійських назв (ключів), за якими ми будемо звертатися до хелпера __()
+    $day_keys = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+
     foreach ($week_data as $date => $info) {
-        $sum = $results[$date] ?? 0; // Якщо дати немає в базі, ставимо 0
-        $day_index = date('w', strtotime($date));
+        $sum = $results[$date] ?? 0; 
+        $day_index = (int)date('w', strtotime($date));
     
-        $final_labels[] = $days_ua[$day_index] . ' (' . $info['label'] . ')';
+        // Отримуємо ключ дня (наприклад, 'sun', 'mon')
+        $day_key = $day_keys[$day_index] ?? 'mon';
+
+        // Перекладаємо конкретний день як рядок через ваш хелпер
+        $day_title = __($day_key); 
+
+        $final_labels[] = $day_title . ' (' . $info['label'] . ')';
         $final_values[] = (float)$sum;  
     }
 
-        $stats = [
-            'users_count' => User::count(),
-            'orders_count' => Setting::count_order(),
-            'products_count' => Setting::count_products(),
-            'total_sales' => Setting::total_sales()
-        ];
+    $stats = [
+        'users_count' => User::count(),
+        'orders_count' => Setting::count_order(),
+        'products_count' => Setting::count_products(),
+        'total_sales' => Setting::total_sales()
+    ];
 
-        View::render('admin/dashboard', [
+    View::render('admin/dashboard', [
         'stats' => $stats,
-        'chartData' => $results,  // Передаємо дані для графіка
+        'chartData' => $results,  
         'recentOrders' => $recentOrders,
         'final_labels' => $final_labels,
         'final_values' => $final_values
-        ], 'admin');
+    ], 'admin');
     }
+
 
     public function settings()
     {
@@ -123,9 +129,12 @@ class AdminController
         $popular_products = [];
         $low_stock_products = [];
 
-        // Масиви для перекладу
-        $months_ua = ['01'=>'Січ','02'=>'Лют','03'=>'Бер','04'=>'Квіт','05'=>'Трав','06'=>'Черв','07'=>'Лип','08'=>'Серп','09'=>'Вер','10'=>'Жовт','11'=>'Лист','12'=>'Груд'];
-        $days_ua = [0=>'Нд', 1=>'Пн', 2=>'Вв', 3=>'Ср', 4=>'Чт', 5=>'Пт', 6=>'Сб'];
+        // Масиви відповідностей номерів до текстових ключів у мовних файлах
+        $month_keys = [
+            '01'=>'m01', '02'=>'m02', '03'=>'m03', '04'=>'m04', '05'=>'m05', '06'=>'m06',
+            '07'=>'m07', '08'=>'m08', '09'=>'m09', '10'=>'m10', '11'=>'m11', '12'=>'m12'
+        ];
+        $day_keys = [0=>'sun', 1=>'mon', 2=>'tue', 3=>'wed', 4=>'thu', 5=>'fri', 6=>'sat'];
 
         // --- Обробка довільного діапазону дат ---
         $date_from_raw = trim($_GET['from'] ?? '');
@@ -147,7 +156,8 @@ class AdminController
             $date_from = $date_from_raw;
             $date_to   = $date_to_raw;
 
-            $title_text = 'Продажі за ' . date('d.m.Y', strtotime($date_from))
+            // Локалізація заголовку для довільного діапазону
+            $title_text = __('analytics_sales_from') . ' ' . date('d.m.Y', strtotime($date_from))
                         . ' — ' . date('d.m.Y', strtotime($date_to));
 
             // Якщо діапазон > 60 днів — групуємо по місяцях, інакше по днях
@@ -184,9 +194,15 @@ class AdminController
             $db_data = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
             foreach ($db_data as $row) {
-                $labels[] = $group_by_month
-                    ? ($months_ua[$row['m_num']] . ' ' . substr($row['period_label'], 3))
-                    : $row['day_label'];
+                if ($group_by_month) {
+                    // Перекладаємо місяць через хелпер __()
+                    $m_key = $month_keys[$row['m_num']] ?? 'm01';
+                    $translated_month = __($m_key);
+                    $labels[] = $translated_month . ' ' . substr($row['period_label'], 3);
+                } else {
+                    $labels[] = $row['day_label'];
+                }
+                
                 $values[] = (float)$row['rev'];
                 $counts[] = (int)$row['cnt'];
             }
@@ -212,7 +228,7 @@ class AdminController
             // --- Стандартні періоди: week / month / year ---
             switch ($period) {
                 case 'year':
-                    $title_text = 'Продажі за останні 12 місяців';
+                    $title_text = __('analytics_title_year'); // 'Продажі за останні 12 місяців'
                     $stmt = DB::query(
                         "SELECT DATE_FORMAT(created_at, '%m') as m_num, SUM(total) as rev, COUNT(id) as cnt
                          FROM orders
@@ -223,7 +239,7 @@ class AdminController
                     );
                     break;
                 case 'month':
-                    $title_text = 'Продажі за останні 30 днів';
+                    $title_text = __('analytics_title_month'); // 'Продажі за останні 30 днів'
                     $stmt = DB::query(
                         "SELECT DATE_FORMAT(created_at, '%d.%m') as day_label, SUM(total) as rev, COUNT(id) as cnt
                          FROM orders
@@ -234,7 +250,7 @@ class AdminController
                     );
                     break;
                 default: // week
-                    $title_text = 'Продажі за поточний тиждень';
+                    $title_text = __('analytics_title_week'); // 'Продажі за поточний тиждень'
                     $stmt = DB::query(
                         "SELECT (DAYOFWEEK(created_at)-1) as d_idx, DATE_FORMAT(created_at, '%d.%m') as d_date,
                                 SUM(total) as rev, COUNT(id) as cnt
@@ -251,11 +267,15 @@ class AdminController
 
             foreach ($db_data as $row) {
                 if ($period === 'year') {
-                    $labels[] = $months_ua[$row['m_num']];
+                    // Перекладаємо місяць через хелпер __() по його ключу (m01 - m12)
+                    $m_key = $month_keys[$row['m_num']] ?? 'm01';
+                    $labels[] = __($m_key);
                 } elseif ($period === 'month') {
                     $labels[] = $row['day_label'];
                 } else {
-                    $labels[] = $days_ua[$row['d_idx']] . ' (' . $row['d_date'] . ')';
+                    // Перекладаємо день тижня через хелпер __() по його індексу (sun - sat)
+                    $d_key = $day_keys[$row['d_idx']] ?? 'mon';
+                    $labels[] = __($d_key) . ' (' . $row['d_date'] . ')';
                 }
                 $values[] = (float)$row['rev'];
                 $counts[] = (int)$row['cnt'];
@@ -286,9 +306,9 @@ class AdminController
 
         // Якщо даних немає — порожні масиви для Chart.js
         if (empty($labels)) {
-            $labels = ['Немає даних'];
-            $values = [0];
-            $counts = [0];
+            $labels = array(__('no_data'));
+            $values = array(0);
+            $counts = array(0);
         }
 
         // Експорт в CSV (враховує і довільний діапазон)
@@ -299,7 +319,14 @@ class AdminController
 
             $output = fopen('php://output', 'w');
             fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
-            fputcsv($output, ['Період', 'Замовлень', 'Сума виручки (₴)', 'Частка (%)']);
+            
+            // Локалізуємо заголовки колонок CSV
+            fputcsv($output, [
+                __('csv_period'),
+                __('csv_orders'),
+                __('csv_revenue'),
+                __('csv_share')
+            ]);
 
             $total_sum = array_sum($values);
             foreach ($labels as $key => $label) {
@@ -308,30 +335,35 @@ class AdminController
                 $percent = $total_sum > 0 ? round(($val / $total_sum) * 100, 1) : 0;
                 fputcsv($output, [
                     strip_tags($label),
-                    $count . ' шт.',
+                    $count . ' ' . __('pcs'),
                     number_format($val, 2, '.', ''),
                     $percent . '%',
                 ]);
             }
             $total_orders = array_sum($counts);
-            fputcsv($output, ['РАЗОМ', $total_orders . ' шт.', number_format($total_sum, 2, '.', ''), '100%']);
+            
+            // Локалізуємо підсумковий рядок CSV
+            fputcsv($output, [
+                __('csv_total'),
+                $total_orders . ' ' . __('pcs'),
+                number_format($total_sum, 2, '.', ''),
+                '100%'
+            ]);
             fclose($output);
             exit;
         }
-
         // Товари, що закінчуються (незалежно від діапазону)
         $stmt = DB::query("
-            SELECT p.id, p.name, COALESCE(ps.quantity, 0) AS stock, p.price
-            FROM products p
-            LEFT JOIN product_stocks ps
-                ON ps.sku COLLATE utf8mb4_general_ci = p.sku COLLATE utf8mb4_general_ci
-               AND ps.option_id IS NULL
-            WHERE COALESCE(ps.quantity, 0) <= 5
-            ORDER BY COALESCE(ps.quantity, 0) ASC
-            LIMIT 5");
-
+        SELECT p.id, p.name, COALESCE(ps.quantity, 0) AS stock, p.price
+        FROM products p
+        LEFT JOIN product_stocks ps
+        ON ps.sku COLLATE utf8mb4_general_ci = p.sku COLLATE utf8mb4_general_ci
+        AND ps.option_id IS NULL
+        WHERE COALESCE(ps.quantity, 0) <= 5
+        ORDER BY COALESCE(ps.quantity, 0) ASC
+        LIMIT 5");
+        
         $low_stock_products = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
         View::render('admin/analytics/index', [
             'period'             => $period,
             'title_text'         => $title_text,
@@ -346,14 +378,13 @@ class AdminController
         ], 'admin');
     }
 
-
     public function clearCache()
     {
         $this->checkAdmin();
 
         if (!Csrf::isValid()) {
             http_response_code(422);
-            $_SESSION['error'] = 'CSRF token validation failed';
+            $_SESSION['error'] = __('csrf_token_invalid');
             header('Location: /admin');
             exit;
         }
@@ -376,7 +407,7 @@ class AdminController
                 if (@unlink($file)) {
                     $cleared[] = basename($file);
                 } else {
-                    $errors[] = 'Не вдалося видалити файл кешу: ' . basename($file);
+                    $errors[] = sprintf(__('admin_cache_file_delete_error'), basename($file));
                 }
             }
         }
@@ -401,19 +432,19 @@ class AdminController
                     if (@unlink($path)) {
                         $cleared[] = $entry;
                     } else {
-                        $errors[] = 'Не вдалося видалити файл кешу: ' . $entry;
+                        $errors[] = sprintf(__('admin_cache_file_delete_error'), $entry);
                     }
                 }
             } else {
-                $errors[] = 'Не вдалося прочитати cache-директорію.';
+                $errors[] = __('admin_cache_directory_read_error');
             }
         }
 
         try {
-            Setting::set('asset_version', (string) time(), 'system', 'text');
+            Setting::setWithMeta('asset_version', (string) time(), 'system', 'text');
             $cleared[] = 'asset_version(setting)';
         } catch (\Throwable $e) {
-            $errors[] = 'Не вдалося оновити asset version: ' . $e->getMessage();
+            $errors[] = sprintf(__('admin_asset_version_update_error'), $e->getMessage());
         }
 
         $admin = $_SESSION['user'] ?? [];
@@ -437,9 +468,9 @@ class AdminController
         @file_put_contents($logDir . '/admin_actions.log', $logLine, FILE_APPEND);
 
         if (empty($errors)) {
-            $_SESSION['success'] = 'Кеш успішно очищено.';
+            $_SESSION['success'] = __('admin_cache_cleared');
         } else {
-            $_SESSION['error'] = 'Кеш очищено частково: ' . implode(' ', $errors);
+            $_SESSION['error'] = sprintf(__('admin_cache_partial_clear'), implode(' ', $errors));
         }
 
         $redirectUrl = (strpos((string)($_SERVER['HTTP_REFERER'] ?? ''), '/admin/system') !== false) ? '/admin/system' : '/admin';
@@ -479,18 +510,23 @@ class AdminController
         $this->checkAdmin();
         if (!Csrf::isValid()) {
             http_response_code(422);
-            $_SESSION['error'] = 'CSRF token validation failed';
+            $_SESSION['error'] = __('csrf_token_invalid');
             header('Location: /admin/system');
             exit;
         }
 
-        $debugMode = isset($_POST['display_errors']) ? '1' : '0';
-        $maintenanceMode = isset($_POST['maintenance_mode']) ? 'closed' : 'open';
+        $mode = (string) ($_POST['mode'] ?? 'release');
+        if (!in_array($mode, ['development', 'release', 'maintenance'], true)) {
+            $mode = 'release';
+        }
+
+        $debugMode = $mode === 'development' ? '1' : '0';
+        $maintenanceMode = $mode === 'maintenance' ? 'closed' : 'open';
         Setting::setWithMeta('display_errors', $debugMode, 'system', 'checkbox');
         Setting::setWithMeta('store_status', $maintenanceMode, 'general', 'select');
 
         @ini_set('display_errors', $debugMode);
-        $_SESSION['success'] = 'Системні режими оновлено.';
+        $_SESSION['success'] = __('admin_system_modes_updated');
         header('Location: /admin/system');
         exit;
     }
@@ -573,11 +609,11 @@ class AdminController
             ]);
 
             $_SESSION['success'] = sprintf(
-                __('sitemap_generated_ok') ?: 'Sitemap згенеровано: %d URL у %d файлах за %s сек.',
+                __('sitemap_generated_ok'),
                 $total, $files, $time
             );
         } catch (\Throwable $e) {
-            $_SESSION['error'] = __('sitemap_error') ?: ('Помилка генерації Sitemap: ' . $e->getMessage());
+            $_SESSION['error'] = __('sitemap_error') . ': ' . $e->getMessage();
         }
 
         header('Location: /admin/system');
@@ -591,13 +627,13 @@ class AdminController
         $to = trim((string) ($_POST['test_email'] ?? ''));
         $useDb = isset($_POST['test_email_use_db']);
         if ($to === '' || !filter_var($to, FILTER_VALIDATE_EMAIL)) {
-            $_SESSION['error'] = 'Вкажіть коректний email для тестового листа.';
+            $_SESSION['error'] = __('admin_test_email_invalid');
             header('Location: /admin/system');
             exit;
         }
 
-        $subject = 'Тест листа CoreCommerce';
-        $bodyText = 'Це тестовий лист для перевірки Mail Settings (' . ($useDb ? 'DB settings' : 'config/mail.php') . ').';
+        $subject = __('admin_test_email_subject');
+        $bodyText = sprintf(__('admin_test_email_body'), $useDb ? __('admin_test_email_db_source') : __('admin_test_email_file_source'));
         $bodyHtml = nl2br(htmlspecialchars($bodyText, ENT_QUOTES, 'UTF-8'));
 
         if ($useDb) {
@@ -607,9 +643,9 @@ class AdminController
         }
 
         if ($result['success']) {
-            $_SESSION['success'] = 'Тестовий лист успішно відправлено на ' . htmlspecialchars($to) . '.';
+            $_SESSION['success'] = sprintf(__('admin_test_email_sent'), htmlspecialchars($to));
         } else {
-            $_SESSION['error'] = 'Не вдалося відправити лист. SMTP помилка: ' . htmlspecialchars($result['error']);
+            $_SESSION['error'] = sprintf(__('admin_test_email_error'), htmlspecialchars($result['error']));
         }
 
         $this->logAdminAction('system_test_mail', [
@@ -627,14 +663,14 @@ class AdminController
         $this->checkAdmin();
         if (!Csrf::isValid()) {
             http_response_code(422);
-            $_SESSION['error'] = 'CSRF token validation failed';
+            $_SESSION['error'] = __('csrf_token_invalid');
             header('Location: /admin/system');
             exit;
         }
 
         $backupDir = dirname(__DIR__, 2) . '/storage/backups';
         if (!is_dir($backupDir) && !@mkdir($backupDir, 0775, true)) {
-            $_SESSION['error'] = 'Не вдалося створити папку для резервних копій.';
+            $_SESSION['error'] = __('admin_backup_dir_error');
             header('Location: /admin/system');
             exit;
         }
@@ -664,9 +700,9 @@ class AdminController
         $dump .= "SET FOREIGN_KEY_CHECKS=1;\n";
 
         if (@file_put_contents($filePath, $dump) === false) {
-            $_SESSION['error'] = 'Не вдалося записати SQL-дамп.';
+            $_SESSION['error'] = __('admin_backup_write_error');
         } else {
-            $_SESSION['success'] = 'Резервну копію створено: ' . basename($filePath);
+            $_SESSION['success'] = sprintf(__('admin_backup_created'), basename($filePath));
             $this->logAdminAction('backup_database', ['file' => basename($filePath)]);
         }
 
@@ -679,7 +715,7 @@ class AdminController
         $this->checkAdmin();
         if (!Csrf::isValid()) {
             http_response_code(422);
-            $_SESSION['error'] = 'CSRF token validation failed';
+            $_SESSION['error'] = __('csrf_token_invalid');
             header('Location: /admin/system');
             exit;
         }
@@ -698,9 +734,9 @@ class AdminController
         }
 
         $this->logAdminAction('optimize_database', ['optimized' => $optimized, 'errors' => $errors]);
-        $_SESSION['success'] = 'Оптимізацію таблиць завершено. Успішно: ' . count($optimized);
+        $_SESSION['success'] = sprintf(__('admin_optimize_success'), count($optimized));
         if (!empty($errors)) {
-            $_SESSION['error'] = 'Частина таблиць не оптимізована: ' . implode('; ', $errors);
+            $_SESSION['error'] = sprintf(__('admin_optimize_partial'), implode('; ', $errors));
         }
 
         header('Location: /admin/system');
@@ -712,7 +748,7 @@ class AdminController
         $this->checkAdmin();
         if (!Csrf::isValid()) {
             http_response_code(422);
-            $_SESSION['error'] = 'CSRF token validation failed';
+            $_SESSION['error'] = __('csrf_token_invalid');
             header('Location: /admin/system');
             exit;
         }
@@ -731,7 +767,7 @@ class AdminController
         }
 
         $this->logAdminAction('clear_logs', ['deleted' => $deleted]);
-        $_SESSION['success'] = 'Логи очищено. Видалено файлів: ' . count($deleted);
+        $_SESSION['success'] = sprintf(__('admin_logs_cleared'), count($deleted));
         header('Location: /admin/system');
         exit;
     }
@@ -909,7 +945,9 @@ class AdminController
         case 'update':
             $config = require __DIR__ . '/../../config/updater.php';
             View::renderPartial('admin/settings/tabs/update', [
-                'current_version' => $config['current_version']
+                'updaterConfig'   => $config,
+                'current_version' => $config['current_version'],
+                'phpVersion'      => PHP_VERSION,
             ]);
             break;
 
@@ -930,6 +968,13 @@ class AdminController
                 'prom'       => $promSettings,
                 'siteUrl'    => $siteUrl,
                 'queueStats' => $queueStats,
+            ]);
+            break;
+
+        case 'footer':
+            $socialLinks = \App\Models\SocialLink::getAll();
+            View::renderPartial('admin/settings/tabs/footer', [
+                'socialLinks' => $socialLinks
             ]);
             break;
 
@@ -955,60 +1000,90 @@ class AdminController
         $redirectUrl = '/admin/settings?tab=' . urlencode($currentTab);
 
         if (!Csrf::isValid()) {
-            $_SESSION['error'] = 'CSRF token validation failed';
+            $_SESSION['error'] = __('csrf_token_invalid');
             header('Location: ' . $redirectUrl); // Повертаємо на ту ж вкладку
             exit;
         }
 
-    $settingsToUpdate = $_POST['settings'] ?? [];
-    if (!is_array($settingsToUpdate)) {
-        $settingsToUpdate = [];
-    }
-
-    [$settingsToUpdate, $validationError] = $this->validateAndNormalizeSettings($settingsToUpdate);
-    if ($validationError !== null) {
-        $_SESSION['error'] = $validationError;
-        header('Location: ' . $redirectUrl); // Повертаємо на ту ж вкладку
-        exit;
-    }
-
-    $watermarkUploadError = $this->processWatermarkUpload($settingsToUpdate);
-    if ($watermarkUploadError !== null) {
-        $_SESSION['error'] = $watermarkUploadError;
-        header('Location: ' . $redirectUrl); // Повертаємо на ту ж вкладку
-        exit;
-    }
-
-    $logotypeUploadError = $this->processLogotypeUpload($settingsToUpdate);
-    if ($logotypeUploadError !== null) {
-        $_SESSION['error'] = $logotypeUploadError;
-        header('Location: ' . $redirectUrl);
-        exit;
-    }
-
-    $metadata = $this->settingsMetadata();
-    foreach ($settingsToUpdate as $key => $value) {
-        $group = $metadata[$key]['group'] ?? 'general';
-        $type = $metadata[$key]['type'] ?? 'text';
-        Setting::setWithMeta((string) $key, (string) $value, $group, $type);
-        
-        // Якщо змінюється активна тема, синхронізуємо з ThemeManager
-        if ($key === 'active_theme') {
-            \App\Core\Theme\ThemeManager::setActiveTheme($value);
+        $settingsToUpdate = $_POST['settings'] ?? [];
+        if (!is_array($settingsToUpdate)) {
+            $settingsToUpdate = [];
         }
-    }
 
-    // 2. Нове збереження для доставки та оплати (таблиця shop_methods)
-    if (isset($_POST['methods']) && is_array($_POST['methods'])) {
+        [$settingsToUpdate, $validationError] = $this->validateAndNormalizeSettings($settingsToUpdate);
+        if ($validationError !== null) {
+            $_SESSION['error'] = $validationError;
+            header('Location: ' . $redirectUrl); // Повертаємо на ту ж вкладку
+            exit;
+        }
+
+        $watermarkUploadError = $this->processWatermarkUpload($settingsToUpdate);
+        if ($watermarkUploadError !== null) {
+            $_SESSION['error'] = $watermarkUploadError;
+            header('Location: ' . $redirectUrl); // Повертаємо на ту ж вкладку
+            exit;
+        }
+
+        $logotypeUploadError = $this->processLogotypeUpload($settingsToUpdate);
+        if ($logotypeUploadError !== null) {
+            $_SESSION['error'] = $logotypeUploadError;
+            header('Location: ' . $redirectUrl);
+            exit;
+        }
+
+        $metadata = $this->settingsMetadata();
+        foreach ($settingsToUpdate as $key => $value) {
+            $group = $metadata[$key]['group'] ?? 'general';
+            $type = $metadata[$key]['type'] ?? 'text';
+            Setting::setWithMeta((string) $key, (string) $value, $group, $type);
+
+            // Якщо змінюється активна тема, синхронізуємо з ThemeManager
+            if ($key === 'active_theme') {
+                \App\Core\Theme\ThemeManager::setActiveTheme($value);
+            }
+
+            // Якщо змінюється статус магазину, очищуємо кеш налаштувань
+            if ($key === 'store_status') {
+                try {
+                    $cacheDir = dirname(__DIR__, 2) . '/storage/cache';
+                    if (is_dir($cacheDir)) {
+                        $entries = @scandir($cacheDir);
+                        if (is_array($entries)) {
+                            foreach ($entries as $entry) {
+                                if ($entry === '.' || $entry === '..') {
+                                    continue;
+                                }
+                                $path = $cacheDir . '/' . $entry;
+                                if (is_file($path)) {
+                                    @unlink($path);
+                                }
+                            }
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    error_log('Error clearing cache after store_status change: ' . $e->getMessage());
+                }
+            }
+        }
+
+        // 2. Нове збереження для доставки та оплати (таблиця shop_methods)
+        if (isset($_POST['methods']) && is_array($_POST['methods'])) {
         foreach ($_POST['methods'] as $id => $data) {
             // Викликаємо метод з Setting.php, який ми створили раніше
             Setting::updateShopMethod((int)$id, $data);
         }
-    }
+        }
 
-    $_SESSION['success'] = __('settings_saved_successfully');
-    header('Location: ' . $redirectUrl); // Успішне повернення
-    exit;
+        // 3. Збереження соціальних мереж
+        if (isset($_POST['social']) && is_array($_POST['social'])) {
+            foreach ($_POST['social'] as $id => $data) {
+                \App\Models\SocialLink::updateLink((int)$id, $data);
+            }
+        }
+
+        $_SESSION['success'] = __('settings_saved_successfully');
+        header('Location: ' . $redirectUrl); // Успішне повернення
+        exit;
     }
 
     public function addMethod()
@@ -1021,8 +1096,8 @@ class AdminController
     $data = [
         'type'        => $type,
         'code'        => 'custom_' . time(),
-        'name'        => ($type === 'shipping') ? 'Новий метод доставки' : 'Новий метод оплати',
-        'description' => 'Опис методу для клієнта',
+        'name'        => ($type === 'shipping') ? __('admin_new_delivery_method') : __('admin_new_payment_method'),
+        'description' => __('admin_new_method_description'),
         'is_active'   => 0,
         'sort_order'  => 10,
         'settings'    => json_encode([])
@@ -1037,7 +1112,7 @@ class AdminController
     // Вказуємо правильну назву вкладки для редіректу
     $tab = ($type === 'shipping') ? 'shipping' : 'payment';
 
-    $_SESSION['success'] = 'Метод додано. Тепер налаштуйте його.';
+    $_SESSION['success'] = __('admin_method_added');
     header('Location: /admin/settings?tab=' . $tab);
     exit;
     }
@@ -1052,7 +1127,7 @@ class AdminController
 
     Setting::execute("DELETE FROM shop_methods WHERE id = ?", [(int)$id]);
     
-    $_SESSION['success'] = 'Метод видалено';
+    $_SESSION['success'] = __("admin_settings_method_deleted");
     header('Location: /admin/settings?tab=' . $tab);
     exit;
     }
@@ -1060,16 +1135,16 @@ class AdminController
     public function updateReview(int $id)
     {
         $this->checkAdmin();
-        if (!Csrf::isValid()) { http_response_code(422); $_SESSION['error'] = 'CSRF token validation failed'; header('Location: /admin/settings?tab=reviews'); exit; }
+        if (!Csrf::isValid()) { http_response_code(422); $_SESSION['error'] = __('csrf_token_invalid'); header('Location: /admin/settings?tab=reviews'); exit; }
 
         $body = trim((string) ($_POST['body'] ?? ''));
         if ($body === '' || mb_strlen($body) < 3 || mb_strlen($body) > Review::MAX_BODY_LENGTH) {
-            $_SESSION['error'] = 'Текст від 3 до 2000 символів.';
+            $_SESSION['error'] = __('admin_review_text_length');
             header('Location: /admin/settings?tab=reviews');
             exit;
         }
         Review::updateBody($id, $body);
-        $_SESSION['success'] = 'Відгук оновлено';
+        $_SESSION['success'] = __('admin_review_updated');
         header('Location: /admin/settings?tab=reviews');
         exit;
     }
@@ -1077,9 +1152,9 @@ class AdminController
     public function deleteReview(int $id)
     {
         $this->checkAdmin();
-        if (!Csrf::isValid()) { http_response_code(422); $_SESSION['error'] = 'CSRF token validation failed'; header('Location: /admin/settings?tab=reviews'); exit; }
+        if (!Csrf::isValid()) { http_response_code(422); $_SESSION['error'] = __('csrf_token_invalid'); header('Location: /admin/settings?tab=reviews'); exit; }
         Review::deleteById($id);
-        $_SESSION['success'] = 'Відгук видалено';
+        $_SESSION['success'] = __('admin_review_deleted');
         header('Location: /admin/settings?tab=reviews');
         exit;
     }
@@ -1087,10 +1162,10 @@ class AdminController
     public function toggleReviewVisibility(int $id)
     {
         $this->checkAdmin();
-        if (!Csrf::isValid()) { http_response_code(422); $_SESSION['error'] = 'CSRF token validation failed'; header('Location: /admin/settings?tab=reviews'); exit; }
+        if (!Csrf::isValid()) { http_response_code(422); $_SESSION['error'] = __('csrf_token_invalid'); header('Location: /admin/settings?tab=reviews'); exit; }
         $visible = !empty($_POST['is_visible']) ? 1 : 0;
         Review::setVisibility($id, $visible);
-        $_SESSION['success'] = $visible ? 'Відгук розблоковано' : 'Відгук заблоковано';
+        $_SESSION['success'] = $visible ? __('admin_review_unblocked') : __('admin_review_blocked');
         header('Location: /admin/settings?tab=reviews');
         exit;
     }
@@ -1113,7 +1188,7 @@ class AdminController
 
             $value = (int) $settings[$key];
             if ($value < 0) {
-                return [$settings, 'Розміри зображень не можуть бути відʼємними.'];
+                return [$settings, __('admin_image_dimensions_negative')];
             }
             $settings[$key] = (string) $value;
         }
@@ -1121,16 +1196,24 @@ class AdminController
         if (isset($settings['media_quality'])) {
             $quality = (int) $settings['media_quality'];
             if ($quality < 10 || $quality > 100) {
-                return [$settings, 'Якість зображень має бути в межах 10-100.'];
+                return [$settings, __('admin_image_quality_range')];
             }
             $settings['media_quality'] = (string) $quality;
         }
 
 
+        if (isset($settings['contact_address'])) {
+            $address = trim(strip_tags((string) $settings['contact_address']));
+            if (mb_strlen($address) > 250) {
+                return [$settings, __('admin_settings_contact_address_too_long')];
+            }
+            $settings['contact_address'] = $address;
+        }
+
         if (isset($settings['phone_mask'])) {
             $settings['phone_mask'] = normalize_phone_mask((string) $settings['phone_mask']);
             if (!is_valid_phone_mask($settings['phone_mask'])) {
-                return [$settings, 'Маска телефону некоректна. Використайте формат на кшталт +38 (###) ###-##-##'];
+                return [$settings, __('admin_phone_mask_invalid')];
             }
         }
         $settings['media_auto_webp'] = !empty($settings['media_auto_webp']) ? '1' : '0';
@@ -1158,12 +1241,12 @@ class AdminController
         }
 
         if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-            return 'Помилка завантаження файлу водяного знака.';
+            return __('admin_watermark_upload_error');
         }
 
         $size = (int) ($file['size'] ?? 0);
         if ($size <= 0 || $size > 5242880) {
-            return 'Файл водяного знака має бути до 5MB.';
+            return __('admin_watermark_size_error');
         }
 
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
@@ -1173,19 +1256,19 @@ class AdminController
         }
 
         if ($mime !== 'image/png') {
-            return 'Водяний знак має бути у форматі PNG з прозорістю.';
+            return __('admin_watermark_format_error');
         }
 
         $dir = __DIR__ . '/../../public/uploads/watermarks/';
         if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
-            return 'Не вдалося створити папку для водяних знаків.';
+            return __('admin_watermark_dir_error');
         }
 
         $filename = str_replace('.', '', uniqid('watermark_', true)) . '.png';
         $target = $dir . $filename;
 
         if (!move_uploaded_file((string) ($file['tmp_name'] ?? ''), $target)) {
-            return 'Не вдалося зберегти водяний знак.';
+            return __('admin_watermark_save_error');
         }
 
         $settings['media_watermark_path'] = '/uploads/watermarks/' . $filename;
@@ -1195,6 +1278,7 @@ class AdminController
     private function settingsMetadata(): array
     {
         return [
+            'site_url'  => ['group' => 'general', 'type' => 'text'],
             'site_name' => ['group' => 'general', 'type' => 'text'],
             'site_description' => ['group' => 'general', 'type' => 'textarea'],
             'store_status' => ['group' => 'general', 'type' => 'select'],
@@ -1204,6 +1288,7 @@ class AdminController
             'active_theme' => ['group' => 'appearance', 'type' => 'select'],
             'contact_email' => ['group' => 'contact', 'type' => 'text'],
             'contact_phone' => ['group' => 'contact', 'type' => 'text'],
+            'contact_address' => ['group' => 'contact', 'type' => 'text'],
             'phone_mask' => ['group' => 'contact', 'type' => 'text'],
             'media_thumb_width' => ['group' => 'media', 'type' => 'number'],
             'media_thumb_height' => ['group' => 'media', 'type' => 'number'],
@@ -1246,12 +1331,12 @@ class AdminController
         }
 
         if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-            return 'Помилка завантаження логотипу.';
+            return __('admin_logotype_upload_error');
         }
 
         $size = (int) ($file['size'] ?? 0);
         if ($size <= 0 || $size > 1048576) {
-            return 'Логотип має бути розміром до 1MB.';
+            return __('admin_logotype_size_error');
         }
 
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
@@ -1267,12 +1352,12 @@ class AdminController
         ];
 
         if (!isset($allowedMimes[$mime])) {
-            return 'Логотип має бути у форматі JPG, PNG або WEBP.';
+            return __('admin_logotype_format_error');
         }
 
         $dir = __DIR__ . '/../../public/uploads/logotypes/';
         if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
-            return 'Не вдалося створити папку для логотипів.';
+            return __('admin_logotype_dir_error');
         }
 
         $currentPath = trim((string) get_setting('active_logotype', ''));
@@ -1287,7 +1372,7 @@ class AdminController
         $target = $dir . $filename;
 
         if (!move_uploaded_file((string) ($file['tmp_name'] ?? ''), $target)) {
-            return 'Не вдалося зберегти логотип.';
+            return __('admin_logotype_save_error');
         }
 
         $settings['active_logotype'] = '/uploads/logotypes/' . $filename;

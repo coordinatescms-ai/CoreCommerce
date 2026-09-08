@@ -1,4 +1,27 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+echo "Перевірка запуску: Скрипт стартував успішно!\n";
+
+/**
+ * CoreCommerce Cron Runner
+ *
+ * Запуск (Linux/VPS):
+ *   * * * * * php /var/www/mysite/cron_manager.php >> /var/www/mysite/storage/logs/cron.log 2>&1
+ *
+ * Запуск (Windows OSPanel — Планувальник завдань):
+ *   Програма:  C:\OSPanel\modules\php\php-8.3\php.exe
+ *   Аргументи: C:\OSPanel\home\mysite.test\cron_manager.php
+ */
+
+// Захист: запуск лише через CLI, не через браузер
+if (PHP_SAPI !== 'cli') {
+    http_response_code(403);
+    exit('403 Forbidden: CLI only.');
+}
+
 require __DIR__ . '/vendor/autoload.php';
 
 use App\Core\Database\DB;

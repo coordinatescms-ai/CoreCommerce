@@ -34,7 +34,7 @@ class AdminPromController
         $this->checkAdmin();
 
         if (!Csrf::isValid()) {
-            $this->json(['success' => false, 'message' => 'CSRF токен недійсний.'], 419);
+            $this->json(['success' => false, 'message' => __('csrf_token_invalid')], 419);
         }
 
         $fields = [
@@ -55,7 +55,7 @@ class AdminPromController
             );
         }
 
-        $this->json(['success' => true, 'message' => 'Налаштування Prom.ua збережено.']);
+        $this->json(['success' => true, 'message' => __('admin_prom_settings_saved')]);
     }
 
     /**
@@ -65,6 +65,10 @@ class AdminPromController
     public function test(): never
     {
         $this->checkAdmin();
+
+        if (!Csrf::isValid()) {
+            $this->json(['success' => false, 'message' => __('csrf_token_invalid')], 419);
+        }
 
         // Якщо передали ключ прямо з форми — тестуємо його, не чекаючи збереження
         $apiKey = trim((string)($_POST['prom_api_key'] ?? ''));
@@ -83,11 +87,11 @@ class AdminPromController
         $this->checkAdmin();
 
         if (!Csrf::isValid()) {
-            $this->json(['success' => false, 'message' => 'CSRF токен недійсний.'], 419);
+            $this->json(['success' => false, 'message' => __('csrf_token_invalid')], 419);
         }
 
         if (!PromApiClient::isEnabled()) {
-            $this->json(['success' => false, 'message' => 'Інтеграцію з Prom.ua вимкнено.']);
+            $this->json(['success' => false, 'message' => __('admin_prom_integration_disabled')]);
         }
 
         $result = (new PromSyncService())->generateXmlFeed();
@@ -103,11 +107,11 @@ class AdminPromController
         $this->checkAdmin();
 
         if (!Csrf::isValid()) {
-            $this->json(['success' => false, 'message' => 'CSRF токен недійсний.'], 419);
+            $this->json(['success' => false, 'message' => __('csrf_token_invalid')], 419);
         }
 
         if (!PromApiClient::isEnabled()) {
-            $this->json(['success' => false, 'message' => 'Інтеграцію з Prom.ua вимкнено.']);
+            $this->json(['success' => false, 'message' => __('admin_prom_integration_disabled')]);
         }
 
         $action = in_array($_POST['action'] ?? '', ['price', 'quantity', 'both'], true)
@@ -118,7 +122,7 @@ class AdminPromController
 
         $this->json([
             'success' => true,
-            'message' => "Додано в чергу: {$count} товарів.",
+            'message' => sprintf(__('admin_prom_enqueued'), $count),
             'count'   => $count,
         ]);
     }
@@ -132,19 +136,24 @@ class AdminPromController
         $this->checkAdmin();
 
         if (!Csrf::isValid()) {
-            $this->json(['success' => false, 'message' => 'CSRF токен недійсний.'], 419);
+            $this->json(['success' => false, 'message' => __('csrf_token_invalid')], 419);
         }
 
         if (!PromApiClient::isEnabled()) {
-            $this->json(['success' => false, 'message' => 'Інтеграцію з Prom.ua вимкнено.']);
+            $this->json(['success' => false, 'message' => __('admin_prom_integration_disabled')]);
         }
 
         $stats = (new PromSyncService())->processQueue();
 
         $this->json([
             'success' => true,
-            'message' => "Оброблено: {$stats['processed']}, успішно: {$stats['success']}, "
-                       . "помилок: {$stats['failed']}, залишок у черзі: {$stats['remaining']}.",
+            'message' => sprintf(
+                __('admin_prom_queue_processed'),
+                $stats['processed'],
+                $stats['success'],
+                $stats['failed'],
+                $stats['remaining']
+            ),
             'stats'   => $stats,
         ]);
     }
@@ -158,7 +167,7 @@ class AdminPromController
         $this->checkAdmin();
 
         if (!Csrf::isValid()) {
-            $this->json(['success' => false, 'message' => 'CSRF токен недійсний.'], 419);
+            $this->json(['success' => false, 'message' => __('csrf_token_invalid')], 419);
         }
 
         $status = in_array($_POST['status'] ?? '', ['done', 'failed', 'all'], true)
@@ -169,7 +178,7 @@ class AdminPromController
 
         $this->json([
             'success' => true,
-            'message' => "Видалено з черги: {$count} записів.",
+            'message' => sprintf(__('admin_prom_queue_cleared'), $count),
             'count'   => $count,
         ]);
     }

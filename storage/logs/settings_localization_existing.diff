@@ -1,0 +1,1520 @@
+diff --git a/lang/en.php b/lang/en.php
+index 742df1f..be7bb66 100644
+--- a/lang/en.php
++++ b/lang/en.php
+@@ -5,17 +5,160 @@ return [
+     'homepage_hero_title' => 'Welcome to MySite!',
+     'homepage_hero_subtitle' => 'Choose the best products for home, work, and leisure in one catalog.',
+     'shop_now' => 'Shop Now',
+-    'featured_categories' => 'Featured Categories',
++    'popular_categories' => 'Featured Categories',
+     'new_arrivals' => 'New Arrivals',
+-    'popular_products' => 'Popular Products',
++    'recommended_products' => 'Popular Products',
+     'view_all_products' => 'View All Products',
+     'products' => 'TOP',
+     'products_popular_title' => 'Popular products',
++    'products_count' => 'Products:',
++    'orders_count' => 'Orders:',
++    'view_all' => 'View all',
+     'products_found_label' => 'Found',
+     'products_top_badge' => 'TOP',
+     'categories_not_found' => 'No categories added yet.',
+     'cart' => 'Cart',
+     'checkout' => 'Checkout',
++    'checkout_title' => 'Checkout',
++    'checkout_contact_info' => 'Contact Information',
++    'checkout_full_name' => 'Full Name',
++    'checkout_phone' => 'Phone',
++    'checkout_email' => 'Email',
++    'checkout_delivery' => 'Delivery',
++    'checkout_city' => 'City',
++    'checkout_city_placeholder' => 'Enter at least 3 characters',
++    'checkout_select_city_first' => 'Select city first',
++    'checkout_warehouse' => 'Warehouse',
++    'checkout_delivery_address' => 'Delivery address',
++    'checkout_delivery_address_placeholder' => 'Enter delivery address',
++    'checkout_payment' => 'Payment',
++    'checkout_comment' => 'Order comment',
++    'checkout_comment_placeholder' => 'Add a comment if needed',
++    'checkout_your_order' => 'Your Order',
++    'checkout_total' => 'Total',
++    'checkout_submit' => 'Place Order',
++    'checkout_specify_pib' => 'Specify full name (minimum 5 characters).',
++    'checkout_specify_phone' => 'Specify phone in the correct format.',
++    'checkout_specify_email' => 'Specify email in the correct format.',
++    'checkout_specify_delivery' => 'Select delivery method.',
++    'checkout_specify_payment' => 'Select payment method.',
++    'checkout_specify_city' => 'Select city of Nova Poshta.',
++    'checkout_specify_warehouse' => 'Select warehouse of Nova Poshta.',
++    'checkout_specify_address' => 'Specify address for courier.',
++    'checkout_fix_errors' => 'Fix errors in the form.',
++    'checkout_sending' => 'Sending...',
++    'checkout_order_error' => 'Order placement error.',
++    'checkout_order_success' => 'Order successfully placed.',
++    'checkout_connection_error' => 'Server connection error.',
++    'checkout_submit_button' => 'Place Order',
++    'checkout_loading_cities' => 'Failed to load cities',
++    'checkout_loading_warehouses' => 'Failed to load warehouses',
++    'checkout_loading' => 'Loading...',
++    'checkout_select_warehouse' => 'Select warehouse',
++    'checkout_load_failed' => 'Failed to load',
++    'checkout_select_city_first' => 'Select city first',
++    'cron_error' => 'Error',
++    'cron_disable' => 'Disable',
++    'cron_enable' => 'Enable',
++    'cron_running' => 'running',
++    'cron_success' => 'success',
++    'cron_failed' => 'failed',
++    'cron_delete_confirm' => 'Delete this Cron task?',
++    'cron_delete_error' => 'Deletion error',
++    'cron_fill_required' => 'Fill required fields',
++    'cron_save_error' => 'Save error',
++    'cron_form_not_found' => 'Error: form fields not found in DOM',
++    'cron_fill_all_required' => 'Fill required fields: Name, Schedule, Script file',
++    'cron_request_error' => 'Request error',
++    'cron_create_error' => 'Creation error',
++    'update_checking' => 'Checking...',
++    'update_write_ok' => 'Write permissions: OK',
++    'update_php_ok' => 'PHP version (8.x): OK',
++    'update_no_updates' => 'No updates found',
++    'update_check_button' => 'Check for updates',
++    'update_check_error' => 'Error checking for updates',
++    'update_enter_password' => 'Please enter password',
++    'update_confirm_start' => 'Are you sure you want to start the update? This may modify core files.',
++    'update_step_init' => 'Initialization',
++    'update_step_backup' => 'Backup',
++    'update_step_download' => 'Download',
++    'update_step_extract' => 'Extraction',
++    'update_step_database' => 'DB Migration',
++    'update_step_finish' => 'Completion',
++    'update_complete' => 'Update completed!',
++    'update_ready' => 'System ready to work',
++    'update_error_prefix' => 'ERROR: ',
++    'update_stopped' => 'Update stopped due to error',
++    'update_critical_error' => 'Critical request error',
++    'orders_search_placeholder' => 'Search: name, phone, ID…',
++    'orders_phone' => 'Phone',
++    'orders_status' => 'Status',
++    'orders_payment' => 'Payment',
++    'orders_delivery' => 'Delivery',
++    'orders_date' => 'Date',
++    'orders_not_found' => 'No orders found',
++    'order_details' => 'Order details',
++    'orders_name' => 'Name',
++    'orders_email' => 'Email',
++    'orders_city' => 'City',
++    'orders_warehouse' => 'Warehouse',
++    'orders_address' => 'Address',
++    'orders_comment' => 'Comment',
++    'order_products' => 'Products',
++    'orders_product_id' => 'Product ID',
++    'orders_product_name' => 'Name',
++    'orders_product_options' => 'Options',
++    'orders_product_qty' => 'Qty',
++    'orders_product_price' => 'Price',
++    'orders_total_sum' => 'Total sum',
++    'order_status_history' => 'Status history',
++    'order_history_empty' => 'History is empty.',
++    'order_server_error' => 'Server returned invalid response.',
++    'order_status_update_error' => 'Failed to update status',
++    'order_enter_ttn' => 'Enter TTN for shipment:',
++    'order_ttn_required' => 'TTN is required for status',
++    'order_created' => 'Order #',
++    'pagination_showing' => 'Showing %d–%d of %s',
++    'products_csv_file' => 'CSV file',
++    'products_import' => 'Import',
++    'products_format_hint' => 'Format: <code>sku,name,price,quantity,description,category</code>',
++    'products_manage' => 'Product Management',
++    'products_search_placeholder' => 'Name or SKU…',
++    'products_all_categories' => 'All categories',
++    'products_all' => 'All',
++    'products_visible' => 'Visible',
++    'products_hidden' => 'Hidden',
++    'products_product' => 'Product',
++    'products_category' => 'Category',
++    'products_price' => 'Price',
++    'products_quantity' => 'Quantity',
++    'products_slug' => 'Slug',
++    'products_actions' => 'Actions',
++    'products_no_category' => 'No category',
++    'products_hidden_badge' => 'hidden',
++    'products_pieces' => 'pcs.',
++    'products_delete_confirm' => 'Delete product «%s»?',
++    'products_attribute_value_required' => 'For the selected attribute, fill in the "Value" field.',
++    'products_attribute_select_required' => 'Value specified without attribute. Please select an attribute.',
++    'products_import_file_not_sent' => 'Import file not sent.',
++    'products_import_upload_error' => 'CSV file upload error.',
++    'products_import_csv_only' => 'Only CSV files (.csv) are allowed for import.',
++    'products_import_not_csv' => 'File is not a text CSV (verified by content).',
++    'products_import_cannot_open' => 'Failed to open CSV file for reading.',
++    'products_import_columns_error' => 'Row contains %d columns instead of 6. Likely, description text contains comma (,) without quotes around value. Wrap description text in double quotes: "text, with commas".',
++    'products_import_required_invalid' => 'Required fields invalid (sku/name/price).',
++    'products_import_category_not_found' => 'Category not found: %s',
++    'products_import_upsert_error' => 'Upsert products error: %s',
++    'products_import_stock_upsert_error' => 'Upsert product_stocks error: %s',
++    'products_import_failed' => 'Import failed. Processed rows: 0.',
++    'products_import_completed_with_errors' => 'Import completed. Successfully processed rows: %d. Skipped with errors: %d (details: storage/logs/product_csv_import_errors.log).',
++    'products_import_completed' => 'Import completed. Successfully processed rows: %d.',
++    'products_import_error_line' => 'Row %d: %s',
++    'products_image_upload_error' => 'File upload error: %s.',
++    'products_image_max_size' => 'Maximum size of one image is 5MB.',
++    'products_image_allowed_formats' => 'Allowed image formats: jpg, jpeg, png, webp.',
++    'products_gallery_max_images' => 'Maximum %d photos can be uploaded for one product.',
++    'products_image_save_error' => 'Failed to save one of the images.',
+     'login' => 'Login',
+     'register' => 'Register',
+     'logout' => 'Logout',
+@@ -130,6 +273,7 @@ return [
+     'similar_products' => 'Similar products',
+     'delivery_info_default' => 'Delivery across Ukraine in 1-3 days. Online payment or cash on delivery.',
+     'reviews_empty' => 'No reviews yet. Be the first customer to leave a review.',
++    'no_options_available' => 'No options available for this product.',
+ 
+     // Cart
+     'product_added_to_cart' => 'Product added to cart!',
+@@ -153,6 +297,18 @@ return [
+     'proceed_to_checkout' => 'Proceed to Checkout',
+     'in_stock' => 'In Stock',
+ 
++    //crm user activity logs
++    'crm_user_activity_logs' => 'User activity logs',
++    'viewed_product' => 'Viewed product:', 
++    'added_to_cart' => 'Added to cart:', 
++    'updated_cart_quantity' => 'Updated cart quantity:',
++    'removed_from_cart' => 'Removed from cart:',
++    'cleared_cart' => 'Cleared cart',
++    'order_created' => 'Created order #',
++    'new_order' => 'New order',
++    'for_client' => 'For client:',
++    'back_to_crm' => 'Back to CRM',
++
+     // Admin CRM (Users)
+     'crm_page_title' => 'User CRM',
+     'crm_back' => 'Back',
+@@ -216,6 +372,8 @@ return [
+     'crm_mock_activity_login' => 'Last login: 2026-04-25 10:15',
+     'crm_mock_activity_viewed' => 'Viewed: "Smartphones" category',
+     'crm_mock_activity_cart_add' => 'Added to cart: Smartphone Pro X',
++    'crm_group_change_reason' => 'When changing the group, you must specify the reason.',
++    'crm_group_change_reason_placeholder' => 'Reason for changing the group (mandatory when changing)',
+ 
+     'profile_my_orders' => 'My orders',
+     'profile_favorites' => 'Favorites',
+@@ -228,6 +386,8 @@ return [
+     'profile_invalid_phone' => 'Invalid phone number.',
+     'profile_invalid_email' => 'Invalid email.',
+     'profile_updated_successfully' => 'Profile updated successfully.',
++    'profile_number_orders' => '№ number',
++    'profile_added' => 'Added',
+     'csrf_token_invalid' => 'Invalid CSRF token.',
+ 
+     // ── Admin: navigation ─────────────────────────────────────────────────────
+@@ -290,6 +450,10 @@ return [
+     'sort_order'              => 'Sort order',
+     'sort_order_hint'         => 'Lower number = higher in list',
+     'position'                => 'Order',
++    'back_to_list'            => 'Back to list',
++    'basic_info'              => 'Basic information',
++    'seo_settings'            => 'SEO settings',
++    'save_changes'            => 'Save changes',
+ 
+     // ── Admin: dashboard ──────────────────────────────────────────────────────
+     'dashboard_sales_week'    => 'Sales this week',
+@@ -306,6 +470,25 @@ return [
+     'hi'                      => 'Hi,',
+     'logout'                  => 'Log out',
+     'view_site'               => 'View site',
++    'sun' => 'Sun',
++    'mon' => 'Mon',
++    'tue' => 'Tue',
++    'wed' => 'Wed',
++    'thu' => 'Thu',
++    'fri' => 'Fri',
++    'sat' => 'Sat',
++    'm01' => 'Jan',
++    'm02' => 'Feb',
++    'm03' => 'Mar',
++    'm04' => 'Apr',
++    'm05' => 'May',
++    'm06' => 'Jun',
++    'm07' => 'Jul',
++    'm08' => 'Aug',
++    'm09' => 'Sep',
++    'm10' => 'Oct',
++    'm11' => 'Nov',
++    'm12' => 'Dec',
+ 
+     // ── Admin: orders ─────────────────────────────────────────────────────────
+     'order'                   => 'Order',
+@@ -337,6 +520,11 @@ return [
+     'status_returned'         => 'Returned',
+     'payment_method'          => 'Payment method',
+     'shipping_method'         => 'Shipping method',
++    'sync_logistics'          => 'Sync logistics',
++    'kanban'                  => 'KANBAN',
++    'table'                   => 'TABLE',
++    'order_kanban_view'       => 'Kanban view',
++    'order_table_view'        => 'Table view',
+ 
+     // ── Admin: products ───────────────────────────────────────────────────────
+     'product_new'             => 'New product',
+@@ -364,11 +552,28 @@ return [
+     'category_parent'         => 'Parent category',
+     'category_parent_label'   => 'Parent',
+     'category_no_parent'      => 'No parent',
++    'create_category_slug'    => 'Slug (URL link)',
++    'category_no_parent_option' => 'No parent (root)',
++    'meta_title'              => 'Meta Title',
++    'meta_description'        => 'Meta Description',
++    'example_smartphones'     => 'Example: Smartphones',
++    'category_slug_placeholder' => 'Leave empty for auto-generation',
+ 
+     // ── Admin: attributes ─────────────────────────────────────────────────────
+     'attribute_new'           => 'New attribute',
+     'attribute_edit'          => 'Edit attribute',
+     'attribute_manage'        => 'Manage attributes',
++    'attribute_detach_hint'   => 'If you detach an attribute from a category, the product values will not be deleted — they will simply not be displayed for that category.',
++    'attributes_not_found'    => 'No attributes found yet.',
++    'attribute_basic_info'    => 'Basic attribute information',
++    'attribute_category_link' => 'Category link',
++    'attribute_filterable'    => 'Available in filters',
++    'attribute_visible'       => 'Visible on storefront',
++    'attribute_slug_placeholder' => 'Leave empty for auto-generation',
++    'product_option_list_placeholder' => 'Black\nWhite\nBlue',
++    'attribute_delete_confirm' => 'Are you sure you want to delete this attribute?',
++    'user_delete_confirm' => 'Are you sure you want to delete this user?',
++    'category_delete_confirm' => 'Are you sure you want to delete this category?',
+ 
+     // ── Admin: reviews ────────────────────────────────────────────────────────
+     'reviews_manage'          => 'Review moderation',
+@@ -385,10 +590,39 @@ return [
+     'user_registered_at'      => 'Registered at',
+ 
+     // ── Admin: analytics ──────────────────────────────────────────────────────
++    'analytics_title'         => 'Analytics',
+     'analytics_period'        => 'Period',
+-    'analytics_share'         => 'Share',
++    'analytics_share'         => 'Fraction',
+     'analytics_errors'        => 'Errors',
+     'analytics_no_data'       => 'No data for this period',
++    'analytics_orders'        => 'Orders',
++    'analytics_revenue'       => 'Revenue',
++    'analytics_stock'         => 'Stock',
++    'analytics_sold'          => 'Sold',
++    // Заголовки аналітики
++    'analytics_sales_from' => 'Sales from',
++    'analytics_title_year' => 'Sales for the last 12 months',
++    'analytics_title_month' => 'Sales for the last 30 days',
++    'analytics_title_week' => 'Sales for the current week',
++    'analytics_popular_products' => 'Popular products (TOP-5)',
++    // Спеціальні фрази
++    'no_data' => 'No data',
++    'pcs' => 'pcs',
++    'week' => 'Week',
++    'month' => 'Month',
++    'year' => 'Year',
++    'export_csv' => 'Export CSV',
++    'reset' => 'Reset',
++    'custom_range' => 'custom range',
++    'low_stock_products' => 'Products running low',
++    'warning' => 'Warning',
++    'all_products_in_sufficient_quantity' => 'All products in sufficient quantity',
++    // Інтерфейс CSV
++    'csv_period' => 'Period',
++    'csv_orders' => 'Orders',
++    'csv_revenue' => 'Revenue ($)', // Можна змінити на $ за потреби
++    'csv_share' => 'Share (%)',
++    'csv_total' => 'TOTAL',
+ 
+     // ── Admin: stock ──────────────────────────────────────────────────────────
+     'stock_available'         => 'Available',
+@@ -414,6 +648,33 @@ return [
+     'content_closed'          => 'Closed (Maintenance)',
+     'content_close_msg'       => 'Message when closed',
+     'content_shop_mode'       => 'Shop mode',
++    'content_new_content_btn' => 'New content',
++    'content_id'              => 'ID',
++    'content_title'           => 'Title',
++    'content_slug_url'        => 'Slug (URL)',
++    'content_status'          => 'Status',
++    'content_date'            => 'Date',
++    'content_actions'         => 'Actions',
++    'content_published'       => 'Published',
++    'content_draft'           => 'Draft',
++    'content_delete_confirm'  => 'Are you sure?',
++    'content_page_title_label'=> 'Page title:',
++    'content_url_label'       => 'URL address (slug):',
++    'content_editor_list'     => '• List',
++    'content_upload_photo'    => 'Upload photo',
++    'content_seo_settings'    => 'SEO settings',
++    'content_meta_title_label'=> 'Meta Title (title for Google):',
++    'content_meta_desc_label' => 'Meta Description (description for search):',
++    'content_sort_order'       => 'Sort order:',
++    'content_sort_order_hint' => 'The smaller the number, the further left the page will be in the footer.',
++    'content_publish_page'     => 'Publish page',
++    'content_published_label' => 'Published',
++    'content_link_btn'        => '🔗 Link',
++    'content_enter_url'       => 'Enter URL:',
++    'content_title_placeholder'=> 'For example: About us',
++    'content_slug_placeholder'=> 'pro-nas',
++    'content_image_width_prompt'=> 'Enter image width in % or px (e.g., 50% or 300px):',
++    'content_image_upload_error'=> 'Error uploading image',
+ 
+     // ── Admin: plugins ────────────────────────────────────────────────────────
+     'plugins_manage'          => 'Plugin management',
+@@ -423,6 +684,18 @@ return [
+     'plugin_sandbox'          => 'Sandbox mode',
+     'plugin_payment_gateway'  => 'Payment gateway (plugin)',
+     'plugin_payment_desc'     => 'Description shown at checkout',
++    'plugin_zip_file'         => 'ZIP file (max. %d MB)',
++    'plugin_upload_btn'       => 'Upload',
++    'plugin_not_found'        => 'No plugins found',
++    'plugin_files_missing'    => 'Plugin files are missing from disk',
++    'plugin_deactivate'       => 'Deactivate',
++    'plugin_activate'         => 'Activate',
++    'plugin_settings_btn'     => 'Settings',
++    'plugin_manage_btn'       => 'Manage',
++    'plugin_settings_title'   => 'Settings:',
++    'plugin_back_to_list'     => 'Back to plugins list',
++    'plugin_enabled'          => 'Enabled',
++    'plugin_save_settings'    => 'Save settings',
+ 
+     // ── Admin: themes ─────────────────────────────────────────────────────────
+     'themes_active'           => 'Active theme',
+@@ -436,6 +709,20 @@ return [
+     'settings_reviews'        => 'Review moderation',
+     'settings_integrations'   => 'Integrations',
+     'settings_update'         => 'Updates',
++    'settings_footer'         => 'Footer',
++    'footer_text'             => 'Footer Text',
++    'footer_text_help'        => 'Short description of your store for the site footer',
++    'social_networks'         => 'Social Networks',
++    'social_name'             => 'Name',
++    'social_url'              => 'Link (URL)',
++    'social_is_active'        => 'Active',
++    'social_sort'             => 'Order',
++    'social_url_placeholder'  => 'https://...',
++    'add_social_link'         => 'Add Social Link',
++    'delete_social_confirm'   => 'Delete this link?',
++    'free_shipping_promo'     => 'FREE SHIPPING ON ORDERS OVER $100',
++    'search_placeholder'      => 'Search products...',
++    'footer_about_text_default' => 'Exclusive products for quality and style lovers. We create experiences, not just sell things.',
+     'settings_shop_name'      => 'Shop name',
+     'settings_shop_address'   => 'Shop address (pickup)',
+     'settings_shop_desc'      => 'Shop description (SEO)',
+@@ -513,6 +800,7 @@ return [
+     'system_disk'             => 'Disk (used/total)',
+     'system_admin_log'        => 'Admin action log',
+     'system_log_empty'        => 'Log is empty or missing.',
++    'optimize_table'          => 'Optimize table',
+ 
+     // ── Admin: updates ────────────────────────────────────────────────────────
+     'update_current_version'  => 'Current version',
+@@ -537,7 +825,18 @@ return [
+     'seo_available_masks'     => 'Available masks',
+ 
+     // ── Admin: cron ───────────────────────────────────────────────────────────
+-    'cron_edit'               => 'Edit Cron job',
++    'cron_edit'               => 'Edit Cron Job',
++    'cron_add'                => 'Add Task',
++    'cron_add_title'          => 'New Cron Task',
++    'cron_command_label'      => 'Script File',
++    'cron_command_hint'       => 'Path relative to project root, e.g. tasks/sitemap.php',
++    'cron_schedule_label'     => 'Schedule (Cron string)',
++    'cron_schedule_hint'      => 'Format: minute hour day month weekday. E.g. */30 * * * * — every 30 min.',
++    'cron_params_label'       => 'Params (JSON, optional)',
++    'cron_params_hint'        => 'Example: {"key": "value"}. Leave empty if not needed.',
++    'cron_status_label'       => 'Status after creation',
++    'cron_delete'             => 'Delete Task',
++    'cron_delete_confirm'     => 'Delete this Cron task? This action is irreversible.',
+     'cron_next_run'           => 'Next run',
+     'cron_last_run'           => 'Last run',
+     'cron_period'             => 'Frequency',
+@@ -660,4 +959,36 @@ return [
+     'sitemap_hint'          => 'Files saved to /public/sitemaps/. Point bots to /sitemap.xml',
+     'sitemap_generated_ok'  => 'Sitemap generated: %d URLs in %d files in %s sec.',
+     'sitemap_error'         => 'Sitemap generation error',
++
++    'update_source'              => 'Source',
++    'update_source_remote'       => 'Update server',
++    'update_source_local'        => 'Local package',
++    'update_source_config'       => 'Update source',
++    'update_source_hint'         => 'Mode is set in file',
++    'update_source_local_desc'   => 'files are taken from storage/local_updates/',
++    'update_source_remote_desc'  => 'package is downloaded from the update server automatically',
++    'update_last_checked'        => 'Last checked',
++    'update_disabled_hint'       => 'Updates are disabled. Enable in',
++    'update_check_title'         => 'Check for updates',
++    'update_check_hint'          => 'Click the button to check for a new version.',
++    'update_check_btn'           => 'Check for updates',
++    'update_run_title'           => 'Install update',
++    'update_check_disk'          => 'Free disk space (> 50 MB)',
++    'update_check_writable'      => 'Project folder is writable',
++    'update_check_backup_dir'    => 'backups/ folder is accessible or will be created',
++    'update_start_btn'           => 'Start update',
++    'update_rollback_title'      => 'Rollback to previous version',
++    'update_rollback_hint'       => 'A rollback marker was found. You can restore the previous version.',
++    'update_rollback_confirm'    => 'Roll back to the previous version? Current files will be replaced.',
++    'update_rollback_btn'        => 'Roll back version',
++    'update_confirm_btn'         => 'Confirm, all good',
++    'update_confirm_hint'        => 'Confirm the update is working correctly? Quick rollback will become unavailable after this. The file backup stays on disk for manual recovery.',
++    'update_step_init'           => 'Initialization',
++    'update_step_backup'         => 'Backup current version',
++    'update_step_download'       => 'Download package',
++    'update_step_extract'        => 'Apply files',
++    'update_step_database'       => 'SQL migration',
++    'update_step_finish'         => 'Finalization',
++    'checkout_delivery_address'             => 'Delivery address',
++    'checkout_delivery_address_placeholder' => 'Street, building, apartment',
+ ];
+diff --git a/lang/ua.php b/lang/ua.php
+index 98e1687..082ce60 100644
+--- a/lang/ua.php
++++ b/lang/ua.php
+@@ -5,17 +5,160 @@ return [
+     'homepage_hero_title' => 'Ласкаво просимо до MySite!',
+     'homepage_hero_subtitle' => 'Обирайте найкращі товари для дому, роботи та відпочинку в одному каталозі.',
+     'shop_now' => 'Купити зараз',
+-    'featured_categories' => 'Популярні категорії',
++    'popular_categories' => 'Популярні категорії',
+     'new_arrivals' => 'Новинки',
+-    'popular_products' => 'Популярні товари',
++    'recommended_products' => 'Популярні товари',
+     'view_all_products' => 'Переглянути всі товари',
+     'products' => 'ТОП',
+     'products_popular_title' => 'Популярні товари',
++    'products_count' => 'Товарів:',
++    'orders_count' => 'Замовлень:',
++    'view_all' => 'Переглянути всі',
+     'products_found_label' => 'Знайдено',
+     'products_top_badge' => 'ТОП',
+     'categories_not_found' => 'Категорії ще не додано.',
+     'cart' => 'Кошик',
+     'checkout' => 'Оформлення замовлення',
++    'checkout_title' => 'Оформлення замовлення',
++    'checkout_contact_info' => 'Контактні дані',
++    'checkout_full_name' => 'ПІБ',
++    'checkout_phone' => 'Телефон',
++    'checkout_email' => 'Email',
++    'checkout_delivery' => 'Доставка',
++    'checkout_city' => 'Місто',
++    'checkout_city_placeholder' => 'Введіть мінімум 3 символи',
++    'checkout_select_city_first' => 'Оберіть місто спочатку',
++    'checkout_warehouse' => 'Відділення',
++    'checkout_delivery_address' => 'Адреса доставки',
++    'checkout_delivery_address_placeholder' => 'Введіть адресу доставки',
++    'checkout_payment' => 'Оплата',
++    'checkout_comment' => 'Коментар до замовлення',
++    'checkout_comment_placeholder' => 'За потреби додайте коментар',
++    'checkout_your_order' => 'Ваше замовлення',
++    'checkout_total' => 'Разом',
++    'checkout_submit' => 'Підтвердити замовлення',
++    'checkout_specify_pib' => 'Вкажіть ПІБ (мінімум 5 символів).',
++    'checkout_specify_phone' => 'Вкажіть телефон у правильному форматі.',
++    'checkout_specify_email' => 'Вкажіть email у правильному форматі.',
++    'checkout_specify_delivery' => 'Оберіть спосіб доставки.',
++    'checkout_specify_payment' => 'Оберіть спосіб оплати.',
++    'checkout_specify_city' => 'Оберіть місто Нової Пошти.',
++    'checkout_specify_warehouse' => 'Оберіть відділення Нової Пошти.',
++    'checkout_specify_address' => 'Вкажіть адресу для курʼєра.',
++    'checkout_fix_errors' => 'Виправте помилки у формі.',
++    'checkout_sending' => 'Відправлення...',
++    'checkout_order_error' => 'Помилка оформлення замовлення.',
++    'checkout_order_success' => 'Замовлення успішно оформлено.',
++    'checkout_connection_error' => 'Помилка зʼєднання із сервером.',
++    'checkout_submit_button' => 'Підтвердити замовлення',
++    'checkout_loading_cities' => 'Не вдалося завантажити міста',
++    'checkout_loading_warehouses' => 'Не вдалося завантажити відділення',
++    'checkout_loading' => 'Завантаження...',
++    'checkout_select_warehouse' => 'Оберіть відділення',
++    'checkout_load_failed' => 'Не вдалося завантажити',
++    'checkout_select_city_first' => 'Оберіть місто спочатку',
++    'cron_error' => 'Помилка',
++    'cron_disable' => 'Disable',
++    'cron_enable' => 'Enable',
++    'cron_running' => 'running',
++    'cron_success' => 'success',
++    'cron_failed' => 'failed',
++    'cron_delete_confirm' => 'Видалити це Cron-завдання?',
++    'cron_delete_error' => 'Помилка видалення',
++    'cron_fill_required' => 'Заповніть обовязкові поля',
++    'cron_save_error' => 'Помилка збереження',
++    'cron_form_not_found' => 'Помилка: поля форми не знайдені в DOM',
++    'cron_fill_all_required' => 'Заповніть обовязкові поля: Назва, Розклад, Файл скрипту',
++    'cron_request_error' => 'Помилка запиту',
++    'cron_create_error' => 'Помилка створення',
++    'update_checking' => 'Перевірка...',
++    'update_write_ok' => 'Права на запис: OK',
++    'update_php_ok' => 'Версія PHP (8.x): OK',
++    'update_no_updates' => 'Оновлень не знайдено',
++    'update_check_button' => 'Перевірити наявність оновлень',
++    'update_check_error' => 'Помилка при перевірці оновлень',
++    'update_enter_password' => 'Будь ласка, введіть пароль',
++    'update_confirm_start' => 'Ви впевнені, що хочете розпочати оновлення? Це може змінити файли ядра.',
++    'update_step_init' => 'Ініціалізація',
++    'update_step_backup' => 'Резервне копіювання',
++    'update_step_download' => 'Завантаження',
++    'update_step_extract' => 'Розпакування',
++    'update_step_database' => 'Міграція БД',
++    'update_step_finish' => 'Завершення',
++    'update_complete' => 'Оновлення завершено!',
++    'update_ready' => 'Система готова до роботи',
++    'update_error_prefix' => 'ПОМИЛКА: ',
++    'update_stopped' => 'Оновлення зупинено через помилку',
++    'update_critical_error' => 'Критична помилка запиту',
++    'orders_search_placeholder' => 'Пошук: імя, телефон, ID…',
++    'orders_phone' => 'Телефон',
++    'orders_status' => 'Статус',
++    'orders_payment' => 'Оплата',
++    'orders_delivery' => 'Доставка',
++    'orders_date' => 'Дата',
++    'orders_not_found' => 'Замовлень не знайдено',
++    'order_details' => 'Деталі замовлення',
++    'orders_name' => 'Імя',
++    'orders_email' => 'Email',
++    'orders_city' => 'Місто',
++    'orders_warehouse' => 'Відділення',
++    'orders_address' => 'Адреса',
++    'orders_comment' => 'Коментар',
++    'order_products' => 'Товари',
++    'orders_product_id' => 'Product ID',
++    'orders_product_name' => 'Назва',
++    'orders_product_options' => 'Опції',
++    'orders_product_qty' => 'Ксть',
++    'orders_product_price' => 'Ціна',
++    'orders_total_sum' => 'Загальна сума',
++    'order_status_history' => 'Історія статусів',
++    'order_history_empty' => 'Історія порожня.',
++    'order_server_error' => 'Сервер повернув некоректну відповідь.',
++    'order_status_update_error' => 'Не вдалося оновити статус',
++    'order_enter_ttn' => 'Введіть ТТН для відправлення:',
++    'order_ttn_required' => 'ТТН обовязкова для статусу',
++    'order_created' => 'Замовлення #',
++    'pagination_showing' => 'Показано %d–%d з %s',
++    'products_csv_file' => 'CSV-файл',
++    'products_import' => 'Імпортувати',
++    'products_format_hint' => 'Формат: <code>sku,name,price,quantity,description,category</code>',
++    'products_manage' => 'Управління товарами',
++    'products_search_placeholder' => 'Назва або SKU…',
++    'products_all_categories' => 'Усі категорії',
++    'products_all' => 'Усі',
++    'products_visible' => 'Видимі',
++    'products_hidden' => 'Приховані',
++    'products_product' => 'Товар',
++    'products_category' => 'Категорія',
++    'products_price' => 'Ціна',
++    'products_quantity' => 'Кількість',
++    'products_slug' => 'Slug',
++    'products_actions' => 'Дії',
++    'products_no_category' => 'Без категорії',
++    'products_hidden_badge' => 'прихований',
++    'products_pieces' => 'шт.',
++    'products_delete_confirm' => 'Видалити товар «%s»?',
++    'products_attribute_value_required' => 'Для обраної характеристики потрібно заповнити поле "Значення".',
++    'products_attribute_select_required' => 'Вказано значення без характеристики. Будь ласка, оберіть характеристику.',
++    'products_import_file_not_sent' => 'Файл для імпорту не передано.',
++    'products_import_upload_error' => 'Помилка завантаження CSV-файлу.',
++    'products_import_csv_only' => 'Дозволено імпорт лише CSV-файлів (.csv).',
++    'products_import_not_csv' => 'Файл не є текстовим CSV (перевірено за вмістом).',
++    'products_import_cannot_open' => 'Не вдалося відкрити CSV-файл для читання.',
++    'products_import_columns_error' => 'Рядок містить %d колонок замість 6. Ймовірно, текст опису містить кому (,) без лапок навколо значення. Візьміть текст опису в подвійні лапки: "текст, з комами".',
++    'products_import_required_invalid' => 'Обовязкові поля невалідні (sku/name/price).',
++    'products_import_category_not_found' => 'Категорію не знайдено: %s',
++    'products_import_upsert_error' => 'Помилка upsert products: %s',
++    'products_import_stock_upsert_error' => 'Помилка upsert product_stocks: %s',
++    'products_import_failed' => 'Імпорт не вдався. Оброблено рядків: 0.',
++    'products_import_completed_with_errors' => 'Імпорт завершено. Успішно оброблено рядків: %d. Пропущено з помилками: %d (деталі: storage/logs/product_csv_import_errors.log).',
++    'products_import_completed' => 'Імпорт завершено. Успішно оброблено рядків: %d.',
++    'products_import_error_line' => 'Рядок %d: %s',
++    'products_image_upload_error' => 'Помилка завантаження файлу: %s.',
++    'products_image_max_size' => 'Максимальний розмір одного зображення — 5MB.',
++    'products_image_allowed_formats' => 'Дозволені формати зображень: jpg, jpeg, png, webp.',
++    'products_gallery_max_images' => 'Можна завантажити максимум %d фото для одного товару.',
++    'products_image_save_error' => 'Не вдалося зберегти одне із зображень.',
+     'login' => 'Вхід',
+     'register' => 'Реєстрація',
+     'logout' => 'Вихід',
+@@ -130,6 +273,7 @@ return [
+     'similar_products' => 'Схожі товари',
+     'delivery_info_default' => 'Доставка по Україні 1-3 дні. Оплата онлайн або при отриманні.',
+     'reviews_empty' => 'Відгуків поки немає. Станьте першим покупцем, який залишить відгук.',
++    'no_options_available' => 'Для цього товару немає варіантів вибору.',
+     
+     // Кошик
+     'product_added_to_cart' => 'Товар додано до кошика!',
+@@ -153,6 +297,18 @@ return [
+     'proceed_to_checkout' => 'Перейти до оформлення',
+     'in_stock' => 'В наявності',
+ 
++    //crm user activity logs
++    'crm_user_activity_logs' => 'Журнал активності користувача',
++    'viewed_product' => 'Перегляд товару:',
++    'added_to_cart' => 'Додав у кошик:',
++    'updated_cart_quantity' => 'Оновив кількість товару в кошику',
++    'removed_from_cart' => 'Видалив товар із кошика',
++    'cleared_cart' => 'Очистив кошик',
++    'order_created' => 'Оформив замовлення #',
++    'new_order' => 'Нове замовлення',
++    'for_client' => 'Для клієнта:',
++    'back_to_crm' => 'Назад до CRM',
++
+     // Admin CRM (Users)
+     'crm_page_title' => 'CRM користувача',
+     'crm_back' => 'Назад',
+@@ -216,6 +372,8 @@ return [
+     'crm_mock_activity_login' => 'Останній вхід: 25.04.2026 10:15',
+     'crm_mock_activity_viewed' => 'Переглядав(ла): Категорія "Смартфони"',
+     'crm_mock_activity_cart_add' => 'Додав(ла) у кошик: Смартфон Pro X',
++    'crm_group_change_reason' => 'При зміні групи потрібно вказати причину.',
++    'crm_group_change_reason_placeholder' => 'Причина зміни групи (обов\'язково при зміні)',
+ 
+     'profile_my_orders' => 'Мої замовлення',
+     'profile_favorites' => 'Обране',
+@@ -228,6 +386,8 @@ return [
+     'profile_invalid_phone' => 'Некоректний номер телефону.',
+     'profile_invalid_email' => 'Некоректний email.',
+     'profile_updated_successfully' => 'Профіль успішно оновлено.',
++    'profile_number_orders' => '№ замовлення',
++    'profile_added' => 'Додано',
+     'csrf_token_invalid' => 'CSRF токен недійсний.',
+ 
+     // ── Адмін: навігація ──────────────────────────────────────────────────────
+@@ -290,6 +450,10 @@ return [
+     'sort_order'              => 'Порядок сортування',
+     'sort_order_hint'         => 'Менше число — вище у списку',
+     'position'                => 'Порядок',
++    'back_to_list'            => 'Назад до списку',
++    'basic_info'              => 'Основна інформація',
++    'seo_settings'            => 'SEO налаштування',
++    'save_changes'            => 'Зберегти зміни',
+ 
+     // ── Адмін: панель керування ───────────────────────────────────────────────
+     'dashboard_sales_week'    => 'Продажі за тиждень',
+@@ -306,6 +470,25 @@ return [
+     'hi'                      => 'Привіт,',
+     'logout'                  => 'Вийти',
+     'view_site'               => 'Перейти на сайт',
++    'sun' => 'Нд',
++    'mon' => 'Пн',
++    'tue' => 'Вв',
++    'wed' => 'Ср',
++    'thu' => 'Чт',
++    'fri' => 'Пт',
++    'sat' => 'Сб',
++    'm01' => 'Січ',
++    'm02' => 'Лют',
++    'm03' => 'Бер',
++    'm04' => 'Квіт',
++    'm05' => 'Трав',
++    'm06' => 'Черв',
++    'm07' => 'Лип',
++    'm08' => 'Серп',
++    'm09' => 'Вер',
++    'm10' => 'Жовт',
++    'm11' => 'Лист',
++    'm12' => 'Груд',
+ 
+     // ── Адмін: замовлення ─────────────────────────────────────────────────────
+     'order'                   => 'Замовлення',
+@@ -337,6 +520,11 @@ return [
+     'status_returned'         => 'Повернено',
+     'payment_method'          => 'Спосіб оплати',
+     'shipping_method'         => 'Спосіб доставки',
++    'sync_logistics'          => 'Синхронізувати ТТН',
++    'kanban'                  => 'КАНБАН',
++    'table'                   => 'ТАБЛИЦЯ',
++    'order_kanban_view'       => 'Канбан режим замовлень',
++    'order_table_view'        => 'Табличний режим замовлень',
+ 
+     // ── Адмін: товари ─────────────────────────────────────────────────────────
+     'product_new'             => 'Новий товар',
+@@ -364,11 +552,28 @@ return [
+     'category_parent'         => 'Батьківська категорія',
+     'category_parent_label'   => 'Батьківська',
+     'category_no_parent'      => 'Без категорії',
++    'create_category_slug'    => 'Slug (URL посилання)',
++    'category_no_parent_option' => 'Немає (коренева)',
++    'meta_title'              => 'Meta Title',
++    'meta_description'        => 'Meta Description',
++    'example_smartphones'     => 'Наприклад: Смартфони',
++    'category_slug_placeholder' => 'Залиште порожнім для автогенерації',
+ 
+     // ── Адмін: атрибути ───────────────────────────────────────────────────────
+     'attribute_new'           => 'Новий атрибут',
+     'attribute_edit'          => 'Редагування атрибута',
+     'attribute_manage'        => 'Управління атрибутами',
++    'attribute_detach_hint'   => 'Якщо атрибут відв’язати від категорії, значення товарів не видаляються — вони просто не показуються для цієї категорії.',
++    'attributes_not_found'    => 'Атрибутів поки що немає.',
++    'attribute_basic_info'    => 'Основні дані атрибута',
++    'attribute_category_link' => 'Прив’язка до категорій',
++    'attribute_filterable'    => 'Доступний у фільтрах',
++    'attribute_visible'       => 'Видимий на вітрині',
++    'attribute_slug_placeholder' => 'Порожньо = автогенерація',
++    'product_option_list_placeholder' => 'Чорний\nБілий\nСиній',
++    'attribute_delete_confirm' => 'Ви впевнені, що хочете видалити цей атрибут?',
++    'user_delete_confirm' => 'Ви впевнені, що хочете видалити цього користувача?',
++    'category_delete_confirm' => 'Ви впевнені, що хочете видалити цю категорію?',
+ 
+     // ── Адмін: відгуки ────────────────────────────────────────────────────────
+     'reviews_manage'          => 'Модерація відгуків',
+@@ -385,10 +590,39 @@ return [
+     'user_registered_at'      => 'Дата реєстрації',
+ 
+     // ── Адмін: аналітика ──────────────────────────────────────────────────────
++    'analytics_title'         => 'Аналітика',
+     'analytics_period'        => 'Період',
+     'analytics_share'         => 'Частка',
+     'analytics_errors'        => 'Помилок',
+     'analytics_no_data'       => 'Даних за цей період немає',
++    'analytics_orders'        => 'Замовлень',
++    'analytics_revenue'       => 'Виручка',
++    'analytics_stock'         => 'Склад',
++    'analytics_sold'          => 'Продано',
++    // Заголовки аналітики
++    'analytics_sales_from' => 'Продажі за',
++    'analytics_title_year' => 'Продажі за останні 12 місяців',
++    'analytics_title_month' => 'Продажі за останні 30 днів',
++    'analytics_title_week' => 'Продажі за поточний тиждень',
++    'analytics_popular_products' => 'Популярні товари (ТОП-5)',
++    // Спеціальні фрази
++    'no_data' => 'Немає даних',
++    'pcs' => 'шт.',
++    'week' => 'Тиждень',
++    'month' => 'Місяць',
++    'year' => 'Рік',
++    'export_csv' => 'Експорт CSV',
++    'reset' => 'Скинути',
++    'custom_range' => 'довільний діапазон',
++    'low_stock_products' => 'Товари, що закінчуються',
++    'warning' => 'Увага',
++    'all_products_in_sufficient_quantity' => 'Всі товари в достатній кількості',
++    // Інтерфейс CSV
++    'csv_period' => 'Період',
++    'csv_orders' => 'Замовлень',
++    'csv_revenue' => 'Сума виручки (₴)',
++    'csv_share' => 'Частка (%)',
++    'csv_total' => 'РАЗОМ',
+ 
+     // ── Адмін: склад ──────────────────────────────────────────────────────────
+     'stock_available'         => 'Доступно',
+@@ -414,6 +648,33 @@ return [
+     'content_closed'          => 'Закритий (Технічне обслуговування)',
+     'content_close_msg'       => 'Повідомлення при закритті',
+     'content_shop_mode'       => 'Режим магазину',
++    'content_new_content_btn' => 'Новий контент',
++    'content_id'              => 'ID',
++    'content_title'           => 'Заголовок',
++    'content_slug_url'        => 'Slug (URL)',
++    'content_status'          => 'Статус',
++    'content_date'            => 'Дата',
++    'content_actions'         => 'Дії',
++    'content_published'       => 'Опубліковано',
++    'content_draft'           => 'Чернетка',
++    'content_delete_confirm'  => 'Ви впевнені?',
++    'content_page_title_label'=> 'Заголовок сторінки:',
++    'content_url_label'       => 'URL-адреса (slug):',
++    'content_editor_list'     => '• Список',
++    'content_upload_photo'    => 'Завантажити фото',
++    'content_seo_settings'    => 'SEO налаштування',
++    'content_meta_title_label'=> 'Meta Title (заголовок для Google):',
++    'content_meta_desc_label' => 'Meta Description (опис для пошуку):',
++    'content_sort_order'       => 'Порядок сортування:',
++    'content_sort_order_hint' => 'Чим менше число, тим лівіше буде сторінка у футері.',
++    'content_publish_page'     => 'Опублікувати сторінку',
++    'content_published_label' => 'Опубліковано',
++    'content_link_btn'        => '🔗 Посилання',
++    'content_enter_url'       => 'Введіть URL:',
++    'content_title_placeholder'=> 'Наприклад: Про нас',
++    'content_slug_placeholder'=> 'pro-nas',
++    'content_image_width_prompt'=> 'Введіть ширину картинки у % або px (наприклад, 50% або 300px):',
++    'content_image_upload_error'=> 'Помилка завантаження зображення',
+ 
+     // ── Адмін: плагіни ────────────────────────────────────────────────────────
+     'plugins_manage'          => 'Керування плагінами',
+@@ -423,6 +684,18 @@ return [
+     'plugin_sandbox'          => 'Тестовий режим (Sandbox)',
+     'plugin_payment_gateway'  => 'Платіжний шлюз (плагін)',
+     'plugin_payment_desc'     => 'Опис при виборі оплати',
++    'plugin_zip_file'         => 'ZIP файл (макс. %d МБ)',
++    'plugin_upload_btn'       => 'Завантажити',
++    'plugin_not_found'        => 'Плагінів не знайдено',
++    'plugin_files_missing'    => 'Файли плагіна відсутні на диску',
++    'plugin_deactivate'       => 'Вимкнути',
++    'plugin_activate'         => 'Активувати',
++    'plugin_settings_btn'     => 'Налаштування',
++    'plugin_manage_btn'       => 'Керування',
++    'plugin_settings_title'   => 'Налаштування:',
++    'plugin_back_to_list'     => 'До списку плагінів',
++    'plugin_enabled'          => 'Увімкнено',
++    'plugin_save_settings'    => 'Зберегти налаштування',
+ 
+     // ── Адмін: теми ───────────────────────────────────────────────────────────
+     'themes_active'           => 'Активна тема оформлення',
+@@ -436,6 +709,20 @@ return [
+     'settings_reviews'        => 'Модерація відгуків',
+     'settings_integrations'   => 'Інтеграції',
+     'settings_update'         => 'Оновлення',
++    'settings_footer'         => 'Футер',
++    'footer_text'             => 'Текст у футері',
++    'footer_text_help'        => 'Короткий опис вашого магазину для підвалу сайту',
++    'social_networks'         => 'Соціальні мережі',
++    'social_name'             => 'Назва',
++    'social_url'              => 'Посилання (URL)',
++    'social_is_active'        => 'Активно',
++    'social_sort'             => 'Порядок',
++    'social_url_placeholder'  => 'https://...',
++    'add_social_link'         => 'Додати соцмережу',
++    'delete_social_confirm'   => 'Видалити це посилання?',
++    'free_shipping_promo'     => 'БЕЗКОШТОВНА ДОСТАВКА ПРИ ЗАМОВЛЕННІ ВІД 2000 ГРН',
++    'search_placeholder'      => 'Пошук товарів...',
++    'footer_about_text_default' => 'Ексклюзивні товари для поціновувачів якості та стилю. Ми створюємо досвід, а не просто продаємо речі.',
+     'settings_shop_name'      => 'Назва магазину',
+     'settings_shop_address'   => 'Адреса магазину для самовивозу',
+     'settings_shop_desc'      => 'Опис магазину (для SEO)',
+@@ -493,7 +780,10 @@ return [
+     'system_php_version'      => 'Версія PHP',
+     'system_disk'             => 'Диск (зайнято/всього)',
+     'system_admin_log'        => 'Логи дій адміністраторів',
++    'system_clear_cache'      => 'Очистити кеш',
++    'system_actions'          => 'Системні дії',
+     'system_log_empty'        => 'Лог порожній або відсутній.',
++    'optimize_table'          => 'Оптимізувати таблицю',
+ 
+     // ── Адмін: оновлення ──────────────────────────────────────────────────────
+     'update_current_version'  => 'Поточна версія',
+@@ -519,6 +809,17 @@ return [
+ 
+     // ── Адмін: cron ───────────────────────────────────────────────────────────
+     'cron_edit'               => 'Редагування Cron-завдання',
++    'cron_add'                => 'Додати завдання',
++    'cron_add_title'          => 'Нове Cron-завдання',
++    'cron_command_label'      => 'Файл скрипту',
++    'cron_command_hint'       => 'Відносний шлях від кореня проекту, напр. tasks/sitemap.php',
++    'cron_schedule_label'     => 'Розклад (Cron-рядок)',
++    'cron_schedule_hint'      => 'Формат: хвилина година день місяць день_тижня. Напр. */30 * * * * — кожні 30 хв.',
++    'cron_params_label'       => 'Параметри (JSON, необовязково)',
++    'cron_params_hint'        => 'Наприклад: {"key": "value"}. Залиште порожнім якщо не потрібно.',
++    'cron_status_label'       => 'Статус після створення',
++    'cron_delete'             => 'Видалити завдання',
++    'cron_delete_confirm'     => 'Видалити це Cron-завдання? Дія незворотня.',
+     'cron_next_run'           => 'Наступний запуск',
+     'cron_last_run'           => 'Останній запуск',
+     'cron_period'             => 'Періодичність',
+@@ -659,4 +960,36 @@ return [
+     'sitemap_hint'          => 'Файли зберігаються у /public/sitemaps/. Посилайте боти на /sitemap.xml',
+     'sitemap_generated_ok'  => 'Sitemap згенеровано: %d URL у %d файлах за %s сек.',
+     'sitemap_error'         => 'Помилка генерації Sitemap',
++
++    'update_source'              => 'Джерело',
++    'update_source_remote'       => 'Сервер оновлень',
++    'update_source_local'        => 'Локальний пакет',
++    'update_source_config'       => 'Джерело оновлень',
++    'update_source_hint'         => 'Режим задається в файлі',
++    'update_source_local_desc'   => 'файли беруться з папки storage/local_updates/',
++    'update_source_remote_desc'  => 'пакет завантажується з update-сервера автоматично',
++    'update_last_checked'        => 'Перевірено',
++    'update_disabled_hint'       => 'Оновлення вимкнені. Увімкніть в',
++    'update_check_title'         => 'Перевірка оновлень',
++    'update_check_hint'          => 'Натисніть кнопку щоб перевірити наявність нової версії.',
++    'update_check_btn'           => 'Перевірити оновлення',
++    'update_run_title'           => 'Встановлення оновлення',
++    'update_check_disk'          => 'Вільне місце на диску (> 50 MB)',
++    'update_check_writable'      => 'Папка проекту доступна для запису',
++    'update_check_backup_dir'    => 'Папка backups/ доступна або буде створена',
++    'update_start_btn'           => 'Почати оновлення',
++    'update_rollback_title'      => 'Відкат до попередньої версії',
++    'update_rollback_hint'       => 'Знайдено маркер відкату. Ви можете відновити попередню версію сайту.',
++    'update_rollback_confirm'    => 'Відкатити до попередньої версії? Поточні файли будуть замінені.',
++    'update_rollback_btn'        => 'Відкатити версію',
++    'update_confirm_btn'         => 'Підтвердити, все ОК',
++    'update_confirm_hint'        => 'Ви підтверджуєте що оновлення працює коректно? Після цього швидкий відкат (Rollback) стане недоступний. Backup файлів залишиться на диску для ручного відновлення.',
++    'update_step_init'           => 'Ініціалізація',
++    'update_step_backup'         => 'Backup поточної версії',
++    'update_step_download'       => 'Завантаження пакета',
++    'update_step_extract'        => 'Застосування файлів',
++    'update_step_database'       => 'SQL-міграція',
++    'update_step_finish'         => 'Завершення',
++    'checkout_delivery_address'             => 'Адреса доставки',
++    'checkout_delivery_address_placeholder' => 'Вулиця, будинок, квартира',
+ ];
+diff --git a/resources/views/admin/settings.php b/resources/views/admin/settings.php
+index f71efea..b0b76fe 100644
+--- a/resources/views/admin/settings.php
++++ b/resources/views/admin/settings.php
+@@ -14,6 +14,9 @@
+             <button type="button" class="btn btn-outline settings-tab-btn" data-tab="integrations">
+                 <i class="fas fa-plug"></i> Інтеграції
+             </button>
++            <button type="button" class="btn btn-outline settings-tab-btn" data-tab="footer">
++                <i class="fas fa-shoe-prints"></i> <?= __('settings_footer') ?>
++            </button>
+         </div>
+     </div>
+ </div>
+diff --git a/resources/views/admin/settings/tabs/general.php b/resources/views/admin/settings/tabs/general.php
+index f7b8cf2..c1dab78 100644
+--- a/resources/views/admin/settings/tabs/general.php
++++ b/resources/views/admin/settings/tabs/general.php
+@@ -24,6 +24,11 @@ $currencySource  = get_setting('currency_source', 'manual');
+                 <label for="site_name"><?= __('settings_shop_name') ?></label>
+                 <input type="text" name="settings[site_name]" id="site_name" class="form-control" value="<?php echo htmlspecialchars(get_setting('site_name', '')); ?>">
+             </div>
++            <div class="form-group">
++                <label for="site_url">URL сайту</label>
++                <input type="text" name="settings[site_url]" id="site_url" class="form-control" value="<?php echo htmlspecialchars(get_setting('site_url', '')); ?>" placeholder="https://example.com">
++                <small class="text-muted">Використовується в посиланнях sitemap, LiqPay webhook, SEO. Без слешу в кінці.</small>
++            </div>
+             <div class="form-group">
+                 <label for="site_description"><?= __('settings_shop_desc') ?></label>
+                 <textarea name="settings[site_description]" id="site_description" class="form-control" rows="3"><?php echo htmlspecialchars(get_setting('site_description', '')); ?></textarea>
+@@ -112,7 +117,7 @@ $currencySource  = get_setting('currency_source', 'manual');
+                         <input type="radio" name="currency_source" value="manual"
+                                id="src_manual"
+                                form="currencyUpdateForm"
+-                               <?= $currencySource !== 'api' ? 'checked' : '' ?>
++                               <?= $currencySource !== 'nbu_api' ? 'checked' : '' ?>
+                                onchange="toggleRateSource()">
+                         Мій курс
+                     </label>
+@@ -120,7 +125,7 @@ $currencySource  = get_setting('currency_source', 'manual');
+                         <input type="radio" name="currency_source" value="api"
+                                id="src_api"
+                                form="currencyUpdateForm"
+-                               <?= $currencySource === 'api' ? 'checked' : '' ?>
++                               <?= $currencySource === 'nbu_api' ? 'checked' : '' ?>
+                                onchange="toggleRateSource()">
+                         <?= __('currency_nbu_auto') ?>
+                     </label>
+@@ -129,7 +134,7 @@ $currencySource  = get_setting('currency_source', 'manual');
+ 
+             <!-- Поле для ручного курсу -->
+             <div class="form-group" id="manual_rate_group"
+-                 style="<?= $currencySource === 'api' ? 'display:none;' : '' ?>">
++                 style="<?= $currencySource === 'nbu_api' ? 'display:none;' : '' ?>">
+                 <label for="manual_rate">Курс цільової валюти до UAH</label>
+                 <input type="number" name="manual_rate" id="manual_rate"
+                        class="form-control"
+@@ -142,21 +147,14 @@ $currencySource  = get_setting('currency_source', 'manual');
+                 </small>
+             </div>
+ 
+-            <!-- Інфо про API -->
++            <!-- Інфо про НБУ API -->
+             <div class="form-group" id="api_rate_group"
+-                 style="<?= $currencySource !== 'api' ? 'display:none;' : '' ?>">
+-                <label for="api_key_input">API-ключ НБУ</label>
+-                <?php
+-                $savedApiKey = (!in_array($currencySource, ['manual', 'api'], true)) ? $currencySource : '';
+-                ?>
+-                <input type="text" name="currency_api_key" id="api_key_input"
+-                       class="form-control"
+-                       form="currencyUpdateForm"
+-                       placeholder="Введіть ключ доступу до API НБУ"
+-                       value="<?= htmlspecialchars($savedApiKey) ?>">
+-                <small style="color:#64748b; font-size:.8rem; display:block; margin-top:.25rem;">
+-                    Ключ зберігається в БД і передається при кожному запиті до НБУ.
+-                </small>
++                 style="<?= $currencySource !== 'nbu_api' ? 'display:none;' : '' ?>">
++                <div class="alert alert-info" style="font-size:.875rem; margin-bottom:0;">
++                    <i class="fas fa-info-circle"></i>
++                    <strong>НБУ API</strong> — публічний сервіс Національного банку України, не потребує реєстрації або API-ключа.
++                    Курс буде отримано автоматично з <code>bank.gov.ua</code>.
++                </div>
+             </div>
+ 
+             <button type="submit" class="btn btn-primary"
+@@ -404,6 +402,11 @@ $currencySource  = get_setting('currency_source', 'manual');
+                 <label for="google_client_secret">Client Secret</label>
+                 <input type="password" name="settings[google_client_secret]" id="google_client_secret" class="form-control" value="<?php echo htmlspecialchars(get_setting('google_client_secret', '')); ?>">
+             </div>
++            <div class="form-group">
++                <label for="google_redirect_url">Callback URL (Redirect URI)</label>
++                <input type="text" name="settings[google_redirect_url]" id="google_redirect_url" class="form-control" value="<?php echo htmlspecialchars(get_setting('google_redirect_url', '')); ?>" placeholder="https://yourdomain.com/auth/google/callback">
++                <small class="text-muted">Вкажіть цей URL в Google Cloud Console → OAuth 2.0 → Authorized redirect URIs</small>
++            </div>
+ 
+             <h4 style="margin-top:1rem;">Facebook</h4>
+             <div class="form-group">
+@@ -421,6 +424,11 @@ $currencySource  = get_setting('currency_source', 'manual');
+                 <label for="facebook_client_secret">Client Secret</label>
+                 <input type="password" name="settings[facebook_client_secret]" id="facebook_client_secret" class="form-control" value="<?php echo htmlspecialchars(get_setting('facebook_client_secret', '')); ?>">
+             </div>
++            <div class="form-group">
++                <label for="facebook_redirect_url">Callback URL (Redirect URI)</label>
++                <input type="text" name="settings[facebook_redirect_url]" id="facebook_redirect_url" class="form-control" value="<?php echo htmlspecialchars(get_setting('facebook_redirect_url', '')); ?>" placeholder="https://yourdomain.com/auth/facebook/callback">
++                <small class="text-muted">Вкажіть цей URL в Facebook Developers → Valid OAuth Redirect URIs</small>
++            </div>
+         </div>
+     </div>
+ 
+diff --git a/resources/views/admin/settings/tabs/payment.php b/resources/views/admin/settings/tabs/payment.php
+index 434e2b9..49e0f8d 100644
+--- a/resources/views/admin/settings/tabs/payment.php
++++ b/resources/views/admin/settings/tabs/payment.php
+@@ -20,14 +20,11 @@
+         <div class="card mb-4 shadow-sm border-0">
+             <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                 <h5 class="mb-0 text-success"><?= htmlspecialchars($method['name']) ?></h5>
+-                <a href="#" onclick="if(confirm(window.LANG.confirm_delete_method)) { document.getElementById('delete-form-<?= $method['id'] ?>').submit(); } return false;" class="btn btn-sm btn-outline-danger">
++                <button type="submit" form="delete-form-<?= $method['id'] ?>"
++                    onclick="return confirm(window.LANG.confirm_delete_method)"
++                    class="btn btn-sm btn-outline-danger">
+                     Видалити
+-                </a>
+-
+-                <form id="delete-form-<?= $method['id'] ?>" action="/admin/settings/methods/delete/<?= $method['id'] ?>" method="POST" style="display:none;">
+-                    <input type="hidden" name="csrf" value="<?= \App\Core\Http\Csrf::token(); ?>">
+-                    <input type="hidden" name="type" value="payment">
+-                </form>
++                </button>
+                 <div class="form-check form-switch">
+                     <input type="hidden" name="methods[<?= $method['id'] ?>][is_active]" value="0">
+                     <input class="form-check-input" type="checkbox" name="methods[<?= $method['id'] ?>][is_active]" value="1" <?= $method['is_active'] ? 'checked' : '' ?>>
+@@ -103,6 +100,11 @@
+                                <?= ($method['is_test_mode'] ?? 0) ? 'checked' : '' ?>>
+                         <label class="form-check-label text-danger">Тестовий режим (Sandbox)</label>
+                     </div>
++                    <div class="alert alert-info mt-3 mb-0" style="font-size:0.875rem;">
++                        <i class="fas fa-info-circle"></i>
++                        <strong>Webhook URL</strong> — вкажіть цей URL в особистому кабінеті LiqPay:<br>
++                        <code><?= rtrim((string)(get_setting('site_url', '')), '/') ?>/payment/webhook/liqpay</code>
++                    </div>
+                 <?php endif; ?>
+ 
+                 <!-- Специфічні налаштування для Готівки/Післяплати -->
+@@ -115,6 +117,8 @@
+                         </small>
+                     </div>
+                 <?php endif; ?>
++
++                <?php do_action('admin.payment_method_settings', $method, $extra); ?>
+                 <br />
+                 <div class="mb-3" style="max-width: 150px;">
+                     <label class="form-label fw-bold">Порядок (№)</label>
+@@ -132,3 +136,10 @@
+     </div>
+ </form>
+ 
++<?php foreach ($methods as $method): ?>
++<form id="delete-form-<?= $method['id'] ?>" action="/admin/settings/methods/delete/<?= $method['id'] ?>" method="POST" style="display:none;">
++    <input type="hidden" name="csrf" value="<?= \App\Core\Http\Csrf::token(); ?>">
++    <input type="hidden" name="type" value="payment">
++</form>
++<?php endforeach; ?>
++
+diff --git a/resources/views/admin/settings/tabs/shipping.php b/resources/views/admin/settings/tabs/shipping.php
+index 3da6202..0885c5f 100644
+--- a/resources/views/admin/settings/tabs/shipping.php
++++ b/resources/views/admin/settings/tabs/shipping.php
+@@ -21,14 +21,11 @@
+             <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                 <h5 class="mb-0 text-primary"><?= htmlspecialchars($method['name']) ?></h5>
+ 
+-                <a href="#" onclick="if(confirm(window.LANG.confirm_delete_method)) { document.getElementById('delete-form-<?= $method['id'] ?>').submit(); } return false;" class="btn btn-sm btn-outline-danger">
++                <button type="submit" form="delete-form-<?= $method['id'] ?>"
++                    onclick="return confirm(window.LANG.confirm_delete_method)"
++                    class="btn btn-sm btn-outline-danger">
+                     Видалити
+-                </a>
+-
+-                <form id="delete-form-<?= $method['id'] ?>" action="/admin/settings/methods/delete/<?= $method['id'] ?>" method="POST" style="display:none;">
+-                    <input type="hidden" name="csrf" value="<?= \App\Core\Http\Csrf::token(); ?>">
+-                    <input type="hidden" name="type" value="shipping">
+-                </form>
++                </button>
+                 <div class="form-check form-switch">
+                     <input type="hidden" name="methods[<?= $method['id'] ?>][is_active]" value="0">
+                     <input class="form-check-input" type="checkbox" name="methods[<?= $method['id'] ?>][is_active]" value="1" <?= $method['is_active'] ? 'checked' : '' ?>>
+@@ -63,9 +60,14 @@
+                     <hr>
+                     <div class="row">
+                         <div class="col-md-8 mb-3">
+-                            <label class="form-label">API Ключ (Нова Пошта)</label>
++                            <label class="form-label">API Ключ (Нова Пошта) <span class="text-danger">*</span></label>
+                             <input type="text" name="methods[<?= $method['id'] ?>][settings][api_key]" 
+-                                   value="<?= htmlspecialchars($extra['api_key'] ?? '') ?>" class="form-control">
++                                   value="<?= htmlspecialchars($extra['api_key'] ?? '') ?>" class="form-control"
++                                   placeholder="Введіть API ключ з кабінету novaposhta.ua">
++                            <small class="text-muted">
++                                Отримайте ключ на <a href="https://new.novaposhta.ua/dashboard/setting/developers" target="_blank">novaposhta.ua → Налаштування → Розробникам</a>.
++                                <strong>Без ключа автодоповнення міст і відділень на чекаут не працює.</strong>
++                            </small>
+                         </div>
+                         <div class="col-md-4 mb-3">
+                             <label class="form-label"><?= __('settings_delivery_cost') ?></label>
+@@ -83,6 +85,8 @@
+                                value="<?= htmlspecialchars($extra['address'] ?? '') ?>" class="form-control">
+                     </div>
+                 <?php endif; ?>
++
++                <?php do_action('admin.shipping_method_settings', $method, $extra); ?>
+                 <br />
+                 <div class="mb-3" style="max-width: 150px;">
+                     <label class="form-label fw-bold">Порядок (№)</label>
+@@ -100,3 +104,9 @@
+     </div>
+ </form>
+ 
++<?php foreach ($methods as $method): ?>
++<form id="delete-form-<?= $method['id'] ?>" action="/admin/settings/methods/delete/<?= $method['id'] ?>" method="POST" style="display:none;">
++    <input type="hidden" name="csrf" value="<?= \App\Core\Http\Csrf::token(); ?>">
++    <input type="hidden" name="type" value="shipping">
++</form>
++<?php endforeach; ?>
+diff --git a/resources/views/admin/settings/tabs/update.php b/resources/views/admin/settings/tabs/update.php
+index cd82c1f..f716c5a 100644
+--- a/resources/views/admin/settings/tabs/update.php
++++ b/resources/views/admin/settings/tabs/update.php
+@@ -1,55 +1,314 @@
+-<div class="card">
+-    <div class="card-header">
+-        <i class="fas fa-sync"></i> Система оновлення ядра
++<?php
++/**
++ * Вкладка «Оновлення» в налаштуваннях адмінки.
++ *
++ * Змінні з контролера:
++ *   $updaterConfig  — масив з config/updater.php
++ *   $phpVersion     — поточна версія PHP
++ *   $mysqlVersion   — поточна версія MySQL
++ */
++
++$cfg            = $updaterConfig ?? require dirname(__DIR__, 4) . '/config/updater.php';
++$currentVersion = htmlspecialchars((string) ($cfg['current_version'] ?? '—'));
++$source         = (string) ($cfg['source'] ?? 'local');
++$allowUpdates   = !empty($cfg['allow_updates']);
++$csrf           = htmlspecialchars($_SESSION['csrf'] ?? '');
++$lastChecked    = get_setting('update_last_checked', '');
++$lastCheckedFmt = $lastChecked ? date('d.m.Y H:i', strtotime($lastChecked)) : '—';
++$cachedVersion  = get_setting('update_check_result', '');
++$hasRollback    = is_file(dirname(__DIR__, 4) . '/' . ltrim(
++    str_replace(dirname(__DIR__, 4), '', $cfg['rollback_marker'] ?? ''), '/\\'
++));
++?>
++
++<div class="update-page">
++
++    <!-- ── Статус ──────────────────────────────────────────────────────── -->
++    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
++        <div class="card" style="margin:0;">
++            <div class="card-body" style="padding:1rem;">
++                <p style="margin:0 0 .4rem;font-size:.8rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;"><?= __('update_current_version') ?></p>
++                <p style="margin:0;font-size:1.6rem;font-weight:700;color:#1e293b;"><?= $currentVersion ?></p>
++            </div>
++        </div>
++        <div class="card" style="margin:0;">
++            <div class="card-body" style="padding:1rem;">
++                <p style="margin:0 0 .4rem;font-size:.8rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;"><?= __('update_source') ?></p>
++                <p style="margin:0;font-size:1rem;font-weight:600;color:#1e293b;">
++                    <?php if ($source === 'remote'): ?>
++                        <span style="color:#10b981;">🌐 <?= __('update_source_remote') ?></span>
++                    <?php else: ?>
++                        <span style="color:#f59e0b;">📁 <?= __('update_source_local') ?></span>
++                    <?php endif; ?>
++                </p>
++                <p style="margin:.25rem 0 0;font-size:.78rem;color:#94a3b8;">
++                    <?= __('update_last_checked') ?>: <strong><?= htmlspecialchars($lastCheckedFmt) ?></strong>
++                    <?php if ($cachedVersion !== ''): ?>
++                        — <span style="color:#ef4444;font-weight:600;"><?= __('update_new_available') ?>: <?= htmlspecialchars($cachedVersion) ?></span>
++                    <?php endif; ?>
++                </p>
++            </div>
++        </div>
+     </div>
+-    <div class="card-body">
+-        <input type="hidden" id="update-csrf" value="<?php echo htmlspecialchars($_SESSION['csrf'] ?? ''); ?>">
+-        <div id="update-info">
+-            <p><strong><?= __('update_current_version') ?>:</strong> <span id="current-version"><?php echo htmlspecialchars($current_version ?? '1.0.0'); ?></span></p>
+-            <div id="update-check-container">
+-                <button type="button" id="check-update-btn" class="btn btn-primary">
+-                    <i class="fas fa-search"></i> Перевірити наявність оновлень
+-                </button>
++
++    <!-- ── Джерело в config/updater.php ───────────────────────────────── -->
++    <div class="card" style="margin-bottom:1rem;">
++        <div class="card-header" style="font-size:.9rem;">
++            <i class="fas fa-sliders-h"></i> <?= __('update_source_config') ?>
++        </div>
++        <div class="card-body">
++            <p style="font-size:.85rem;color:#64748b;margin:0 0 .75rem;">
++                <?= __('update_source_hint') ?>
++                <code style="background:#f1f5f9;padding:.1rem .4rem;border-radius:4px;">config/updater.php</code>
++            </p>
++            <div style="display:flex;gap:1.5rem;flex-wrap:wrap;font-size:.9rem;">
++                <label style="display:flex;align-items:center;gap:.4rem;">
++                    <code style="background:#f1f5f9;padding:.2rem .5rem;border-radius:4px;">'source' => 'local'</code>
++                    — <?= __('update_source_local_desc') ?>
++                </label>
++                <label style="display:flex;align-items:center;gap:.4rem;">
++                    <code style="background:#f1f5f9;padding:.2rem .5rem;border-radius:4px;">'source' => 'remote'</code>
++                    — <?= __('update_source_remote_desc') ?>
++                </label>
+             </div>
+         </div>
++    </div>
+ 
+-        <div id="update-available-container" style="display: none; margin-top: 1.5rem; border-top: 1px solid #eee; padding-top: 1.5rem;">
+-            <div class="alert alert-info">
+-                <h4><?= __('update_new_available') ?>: <span id="new-version-id"></span></h4>
+-                <div id="changelog-container" style="margin-top: 1rem; background: #f8fafc; padding: 1rem; border-radius: 4px; border-left: 4px solid #3b82f6;">
+-                    <strong><?= __('update_changelog') ?>:</strong>
+-                    <pre id="changelog-text" style="white-space: pre-wrap; margin-top: 0.5rem; font-family: inherit;"></pre>
+-                </div>
++    <?php if (!$allowUpdates): ?>
++    <!-- ── Оновлення вимкнені ──────────────────────────────────────────── -->
++    <div class="alert alert-error">
++        <i class="fas fa-ban"></i>
++        <?= __('update_disabled_hint') ?>
++        <code>config/updater.php</code> → <code>'allow_updates' => true</code>
++    </div>
++    <?php else: ?>
++
++    <!-- ── Перевірка наявності оновлень ───────────────────────────────── -->
++    <div class="card" style="margin-bottom:1rem;">
++        <div class="card-header"><i class="fas fa-search"></i> <?= __('update_check_title') ?></div>
++        <div class="card-body">
++            <div id="update-check-result" style="margin-bottom:.75rem;font-size:.9rem;color:#64748b;">
++                <?= __('update_check_hint') ?>
+             </div>
++            <button type="button" class="btn btn-outline" id="btn-check-update" style="border:1px solid #ddd;">
++                <i class="fas fa-sync-alt"></i> <?= __('update_check_btn') ?>
++            </button>
++        </div>
++    </div>
++
++    <!-- ── Запуск оновлення ────────────────────────────────────────────── -->
++    <div class="card" id="update-run-card" style="display:none;margin-bottom:1rem;">
++        <div class="card-header"><i class="fas fa-download"></i> <?= __('update_run_title') ?></div>
++        <div class="card-body">
++
++            <div id="update-changelog" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:1rem;margin-bottom:1rem;font-size:.88rem;white-space:pre-wrap;max-height:180px;overflow-y:auto;"></div>
+ 
+-            <div id="readiness-checklist" style="margin: 1.5rem 0;">
+-                <h5><?= __('update_checklist') ?>:</h5>
+-                <ul style="list-style: none; padding-left: 0;">
+-                    <li id="check-writable"><i class="fas fa-circle-notch fa-spin"></i> Перевірка прав на запис...</li>
+-                    <li id="check-php"><i class="fas fa-circle-notch fa-spin"></i> Перевірка версії PHP...</li>
++            <!-- Чек-лист -->
++            <div style="margin-bottom:1.25rem;">
++                <p style="font-weight:600;margin:0 0 .5rem;"><?= __('update_checklist') ?>:</p>
++                <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.3rem;font-size:.88rem;">
++                    <?php
++                    $checks = [
++                        'PHP ' . PHP_VERSION => version_compare(PHP_VERSION, '8.1', '>='),
++                        'MySQLi/PDO'         => extension_loaded('pdo_mysql'),
++                        'ZipArchive'         => class_exists('ZipArchive'),
++                        __('update_check_disk') => (disk_free_space(dirname(__DIR__, 4)) ?: 0) > 50 * 1024 * 1024,
++                        __('update_check_writable') => is_writable(dirname(__DIR__, 4)),
++                        __('update_check_backup_dir') => is_dir(dirname(__DIR__, 4) . '/backups') || is_writable(dirname(__DIR__, 4)),
++                    ];
++                    foreach ($checks as $label => $ok): ?>
++                    <li>
++                        <i class="fas <?= $ok ? 'fa-check-circle' : 'fa-times-circle' ?>"
++                           style="color:<?= $ok ? '#10b981' : '#ef4444' ?>;width:18px;"></i>
++                        <?= htmlspecialchars($label) ?>
++                    </li>
++                    <?php endforeach; ?>
+                 </ul>
+             </div>
+ 
+-            <div id="auth-confirm" style="margin-bottom: 1.5rem; padding: 1rem; background: #fff5f5; border: 1px solid #feb2b2; border-radius: 4px;">
+-                <p style="color: #c53030; font-weight: bold;"><i class="fas fa-exclamation-triangle"></i> Підтвердіть дію</p>
+-                <div class="form-group">
+-                    <label><?= __('update_password_prompt') ?>:</label>
+-                    <input type="password" id="admin-password" class="form-control" placeholder="Пароль">
++            <!-- Пароль -->
++            <div class="form-group" style="max-width:320px;margin-bottom:1rem;">
++                <label style="font-weight:600;"><?= __('update_password_prompt') ?></label>
++                <input type="password" id="update-password" class="form-control" placeholder="••••••••" autocomplete="current-password">
++            </div>
++
++            <!-- Прогрес -->
++            <div id="update-progress" style="display:none;margin-bottom:1rem;">
++                <div style="display:flex;flex-direction:column;gap:.4rem;font-size:.88rem;" id="update-steps-list"></div>
++                <div style="margin-top:.75rem;background:#e2e8f0;border-radius:999px;height:8px;overflow:hidden;">
++                    <div id="update-progress-bar" style="background:#3b82f6;height:100%;width:0;transition:width .4s;"></div>
+                 </div>
+-                <button type="button" id="start-update-btn" class="btn btn-danger" style="margin-top: 0.5rem;">
+-                    <i class="fas fa-download"></i> Почати оновлення
++            </div>
++
++            <div id="update-final-message" style="display:none;"></div>
++
++            <div id="update-action-btns">
++                <button type="button" class="btn btn-primary" id="btn-start-update">
++                    <i class="fas fa-play"></i> <?= __('update_start_btn') ?>
+                 </button>
+             </div>
+         </div>
++    </div>
+ 
+-        <div id="update-progress-container" style="display: none; margin-top: 1.5rem;">
+-            <h5 id="update-status-text"><?= __('update_preparing') ?></h5>
+-            <div class="progress" style="height: 25px; background: #e2e8f0; border-radius: 12px; overflow: hidden; margin: 1rem 0;">
+-                <div id="update-progress-bar" class="progress-bar" style="width: 0%; height: 100%; background: #3b82f6; transition: width 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">0%</div>
+-            </div>
+-            <div id="update-log-container" style="background: #1e293b; color: #f1f5f9; padding: 1rem; border-radius: 4px; font-family: monospace; font-size: 0.85rem; max-height: 200px; overflow-y: auto;">
+-                <div>> Очікування старту...</div>
++    <!-- ── Rollback ────────────────────────────────────────────────────── -->
++    <?php if ($hasRollback): ?>
++    <div class="card" style="border:1px solid #fecaca;">
++        <div class="card-header" style="background:#fef2f2;color:#991b1b;">
++            <i class="fas fa-undo"></i> <?= __('update_rollback_title') ?>
++        </div>
++        <div class="card-body">
++            <p style="font-size:.88rem;color:#64748b;margin:0 0 .75rem;"><?= __('update_rollback_hint') ?></p>
++            <div style="display:flex;gap:.75rem;flex-wrap:wrap;">
++                <form method="POST" action="/admin/update/rollback" id="rollback-form">
++                    <input type="hidden" name="csrf" value="<?= $csrf ?>">
++                    <button type="submit" class="btn" style="background:#ef4444;color:#fff;"
++                        onclick="return confirm('<?= __('update_rollback_confirm') ?>')">
++                        <i class="fas fa-undo"></i> <?= __('update_rollback_btn') ?>
++                    </button>
++                </form>
++                <form method="POST" action="/admin/update/confirm" id="confirm-update-form">
++                    <input type="hidden" name="csrf" value="<?= $csrf ?>">
++                    <button type="submit" class="btn btn-outline" style="border:1px solid #10b981;color:#10b981;"
++                        onclick="return confirm('<?= __('update_confirm_hint') ?>')">
++                        <i class="fas fa-check"></i> <?= __('update_confirm_btn') ?>
++                    </button>
++                </form>
+             </div>
+         </div>
+     </div>
++    <?php endif; ?>
++
++    <?php endif; ?>
+ </div>
++
++<script>
++(function () {
++    const csrf    = <?= json_encode($csrf) ?>;
++    const STEPS   = ['init','backup','download','extract','database','finish'];
++    const LABELS  = {
++        init:     <?= json_encode(__('update_step_init')) ?>,
++        backup:   <?= json_encode(__('update_step_backup')) ?>,
++        download: <?= json_encode(__('update_step_download')) ?>,
++        extract:  <?= json_encode(__('update_step_extract')) ?>,
++        database: <?= json_encode(__('update_step_database')) ?>,
++        finish:   <?= json_encode(__('update_step_finish')) ?>,
++    };
++
++    // ── Перевірка оновлення ───────────────────────────────────────────
++    const btnCheck   = document.getElementById('btn-check-update');
++    const checkResult= document.getElementById('update-check-result');
++    const runCard    = document.getElementById('update-run-card');
++
++    if (btnCheck) {
++        btnCheck.addEventListener('click', async () => {
++            btnCheck.disabled = true;
++            btnCheck.innerHTML = '<span class="spin"></span> Перевірка…';
++            checkResult.style.color = '#64748b';
++            checkResult.textContent = '…';
++
++            try {
++                const res  = await fetch('/admin/update/check');
++                const data = await res.json();
++
++                if (!data.update_available) {
++                    checkResult.textContent = '✅ ' + data.message;
++                    checkResult.style.color = '#10b981';
++                } else {
++                    checkResult.innerHTML = `🆕 <strong>${data.message}</strong>`;
++                    checkResult.style.color = '#3b82f6';
++                    document.getElementById('update-changelog').textContent = data.changelog || '';
++                    runCard.style.display = 'block';
++                    runCard.scrollIntoView({ behavior: 'smooth' });
++                }
++            } catch (e) {
++                checkResult.textContent = '❌ Помилка мережі';
++                checkResult.style.color = '#ef4444';
++            }
++
++            btnCheck.disabled = false;
++            btnCheck.innerHTML = '<i class="fas fa-sync-alt"></i> <?= __('update_check_btn') ?>';
++        });
++    }
++
++    // ── Запуск оновлення ──────────────────────────────────────────────
++    const btnStart  = document.getElementById('btn-start-update');
++    const stepsEl   = document.getElementById('update-steps-list');
++    const progressBar = document.getElementById('update-progress-bar');
++    const progressEl  = document.getElementById('update-progress');
++    const finalMsg    = document.getElementById('update-final-message');
++    const actionBtns  = document.getElementById('update-action-btns');
++
++    if (btnStart) {
++        btnStart.addEventListener('click', () => runUpdate());
++    }
++
++    async function runUpdate() {
++        const password = document.getElementById('update-password')?.value ?? '';
++        if (!password) {
++            alert(<?= json_encode(__('update_password_prompt')) ?>);
++            return;
++        }
++
++        btnStart && (btnStart.disabled = true);
++        progressEl.style.display = 'block';
++        stepsEl.innerHTML = '';
++        finalMsg.style.display = 'none';
++
++        let stepIndex  = 0;
++        let nextStep   = 'init';
++        const total    = STEPS.length;
++
++        while (nextStep) {
++            const stepEl = document.createElement('div');
++            stepEl.style.cssText = 'display:flex;align-items:center;gap:.5rem;';
++            stepEl.innerHTML = `<span class="spin" style="flex-shrink:0;"></span> <span>${LABELS[nextStep] ?? nextStep}…</span>`;
++            stepsEl.appendChild(stepEl);
++
++            try {
++                const body = new URLSearchParams({ csrf });
++                if (nextStep === 'init') body.append('password', password);
++
++                const res  = await fetch('/admin/update/' + nextStep, { method: 'POST', body });
++                const data = await res.json();
++
++                stepEl.innerHTML = `<i class="fas ${data.success ? 'fa-check-circle' : 'fa-times-circle'}"
++                    style="color:${data.success ? '#10b981' : '#ef4444'};flex-shrink:0;"></i>
++                    <span>${data.message}</span>`;
++
++                stepIndex++;
++                progressBar.style.width = Math.round(stepIndex / total * 100) + '%';
++
++                if (!data.success) {
++                    showFinalMessage(data.message, false);
++                    return;
++                }
++
++                nextStep = data.next_step || null;
++
++            } catch (err) {
++                stepEl.innerHTML = `<i class="fas fa-times-circle" style="color:#ef4444;flex-shrink:0;"></i> Помилка: ${err.message}`;
++                showFinalMessage('Помилка мережі: ' + err.message, false);
++                return;
++            }
++        }
++
++        // Успіх
++        progressBar.style.width = '100%';
++        progressBar.style.background = '#10b981';
++        showFinalMessage('✅ Оновлення успішно завершено! Оновіть сторінку.', true);
++    }
++
++    function showFinalMessage(text, success) {
++        finalMsg.style.display = 'block';
++        finalMsg.style.cssText = `display:block;padding:.75rem 1rem;border-radius:8px;margin-top:.75rem;
++            background:${success ? '#f0fdf4' : '#fef2f2'};
++            color:${success ? '#166534' : '#991b1b'};
++            border:1px solid ${success ? '#bbf7d0' : '#fecaca'};
++            font-weight:500;`;
++        finalMsg.textContent = text;
++        if (success) {
++            actionBtns.innerHTML = '<a href="/admin" class="btn btn-primary"><i class="fas fa-home"></i> Перейти в адмінку</a>';
++        }
++    }
++})();
++</script>

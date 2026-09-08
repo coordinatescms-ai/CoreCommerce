@@ -70,22 +70,26 @@ if (!function_exists('renderCategoryAccordionTree')) {
         <?php else: ?>
             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem;">
                 <?php foreach($products as $product): ?>
-                    <article style="border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1rem; background: #fff; position: relative;">
-                        <span style="position: absolute; top: 0.75rem; right: 0.75rem; display: inline-block; padding: 0.2rem 0.5rem; border-radius: 999px; background: #f59e0b; color: #111827; font-size: 0.75rem; font-weight: 700;">
+                    <?php $outOfStock = render_stock_badge($product) !== ''; ?>
+                    <article style="border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1rem; background: #fff; display: flex; flex-direction: column; position: relative;">
+                        <span style="position: absolute; top: 0.75rem; right: 0.75rem; display: inline-block; padding: 0.2rem 0.5rem; border-radius: 999px; background: #f59e0b; color: #111827; font-size: 0.75rem; font-weight: 700; z-index: 1;">
                             <?= __('products_top_badge') ?>
                         </span>
                         <?php if (!empty($product['image'])): ?>
-                            <img src="<?= htmlspecialchars(product_image_variant_path((string) $product['image'], 'medium')) ?>" alt="<?= htmlspecialchars($product['name']) ?>" style="width: 100%; height: 180px; object-fit: cover; border-radius: 0.5rem; margin-bottom: 0.75rem;">
+                            <img src="<?= htmlspecialchars(product_image_variant_path((string) $product['image'], 'medium')) ?>" alt="<?= htmlspecialchars($product['name']) ?>" style="width: 100%; height: 180px; object-fit: cover; border-radius: 0.5rem; margin-bottom: 0.75rem;<?= $outOfStock ? ' opacity: 0.55;' : '' ?>">
                         <?php endif; ?>
                         <h3 style="margin: 0 0 0.5rem;">
                             <a href="/product/<?= htmlspecialchars($product['slug']) ?>" style="text-decoration: none; color: #111827;"><?= htmlspecialchars($product['name']) ?></a>
                         </h3>
-                        <p style="margin: 0 0 0.75rem;"><strong><?= format_price($product['price']) ?></strong></p>
-                        <form action="/cart/add/<?= (int)$product['id'] ?>" method="POST" style="display: inline-block; margin: 0; width: 100%;">
+                        <?php if ($outOfStock): ?>
+                            <p style="margin: 0 0 0.5rem;"><?= render_stock_badge($product) ?></p>
+                        <?php endif; ?>
+                        <p style="margin: 0 0 0.75rem; margin-top: auto;"><?= render_product_price($product) ?></p>
+                        <form action="/cart/add/<?= (int)$product['id'] ?>" method="POST" style="display: inline-block; margin: 0;">
                             <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
                             <input type="hidden" name="return_url" value="<?= htmlspecialchars($_SERVER['REQUEST_URI'] ?? '/products') ?>">
-                            <button type="submit" style="display: inline-block; padding: 0.5rem 0.85rem; background: #111827; color: #fff; text-decoration: none; border-radius: 0.45rem; border: 0; cursor: pointer; width: 100%;">
-                                <?= __('add_to_cart') ?>
+                            <button type="submit" <?= $outOfStock ? 'disabled' : '' ?> style="display: inline-block; padding: 0.5rem 0.85rem; background: <?= $outOfStock ? '#9ca3af' : '#111827' ?>; color: #fff; text-decoration: none; border-radius: 0.45rem; border: 0; cursor: <?= $outOfStock ? 'not-allowed' : 'pointer' ?>;">
+                                <?= $outOfStock ? __('out_of_stock') : __('add_to_cart') ?>
                             </button>
                         </form>
                     </article>

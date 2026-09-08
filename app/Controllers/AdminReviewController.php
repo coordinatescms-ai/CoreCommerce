@@ -80,20 +80,20 @@ class AdminReviewController
         $this->checkAdmin();
 
         if (!Csrf::isValid()) {
-            $this->json(['success' => false, 'message' => 'CSRF токен недійсний'], 419);
+            $this->json(['success' => false, 'message' => __('review_csrf_invalid')], 419);
         }
 
         $review = DB::query('SELECT id FROM product_reviews WHERE id = ?', [$id])
                     ->fetch(\PDO::FETCH_ASSOC);
 
         if (!$review) {
-            $this->json(['success' => false, 'message' => 'Коментар не знайдено'], 404);
+            $this->json(['success' => false, 'message' => __('review_not_found')], 404);
         }
 
         // Видаляємо разом з відповідями
         DB::query('DELETE FROM product_reviews WHERE id = ? OR parent_id = ?', [$id, $id]);
 
-        $this->json(['success' => true, 'message' => 'Коментар видалено']);
+        $this->json(['success' => true, 'message' => __('review_comment_deleted')]);
     }
 
     public function toggle(int $id): never
@@ -101,14 +101,14 @@ class AdminReviewController
         $this->checkAdmin();
 
         if (!Csrf::isValid()) {
-            $this->json(['success' => false, 'message' => 'CSRF токен недійсний'], 419);
+            $this->json(['success' => false, 'message' => __('review_csrf_invalid')], 419);
         }
 
         $review = DB::query('SELECT id, is_visible FROM product_reviews WHERE id = ?', [$id])
                     ->fetch(\PDO::FETCH_ASSOC);
 
         if (!$review) {
-            $this->json(['success' => false, 'message' => 'Коментар не знайдено'], 404);
+            $this->json(['success' => false, 'message' => __('review_not_found')], 404);
         }
 
         $newState = (int)$review['is_visible'] === 1 ? 0 : 1;
@@ -120,7 +120,7 @@ class AdminReviewController
         $this->json([
             'success'    => true,
             'is_visible' => $newState,
-            'message'    => $newState ? 'Коментар опубліковано' : 'Коментар заблоковано',
+            'message'    => $newState ? __('review_comment_published') : __('review_comment_blocked'),
         ]);
     }
 
@@ -131,17 +131,17 @@ class AdminReviewController
         $payload = json_decode(file_get_contents('php://input') ?: '', true) ?? [];
 
         if (!hash_equals((string)($_SESSION['csrf'] ?? ''), (string)($payload['csrf'] ?? ''))) {
-            $this->json(['success' => false, 'message' => 'CSRF токен недійсний'], 419);
+            $this->json(['success' => false, 'message' => __('review_csrf_invalid')], 419);
         }
 
         $action = $payload['action'] ?? '';
         $ids    = array_map('intval', (array)($payload['ids'] ?? []));
 
         if (empty($ids)) {
-            $this->json(['success' => false, 'message' => 'Не обрано жодного коментаря'], 422);
+            $this->json(['success' => false, 'message' => __('review_no_selection')], 422);
         }
         if (!in_array($action, ['delete', 'hide', 'show'], true)) {
-            $this->json(['success' => false, 'message' => 'Невідома дія'], 422);
+            $this->json(['success' => false, 'message' => __('review_unknown_action')], 422);
         }
 
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
@@ -149,13 +149,13 @@ class AdminReviewController
         if ($action === 'delete') {
             DB::query("DELETE FROM product_reviews WHERE id IN ($placeholders) OR parent_id IN ($placeholders)",
                 array_merge($ids, $ids));
-            $message = 'Коментарі видалено';
+            $message = __('review_comments_deleted');
         } elseif ($action === 'hide') {
             DB::query("UPDATE product_reviews SET is_visible = 0, updated_at = NOW() WHERE id IN ($placeholders)", $ids);
-            $message = 'Коментарі заблоковано';
+            $message = __('review_comments_blocked');
         } else {
             DB::query("UPDATE product_reviews SET is_visible = 1, updated_at = NOW() WHERE id IN ($placeholders)", $ids);
-            $message = 'Коментарі опубліковано';
+            $message = __('review_comments_published');
         }
 
         $this->json(['success' => true, 'message' => $message, 'count' => count($ids)]);

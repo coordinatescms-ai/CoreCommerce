@@ -17,37 +17,41 @@ $currencySource  = get_setting('currency_source', 'manual');
 
     <div class="card">
         <div class="card-header">
-            <i class="fas fa-info-circle"></i> Основна інформація
-        </div>
+            <i class="fas fa-info-circle"></i> <?= __("admin_settings_general_info") ?></div>
         <div class="card-body">
             <div class="form-group">
                 <label for="site_name"><?= __('settings_shop_name') ?></label>
                 <input type="text" name="settings[site_name]" id="site_name" class="form-control" value="<?php echo htmlspecialchars(get_setting('site_name', '')); ?>">
             </div>
             <div class="form-group">
+                <label for="site_url"><?= __("admin_settings_site_url") ?></label>
+                <input type="text" name="settings[site_url]" id="site_url" class="form-control" value="<?php echo htmlspecialchars(get_setting('site_url', '')); ?>" placeholder="<?= __("admin_settings_site_url_placeholder") ?>">
+                <small class="text-muted"><?= __("admin_settings_site_url_hint") ?></small>
+            </div>
+            <div class="form-group">
                 <label for="site_description"><?= __('settings_shop_desc') ?></label>
                 <textarea name="settings[site_description]" id="site_description" class="form-control" rows="3"><?php echo htmlspecialchars(get_setting('site_description', '')); ?></textarea>
             </div>
             <div class="form-group">
-                <label for="store_status">Статус магазину</label>
+                <label for="store_status"><?= __("admin_settings_store_status") ?></label>
                 <select name="settings[store_status]" id="store_status" class="form-control">
-                    <option value="open" <?php echo get_setting('store_status', 'open') === 'open' ? 'selected' : ''; ?>>Відкритий</option>
-                    <option value="closed" <?php echo get_setting('store_status', 'open') === 'closed' ? 'selected' : ''; ?>>Закритий (Технічне обслуговування)</option>
+                    <option value="open" <?php echo get_setting('store_status', 'open') === 'open' ? 'selected' : ''; ?>><?= __("admin_settings_store_open") ?></option>
+                    <option value="closed" <?php echo get_setting('store_status', 'open') === 'closed' ? 'selected' : ''; ?>><?= __("admin_settings_store_closed") ?></option>
                 </select>
             </div>
             <div class="form-group">
-                <label for="maintenance_message">Повідомлення при закритті</label>
+                <label for="maintenance_message"><?= __("admin_settings_maintenance_message") ?></label>
                 <textarea name="settings[maintenance_message]" id="maintenance_message" class="form-control" rows="2"><?php echo htmlspecialchars(get_setting('maintenance_message', '')); ?></textarea>
             </div>
             <div class="form-group">
                 <label for="phone_mask"><?= __('settings_phone_mask') ?></label>
                 <input type="text" name="settings[phone_mask]" id="phone_mask" class="form-control" value="<?php echo htmlspecialchars(get_setting('phone_mask', '+38 (###) ###-##-##')); ?>">
-                <small style="display:block; margin-top: 0.35rem; color: #6b7280;">Використовуйте символ <code>#</code> для цифр. Приклад: <code>+38 (###) ###-##-##</code>.</small>
+                <small style="display:block; margin-top: 0.35rem; color: #6b7280;"><?= __("admin_settings_phone_mask_format") ?></small>
             </div>
             <div class="form-group">
                 <label for="logotype_file"><?= __('settings_logo') ?></label>
                 <input type="file" name="logotype_file" id="logotype_file" class="form-control" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
-                <small style="display:block; margin-top: 0.35rem; color: #6b7280;">Дозволені формати: JPG, PNG, WEBP. Максимум: 1MB.</small>
+                <small style="display:block; margin-top: 0.35rem; color: #6b7280;"><?= __("admin_settings_allowed_formats") ?></small>
                 <?php $activeLogotype = trim((string) get_setting('active_logotype', '')); ?>
                 <?php if ($activeLogotype !== ''): ?>
                     <div style="margin-top: 0.5rem;">
@@ -60,14 +64,13 @@ $currencySource  = get_setting('currency_source', 'manual');
 
     <div class="card">
         <div class="card-header">
-            <i class="fas fa-globe"></i> Локалізація
-        </div>
+            <i class="fas fa-globe"></i> <?= __("admin_settings_localization") ?></div>
         <div class="card-body">
             <div class="form-group">
                 <label for="default_language"><?= __('settings_default_lang') ?></label>
                 <select name="settings[default_language]" id="default_language" class="form-control">
-                    <option value="ua" <?php echo get_setting('default_language', 'ua') === 'ua' ? 'selected' : ''; ?>>Українська</option>
-                    <option value="en" <?php echo get_setting('default_language', 'ua') === 'en' ? 'selected' : ''; ?>>Англійська</option>
+                    <option value="ua" <?php echo get_setting('default_language', 'ua') === 'ua' ? 'selected' : ''; ?>><?= __('ukrainian') ?></option>
+                    <option value="en" <?php echo get_setting('default_language', 'ua') === 'en' ? 'selected' : ''; ?>><?= __('english') ?></option>
                 </select>
             </div>
         </div>
@@ -76,20 +79,15 @@ $currencySource  = get_setting('currency_source', 'manual');
     <!-- Блок перерахунку валюти (ВІЗУАЛЬНО ТУТ, АЛЕ ПРИВ'ЯЗАНИЙ ДО currencyUpdateForm) -->
     <div class="card" style="margin-top:1rem;">
         <div class="card-header">
-            <i class="fas fa-coins"></i> Валюта та перерахунок цін
-            <?php if ($activeCurrency): ?>
+            <i class="fas fa-coins"></i> <?= __("admin_settings_currency_title") ?><?php if ($activeCurrency): ?>
                 <span style="margin-left:.75rem; background:#dcfce7; color:#166534;
                              font-size:.75rem; font-weight:700; padding:2px 10px;
-                             border-radius:20px; vertical-align:middle;">
-                    Активна: <?= htmlspecialchars($activeCurrency['code']) ?>
-                    (<?= htmlspecialchars($activeCurrency['symbol']) ?>)
-                    · курс <?= number_format((float)$activeCurrency['rate'], 4) ?>
-                </span>
+                             border-radius:20px; vertical-align:middle;"><?= __("admin_settings_currency_active") ?>: <?= htmlspecialchars($activeCurrency["code"]) ?> (<?= htmlspecialchars($activeCurrency["symbol"]) ?>) В· <?= __("admin_settings_rate_label") ?> <?= number_format((float)$activeCurrency["rate"], 4) ?></span>
             <?php endif; ?>
         </div>
         <div class="card-body">
             <div class="form-group">
-                <label for="target_currency">Перемкнути сайт на валюту</label>
+                <label for="target_currency"><?= __("admin_settings_currency_switch") ?></label>
                 <select name="target_currency" id="target_currency" class="form-control" form="currencyUpdateForm">
                     <?php foreach ($allCurrencies as $cur): ?>
                         <option value="<?= htmlspecialchars($cur['code']) ?>"
@@ -100,27 +98,21 @@ $currencySource  = get_setting('currency_source', 'manual');
                         </option>
                     <?php endforeach; ?>
                 </select>
-                <small style="color:#64748b; font-size:.8rem; margin-top:.25rem; display:block;">
-                    Ціни <strong>всіх товарів</strong> будуть фізично перераховані в базі даних.
-                </small>
+                <small style="color:#64748b; font-size:.8rem; margin-top:.25rem; display:block;"><?= __("admin_settings_currency_recalculate_hint") ?></small>
             </div>
 
             <div class="form-group">
-                <label style="display:flex; align-items:center; gap:.75rem; cursor:pointer; font-weight:600;">
-                    Джерело курсу:
-                    <label style="display:flex; align-items:center; gap:.3rem; font-weight:400; cursor:pointer;">
+                <label style="display:flex; align-items:center; gap:.75rem; cursor:pointer; font-weight:600;">                     <?= __("admin_settings_rate_source") ?><label style="display:flex; align-items:center; gap:.3rem; font-weight:400; cursor:pointer;">
                         <input type="radio" name="currency_source" value="manual"
                                id="src_manual"
                                form="currencyUpdateForm"
-                               <?= $currencySource !== 'api' ? 'checked' : '' ?>
-                               onchange="toggleRateSource()">
-                        Мій курс
-                    </label>
+                               <?= $currencySource !== 'nbu_api' ? 'checked' : '' ?>
+                               onchange="toggleRateSource()">                         <?= __("admin_settings_manual_rate") ?>                     </label>
                     <label style="display:flex; align-items:center; gap:.3rem; font-weight:400; cursor:pointer;">
                         <input type="radio" name="currency_source" value="api"
                                id="src_api"
                                form="currencyUpdateForm"
-                               <?= $currencySource === 'api' ? 'checked' : '' ?>
+                               <?= $currencySource === 'nbu_api' ? 'checked' : '' ?>
                                onchange="toggleRateSource()">
                         <?= __('currency_nbu_auto') ?>
                     </label>
@@ -129,40 +121,29 @@ $currencySource  = get_setting('currency_source', 'manual');
 
             <!-- Поле для ручного курсу -->
             <div class="form-group" id="manual_rate_group"
-                 style="<?= $currencySource === 'api' ? 'display:none;' : '' ?>">
-                <label for="manual_rate">Курс цільової валюти до UAH</label>
+                 style="<?= $currencySource === 'nbu_api' ? 'display:none;' : '' ?>">
+                <label for="manual_rate"><?= __("admin_settings_manual_rate_label") ?></label>
                 <input type="number" name="manual_rate" id="manual_rate"
                        class="form-control"
                        form="currencyUpdateForm"
                        min="0.0001" step="0.0001"
-                       placeholder="Напр. 41.5000"
+                       placeholder="<?= __("admin_settings_manual_rate_placeholder") ?>"
                        value="">
-                <small style="color:#64748b; font-size:.8rem; display:block; margin-top:.25rem;">
-                    Скільки гривень коштує 1 одиниця цільової валюти.
-                </small>
+                <small style="color:#64748b; font-size:.8rem; display:block; margin-top:.25rem;"><?= __("admin_settings_manual_rate_hint") ?></small>
             </div>
 
-            <!-- Інфо про API -->
+            <!-- Інфо про НБУ API -->
             <div class="form-group" id="api_rate_group"
-                 style="<?= $currencySource !== 'api' ? 'display:none;' : '' ?>">
-                <label for="api_key_input">API-ключ НБУ</label>
-                <?php
-                $savedApiKey = (!in_array($currencySource, ['manual', 'api'], true)) ? $currencySource : '';
-                ?>
-                <input type="text" name="currency_api_key" id="api_key_input"
-                       class="form-control"
-                       form="currencyUpdateForm"
-                       placeholder="Введіть ключ доступу до API НБУ"
-                       value="<?= htmlspecialchars($savedApiKey) ?>">
-                <small style="color:#64748b; font-size:.8rem; display:block; margin-top:.25rem;">
-                    Ключ зберігається в БД і передається при кожному запиті до НБУ.
-                </small>
+                 style="<?= $currencySource !== 'nbu_api' ? 'display:none;' : '' ?>">
+                <div class="alert alert-info" style="font-size:.875rem; margin-bottom:0;">
+                    <i class="fas fa-info-circle"></i> <strong><?= __("admin_settings_nbu_api") ?></strong> вЂ” <?= __("admin_settings_nbu_api_desc") ?> <?= __("admin_settings_nbu_api_source") ?> <code>bank.gov.ua</code>.
+                </div>
             </div>
 
             <button type="submit" class="btn btn-primary"
                     form="currencyUpdateForm"
-                    onclick="return confirm('Увага! Ціни всіх товарів будуть перераховані. Продовжити?')">
-                <i class="fas fa-sync-alt"></i> Оновити курс та ціни
+                    onclick="return confirm(<?= json_encode(__("admin_settings_currency_confirm")) ?>)">
+                <i class="fas fa-sync-alt"></i> <?= __("admin_settings_currency_update") ?>
             </button>
         </div>
     </div>
@@ -170,18 +151,17 @@ $currencySource  = get_setting('currency_source', 'manual');
     <!-- Секція Локалізація -->
     <div class="card" style="margin-top:1rem;">
         <div class="card-header">
-            <i class="fa-solid fa-clock"></i> Регіональні налаштування
-        </div>
+            <i class="fa-solid fa-clock"></i> <?= __("admin_settings_regional") ?></div>
         <div class="card-body">
             <div class="form-group">
                 <label><?= __('settings_timezone') ?></label>
                 <select name="settings[site_timezone]" id="site_timezone" class="form-control">
-                    <option value="Europe/Kiev" <?php echo get_setting('site_timezone', 'Europe/Kiev') === 'Europe/Kiev' ? 'selected' : ''; ?>>Kyiv (GMT+2 / GMT+3)</option>
-                    <option value="Europe/London" <?php echo get_setting('site_timezone', 'Europe/London') === 'Europe/London' ? 'selected' : ''; ?>>London (GMT+0 / GMT+1)</option>
-                    <option value="Europe/Warsaw" <?php echo get_setting('site_timezone', '') === 'Europe/Warsaw' ? 'selected' : ''; ?>>Warsaw (GMT+1 / GMT+2)</option>
-                    <option value="UTC" <?php echo get_setting('site_timezone', '') === 'UTC' ? 'selected' : ''; ?>>Universal Time (UTC)</option>
+                    <option value="Europe/Kiev" <?php echo get_setting('site_timezone', 'Europe/Kiev') === 'Europe/Kiev' ? 'selected' : ''; ?>><?= __("admin_settings_timezone_kyiv") ?></option>
+                    <option value="Europe/London" <?php echo get_setting('site_timezone', 'Europe/London') === 'Europe/London' ? 'selected' : ''; ?>><?= __("admin_settings_timezone_london") ?></option>
+                    <option value="Europe/Warsaw" <?php echo get_setting('site_timezone', '') === 'Europe/Warsaw' ? 'selected' : ''; ?>><?= __("admin_settings_timezone_warsaw") ?></option>
+                    <option value="UTC" <?php echo get_setting('site_timezone', '') === 'UTC' ? 'selected' : ''; ?>><?= __("admin_settings_timezone_utc") ?></option>
                 </select>
-                <small class="hint"><?= __('settings_timezone_hint') ?></small>
+                <small class="hint"><?= __("settings_timezone_hint") ?></small>
             </div>
             <div class="form-group">
                 <label><?= __('settings_date_format') ?></label>
@@ -237,8 +217,7 @@ $currencySource  = get_setting('currency_source', 'manual');
                 </div>
                 <div class="form-group" style="grid-column:1/-1; border-top:1px solid #e2e8f0; padding-top:.75rem; margin-top:.25rem;">
                     <p style="font-size:.85rem; color:#64748b; margin:0 0 .75rem;">
-                        <i class="fas fa-info-circle"></i> Від кого надсилаються листи покупцям
-                    </p>
+                        <i class="fas fa-info-circle"></i> <?= __("smtp_from_hint") ?></p>
                 </div>
                 <div class="form-group">
                     <label for="smtp_from_email"><?= __('smtp_from_email') ?></label>
@@ -347,15 +326,10 @@ $currencySource  = get_setting('currency_source', 'manual');
 
     <div class="card" style="margin-top:1rem;">
         <div class="card-header">
-            <i class="fas fa-palette"></i> Зовнішній вигляд
-        </div>
+            <i class="fas fa-palette"></i> <?= __("admin_settings_appearance") ?></div>
         <div class="card-body">
             <div class="form-group">
-                <label for="active_theme">Активна тема оформлення</label>
-                <?php
-                $themesDir = __DIR__ . '/../../../../resources/themes';
-                $themes = is_dir($themesDir) ? array_values(array_diff(scandir($themesDir), ['.', '..'])) : [];
-                ?>
+                <label for="active_theme"><?= __("admin_settings_active_theme") ?></label>
                 <select name="settings[active_theme]" id="active_theme" class="form-control">
                     <?php foreach ($themes as $theme): ?>
                         <option value="<?php echo htmlspecialchars($theme); ?>" <?php echo get_setting('active_theme', '') === $theme ? 'selected' : ''; ?>>
@@ -369,8 +343,7 @@ $currencySource  = get_setting('currency_source', 'manual');
 
     <div class="card" style="margin-top:1rem;">
         <div class="card-header">
-            <i class="fas fa-address-book"></i> Контактні дані
-        </div>
+            <i class="fas fa-address-book"></i> <?= __("admin_settings_contact_details") ?></div>
         <div class="card-body">
             <div class="form-group">
                 <label for="contact_email"><?= __('settings_contact_email') ?></label>
@@ -380,53 +353,69 @@ $currencySource  = get_setting('currency_source', 'manual');
                 <label for="contact_phone"><?= __('settings_contact_phone') ?></label>
                 <input type="text" name="settings[contact_phone]" id="contact_phone" class="form-control" value="<?php echo htmlspecialchars(get_setting('contact_phone', '')); ?>">
             </div>
+            <div class="form-group">
+                <label for="contact_address"><?= __('settings_contact_address') ?></label>
+                <input type="text" name="settings[contact_address]" id="contact_address" class="form-control"
+                       maxlength="250"
+                       placeholder="<?= __('admin_settings_contact_address_placeholder') ?>"
+                       value="<?php echo htmlspecialchars(get_setting('contact_address', '')); ?>">
+            </div>
         </div>
     </div>
 
     <div class="card" style="margin-top:1rem;">
         <div class="card-header">
-            <i class="fas fa-user-shield"></i> Соціальний вхід
-        </div>
+            <i class="fas fa-user-shield"></i> <?= __("admin_settings_social_login") ?></div>
         <div class="card-body">
             <h4 style="margin-top:0;">Google</h4>
             <div class="form-group">
-                <label for="google_auth_enabled">Статус</label>
+                <label for="google_auth_enabled"><?= __("admin_settings_status") ?></label>
                 <select name="settings[google_auth_enabled]" id="google_auth_enabled" class="form-control">
-                    <option value="0" <?php echo get_setting('google_auth_enabled', '0') === '0' ? 'selected' : ''; ?>>Вимкнено</option>
-                    <option value="1" <?php echo get_setting('google_auth_enabled', '0') === '1' ? 'selected' : ''; ?>>Увімкнено</option>
+                    <option value="0" <?php echo get_setting('google_auth_enabled', '0') === '0' ? 'selected' : ''; ?>><?= __("disabled") ?></option>
+                    <option value="1" <?php echo get_setting('google_auth_enabled', '0') === '1' ? 'selected' : ''; ?>><?= __("enabled") ?></option>
                 </select>
             </div>
             <div class="form-group">
-                <label for="google_client_id">Client ID</label>
+                <label for="google_client_id"><?= __("admin_settings_client_id") ?></label>
                 <input type="text" name="settings[google_client_id]" id="google_client_id" class="form-control" value="<?php echo htmlspecialchars(get_setting('google_client_id', '')); ?>">
             </div>
             <div class="form-group">
-                <label for="google_client_secret">Client Secret</label>
+                <label for="google_client_secret"><?= __("admin_settings_client_secret") ?></label>
                 <input type="password" name="settings[google_client_secret]" id="google_client_secret" class="form-control" value="<?php echo htmlspecialchars(get_setting('google_client_secret', '')); ?>">
+            </div>
+            <div class="form-group">
+                <label for="google_redirect_url"><?= __("admin_settings_callback_url") ?></label>
+                <input type="text" name="settings[google_redirect_url]" id="google_redirect_url" class="form-control" value="<?php echo htmlspecialchars(get_setting('google_redirect_url', '')); ?>" placeholder="https://yourdomain.com/auth/google/callback">
+                <small class="text-muted"><?= __("admin_settings_site_url_hint") ?></small>
             </div>
 
             <h4 style="margin-top:1rem;">Facebook</h4>
             <div class="form-group">
-                <label for="facebook_auth_enabled">Статус</label>
+                <label for="facebook_auth_enabled"><?= __("admin_settings_status") ?></label>
                 <select name="settings[facebook_auth_enabled]" id="facebook_auth_enabled" class="form-control">
-                    <option value="0" <?php echo get_setting('facebook_auth_enabled', '0') === '0' ? 'selected' : ''; ?>>Вимкнено</option>
-                    <option value="1" <?php echo get_setting('facebook_auth_enabled', '0') === '1' ? 'selected' : ''; ?>>Увімкнено</option>
+                    <option value="0" <?php echo get_setting('facebook_auth_enabled', '0') === '0' ? 'selected' : ''; ?>><?= __("disabled") ?></option>
+                    <option value="1" <?php echo get_setting('facebook_auth_enabled', '0') === '1' ? 'selected' : ''; ?>><?= __("enabled") ?></option>
                 </select>
             </div>
             <div class="form-group">
-                <label for="facebook_client_id">Client ID</label>
+                <label for="facebook_client_id"><?= __("admin_settings_client_id") ?></label>
                 <input type="text" name="settings[facebook_client_id]" id="facebook_client_id" class="form-control" value="<?php echo htmlspecialchars(get_setting('facebook_client_id', '')); ?>">
             </div>
             <div class="form-group">
-                <label for="facebook_client_secret">Client Secret</label>
+                <label for="facebook_client_secret"><?= __("admin_settings_client_secret") ?></label>
                 <input type="password" name="settings[facebook_client_secret]" id="facebook_client_secret" class="form-control" value="<?php echo htmlspecialchars(get_setting('facebook_client_secret', '')); ?>">
+            </div>
+            <div class="form-group">
+                <label for="facebook_redirect_url"><?= __("admin_settings_callback_url") ?></label>
+                <input type="text" name="settings[facebook_redirect_url]" id="facebook_redirect_url" class="form-control" value="<?php echo htmlspecialchars(get_setting('facebook_redirect_url', '')); ?>" placeholder="https://yourdomain.com/auth/facebook/callback">
+                <small class="text-muted"><?= __("admin_settings_site_url_hint") ?></small>
             </div>
         </div>
     </div>
 
     <div style="margin-top: 2rem; margin-bottom: 2rem; display: flex; justify-content: flex-end;">
         <button type="submit" class="btn btn-primary btn-lg" style="padding: 0.75rem 2rem; font-size: 1rem;">
-            <i class="fas fa-save"></i> Зберегти всі налаштування
+            <i class="fas fa-save"></i> <?= __("save_settings") ?>
         </button>
     </div>
 </form>

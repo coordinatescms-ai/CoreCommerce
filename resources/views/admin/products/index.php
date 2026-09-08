@@ -65,20 +65,20 @@ $hasFilters = $search !== '' || $catId !== null || $visibility !== 'all';
               style="display:flex; gap:.75rem; align-items:flex-end; flex-wrap:wrap;">
             <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf']) ?>">
             <div class="form-group" style="margin-bottom:0; min-width:280px;">
-                <label for="products_csv">CSV-файл</label>
+                <label for="products_csv"><?= __('products_csv_file') ?></label>
                 <input id="products_csv" class="form-control" type="file" name="products_csv" accept=".csv" required>
             </div>
-            <button type="submit" class="btn btn-primary"><i class="fas fa-file-import"></i> Імпортувати</button>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-file-import"></i> <?= __('products_import') ?></button>
         </form>
         <p style="margin-top:.75rem; color:#64748b; font-size:.85rem;">
-            Формат: <code>sku,name,price,quantity,description,category</code>
+            <?= __('products_format_hint') ?>
         </p>
     </div>
 </div>
 
 <div class="page-header">
     <h1 class="page-title">
-        Управління товарами
+        <?= __('products_manage') ?>
         <span style="margin-left:.5rem; background:#eff6ff; color:#3b82f6; font-size:.78rem;
                      font-weight:700; padding:2px 10px; border-radius:20px; vertical-align:middle;">
             <?= number_format($pager->total) ?>
@@ -97,11 +97,11 @@ $hasFilters = $search !== '' || $catId !== null || $visibility !== 'all';
             <i class="fas fa-search"></i>
             <input type="text" name="search"
                    value="<?= htmlspecialchars($search) ?>"
-                   placeholder="Назва або SKU…">
+                   placeholder="<?= __('products_search_placeholder') ?>">
         </div>
 
         <select name="category" class="prod-select" onchange="this.form.submit()">
-            <option value="">Усі категорії</option>
+            <option value=""><?= __('products_all_categories') ?></option>
             <?php foreach ($categories as $cat): ?>
                 <option value="<?= (int)$cat['id'] ?>"
                     <?= $catId === (int)$cat['id'] ? 'selected' : '' ?>>
@@ -120,14 +120,14 @@ $hasFilters = $search !== '' || $catId !== null || $visibility !== 'all';
 
     <div class="prod-filter-tabs">
         <a href="<?= '/admin/products?' . http_build_query(array_filter(['search' => $search, 'category' => $catId], fn($v) => $v !== null && $v !== '')) ?>"
-           class="prod-tab <?= $visibility === 'all' ? 'active' : '' ?>">Усі</a>
+           class="prod-tab <?= $visibility === 'all' ? 'active' : '' ?>"><?= __('products_all') ?></a>
         <a href="<?= '/admin/products?' . http_build_query(array_filter(['search' => $search, 'category' => $catId, 'visibility' => 'visible'], fn($v) => $v !== null && $v !== '')) ?>"
            class="prod-tab <?= $visibility === 'visible' ? 'active green' : '' ?>">
-            <i class="fas fa-eye" style="font-size:.72rem;"></i> Видимі
+            <i class="fas fa-eye" style="font-size:.72rem;"></i> <?= __('products_visible') ?>
         </a>
         <a href="<?= '/admin/products?' . http_build_query(array_filter(['search' => $search, 'category' => $catId, 'visibility' => 'hidden'], fn($v) => $v !== null && $v !== '')) ?>"
            class="prod-tab <?= $visibility === 'hidden' ? 'active red' : '' ?>">
-            <i class="fas fa-eye-slash" style="font-size:.72rem;"></i> Приховані
+            <i class="fas fa-eye-slash" style="font-size:.72rem;"></i> <?= __('products_hidden') ?>
         </a>
     </div>
 
@@ -143,12 +143,12 @@ $hasFilters = $search !== '' || $catId !== null || $visibility !== 'all';
         <table style="width:100%; border-collapse:collapse;">
             <thead>
                 <tr style="border-bottom:2px solid #eee; text-align:left;">
-                    <th style="padding:1rem;">Товар</th>
-                    <th style="padding:1rem;">Категорія</th>
-                    <th style="padding:1rem;">Ціна</th>
-                    <th style="padding:1rem;">Кількість</th>
-                    <th style="padding:1rem;">Slug</th>
-                    <th style="padding:1rem; text-align:right;">Дії</th>
+                    <th style="padding:1rem;"><?= __('products_product') ?></th>
+                    <th style="padding:1rem;"><?= __('products_category') ?></th>
+                    <th style="padding:1rem;"><?= __('products_price') ?></th>
+                    <th style="padding:1rem;"><?= __('products_quantity') ?></th>
+                    <th style="padding:1rem;"><?= __('products_slug') ?></th>
+                    <th style="padding:1rem; text-align:right;"><?= __('products_actions') ?></th>
                 </tr>
             </thead>
             <tbody>
@@ -183,7 +183,7 @@ $hasFilters = $search !== '' || $catId !== null || $visibility !== 'all';
                                         </div>
                                         <?php if (!(int)($product['is_visible'] ?? 1)): ?>
                                             <span style="font-size:.72rem; background:#fee2e2; color:#991b1b; padding:1px 7px; border-radius:20px; font-weight:600;">
-                                                прихований
+                                                <?= __('products_hidden_badge') ?>
                                             </span>
                                         <?php endif; ?>
                                     </div>
@@ -196,7 +196,7 @@ $hasFilters = $search !== '' || $catId !== null || $visibility !== 'all';
                                         <?= htmlspecialchars($product['category_name']) ?>
                                     </a>
                                 <?php else: ?>
-                                    <span style="color:#94a3b8;">Без категорії</span>
+                                    <span style="color:#94a3b8;"><?= __('products_no_category') ?></span>
                                 <?php endif; ?>
                             </td>
                             <td style="padding:1rem; font-weight:600;">
@@ -205,7 +205,7 @@ $hasFilters = $search !== '' || $catId !== null || $visibility !== 'all';
                             <td style="padding:1rem;">
                                 <a href="/admin/stocks?sku=<?= urlencode((string)($product['sku'] ?? '')) ?>"
                                    style="font-weight:600; color:#2563eb; text-decoration:none;">
-                                    <?= (int)($product['stock_quantity'] ?? 0) ?> шт.
+                                    <?= (int)($product['stock_quantity'] ?? 0) ?> <?= __('products_pieces') ?>
                                 </a>
                             </td>
                             <td style="padding:1rem; color:#64748b; font-size:.85rem;">
@@ -222,7 +222,7 @@ $hasFilters = $search !== '' || $catId !== null || $visibility !== 'all';
                                 </a>
                                 <form action="/admin/products/delete/<?= (int)$product['id'] ?>"
                                       method="POST" style="display:inline-block; margin:0;"
-                                      onsubmit="return confirm('Видалити товар «<?= htmlspecialchars(addslashes($product['name'])) ?>»?')">
+                                      onsubmit="return confirm('<?= sprintf(__('products_delete_confirm'), htmlspecialchars(addslashes($product['name']))) ?>')">
                                     <input type="hidden" name="_method" value="DELETE">
                                     <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf']) ?>">
                                     <button type="submit" class="btn btn-outline"
@@ -240,6 +240,6 @@ $hasFilters = $search !== '' || $catId !== null || $visibility !== 'all';
 
     <!-- Pagination -->
     <div>
-        <?= $pager->render(['show_info' => true]) ?>
+        <?= $pager->render(['show_info' => true, 'showing_text' => __('pagination_showing')]) ?>
     </div>
 </div>

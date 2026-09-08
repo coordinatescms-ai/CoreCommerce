@@ -1,7 +1,7 @@
 <div class="page-header">
-    <h1 class="page-title">Новий товар</h1>
+    <h1 class="page-title"><?php echo __('product_new'); ?></h1>
     <a href="/admin/products" class="btn btn-outline" style="border: 1px solid #ddd; color: #64748b;">
-        <i class="fas fa-arrow-left"></i> Назад до списку
+        <i class="fas fa-arrow-left"></i> <?php echo __('back_to_list'); ?>
     </a>
 </div>
 
@@ -15,37 +15,43 @@ $attributeRows = $attributeRows ?? [];
 
     <div class="card">
         <div class="card-header">
-            <i class="fas fa-info-circle"></i> Основна інформація
+            <i class="fas fa-info-circle"></i> <?php echo __('basic_info'); ?>
         </div>
         <div class="card-body">
             <div class="form-group">
-                <label for="name">Назва товару <span style="color:#dc2626;">*</span></label>
-                <input type="text" name="name" id="name" class="form-control" required placeholder="Наприклад: iPhone 15 Pro Max" value="<?php echo htmlspecialchars($formData['name'] ?? ''); ?>">
+                <label for="name"><?php echo __('product_name'); ?> <span style="color:#dc2626;">*</span></label>
+                <input type="text" name="name" id="name" class="form-control" required placeholder="<?php echo __('settings_phone_mask_eg'); ?>: iPhone 15 Pro Max" value="<?php echo htmlspecialchars($formData['name'] ?? ''); ?>">
             </div>
 
 
             <div style="display: grid; grid-template-columns: 2fr 1fr 2fr; gap: 1rem;">
                 <div class="form-group">
-                    <label for="sku">SKU (артикул)</label>
-                    <input type="text" name="sku" id="sku" class="form-control" placeholder="Автогенерація: SKU-000001" value="<?php echo htmlspecialchars($formData['sku'] ?? ($product['sku'] ?? '')); ?>">
+                    <label for="sku">SKU (<?php echo __('product_sku'); ?>)</label>
+                    <input type="text" name="sku" id="sku" class="form-control" placeholder="<?php echo __('product_sku_auto'); ?>: SKU-000001" value="<?php echo htmlspecialchars($formData['sku'] ?? ($product['sku'] ?? '')); ?>">
                 </div>
                 <div class="form-group">
-                    <label for="stock_qty">Кількість</label>
+                    <label for="stock_qty"><?php echo __('products_quantity'); ?></label>
                     <input type="number" min="1" step="1" name="stock_qty" id="stock_qty" class="form-control" value="<?php echo htmlspecialchars((string) ($formData['stock_qty'] ?? '')); ?>">
                 </div>
                 <div class="form-group">
-                    <label for="stock_comment">Коментар</label>
+                    <label for="stock_comment"><?php echo __('stock_comment'); ?></label>
                     <input type="text" name="stock_comment" id="stock_comment" class="form-control" value="<?php echo htmlspecialchars((string) ($formData['stock_comment'] ?? '')); ?>">
                 </div>
             </div>
             <div class="form-group">
-                <label for="slug">Slug (URL посилання)</label>
-                <input type="text" name="slug" id="slug" class="form-control" placeholder="Залиште порожнім для автогенерації" value="<?php echo htmlspecialchars($formData['slug'] ?? ''); ?>">
+                <label for="vendor"><?php echo __('product_vendor'); ?></label>
+                <input type="text" name="vendor" id="vendor" class="form-control" placeholder="<?php echo __('settings_phone_mask_eg'); ?>: Apple, Samsung, Xiaomi" value="<?php echo htmlspecialchars($formData['vendor'] ?? ''); ?>">
+                <small style="color:#64748b;"><?php echo __('product_vendor_hint'); ?></small>
+            </div>
+            <?php do_action('admin.product_form.extra_fields', null, $formData ?? null); ?>
+            <div class="form-group">
+                <label for="slug"><?php echo __('create_category_slug'); ?></label>
+                <input type="text" name="slug" id="slug" class="form-control" placeholder="<?php echo __('category_slug_placeholder'); ?>" value="<?php echo htmlspecialchars($formData['slug'] ?? ''); ?>">
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                 <div class="form-group">
-                    <label for="price">Ціна (грн) <span style="color:#dc2626;">*</span></label>
+                    <label for="price"><?php echo __('products_price'); ?> <span style="color:#dc2626;">*</span></label>
                     <input
                         type="number"
                         min="0"
@@ -60,9 +66,9 @@ $attributeRows = $attributeRows ?? [];
                     >
                 </div>
                 <div class="form-group">
-                    <label for="category_id">Категорія <span style="color:#dc2626;">*</span></label>
+                    <label for="category_id"><?php echo __('products_category'); ?> <span style="color:#dc2626;">*</span></label>
                     <select name="category_id" id="category_id" class="form-control" required>
-                        <option value="">-- Без категорії --</option>
+                        <option value=""><?php echo __('products_no_category'); ?></option>
                         <?php foreach ($categories as $cat): ?>
                             <option value="<?php echo $cat['id']; ?>" <?php echo ((int) $cat['id'] === (int) ($formData['category_id'] ?? 0)) ? 'selected' : ''; ?>>
                                 <?php echo str_repeat('— ', $cat['level'] ?? 0) . htmlspecialchars($cat['name']); ?>
@@ -73,13 +79,13 @@ $attributeRows = $attributeRows ?? [];
             </div>
 
             <div class="form-group">
-                <label for="description">Опис товару</label>
-                <textarea name="description" id="description" class="form-control" rows="6" placeholder="Короткий або детальний опис товару..."><?php echo htmlspecialchars($formData['description'] ?? ''); ?></textarea>
+                <label for="description"><?php echo __('product_description'); ?></label>
+                <textarea name="description" id="description" class="form-control" rows="6" placeholder="<?php echo __('product_description_placeholder'); ?>..."><?php echo htmlspecialchars($formData['description'] ?? ''); ?></textarea>
             </div>
             <div class="form-group">
                 <label style="display:flex; align-items:center; gap:0.5rem; margin:0; cursor:pointer;">
                     <input type="checkbox" name="is_visible" value="1" <?php echo !isset($formData['is_visible']) || (int) ($formData['is_visible'] ?? 0) === 1 ? 'checked' : ''; ?>>
-                    <span>Показувати товар на вітрині</span>
+                    <span><?php echo __('product_show_in_store'); ?></span>
                 </label>
             </div>
         </div>
@@ -87,10 +93,10 @@ $attributeRows = $attributeRows ?? [];
 
   <div class="card">
     <div class="card-header">
-        <i class="fas fa-list"></i> Характеристики товару
+        <i class="fas fa-list"></i> <?php echo __('product_attributes'); ?>
     </div>
     <div class="card-body">
-        <p style="margin-top: 0; color: #64748b;">Оберіть категорію, після чого стануть доступними лише дозволені для неї характеристики.</p>
+        <p style="margin-top: 0; color: #64748b;"><?php echo __('product_category_hint'); ?></p>
         <div id="attributes-warning" style="display:none; margin-bottom: 0.75rem; color:#b45309; background:#fffbeb; border:1px solid #fde68a; padding:0.5rem 0.75rem; border-radius:6px;"></div>
 
         <div id="attribute-rows" style="display: flex; flex-direction: column; gap: 1.5rem;">
@@ -98,12 +104,12 @@ $attributeRows = $attributeRows ?? [];
                 <div class="attribute-row" style="border: 1px solid #e2e8f0; padding: 1rem; border-radius: 8px;">
                     <div style="display:grid; grid-template-columns: 1fr 1fr auto; gap: 0.75rem; margin-bottom: 0.75rem;">
                         <select name="attribute_id[]" class="form-control attribute-id-select">
-                            <option value="">Спочатку оберіть категорію</option>
+                            <option value=""><?php echo __('product_select_category_first'); ?></option>
                         </select>
                         <div class="attribute-value-wrap">
-                            <input type="text" name="attribute_value[]" class="form-control" placeholder="Значення (напр. Чорний)">
+                            <input type="text" name="attribute_value[]" class="form-control" placeholder="<?php echo __('product_attribute_value_placeholder'); ?>">
                         </div>
-                        <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;" title="Видалити">
+                        <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;" title="<?php echo __('remove'); ?>">
                             <i class="fas fa-trash" aria-hidden="true"></i>
                         </button>
                     </div>
@@ -112,14 +118,14 @@ $attributeRows = $attributeRows ?? [];
                         <input type="hidden" name="attribute_is_selectable[]" class="attribute-is-selectable-hidden" value="0">
                         <label style="display:flex; align-items:center; gap:0.5rem; margin:0; cursor:pointer; min-width: 150px;">
                             <input type="checkbox" class="attribute-is-selectable-checkbox" value="1">
-                            <span style="font-weight: 500;">Опція вибору</span>
+                            <span style="font-weight: 500;"><?php echo __('product_option_select'); ?></span>
                         </label>
                         <select name="attribute_price_operation[]" class="form-control attribute-price-operation" style="max-width:70px; display:none;">
                             <option value="+">+</option>
                             <option value="-">-</option>
                         </select>
-                        <input type="number" min="0" step="0.01" name="attribute_price_modifier[]" class="form-control attribute-price-modifier" placeholder="Націнка" style="max-width:150px; display:none;" value="">
-                        <input type="number" min="0" step="1" name="attribute_stock_quantity[]" class="form-control attribute-stock-quantity" placeholder="Кількість на складі" style="max-width:200px; display:none;" value="">
+                        <input type="number" min="0" step="0.01" name="attribute_price_modifier[]" class="form-control attribute-price-modifier" placeholder="<?php echo __('product_price_modifier'); ?>" style="max-width:150px; display:none;" value="">
+                        <input type="number" min="0" step="1" name="attribute_stock_quantity[]" class="form-control attribute-stock-quantity" placeholder="<?php echo __('product_stock_quantity'); ?>" style="max-width:200px; display:none;" value="">
                     </div>
                 </div>
             <?php else: ?>
@@ -128,7 +134,7 @@ $attributeRows = $attributeRows ?? [];
                         <div style="display:grid; grid-template-columns: 1fr 1fr auto; gap: 0.75rem; margin-bottom: 0.75rem;">
                             <?php $rowAttributeId = (int) ($row['attribute_id'] ?? 0); ?>
                             <select name="attribute_id[]" class="form-control attribute-id-select">
-                                <option value="">-- Оберіть характеристику --</option>
+                                <option value="">-- <?php echo __('product_select_attribute'); ?> --</option>
                                 <?php foreach (($allowedAttributes ?? []) as $attribute): ?>
                                     <?php $attributeId = (int) $attribute['id']; ?>
                                     <option value="<?php echo $attributeId; ?>" <?php echo ($attributeId === $rowAttributeId) ? 'selected' : ''; ?>>
@@ -137,9 +143,9 @@ $attributeRows = $attributeRows ?? [];
                                 <?php endforeach; ?>
                             </select>
                             <div class="attribute-value-wrap">
-                                <input type="text" name="attribute_value[]" class="form-control" value="<?php echo htmlspecialchars((string) ($row['value'] ?? '')); ?>" placeholder="Значення (напр. Чорний)">
+                                <input type="text" name="attribute_value[]" class="form-control" value="<?php echo htmlspecialchars((string) ($row['value'] ?? '')); ?>" placeholder="<?php echo __('product_attribute_value_placeholder'); ?>">
                             </div>
-                            <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;" title="Видалити">
+                            <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;" title="<?php echo __('remove'); ?>">
                                 <i class="fas fa-trash" aria-hidden="true"></i>
                             </button>
                         </div>
@@ -149,14 +155,14 @@ $attributeRows = $attributeRows ?? [];
                             <input type="hidden" name="attribute_is_selectable[]" class="attribute-is-selectable-hidden" value="<?php echo $isSelectable ? '1' : '0'; ?>">
                             <label style="display:flex; align-items:center; gap:0.5rem; margin:0; cursor:pointer; min-width: 150px;">
                                 <input type="checkbox" class="attribute-is-selectable-checkbox" value="1" <?php echo $isSelectable ? 'checked' : ''; ?>>
-                                <span style="font-weight: 500;">Опція вибору</span>
+                                <span style="font-weight: 500;"><?php echo __('product_option_select'); ?></span>
                             </label>
                             <select name="attribute_price_operation[]" class="form-control attribute-price-operation" style="max-width:70px; <?php echo $isSelectable ? '' : 'display:none;'; ?>">
                                 <option value="+" <?php echo (($row['price_operation'] ?? '+') === '+') ? 'selected' : ''; ?>>+</option>
                                 <option value="-" <?php echo (($row['price_operation'] ?? '+') === '-') ? 'selected' : ''; ?>>-</option>
                             </select>
-                            <input type="number" min="0" step="0.01" name="attribute_price_modifier[]" class="form-control attribute-price-modifier" placeholder="Націнка" style="max-width:150px; <?php echo $isSelectable ? '' : 'display:none;'; ?>" value="<?php echo htmlspecialchars((string) ($row['price_modifier'] ?? '')); ?>">
-                            <input type="number" min="0" step="1" name="attribute_stock_quantity[]" class="form-control attribute-stock-quantity" placeholder="Кількість на складі" style="max-width:200px; <?php echo $isSelectable ? '' : 'display:none;'; ?>" value="<?php echo htmlspecialchars((string) ($row['stock_quantity'] ?? '')); ?>">
+                            <input type="number" min="0" step="0.01" name="attribute_price_modifier[]" class="form-control attribute-price-modifier" placeholder="<?php echo __('product_price_modifier'); ?>" style="max-width:150px; <?php echo $isSelectable ? '' : 'display:none;'; ?>" value="<?php echo htmlspecialchars((string) ($row['price_modifier'] ?? '')); ?>">
+                            <input type="number" min="0" step="1" name="attribute_stock_quantity[]" class="form-control attribute-stock-quantity" placeholder="<?php echo __('product_stock_quantity'); ?>" style="max-width:200px; <?php echo $isSelectable ? '' : 'display:none;'; ?>" value="<?php echo htmlspecialchars((string) ($row['stock_quantity'] ?? '')); ?>">
                         </div>
                     </div>
                 <?php endforeach; ?>
@@ -165,7 +171,7 @@ $attributeRows = $attributeRows ?? [];
 
         <div style="margin-top: 1.5rem;">
             <button type="button" id="add-attribute-row" class="btn btn-outline" style="border: 1px solid #ddd; color: #2563eb;">
-                <i class="fas fa-plus"></i> Додати характеристику
+                <i class="fas fa-plus"></i> <?php echo __('product_add_attribute'); ?>
             </button>
         </div>
     </div>
@@ -173,13 +179,13 @@ $attributeRows = $attributeRows ?? [];
 
     <div class="card">
         <div class="card-header">
-            <i class="fas fa-image"></i> Зображення товару
+            <i class="fas fa-image"></i> <?php echo __('product_image'); ?>
         </div>
         <div class="card-body">
             <div class="form-group">
-                <label for="images">Галерея (до <?php echo (int) ($galleryLimit ?? 5); ?> фото)</label>
+                <label for="images"><?php echo __('product_gallery'); ?> (<?php echo __('product_gallery_photos_limit'); ?> <?php echo (int) ($galleryLimit ?? 5); ?> <?php echo __('product_gallery_photo'); ?>)</label>
                 <input type="file" name="images[]" id="images" class="form-control" accept=".jpg,.jpeg,.png,.webp" multiple>
-                <small style="color:#64748b; display:block; margin-top:0.5rem;">Дозволені формати: JPG, PNG, WEBP. Максимум 5MB на файл.</small>
+                <small style="color:#64748b; display:block; margin-top:0.5rem;"><?php echo __('product_gallery_hint'); ?></small>
             </div>
             <div id="gallery-preview" style="display:grid; grid-template-columns: repeat(auto-fill,minmax(110px,1fr)); gap:0.75rem;"></div>
         </div>
@@ -187,7 +193,7 @@ $attributeRows = $attributeRows ?? [];
 
     <div class="card">
         <div class="card-header">
-            <i class="fas fa-search"></i> SEO налаштування
+            <i class="fas fa-search"></i> <?php echo __('seo_settings'); ?>
         </div>
         <div class="card-body">
             <div class="form-group">
@@ -203,7 +209,7 @@ $attributeRows = $attributeRows ?? [];
 
     <div style="margin-bottom: 2rem; display: flex; justify-content: flex-end;">
         <button type="submit" class="btn btn-primary btn-lg" style="padding: 0.75rem 2rem; font-size: 1rem;">
-            <i class="fas fa-save"></i> Створити товар
+            <i class="fas fa-save"></i> <?php echo __('create_product'); ?>
         </button>
     </div>
 </form>
@@ -236,13 +242,13 @@ $attributeRows = $attributeRows ?? [];
 
         function buildAttributeOptions(selectedId = '') {
             if (!hasCategory()) {
-                return '<option value="">Спочатку оберіть категорію</option>';
+                return '<option value="">' . __('product_select_category_first') . '</option>';
             }
             if (!allowedAttributes.length) {
-                return '<option value="">Немає доступних характеристик</option>';
+                return '<option value="">' . __('product_no_attributes') . '</option>';
             }
             const normalizedSelectedId = String(selectedId || '');
-            return '<option value="">-- Оберіть характеристику --</option>' + allowedAttributes.map(function (attribute) {
+            return '<option value="">-- ' . __('product_select_attribute') . ' --</option>' + allowedAttributes.map(function (attribute) {
                 const attributeId = String(attribute.id);
                 const selected = attributeId === normalizedSelectedId ? ' selected' : '';
                 return '<option value="' + attributeId + '"' + selected + '>' + attribute.name + '</option>';
@@ -269,7 +275,7 @@ $attributeRows = $attributeRows ?? [];
             const safeValue = escapeHtml(currentValue);
 
             if (attribute && attribute.type === 'range') {
-                container.innerHTML = '<input type="number" step="0.01" inputmode="decimal" name="attribute_value[]" class="form-control" placeholder="Числове значення" value="' + safeValue + '">';
+                container.innerHTML = '<input type="number" step="0.01" inputmode="decimal" name="attribute_value[]" class="form-control" placeholder="' . __('product_numeric_value') . '" value="' + safeValue + '">';
                 return;
             }
             if (attribute && ['select', 'multiselect', 'color'].includes(attribute.type)) {
@@ -280,10 +286,10 @@ $attributeRows = $attributeRows ?? [];
                     return '<option value="' + value + '"></option>';
                 }).join('');
 
-                container.innerHTML = '<input type="text" name="attribute_value[]" class="form-control" list="' + listId + '" placeholder="Оберіть або введіть значення" value="' + safeValue + '"><datalist id="' + listId + '">' + optionsHtml + '</datalist>';
+                container.innerHTML = '<input type="text" name="attribute_value[]" class="form-control" list="' + listId + '" placeholder="' . __('product_select_or_enter_value') . '" value="' + safeValue + '"><datalist id="' + listId + '">' + optionsHtml + '</datalist>';
                 return;
             }
-            container.innerHTML = '<input type="text" name="attribute_value[]" class="form-control" placeholder="Значення (напр. Чорний)" value="' + safeValue + '">';
+            container.innerHTML = '<input type="text" name="attribute_value[]" class="form-control" placeholder="' . __('product_attribute_value_placeholder') . '" value="' + safeValue + '">';
         }
 
         function bindRemoveButton(button) {
@@ -309,7 +315,7 @@ $attributeRows = $attributeRows ?? [];
             if (!select) return;
             select.addEventListener('focus', function () {
                 if (!hasCategory()) {
-                    showWarning('Спочатку потрібно вибрати категорію товару.');
+                    showWarning('<?= __('product_select_category_first_hint') ?>');
                     select.blur();
                 }
             });
@@ -346,7 +352,7 @@ $attributeRows = $attributeRows ?? [];
                 <div style="display:grid; grid-template-columns: 1fr 1fr auto; gap: 0.75rem; margin-bottom: 0.75rem;">
                     <select name="attribute_id[]" class="form-control attribute-id-select">${buildAttributeOptions(attributeId)}</select>
                     <div class="attribute-value-wrap"></div>
-                    <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;" title="Видалити">
+                    <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;" title="<?= __('remove') ?>">
                         <i class="fas fa-trash" aria-hidden="true"></i>
                     </button>
                 </div>
@@ -354,7 +360,7 @@ $attributeRows = $attributeRows ?? [];
                     <input type="hidden" name="attribute_is_selectable[]" class="attribute-is-selectable-hidden" value="${isSelectable ? '1' : '0'}">
                     <label style="display:flex; align-items:center; gap:0.5rem; margin:0; cursor:pointer; min-width: 150px;">
                         <input type="checkbox" class="attribute-is-selectable-checkbox" value="1" ${isSelectable ? 'checked' : ''}>
-                        <span style="font-weight: 500;">Опція вибору</span>
+                        <span style="font-weight: 500;"><?= __('product_option_select') ?></span>
                     </label>
                     <select name="attribute_price_operation[]" class="form-control attribute-price-operation" style="max-width:70px; ${isSelectable ? '' : 'display:none;'}">
                         <option value="+" ${priceOperation === '+' ? 'selected' : ''}>+</option>
@@ -386,11 +392,11 @@ $attributeRows = $attributeRows ?? [];
 
         addRowButton.addEventListener('click', function () {
             if (!hasCategory()) {
-                showWarning('Спочатку потрібно вибрати категорію товару.');
+                showWarning('<?= __('product_select_category_first_hint') ?>');
                 return;
             }
             if (!allowedAttributes.length) {
-                showWarning('Для вибраної категорії немає доступних характеристик.');
+                showWarning('<?= __('product_select_category_first_hint') ?>');
                 return;
             }
             clearWarning();
@@ -420,7 +426,7 @@ $attributeRows = $attributeRows ?? [];
             if (categoryId <= 0) {
                 allowedAttributes = [];
                 refreshAllRows();
-                showWarning('Щоб працювати з характеристиками, спочатку виберіть категорію товару.');
+                showWarning('<?= __('product_select_category_first_hint2') ?>');
                 return;
             }
             fetch('/admin/products/allowed-attributes/' + categoryId, {
@@ -432,12 +438,12 @@ $attributeRows = $attributeRows ?? [];
                 allowedAttributes = Array.isArray(data.attributes) ? data.attributes : [];
                 refreshAllRows();
                 clearWarning();
-                if (!allowedAttributes.length) showWarning('Для цієї категорії ще не налаштовано жодної характеристики.');
+                if (!allowedAttributes.length) showWarning('<?= __('no_attributes_for_category') ?>');
             })
             .catch(() => {
                 allowedAttributes = [];
                 refreshAllRows();
-                showWarning('Сталася помилка при завантаженні характеристик.');
+                showWarning('<?= __('error_loading_attributes') ?>');
             });
         }
 
@@ -504,7 +510,7 @@ $attributeRows = $attributeRows ?? [];
                 const valueInput = row.querySelector('input[name="attribute_value[]"]');
                 if (select && select.value > 0 && (!valueInput || valueInput.value.trim() === '')) {
                     event.preventDefault();
-                    showWarning('Заповніть поле "Значення".');
+                    showWarning('<?= __('fill_value_field') ?>');
                     if (valueInput) valueInput.focus();
                     return;
                 }

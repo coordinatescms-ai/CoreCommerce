@@ -29,7 +29,7 @@ class SocialAuthController
     {
         $email = trim((string) ($payload['email'] ?? ''));
         if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $_SESSION['error'] = 'Не вдалося отримати email з профілю соціального акаунта.';
+            $_SESSION['error'] = __('social_email_missing');
             header('Location: /login');
             exit;
         }
@@ -52,10 +52,13 @@ class SocialAuthController
         }
 
         if (!$user) {
-            $_SESSION['error'] = 'Не вдалося авторизувати користувача.';
+            $_SESSION['error'] = __('social_auth_failed');
             header('Location: /login');
             exit;
         }
+
+        // Захист від Session Fixation: новий ID сесії після автентифікації через OAuth
+        session_regenerate_id(true);
 
         $_SESSION['user'] = [
             'id' => $user['id'],
@@ -76,10 +79,13 @@ class SocialAuthController
     {
         $config = $this->loadSocialConfig('google');
         if ($config['enabled'] !== '1' || $config['client_id'] === '' || $config['redirect_url'] === '') {
-            $_SESSION['error'] = 'Google Login не налаштований або вимкнений.';
+            $_SESSION['error'] = __('social_google_unavailable');
             header('Location: /login');
             exit;
         }
+
+        $state = bin2hex(random_bytes(16));
+        $_SESSION['oauth_state'] = $state;
 
         $params = http_build_query([
             'client_id' => $config['client_id'],
@@ -88,6 +94,7 @@ class SocialAuthController
             'scope' => 'openid email profile',
             'access_type' => 'online',
             'prompt' => 'select_account',
+            'state' => $state,
         ]);
 
         header('Location: https://accounts.google.com/o/oauth2/v2/auth?' . $params);
@@ -98,15 +105,25 @@ class SocialAuthController
     {
         $config = $this->loadSocialConfig('google');
         $code = trim((string) ($_GET['code'] ?? ''));
+        $returnedState = trim((string) ($_GET['state'] ?? ''));
 
         if ($config['enabled'] !== '1' || $config['client_id'] === '' || $config['client_secret'] === '' || $config['redirect_url'] === '') {
-            $_SESSION['error'] = 'Google Login не налаштований або вимкнений.';
+            $_SESSION['error'] = __('social_google_unavailable');
+            header('Location: /login');
+            exit;
+        }
+
+        // CSRF перевірка state
+        $expectedState = $_SESSION['oauth_state'] ?? '';
+        unset($_SESSION['oauth_state']);
+        if ($expectedState === '' || !hash_equals($expectedState, $returnedState)) {
+            $_SESSION['error'] = __('social_oauth_state_invalid');
             header('Location: /login');
             exit;
         }
 
         if ($code === '') {
-            $_SESSION['error'] = 'Google не повернув код авторизації.';
+            $_SESSION['error'] = __('social_google_code_missing');
             header('Location: /login');
             exit;
         }
@@ -129,13 +146,25 @@ class SocialAuthController
         $tokenData = json_decode((string) $tokenResponse, true);
         $accessToken = trim((string) ($tokenData['access_token'] ?? ''));
         if ($accessToken === '') {
-            $_SESSION['error'] = 'Не вдалося отримати токен Google.';
+            $_SESSION['error'] = __('social_google_token_failed');
             header('Location: /login');
             exit;
         }
 
         $profileResponse = @file_get_contents('https://www.googleapis.com/oauth2/v2/userinfo?access_token=' . urlencode($accessToken));
         $profile = json_decode((string) $profileResponse, true);
+
+        if (empty($profile['email'])) {
+            $_SESSION['error'] = __('social_google_email_missing');
+            header('Location: /login');
+            exit;
+        }
+
+        if (isset($profile['verified_email']) && $profile['verified_email'] === false) {
+            $_SESSION['error'] = __('social_google_email_unverified');
+            header('Location: /login');
+            exit;
+        }
 
         $this->socialLoginOrRegister([
             'email' => $profile['email'] ?? '',
@@ -148,7 +177,7 @@ class SocialAuthController
     {
         $config = $this->loadSocialConfig('facebook');
         if ($config['enabled'] !== '1' || $config['client_id'] === '' || $config['redirect_url'] === '') {
-            $_SESSION['error'] = 'Facebook Login не налаштований або вимкнений.';
+            $_SESSION['error'] = __('social_facebook_unavailable');
             header('Location: /login');
             exit;
         }
@@ -170,13 +199,13 @@ class SocialAuthController
         $code = trim((string) ($_GET['code'] ?? ''));
 
         if ($config['enabled'] !== '1' || $config['client_id'] === '' || $config['client_secret'] === '' || $config['redirect_url'] === '') {
-            $_SESSION['error'] = 'Facebook Login не налаштований або вимкнений.';
+            $_SESSION['error'] = __('social_facebook_unavailable');
             header('Location: /login');
             exit;
         }
 
         if ($code === '') {
-            $_SESSION['error'] = 'Facebook не повернув код авторизації.';
+            $_SESSION['error'] = __('social_facebook_code_missing');
             header('Location: /login');
             exit;
         }
@@ -193,7 +222,7 @@ class SocialAuthController
         $accessToken = trim((string) ($tokenData['access_token'] ?? ''));
 
         if ($accessToken === '') {
-            $_SESSION['error'] = 'Не вдалося отримати токен Facebook.';
+            $_SESSION['error'] = __('social_facebook_token_failed');
             header('Location: /login');
             exit;
         }

@@ -448,7 +448,7 @@ class Category extends Model
             ]);
         }
 
-        return $result;
+        return (bool) $result;
     }
 
     public static function delete(int $id): bool

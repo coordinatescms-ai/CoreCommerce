@@ -51,10 +51,10 @@ class AdminCategoryController
         ];
 
         if (Category::create($data)) {
-            $_SESSION['success'] = "Категорію успішно створено!";
+            $_SESSION['success'] = __('admin_category_created');
             header('Location: /admin/categories');
         } else {
-            $_SESSION['error'] = "Помилка при створенні категорії.";
+            $_SESSION['error'] = __('admin_category_create_error');
             header('Location: /admin/categories/create');
         }
         exit;
@@ -90,10 +90,10 @@ class AdminCategoryController
         ];
 
         if (Category::update($id, $data)) {
-            $_SESSION['success'] = "Категорію успішно оновлено!";
+            $_SESSION['success'] = __('admin_category_updated');
             header('Location: /admin/categories');
         } else {
-            $_SESSION['error'] = "Помилка при оновленні категорії.";
+            $_SESSION['error'] = __('admin_category_update_error');
             header('Location: /admin/categories/edit/' . $id);
         }
         exit;
@@ -105,9 +105,9 @@ class AdminCategoryController
         $this->validateCsrfOrAbort();
 
         if (Category::delete($id)) {
-            $_SESSION['success'] = "Категорію видалено!";
+            $_SESSION['success'] = __('admin_category_deleted');
         } else {
-            $_SESSION['error'] = "Помилка при видаленні.";
+            $_SESSION['error'] = __('admin_category_delete_error');
         }
         header('Location: /admin/categories');
         exit;

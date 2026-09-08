@@ -95,10 +95,10 @@ $statusLabels = [
     <div>
         <h1 class="page-title" style="margin-bottom:.25rem;">
             <i class="fas fa-cart-plus" style="color:#6366f1;"></i>
-            Нове замовлення
+            <?= __('new_order') ?>
         </h1>
         <div style="font-size:.9rem; color:#64748b;">
-            Для клієнта:
+            <?= __('for_client') ?>
             <a href="/admin/users/edit/<?= (int)$user['id'] ?>" style="color:#6366f1; font-weight:600;">
                 <?= htmlspecialchars($fullName) ?>
             </a>
@@ -107,7 +107,7 @@ $statusLabels = [
         </div>
     </div>
     <a href="/admin/users/edit/<?= (int)$user['id'] ?>" class="btn btn-outline" style="border:1px solid #ddd; color:#334155;">
-        <i class="fas fa-arrow-left"></i> Назад до CRM
+        <i class="fas fa-arrow-left"></i> <?= __('back_to_crm') ?>
     </a>
 </div>
 

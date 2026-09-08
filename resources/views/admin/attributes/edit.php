@@ -1,7 +1,7 @@
 <div class="page-header">
-    <h1 class="page-title">Редагування атрибута: <?php echo htmlspecialchars($attribute['name']); ?></h1>
+    <h1 class="page-title"><?= __('attribute_edit') ?>: <?php echo htmlspecialchars($attribute['name']); ?></h1>
     <a href="/admin/attributes" class="btn btn-outline" style="border: 1px solid #ddd; color: #64748b;">
-        <i class="fas fa-arrow-left"></i> Назад до списку
+        <i class="fas fa-arrow-left"></i> <?= __('back_to_list') ?>
     </a>
 </div>
 
@@ -10,21 +10,21 @@
 
     <div class="card">
         <div class="card-header">
-            <i class="fas fa-info-circle"></i> Основні дані атрибута
+            <i class="fas fa-info-circle"></i> <?= __('attribute_basic_info') ?>
         </div>
         <div class="card-body">
             <div class="form-group">
-                <label for="name">Назва</label>
+                <label for="name"><?= __('name') ?></label>
                 <input type="text" name="name" id="name" class="form-control" required value="<?php echo htmlspecialchars($attribute['name']); ?>">
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                 <div class="form-group">
-                    <label for="slug">Slug</label>
+                    <label for="slug"><?= __('products_slug') ?></label>
                     <input type="text" name="slug" id="slug" class="form-control" value="<?php echo htmlspecialchars($attribute['slug']); ?>">
                 </div>
                 <div class="form-group">
-                    <label for="type">Тип</label>
+                    <label for="type"><?= __('type') ?></label>
                     <select name="type" id="type" class="form-control">
                         <?php foreach (($attributeTypes ?? []) as $key => $label): ?>
                             <option value="<?php echo htmlspecialchars($key); ?>" <?php echo ($displayType === $key) ? 'selected' : ''; ?>>
@@ -37,28 +37,28 @@
 
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem;">
                 <div class="form-group">
-                    <label for="sort_order">Порядок</label>
+                    <label for="sort_order"><?= __('position') ?></label>
                     <input type="number" name="sort_order" id="sort_order" class="form-control" value="<?php echo (int)($attribute['sort_order'] ?? 0); ?>">
                 </div>
                 <div class="form-group" style="display: flex; align-items: end;">
                     <label style="display:flex; align-items:center; gap:0.5rem; margin:0;">
-                        <input type="checkbox" name="is_filterable" value="1" <?php echo !empty($attribute['is_filterable']) ? 'checked' : ''; ?>> Доступний у фільтрах
+                        <input type="checkbox" name="is_filterable" value="1" <?php echo !empty($attribute['is_filterable']) ? 'checked' : ''; ?>> <?= __('attribute_filterable') ?>
                     </label>
                 </div>
                 <div class="form-group" style="display: flex; align-items: end;">
                     <label style="display:flex; align-items:center; gap:0.5rem; margin:0;">
-                        <input type="checkbox" name="is_visible" value="1" <?php echo !empty($attribute['is_visible']) ? 'checked' : ''; ?>> Видимий на вітрині
+                        <input type="checkbox" name="is_visible" value="1" <?php echo !empty($attribute['is_visible']) ? 'checked' : ''; ?>> <?= __('attribute_visible') ?>
                     </label>
                 </div>
             </div>
 
             <div class="form-group">
-                <label for="description">Опис</label>
+                <label for="description"><?= __('description') ?></label>
                 <textarea name="description" id="description" class="form-control" rows="3"><?php echo htmlspecialchars($attribute['description'] ?? ''); ?></textarea>
             </div>
 
             <div class="form-group" id="select-options-wrap" style="display:none;">
-                <label for="options_text">Опції списку (по 1 значенню на рядок)</label>
+                <label for="options_text"><?= __('product_option_list') ?></label>
                 <textarea name="options_text" id="options_text" class="form-control" rows="6"><?php echo htmlspecialchars($optionsText ?? ''); ?></textarea>
             </div>
         </div>
@@ -66,10 +66,10 @@
 
     <div class="card">
         <div class="card-header">
-            <i class="fas fa-link"></i> Прив'язка до категорій
+            <i class="fas fa-link"></i> <?= __('attribute_category_link') ?>
         </div>
         <div class="card-body">
-            <p style="margin-top: 0; color: #64748b;">При відв'язці від категорії історичні значення атрибута в товарах зберігаються, але стають недоступними у формах цієї категорії.</p>
+            <p style="margin-top: 0; color: #64748b;"><?= __('attribute_detach_hint') ?></p>
             <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem 1.5rem;">
                 <?php $assigned = array_flip($assignedCategoryIds ?? []); ?>
                 <?php foreach (($categories ?? []) as $category): ?>
@@ -85,7 +85,7 @@
 
     <div style="margin-bottom: 2rem; display: flex; justify-content: flex-end;">
         <button type="submit" class="btn btn-primary btn-lg" style="padding: 0.75rem 2rem; font-size: 1rem;">
-            <i class="fas fa-save"></i> Зберегти зміни
+            <i class="fas fa-save"></i> <?= __('save_changes') ?>
         </button>
     </div>
 </form>

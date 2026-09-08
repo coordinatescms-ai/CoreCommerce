@@ -104,9 +104,151 @@ function apply_filters(string $hook, mixed $value, mixed ...$args): mixed
     return \App\Core\Plugin\PluginManager::getInstance()->applyFilters($hook, $value, ...$args);
 }
 
+/**
+ * Застосовує фільтр ядра 'product.price' до кожного товару в списку.
+ *
+ * Раніше цей фільтр викликався лише на сторінці конкретного товару
+ * (ProductController::show()) — списки (категорія, головна, пошук,
+ * улюблені) показували "сиру" ціну з БД напряму. Через це плагін
+ * акційних цін (чи будь-який інший, що змінює ціну через цей фільтр)
+ * показував би знижку лише на сторінці товару, а в категоріях/на
+ * головній — ні. Ця функція — єдина точка, яку викликають усі
+ * контролери списків товарів, щоб таких прогалин більше не було.
+ *
+ * @param array<int, array<string, mixed>> $products
+ * @return array<int, array<string, mixed>>
+ */
+function apply_product_price_filter(array $products): array
+{
+    foreach ($products as &$product) {
+        if (is_array($product) && array_key_exists('price', $product)) {
+            $product['price'] = apply_filters('product.price', (float) $product['price'], $product);
+        }
+    }
+    unset($product);
+
+    return $products;
+}
+
+/**
+ * Рендерить HTML ціни товару (використовується і на сторінці товару,
+ * і в усіх списках товарів — категорія, головна, пошук, улюблені).
+ *
+ * Викликати ПІСЛЯ apply_product_price_filter() / фільтра 'product.price',
+ * щоб $product['price'] вже містив фінальну ціну.
+ *
+ * Плагіни (напр. акційна ціна) можуть повністю замінити розмітку через
+ * фільтр 'product.price.html' — напр. додати перекреслену стару ціну
+ * й бейдж "-20%", маючи доступ до $product (щоб самим підвантажити
+ * оригінальну ціну з products.price чи своєї таблиці знижок).
+ */
+function render_product_price(array $product): string
+{
+    $html = '<strong>' . format_price((float) ($product['price'] ?? 0)) . '</strong>';
+
+    return (string) apply_filters('product.price.html', $html, $product);
+}
+
 function normalize_phone_mask(string $mask): string
 {
     return preg_replace('/\s+/', ' ', trim($mask)) ?? '';
+}
+
+/**
+ * Підвантажує залишок на складі для списку товарів ОДНИМ додатковим
+ * запитом (без N+1) і не чіпаючи наявні SQL-запити в контролерах/сервісах
+ * (ProductFilterService, ProductController::index, HomeController тощо).
+ * Викликати перед render_stock_badge() для товарів зі списків
+ * (каталог, категорія, головна, пошук). Сторінка одного товару (show())
+ * вже сама рахує $product['stock'] окремим запитом — там цей хелпер
+ * не потрібен.
+ *
+ * @param array<int, array<string, mixed>> $products
+ * @return array<int, array<string, mixed>>
+ */
+function attach_stock_status(array $products): array
+{
+    $skus = [];
+    foreach ($products as $product) {
+        $sku = trim((string) ($product['sku'] ?? ''));
+        if ($sku !== '') {
+            $skus[$sku] = true;
+        }
+    }
+
+    if (empty($skus)) {
+        return $products;
+    }
+
+    $skuList = array_keys($skus);
+    $placeholders = implode(',', array_fill(0, count($skuList), '?'));
+
+    try {
+        // COLLATE обов'язково: products.sku і product_stocks.sku можуть мати
+        // різні collation за замовчуванням (як і в усіх інших місцях проєкту,
+        // де ці дві таблиці порівнюються — див. Product.php, Cart.php).
+        // Без цього порівняння мовчки не знаходить жодного збігу на бойовій
+        // MySQL 8.0 (хоча в тестовому середовищі з вирівняними collation
+        // цього не було видно) — бейдж просто ніколи не з'являвся у списках.
+        $rows = \App\Core\Database\DB::query(
+            "SELECT sku, COALESCE(quantity, 0) AS quantity FROM product_stocks
+             WHERE option_id IS NULL AND sku COLLATE utf8mb4_general_ci IN ({$placeholders})",
+            $skuList
+        )->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+    } catch (\Throwable $e) {
+        error_log('attach_stock_status() error: ' . $e->getMessage());
+        return $products;
+    }
+
+    $stockBySku = [];
+    foreach ($rows as $row) {
+        $stockBySku[(string) $row['sku']] = (int) $row['quantity'];
+    }
+
+    foreach ($products as &$product) {
+        $sku = trim((string) ($product['sku'] ?? ''));
+        if ($sku !== '') {
+            // COALESCE(quantity, 0): якщо для товару взагалі немає рядка в
+            // product_stocks (а не просто quantity=0) — це так само рахується
+            // як 0 на складі, так само як і всюди в проєкті-Cart::add(),
+            // ProductController::show(), Product::allWithCategory().
+            // Раніше тут пропускався товар без рядка, тому бейдж мовчки не
+            // з'являвся саме для товарів, у яких стоку взагалі не заведено.
+            $product['stock_quantity'] = $stockBySku[$sku] ?? 0;
+        }
+    }
+    unset($product);
+
+    return $products;
+}
+
+/**
+ * Рендерить бейдж "Немає в наявності" для картки товару в списках
+ * (каталог, категорія, головна, пошук) і на сторінці товару.
+ *
+ * Дивиться спочатку на 'stock_quantity' (заповнюється attach_stock_status()
+ * для списків), потім на 'stock' (заповнюється ProductController::show()
+ * для сторінки одного товару). Якщо жодного з ключів немає — вважаємо,
+ * що дані про залишок недоступні, і НЕ показуємо бейдж (щоб помилково
+ * не приховати товар, який насправді є в наявності).
+ */
+function render_stock_badge(array $product): string
+{
+    if (array_key_exists('stock_quantity', $product)) {
+        $quantity = (int) $product['stock_quantity'];
+    } elseif (array_key_exists('stock', $product)) {
+        $quantity = (int) $product['stock'];
+    } else {
+        return '';
+    }
+
+    if ($quantity > 0) {
+        return '';
+    }
+
+    return '<span class="badge-out-of-stock" style="display:inline-block;padding:0.25rem 0.6rem;background:#fee2e2;color:#b91c1c;border-radius:0.4rem;font-size:0.85rem;font-weight:600;">'
+        . htmlspecialchars(__('out_of_stock'))
+        . '</span>';
 }
 
 function is_valid_phone_mask(string $mask): bool

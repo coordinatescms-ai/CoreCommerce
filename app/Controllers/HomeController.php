@@ -18,12 +18,25 @@ class HomeController
         ];
 
         $popularCategories = Category::query(
-            "SELECT c.*, COUNT(p.id) AS products_count
-             FROM categories c
-             LEFT JOIN products p ON p.category_id = c.id AND p.is_visible = 1
-             GROUP BY c.id
-             ORDER BY products_count DESC, c.name ASC
-             LIMIT 8"
+            "WITH RECURSIVE category_tree AS (
+                SELECT id, parent_id, id as root_id
+                FROM categories
+                WHERE parent_id IS NULL
+                
+                UNION ALL
+                
+                SELECT c.id, c.parent_id, ct.root_id
+                FROM categories c
+                INNER JOIN category_tree ct ON c.parent_id = ct.id
+            )
+            SELECT c.*, COUNT(p.id) AS products_count
+            FROM categories c
+            INNER JOIN category_tree ct ON c.id = ct.root_id
+            LEFT JOIN products p ON p.category_id = ct.id AND p.is_visible = 1
+            WHERE c.parent_id IS NULL
+            GROUP BY c.id
+            ORDER BY products_count DESC, c.name ASC
+            LIMIT 8"
         ) ?? [];
 
         $newArrivals = Product::query(
@@ -57,8 +70,8 @@ class HomeController
         return View::render('home.index', [
             'heroCta' => $heroCta,
             'popularCategories' => $popularCategories,
-            'newArrivals' => $newArrivals,
-            'recommendedProducts' => $recommendedProducts,
+            'newArrivals' => attach_stock_status(apply_product_price_filter($newArrivals)),
+            'recommendedProducts' => attach_stock_status(apply_product_price_filter($recommendedProducts)),
             'seo' => SeoService::forHome(),
         ]);
     }

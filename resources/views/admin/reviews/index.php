@@ -136,7 +136,7 @@ function reviewStars(int|null $rating): string {
 <div class="rv-header">
     <h1>
         <i class="fas fa-comments"></i>
-        Коментарі
+        <?= __('reviews_title') ?>
         <span class="rv-badge"><?= number_format($pager->total) ?></span>
     </h1>
 </div>
@@ -151,7 +151,7 @@ function reviewStars(int|null $rating): string {
         <div class="rv-search">
             <i class="fas fa-search"></i>
             <input type="text" name="search" value="<?= htmlspecialchars($filterSearch) ?>"
-                   placeholder="Пошук за автором, товаром, текстом…">
+                   placeholder="<?= __('reviews_search_placeholder') ?>">
         </div>
         <?php if ($filterSearch !== ''): ?>
             <a href="<?= $pager->url(1) ?>" class="rv-btn" title="<?= __('reset') ?>">
@@ -166,34 +166,34 @@ function reviewStars(int|null $rating): string {
     <div class="rv-filter-tabs">
         <a href="<?= '/admin/reviews?' . http_build_query(array_filter(['search' => $filterSearch], fn($v) => $v !== '')) ?>"
            class="rv-tab <?= $filterStatus === 'all' ? 'active' : '' ?>">
-            Усі
+            <?= __('all') ?>
         </a>
         <a href="<?= '/admin/reviews?' . http_build_query(array_filter(['search' => $filterSearch, 'status' => 'visible'], fn($v) => $v !== '')) ?>"
            class="rv-tab <?= $filterStatus === 'visible' ? 'active green' : '' ?>">
-            <i class="fas fa-eye" style="font-size:.75rem;"></i> Видимі
+            <i class="fas fa-eye" style="font-size:.75rem;"></i> <?= __('review_filter_visible') ?>
         </a>
         <a href="<?= '/admin/reviews?' . http_build_query(array_filter(['search' => $filterSearch, 'status' => 'hidden'], fn($v) => $v !== '')) ?>"
            class="rv-tab <?= $filterStatus === 'hidden' ? 'active red' : '' ?>">
-            <i class="fas fa-eye-slash" style="font-size:.75rem;"></i> Заблоковані
+            <i class="fas fa-eye-slash" style="font-size:.75rem;"></i> <?= __('review_filter_blocked') ?>
         </a>
     </div>
 </div>
 
 <!-- Bulk action bar -->
 <div class="rv-bulk" id="bulk-bar">
-    <strong id="bulk-count">0</strong>&nbsp;обрано
+    <strong id="bulk-count">0</strong>&nbsp;<?= __('review_selected') ?>
     <div class="rv-bulk-sep"></div>
     <button class="btn btn-outline" style="font-size:.82rem; padding:.3rem .8rem; border:1px solid #bfdbfe; background:#fff;"
             onclick="bulkDo('show')">
-        <i class="fas fa-eye"></i> Опублікувати
+        <i class="fas fa-eye"></i> <?= __('review_action_publish') ?>
     </button>
     <button class="btn btn-outline" style="font-size:.82rem; padding:.3rem .8rem; border:1px solid #bfdbfe; background:#fff;"
             onclick="bulkDo('hide')">
-        <i class="fas fa-eye-slash"></i> Заблокувати
+        <i class="fas fa-eye-slash"></i> <?= __('review_action_block') ?>
     </button>
     <button class="btn btn-danger" style="font-size:.82rem; padding:.3rem .8rem;"
             onclick="bulkDo('delete')">
-        <i class="fas fa-trash"></i> Видалити
+        <i class="fas fa-trash"></i> <?= __('review_action_delete') ?>
     </button>
 </div>
 
@@ -203,15 +203,15 @@ function reviewStars(int|null $rating): string {
         <thead>
             <tr>
                 <th class="th-check">
-                    <input type="checkbox" id="check-all" title="Обрати всі">
+                    <input type="checkbox" id="check-all" title="<?= __('review_select_all') ?>">
                 </th>
                 <th><?= __('review_author') ?></th>
-                <th>Товар</th>
+                <th><?= __('product') ?></th>
                 <th><?= __('review_comment') ?></th>
                 <th><?= __('review_rating') ?></th>
-                <th>Статус</th>
-                <th>Дата</th>
-                <th>Дії</th>
+                <th><?= __('status') ?></th>
+                <th><?= __('date') ?></th>
+                <th><?= __('actions') ?></th>
             </tr>
         </thead>
         <tbody id="reviews-tbody">
@@ -259,7 +259,7 @@ function reviewStars(int|null $rating): string {
                         <?php endif; ?>
                         <?php if ($isReply): ?>
                             <span class="rv-reply-badge">
-                                <i class="fas fa-reply" style="font-size:.65rem;"></i> відповідь
+                                <i class="fas fa-reply" style="font-size:.65rem;"></i> <?= __('review_reply') ?>
                             </span>
                         <?php endif; ?>
                     </div>
@@ -269,7 +269,7 @@ function reviewStars(int|null $rating): string {
                     <?php if ($bodyShort): ?>
                         <button class="rv-expand-btn" id="expand-<?= (int)$r['id'] ?>"
                                 onclick="expandBody(<?= (int)$r['id'] ?>)" style="display:block;">
-                            розгорнути
+                            <?= __('expand') ?>
                         </button>
                     <?php endif; ?>
                 </td>
@@ -295,14 +295,14 @@ function reviewStars(int|null $rating): string {
                         <button class="rv-btn rv-btn-toggle-<?= $isHidden ? 'off' : 'on' ?>"
                                 id="toggle-btn-<?= (int)$r['id'] ?>"
                                 onclick="toggleReview(<?= (int)$r['id'] ?>)"
-                                title="<?= $isHidden ? 'Опублікувати' : 'Заблокувати' ?>">
+                                title="<?= $isHidden ? __('review_action_publish') : __('review_action_block') ?>">
                             <i class="fas <?= $isHidden ? 'fa-eye' : 'fa-eye-slash' ?>"
                                id="toggle-icon-<?= (int)$r['id'] ?>"></i>
                         </button>
                         <!-- Видалити -->
                         <button class="rv-btn rv-btn-danger"
                                 onclick="deleteReview(<?= (int)$r['id'] ?>)"
-                                title="Видалити коментар">
+                                title="<?= __('review_action_delete_comment') ?>">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     </div>
@@ -314,7 +314,7 @@ function reviewStars(int|null $rating): string {
     </table>
 
     <!-- Pagination -->
-    <?= $pager->render(['show_info' => true]) ?>
+    <?= $pager->render(['show_info' => true, 'showing_text' => __('pagination_showing')]) ?>
 </div>
 
 <div class="rv-toast" id="rv-toast"></div>
@@ -391,21 +391,21 @@ function reviewStars(int|null $rating): string {
             if (data.is_visible) {
                 row.classList.remove('rv-hidden');
                 statusEl.className = 'rv-status visible';
-                statusEl.innerHTML = '<i class="fas fa-eye"></i> Видимий';
+                statusEl.innerHTML = '<i class="fas fa-eye"></i> ' + window.LANG.review_visible;
                 toggleBtn.className = 'rv-btn rv-btn-toggle-on';
-                toggleBtn.title = 'Заблокувати';
+                toggleBtn.title = window.LANG.review_action_block;
                 toggleIcon.className = 'fas fa-eye-slash';
             } else {
                 row.classList.add('rv-hidden');
                 statusEl.className = 'rv-status hidden';
-                statusEl.innerHTML = '<i class="fas fa-eye-slash"></i> Блок';
+                statusEl.innerHTML = '<i class="fas fa-eye-slash"></i> ' + window.LANG.review_blocked;
                 toggleBtn.className = 'rv-btn rv-btn-toggle-off';
-                toggleBtn.title = 'Опублікувати';
+                toggleBtn.title = window.LANG.review_action_publish;
                 toggleIcon.className = 'fas fa-eye';
             }
 
             toast(data.message, 'success');
-        } catch { toast('Помилка мережі', 'error'); }
+        } catch { toast(window.LANG.review_network_error, 'error'); }
     };
 
     /* ── Delete ── */
@@ -426,8 +426,8 @@ function reviewStars(int|null $rating): string {
                 row.style.opacity = '0';
                 setTimeout(() => row.remove(), 300);
             }
-            toast('Коментар видалено', 'success');
-        } catch { toast('Помилка мережі', 'error'); }
+            toast(window.LANG.review_comment_deleted, 'success');
+        } catch { toast(window.LANG.review_network_error, 'error'); }
     };
 
     /* ── Bulk actions ── */
@@ -436,7 +436,7 @@ function reviewStars(int|null $rating): string {
         if (!ids.length) return;
 
         const labels = { delete: window.LANG.delete_action, hide: window.LANG.block_action, show: window.LANG.publish_action };
-        if (action === 'delete' && !confirm('Видалити ' + ids.length + ' коментар(і) разом з відповідями?')) return;
+        if (action === 'delete' && !confirm(window.LANG.review_bulk_delete_confirm.replace('%d', ids.length))) return;
 
         try {
             const res  = await fetch('/admin/reviews/bulk', {
@@ -449,7 +449,7 @@ function reviewStars(int|null $rating): string {
 
             toast(data.message, 'success');
             setTimeout(() => location.reload(), 700);
-        } catch { toast('Помилка мережі', 'error'); }
+        } catch { toast(window.LANG.review_network_error, 'error'); }
     };
 })();
 </script>

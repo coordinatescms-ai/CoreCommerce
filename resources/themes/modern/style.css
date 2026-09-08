@@ -439,3 +439,63 @@ table tbody tr:hover {
     .breadcrumb-list { font-size: .78rem; }
     .breadcrumb-item--current { max-width: 160px; }
 }
+
+/* ── Profile Layout ──────────────────────────────────────────────────────────── */
+.profile-layout {
+    display: flex !important;
+    gap: 2rem !important;
+    align-items: flex-start !important;
+}
+
+.profile-sidebar {
+    flex: 0 0 250px !important;
+    min-width: 250px !important;
+}
+
+.profile-card {
+    flex: 1 !important;
+    min-width: 0 !important;
+}
+
+.profile-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.profile-nav .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #64748b;
+    transition: all 0.2s;
+    background: white;
+    border: 1px solid #e2e8f0;
+}
+
+.profile-nav .nav-link:hover {
+    background-color: #f8fafc;
+    color: #2563eb;
+    border-color: #cbd5e1;
+}
+
+.profile-nav .nav-link.active {
+    background-color: #dbeafe;
+    color: #2563eb;
+    font-weight: 500;
+    border-color: #93c5fd;
+}
+
+@media (max-width: 768px) {
+    .profile-layout {
+        flex-direction: column;
+    }
+
+    .profile-sidebar {
+        flex: none;
+        min-width: 100%;
+    }
+}

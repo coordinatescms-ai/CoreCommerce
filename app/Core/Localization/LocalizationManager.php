@@ -126,23 +126,35 @@ class LocalizationManager
 
     public static function getCurrentLanguage(): string
     {
+        // Явний вибір через перемикач діє до завершення поточної сесії —
+        // однаково для гостя та авторизованого користувача.
         if (!empty($_SESSION['lang']) && self::isLanguageSupported($_SESSION['lang'])) {
             return $_SESSION['lang'];
         }
 
+        // Для нового гостьового сеансу завжди використовуємо мову магазину,
+        // задану адміністратором: не відновлюємо старий cookie і не
+        // автовизначаємо мову браузера.
+        if (empty($_SESSION['user']['id'])) {
+            return self::resolveDefaultLanguage();
+        }
+
+        // Далі — запам'ятований вибір з попереднього візиту.
         if (!empty($_COOKIE['lang']) && self::isLanguageSupported($_COOKIE['lang'])) {
             $_SESSION['lang'] = $_COOKIE['lang'];
             return $_COOKIE['lang'];
         }
 
-        $lang = self::parseAcceptLanguage();
-        if ($lang) {
-            $_SESSION['lang'] = $lang;
-            return $lang;
+        // Якщо вибору ще не було, використовуємо мову браузера.
+        $browserLanguage = self::parseAcceptLanguage();
+        if ($browserLanguage !== null) {
+            $_SESSION['lang'] = $browserLanguage;
+            return $browserLanguage;
         }
 
-        $_SESSION['lang'] = self::$defaultLanguage;
-        return self::$defaultLanguage;
+        // Останній fallback для авторизованого користувача — мова магазину.
+        $_SESSION['lang'] = self::resolveDefaultLanguage();
+        return $_SESSION['lang'];
     }
 
     public static function setLanguage(string $lang): bool
@@ -251,6 +263,25 @@ class LocalizationManager
         }
     }
 
+    /**
+     * Визначити мову за замовчуванням: спершу з admin-налаштування
+     * (settings.default_language, вкладка "Загальні" → "Локалізація"),
+     * і лише якщо БД недоступна (напр. під час інсталяції) — хардкод-константа.
+     */
+    private static function resolveDefaultLanguage(): string
+    {
+        try {
+            $configured = \App\Models\Setting::get('default_language', self::$defaultLanguage);
+            if (is_string($configured) && self::isLanguageSupported($configured)) {
+                return $configured;
+            }
+        } catch (\Throwable $e) {
+            // БД недоступна або таблиця settings ще не створена — тихо падаємо на хардкод-дефолт.
+        }
+
+        return self::$defaultLanguage;
+    }
+
     private static function parseAcceptLanguage(): ?string
     {
         if (empty($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
@@ -261,7 +292,7 @@ class LocalizationManager
         foreach (explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']) as $part) {
             $parts   = explode(';', $part);
             $code    = trim($parts[0]);
-            $quality = isset($parts[1]) ? (float)str_replace('q=', '', trim($parts[1])) : 1.0;
+            $quality = isset($parts[1]) ? (float) str_replace('q=', '', trim($parts[1])) : 1.0;
             $primary = explode('-', $code)[0];
             $languages[$primary] = max($languages[$primary] ?? 0, $quality);
         }

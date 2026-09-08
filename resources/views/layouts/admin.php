@@ -1,3 +1,15 @@
+<?php
+// $request_uri використовується нижче в сайдбарі для підсвітки активного пункту меню.
+// Раніше очікувалось, що кожен admin-контролер передасть цю змінну у view вручну —
+// на практиці жоден цього не робив, тож на КОЖНІЙ сторінці адмінки виникав
+// PHP Warning: Undefined variable $request_uri (видимий у браузері при APP_DEBUG=true),
+// а підсвітка активного пункту меню фактично ніколи не працювала.
+// Визначаємо тут один раз, на рівні лейауту — так це працює завжди,
+// незалежно від того, чи згадає про це конкретний контролер.
+if (!isset($request_uri)) {
+    $request_uri = strtok((string) ($_SERVER['REQUEST_URI'] ?? '/'), '?');
+}
+?>
 <!DOCTYPE html>
 <html lang="<?php echo $_SESSION['lang'] ?? 'ua'; ?>">
 <head>
@@ -333,13 +345,50 @@
             nothing_found:             <?= json_encode(__('nothing_found')) ?>,
             order_history_empty:       <?= json_encode(__('order_history_empty')) ?>,
             confirm_delete_review:     <?= json_encode(__('confirm_delete_review')) ?>,
+            review_visible:              <?= json_encode(__('review_visible')) ?>,
+            review_blocked:             <?= json_encode(__('review_blocked')) ?>,
+            review_selected:            <?= json_encode(__('review_selected')) ?>,
+            review_action_publish:      <?= json_encode(__('review_action_publish')) ?>,
+            review_action_block:        <?= json_encode(__('review_action_block')) ?>,
+            review_action_delete:       <?= json_encode(__('review_action_delete')) ?>,
+            review_select_all:          <?= json_encode(__('review_select_all')) ?>,
+            review_reply:               <?= json_encode(__('review_reply')) ?>,
+            review_network_error:       <?= json_encode(__('review_network_error')) ?>,
+            review_comment_deleted:     <?= json_encode(__('review_comment_deleted')) ?>,
+            review_bulk_delete_confirm: <?= json_encode(__('review_bulk_delete_confirm')) ?>,
             confirm_reset_migration:   <?= json_encode(__('confirm_reset_migration')) ?>,
+            migration_run_loading:      <?= json_encode(__('migration_run_loading')) ?>,
+            migration_run_new:          <?= json_encode(__('migration_run_new')) ?>,
+            migration_network_error:    <?= json_encode(__('migration_network_error')) ?>,
+            migration_reset_confirm:    <?= json_encode(__('migration_reset_confirm')) ?>,
             add_at_least_one_product:  <?= json_encode(__('add_at_least_one_product')) ?>,
             sync_error:                <?= json_encode(__('sync_error')) ?>,
             load_order_error:          <?= json_encode(__('load_order_error')) ?>,
             save_error:                <?= json_encode(__('save_error')) ?>,
             ban_reason_prompt:         <?= json_encode(__('ban_reason_prompt')) ?>,
             bonus_reason_prompt:       <?= json_encode(__('bonus_reason_prompt')) ?>,
+        };
+
+        window.UPDATER_TRANSLATIONS = {
+            checking: <?= json_encode(__('update_checking')) ?>,
+            write_ok: <?= json_encode(__('update_write_ok')) ?>,
+            php_ok: <?= json_encode(__('update_php_ok')) ?>,
+            no_updates: <?= json_encode(__('update_no_updates')) ?>,
+            check_button: <?= json_encode(__('update_check_button')) ?>,
+            check_error: <?= json_encode(__('update_check_error')) ?>,
+            enter_password: <?= json_encode(__('update_enter_password')) ?>,
+            confirm_start: <?= json_encode(__('update_confirm_start')) ?>,
+            step_init: <?= json_encode(__('update_step_init')) ?>,
+            step_backup: <?= json_encode(__('update_step_backup')) ?>,
+            step_download: <?= json_encode(__('update_step_download')) ?>,
+            step_extract: <?= json_encode(__('update_step_extract')) ?>,
+            step_database: <?= json_encode(__('update_step_database')) ?>,
+            step_finish: <?= json_encode(__('update_step_finish')) ?>,
+            complete: <?= json_encode(__('update_complete')) ?>,
+            ready: <?= json_encode(__('update_ready')) ?>,
+            error_prefix: <?= json_encode(__('update_error_prefix')) ?>,
+            stopped: <?= json_encode(__('update_stopped')) ?>,
+            critical_error: <?= json_encode(__('update_critical_error')) ?>
         };
     </script>
 </head>

@@ -104,6 +104,8 @@ $statusColors = [
     .modal-items-table th,.modal-items-table td { border-bottom:1px solid #e5e7eb; padding:8px; }
     .modal-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:14px; }
     .hidden { display:none!important; }
+    .btn.danger { background:#ef4444; color:#fff; border-color:#ef4444; }
+    .btn.danger:hover { background:#dc2626; border-color:#dc2626; }
 
     @media(max-width:1200px) { .orders-kanban { grid-template-columns:repeat(2,minmax(220px,1fr)); } }
     @media(max-width:768px)  { .modal-grid { grid-template-columns:1fr; } .orders-kanban { grid-template-columns:1fr; } }
@@ -111,20 +113,20 @@ $statusColors = [
 
 <div class="orders-page">
     <div class="orders-header">
-        <h1><i class="fas fa-shopping-bag" style="color:#3b82f6;"></i> Замовлення</h1>
+        <h1><i class="fas fa-shopping-bag" style="color:#3b82f6;"></i> <?= __('orders') ?></h1>
         <div class="orders-toolbar">
             <button type="button" class="btn secondary" id="syncLogisticsBtn">
-                <i class="fas fa-sync-alt"></i> Синхронізувати ТТН
+                <i class="fas fa-sync-alt"></i> <?= __('sync_logistics') ?>
             </button>
             <button type="button" class="btn" id="createOrderBtn">
                 + <?= __('order') ?>
             </button>
             <div class="orders-switcher" role="tablist">
                 <button type="button" data-view="kanban" class="<?= ($activeView ?? 'kanban') !== 'table' ? 'active' : '' ?>">
-                    КАНБАН
+                    <?= __('kanban') ?>
                 </button>
                 <button type="button" data-view="table" class="<?= ($activeView ?? 'kanban') === 'table' ? 'active' : '' ?>">
-                    ТАБЛИЦЯ
+                    <?= __('table') ?>
                 </button>
             </div>
         </div>
@@ -133,7 +135,7 @@ $statusColors = [
     <!-- ═══════════════ КАНБАН ═══════════════ -->
     <section id="ordersKanbanView"
              class="orders-view <?= ($activeView ?? 'kanban') !== 'table' ? 'active' : '' ?>"
-             aria-label="Канбан режим замовлень">
+             aria-label="<?= __('order_kanban_view') ?>">
 
         <div class="orders-kanban">
             <?php foreach (($kanbanColumns ?? []) as $statusCode => $statusLabel):
@@ -182,7 +184,7 @@ $statusColors = [
     <!-- ═══════════════ ТАБЛИЦЯ ═══════════════ -->
     <section id="ordersTableView"
              class="orders-view <?= ($activeView ?? 'kanban') === 'table' ? 'active' : '' ?>"
-             aria-label="Табличний режим замовлень">
+             aria-label="<?= __('order_table_view') ?>">
 
         <div class="orders-table-box">
             <!-- Фільтри -->
@@ -191,7 +193,7 @@ $statusColors = [
                     <input type="hidden" name="view" value="table">
                     <input type="text" name="search"
                            value="<?= htmlspecialchars($searchFilter ?? '') ?>"
-                           placeholder="Пошук: ім'я, телефон, ID…">
+                           placeholder="<?= __('orders_search_placeholder') ?>">
                     <select name="status">
                         <option value=""><?= __('all_statuses') ?></option>
                         <?php foreach (($allStatuses ?? []) as $s): ?>
@@ -203,7 +205,7 @@ $statusColors = [
                     </select>
                     <button type="submit" class="btn"><?= __('apply') ?></button>
                     <?php if (($statusFilter ?? '') !== '' || ($searchFilter ?? '') !== ''): ?>
-                        <a href="<?= ordersUrl(['view' => 'table', 'status' => '', 'search' => '', 'tpage' => '']) ?>"
+                        <a href="/admin/orders?view=table"
                            class="btn secondary"><?= __('reset') ?></a>
                     <?php endif; ?>
                 </form>
@@ -214,12 +216,12 @@ $statusColors = [
                     <tr>
                         <th>ID</th>
                         <th><?= __('order_client') ?></th>
-                        <th>Телефон</th>
+                        <th><?= __('orders_phone') ?></th>
                         <th><?= __('order_sum') ?></th>
-                        <th>Статус</th>
-                        <th>Оплата</th>
-                        <th>Доставка</th>
-                        <th>Дата</th>
+                        <th><?= __('orders_status') ?></th>
+                        <th><?= __('orders_payment') ?></th>
+                        <th><?= __('orders_delivery') ?></th>
+                        <th><?= __('orders_date') ?></th>
                     </tr>
                 </thead>
                 <tbody id="ordersTableBody">
@@ -227,7 +229,7 @@ $statusColors = [
                         <tr>
                             <td colspan="8" style="text-align:center; padding:2rem; color:#94a3b8;">
                                 <i class="fas fa-inbox" style="font-size:1.5rem; display:block; margin-bottom:.5rem;"></i>
-                                Замовлень не знайдено
+                                <?= __('orders_not_found') ?>
                             </td>
                         </tr>
                     <?php else: ?>
@@ -261,7 +263,7 @@ $statusColors = [
             </table>
 
             <!-- Таблиця пагінація -->
-            <?= $tablePager->render(['show_info' => true]) ?>
+            <?= $tablePager->render(['show_info' => true, 'showing_text' => __('pagination_showing')]) ?>
         </div>
     </section>
 </div>
@@ -269,14 +271,14 @@ $statusColors = [
 <!-- ═══════════════ MODAL ═══════════════ -->
 <div class="orders-modal" id="orderModal">
     <div class="orders-modal__dialog">
-        <h2 id="modalTitle">Деталі замовлення</h2>
+        <h2 id="modalTitle"><?= __('order_details') ?></h2>
         <form id="orderForm">
             <input type="hidden" name="id" id="orderIdField">
             <div class="modal-grid">
-                <div><label>Ім'я</label><input required name="customer_name" id="customerName"></div>
-                <div><label>Телефон</label><input required name="customer_phone" id="customerPhone"></div>
-                <div><label>Email</label><input name="customer_email" id="customerEmail"></div>
-                <div><label>Статус</label>
+                <div><label><?= __('orders_name') ?></label><input required name="customer_name" id="customerName"></div>
+                <div><label><?= __('orders_phone') ?></label><input required name="customer_phone" id="customerPhone"></div>
+                <div><label><?= __('orders_email') ?></label><input name="customer_email" id="customerEmail"></div>
+                <div><label><?= __('orders_status') ?></label>
                     <select name="status" id="orderStatus">
                         <?php foreach (($allStatuses ?? []) as $status): ?>
                             <option value="<?= htmlspecialchars($status) ?>">
@@ -285,31 +287,36 @@ $statusColors = [
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <div><label>Доставка</label><input name="delivery_method" id="deliveryMethod"></div>
-                <div><label>Оплата</label><input name="payment_method" id="paymentMethod"></div>
-                <div><label>Місто</label><input name="delivery_city" id="deliveryCity"></div>
-                <div><label>Відділення</label><input name="delivery_warehouse" id="deliveryWarehouse"></div>
-                <div style="grid-column:1/-1"><label>Адреса</label><input name="delivery_address" id="deliveryAddress"></div>
-                <div style="grid-column:1/-1"><label>Коментар</label><textarea name="comment" id="orderComment" rows="2"></textarea></div>
+                <div><label><?= __('orders_delivery') ?></label><input name="delivery_method" id="deliveryMethod"></div>
+                <div><label><?= __('orders_payment') ?></label><input name="payment_method" id="paymentMethod"></div>
+                <div><label><?= __('orders_city') ?></label><input name="delivery_city" id="deliveryCity"></div>
+                <div><label><?= __('orders_warehouse') ?></label><input name="delivery_warehouse" id="deliveryWarehouse"></div>
+                <div style="grid-column:1/-1"><label><?= __('orders_address') ?></label><input name="delivery_address" id="deliveryAddress"></div>
+                <div style="grid-column:1/-1"><label><?= __('orders_comment') ?></label><textarea name="comment" id="orderComment" rows="2"></textarea></div>
             </div>
 
             <div class="modal-section">
-                <h3>Товари</h3>
+                <h3><?= __('order_products') ?></h3>
                 <table class="modal-items-table" id="orderItemsTable">
-                    <thead><tr><th>Product ID</th><th>Назва</th><th>Опції</th><th>К-сть</th><th>Ціна</th><th></th></tr></thead>
+                    <thead><tr><th><?= __('orders_product_id') ?></th><th><?= __('orders_product_name') ?></th><th><?= __('orders_product_options') ?></th><th><?= __('orders_product_qty') ?></th><th><?= __('orders_product_price') ?></th><th></th></tr></thead>
                     <tbody></tbody>
                 </table>
                 <button type="button" class="btn secondary" id="addItemRowBtn" style="margin-top:8px;"><?= __('order_add_product') ?></button>
-                <p><b>Загальна сума: <span id="orderComputedTotal">0.00</span> <?= htmlspecialchars($activeCurrencySymbol ?? '₴') ?></b></p>
+                <p><b><?= __('orders_total_sum') ?>: <span id="orderComputedTotal">0.00</span> <?= htmlspecialchars($activeCurrencySymbol ?? '₴') ?></b></p>
             </div>
 
             <div class="modal-section" id="historySection">
-                <h3>Історія статусів</h3>
+                <h3><?= __('order_status_history') ?></h3>
                 <div id="statusHistory"></div>
+            </div>
+
+            <div class="modal-section" id="pluginOrderActions">
+                <?php do_action('admin.order_modal.actions'); ?>
             </div>
 
             <div class="modal-actions">
                 <button type="button" class="btn secondary" id="closeOrderModal"><?= __('close') ?></button>
+                <button type="button" class="btn danger" id="deleteOrderBtn"><?= __('order_delete_button') ?></button>
                 <button type="submit" class="btn"><?= __('save') ?></button>
             </div>
         </form>
@@ -317,7 +324,24 @@ $statusColors = [
 </div>
 
 <script>
+window.ORDERS_TRANSLATIONS = {
+    order_details: <?= json_encode(__('order_details')) ?>,
+    order_title: <?= json_encode(__('order')) ?>,
+    history_empty: <?= json_encode(__('order_history_empty')) ?>,
+    server_error: <?= json_encode(__('order_server_error')) ?>,
+    status_update_error: <?= json_encode(__('order_status_update_error')) ?>,
+    enter_ttn: <?= json_encode(__('order_enter_ttn')) ?>,
+    ttn_required: <?= json_encode(__('order_ttn_required')) ?>,
+    status_shipped: <?= json_encode(__('status_shipped')) ?>,
+    order_delete_confirm: <?= json_encode(__('order_delete_confirm')) ?>,
+    order_delete_success: <?= json_encode(__('order_delete_success')) ?>,
+    order_delete_error: <?= json_encode(__('order_delete_error')) ?>
+};
+</script>
+
+<script>
 (() => {
+    const t = window.ORDERS_TRANSLATIONS || {};
     const statusLabels = <?= json_encode($statusLabels, JSON_UNESCAPED_UNICODE) ?>;
     const modal        = document.getElementById('orderModal');
     const form         = document.getElementById('orderForm');
@@ -380,7 +404,7 @@ $statusColors = [
     document.getElementById('addItemRowBtn').addEventListener('click', () => addItemRow());
 
     const fillForm = (data, isCreate = false) => {
-        document.getElementById('modalTitle').textContent = isCreate ? window.LANG.order_new : `Замовлення #${data.order.id}`;
+        document.getElementById('modalTitle').textContent = isCreate ? window.LANG.order_new : `${t.order_title || 'Замовлення'} #${data.order.id}`;
         document.getElementById('orderIdField').value     = data.order.id || '';
         document.getElementById('customerName').value    = data.order.customer_name || '';
         document.getElementById('customerPhone').value   = data.order.customer_phone || '';
@@ -399,17 +423,21 @@ $statusColors = [
 
         const historySection = document.getElementById('historySection');
         const historyBox     = document.getElementById('statusHistory');
+        const deleteBtn      = document.getElementById('deleteOrderBtn');
+
         if (isCreate) {
             historySection.classList.add('hidden');
+            deleteBtn.classList.add('hidden');
         } else {
             historySection.classList.remove('hidden');
+            deleteBtn.classList.remove('hidden');
             const rows = (data.history || []).map((h) =>
                 `<div style="font-size:.85rem; padding:.3rem 0; border-bottom:1px solid #f1f5f9;">
                     ${h.changed_at}: <b>${statusLabels[h.old_status] || h.old_status || '—'}</b>
                     → <b>${statusLabels[h.new_status] || h.new_status}</b>
                     ${h.ttn_code ? ` (<?= __('ttn_code') ?>: ${h.ttn_code})` : ''}
                 </div>`);
-            historyBox.innerHTML = rows.length ? rows.join('') : '<div style="color:#94a3b8;">Історія порожня.</div>';
+            historyBox.innerHTML = rows.length ? rows.join('') : `<div style="color:#94a3b8;">${t.history_empty || 'Історія порожня.'}</div>`;
         }
 
         document.getElementById('orderComputedTotal').textContent = money(data.computed_total || 0);
@@ -420,7 +448,7 @@ $statusColors = [
         const res     = await fetch(`/admin/orders/details/${id}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
         const rawText = await res.text();
         let data;
-        try { data = JSON.parse(rawText); } catch { throw new Error('Сервер повернув некоректну відповідь.'); }
+        try { data = JSON.parse(rawText); } catch { throw new Error(t.server_error || 'Сервер повернув некоректну відповідь.'); }
         if (!res.ok || !data.success) throw new Error(data.message || window.LANG.load_order_error);
         return data;
     };
@@ -439,6 +467,37 @@ $statusColors = [
 
     document.getElementById('createOrderBtn').addEventListener('click', () => {
         fillForm({ order: { status: 'new' }, items: [], history: [], computed_total: 0 }, true);
+    });
+
+    // ── Видалення замовлення ──
+    document.getElementById('deleteOrderBtn').addEventListener('click', async () => {
+        const orderId = Number(document.getElementById('orderIdField').value || 0);
+        if (orderId <= 0) {
+            alert('Order ID is required for deletion');
+            return;
+        }
+
+        if (!confirm(t.order_delete_confirm || 'Are you sure you want to delete this order?')) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`/admin/orders/delete/${orderId}`, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await res.json();
+
+            if (!res.ok || !data.success) {
+                throw new Error(data.message || t.order_delete_error || 'Error deleting order');
+            }
+
+            alert(data.message || t.order_delete_success || 'Order deleted successfully');
+            closeModal();
+            location.reload();
+        } catch (err) {
+            alert(err.message);
+        }
     });
 
     form.addEventListener('submit', async (e) => {
@@ -494,7 +553,7 @@ $statusColors = [
             body: JSON.stringify({ order_id: Number(orderId), status, ttn_code: ttnCode }),
         });
         const result = await res.json();
-        if (!res.ok || !result.success) throw new Error(result.message || 'Не вдалося оновити статус');
+        if (!res.ok || !result.success) throw new Error(result.message || t.status_update_error || 'Не вдалося оновити статус');
         return result;
     };
 
@@ -521,8 +580,8 @@ $statusColors = [
 
             let ttnCode = '';
             if (targetStatus === 'shipped') {
-                ttnCode = window.prompt('Введіть ТТН для відправлення:') || '';
-                if (!ttnCode.trim()) return alert('ТТН обов\'язкова для статусу «<?= __('status_shipped') ?>».');
+                ttnCode = window.prompt(t.enter_ttn || 'Введіть ТТН для відправлення:') || '';
+                if (!ttnCode.trim()) return alert(`${t.ttn_required || 'ТТН обовязкова для статусу'} «${t.status_shipped || 'Відправлено'}».`);
             }
 
             card.style.pointerEvents = 'none';

@@ -39,9 +39,9 @@ class AdminThemeController
         Csrf::abortIfInvalid();
         
         if (ThemeManager::setActiveTheme($theme)) {
-            $_SESSION['success'] = "Тема '$theme' успішно активована!";
+            $_SESSION['success'] = sprintf(__('admin_theme_activated'), $theme);
         } else {
-            $_SESSION['error'] = "Не вдалося активувати тему '$theme'.";
+            $_SESSION['error'] = sprintf(__('admin_theme_activation_failed'), $theme);
         }
         
         header('Location: /admin/themes');
@@ -59,9 +59,9 @@ class AdminThemeController
         if (!empty($_FILES['theme_zip'])) {
             $theme_id = ThemeManager::uploadTheme($_FILES['theme_zip']);
             if ($theme_id) {
-                $_SESSION['success'] = "Тема '$theme_id' успішно завантажена!";
+                $_SESSION['success'] = sprintf(__('admin_theme_uploaded'), $theme_id);
             } else {
-                $_SESSION['error'] = "Помилка при завантаженні теми. Перевірте формат ZIP та наявність theme.json.";
+                $_SESSION['error'] = __('admin_theme_upload_failed');
             }
         }
 
@@ -78,7 +78,7 @@ class AdminThemeController
         
         $theme_info = ThemeManager::getThemeInfo($theme_id);
         if (!$theme_info) {
-            $_SESSION['error'] = "Тема не знайдена.";
+            $_SESSION['error'] = __('admin_theme_not_found');
             header('Location: /admin/themes');
             exit;
         }
@@ -108,9 +108,9 @@ class AdminThemeController
         ];
 
         if (ThemeManager::updateThemeMetadata($theme_id, $data)) {
-            $_SESSION['success'] = "Параметри теми '$theme_id' оновлено!";
+            $_SESSION['success'] = sprintf(__('admin_theme_updated'), $theme_id);
         } else {
-            $_SESSION['error'] = "Не вдалося оновити параметри теми.";
+            $_SESSION['error'] = __('admin_theme_update_failed');
         }
 
         header('Location: /admin/themes/edit/' . $theme_id);
@@ -126,9 +126,9 @@ class AdminThemeController
         Csrf::abortIfInvalid();
 
         if (ThemeManager::deleteTheme($theme_id)) {
-            $_SESSION['success'] = "Тему '$theme_id' видалено.";
+            $_SESSION['success'] = sprintf(__('admin_theme_deleted'), $theme_id);
         } else {
-            $_SESSION['error'] = "Не вдалося видалити тему. Можливо вона активна або це тема за замовчуванням.";
+            $_SESSION['error'] = __('admin_theme_delete_failed');
         }
 
         header('Location: /admin/themes');
@@ -144,9 +144,9 @@ class AdminThemeController
         Csrf::abortIfInvalid();
         
         if (ThemeManager::setPreviewTheme($theme_id)) {
-            $_SESSION['success'] = "Режим попереднього перегляду для теми '$theme_id' активовано. Тепер ви бачите сайт з цією темою.";
+            $_SESSION['success'] = sprintf(__('admin_theme_preview_activated'), $theme_id);
         } else {
-            $_SESSION['error'] = "Не вдалося активувати попередній перегляд.";
+            $_SESSION['error'] = __('admin_theme_preview_failed');
         }
         
         header('Location: /');
