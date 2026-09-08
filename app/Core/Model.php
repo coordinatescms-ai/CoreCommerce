@@ -33,6 +33,14 @@ class Model
 
     public static function execute($sql, $params = [])
     {
-        return DB::query($sql, $params);
+        $result = DB::query($sql, $params);
+
+        // Якщо це INSERT запит, повертаємо ID
+        if (stripos(trim($sql), 'INSERT') === 0) {
+            return DB::lastInsertId();
+        }
+
+        // Для інших запитів повертаємо true/false
+        return $result !== false;
     }
 }

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: MySQL-8.0:3306
--- Час створення: Вер 08 2026 р., 14:27
+-- Час створення: Вер 08 2026 р., 19:32
 -- Версія сервера: 8.0.45
 -- Версія PHP: 8.3.30
 
@@ -516,7 +516,8 @@ INSERT INTO `login_attempts` (`id`, `ip`, `email`, `success`, `created_at`) VALU
 (8, '127.0.0.1', 'systemmaster@meta.ua', 1, '2026-08-15 18:50:26'),
 (9, '127.0.0.1', 'systemmaster@meta.ua', 1, '2026-08-23 23:52:58'),
 (11, '127.0.0.1', 'systemmaster@meta.ua', 1, '2026-08-26 19:16:28'),
-(13, '127.0.0.1', 'systemmaster@meta.ua', 1, '2026-08-30 14:53:35');
+(13, '127.0.0.1', 'systemmaster@meta.ua', 1, '2026-08-30 14:53:35'),
+(14, '127.0.0.1', 'systemmaster@meta.ua', 1, '2026-09-08 19:28:43');
 
 -- --------------------------------------------------------
 
@@ -653,9 +654,9 @@ CREATE TABLE `plugins` (
 --
 
 INSERT INTO `plugins` (`id`, `name`, `slug`, `main_file`, `is_active`, `version`, `created_at`, `updated_at`) VALUES
-(1, 'Test Plugin', 'TestPlugin', 'D:\\OSPanel\\home\\mysite.test/plugins/TestPlugin/plugin.php', 0, '1.0.0', '2026-04-30 19:25:51', '2026-09-07 19:16:55'),
-(2, 'LiqPay — Online payment', 'LiqPayGateway', 'D:\\OSPanel\\home\\mysite.test/plugins/LiqPayGateway/plugin.php', 1, '1.0.0', '2026-06-10 13:42:15', '2026-09-07 19:16:55'),
-(4, 'Request a call', 'CallbackWidget', 'D:\\OSPanel\\home\\mysite.test/plugins/CallbackWidget/plugin.php', 1, '1.0.0', '2026-07-29 20:32:45', '2026-09-07 19:16:55');
+(1, 'Test Plugin', 'TestPlugin', 'D:\\OSPanel\\home\\mysite.test/plugins/TestPlugin/plugin.php', 0, '1.0.0', '2026-04-30 19:25:51', '2026-09-08 19:29:47'),
+(2, 'LiqPay — Online payment', 'LiqPayGateway', 'D:\\OSPanel\\home\\mysite.test/plugins/LiqPayGateway/plugin.php', 1, '1.0.0', '2026-06-10 13:42:15', '2026-09-08 19:29:47'),
+(4, 'Request a call', 'CallbackWidget', 'D:\\OSPanel\\home\\mysite.test/plugins/CallbackWidget/plugin.php', 1, '1.0.0', '2026-07-29 20:32:45', '2026-09-08 19:29:47');
 
 -- --------------------------------------------------------
 
@@ -1064,9 +1065,9 @@ INSERT INTO `settings` (`key`, `value`, `group`, `type`, `created_at`, `updated_
 ('hsts_subdomains', '0', 'security', 'checkbox', '2026-07-02 18:09:14', '2026-07-02 18:09:14'),
 ('https_redirect', '1', 'security', 'checkbox', '2026-07-02 18:09:14', '2026-07-02 18:09:14'),
 ('maintenance_message', 'We apologize, but the store is temporarily closed for maintenance.', 'general', 'textarea', '2026-04-03 08:17:13', '2026-09-07 17:16:52'),
-('media_apply_watermark', '0', 'media', 'checkbox', '2026-04-13 09:12:17', '2026-09-07 17:24:46'),
-('media_auto_webp', '0', 'media', 'checkbox', '2026-04-13 09:12:17', '2026-09-07 17:24:46'),
-('media_watermark_position', 'bottom-right', 'media', 'select', '2026-04-13 09:12:17', '2026-09-07 17:24:46'),
+('media_apply_watermark', '0', 'media', 'checkbox', '2026-04-13 09:12:17', '2026-09-08 17:30:37'),
+('media_auto_webp', '0', 'media', 'checkbox', '2026-04-13 09:12:17', '2026-09-08 17:30:37'),
+('media_watermark_position', 'bottom-right', 'media', 'select', '2026-04-13 09:12:17', '2026-09-08 17:30:37'),
 ('phone_mask', '+38 (###) ###-##-##', 'contact', 'text', '2026-05-16 09:39:11', '2026-09-07 17:16:52'),
 ('prom_api_key', '', 'prom', 'text', '2026-06-10 17:52:36', '2026-06-10 17:52:36'),
 ('prom_enabled', '0', 'prom', 'checkbox', '2026-06-10 17:52:36', '2026-06-10 17:52:36'),
@@ -1127,8 +1128,8 @@ CREATE TABLE `shop_methods` (
 INSERT INTO `shop_methods` (`id`, `type`, `code`, `name`, `icon`, `description`, `is_active`, `is_test_mode`, `settings`, `sort_order`, `created_at`, `updated_at`) VALUES
 (1, 'shipping', 'nova_poshta', 'Нова Пошта', NULL, '', 0, 0, '{\"cost\": \"70\", \"api_key\": \"d175da6cdfcd3f2121c9ec459cc7abe5\"}', 0, '2026-04-20 16:09:35', '2026-09-07 17:19:01'),
 (2, 'shipping', 'self_pickup', 'Self-pickup', NULL, '', 1, 0, '{\"address\": \"1 Tsentralna St., Kyiv\"}', 0, '2026-04-20 16:09:35', '2026-09-07 17:19:01'),
-(3, 'payment', 'cash', 'Payment upon receipt', NULL, '', 1, 0, '{\"gateway_name\": \"cash\"}', 0, '2026-04-20 16:09:35', '2026-09-07 17:19:56'),
-(4, 'payment', 'liqpay', 'Онлайн-оплата (LiqPay)', NULL, '', 0, 1, '{\"public_key\": \"sandbox_i32114908393\", \"private_key\": \"sandbox_kI6V24ChlAh8Ro0zZYgcenB8YJ1qB99emVYZokh3\", \"gateway_name\": \"liqpay\"}', 0, '2026-04-20 16:09:35', '2026-09-07 17:19:56');
+(3, 'payment', 'cash', 'Payment upon receipt', NULL, '', 1, 0, '{\"gateway_name\": \"cash\"}', 0, '2026-04-20 16:09:35', '2026-09-08 17:30:37'),
+(4, 'payment', 'liqpay', 'Онлайн-оплата (LiqPay)', NULL, '', 0, 1, '{\"public_key\": \"\", \"private_key\": \"\", \"gateway_name\": \"liqpay\"}', 0, '2026-04-20 16:09:35', '2026-09-08 17:30:37');
 
 -- --------------------------------------------------------
 
@@ -1771,7 +1772,7 @@ ALTER TABLE `inventory_log`
 -- AUTO_INCREMENT для таблиці `login_attempts`
 --
 ALTER TABLE `login_attempts`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT для таблиці `login_logs`
@@ -1927,7 +1928,7 @@ ALTER TABLE `url_redirects`
 -- AUTO_INCREMENT для таблиці `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT для таблиці `user_roles`
