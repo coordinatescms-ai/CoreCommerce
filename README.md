@@ -67,3 +67,10 @@ Category product filtering now uses a strict 3-step pipeline in `App\Services\Pr
 - Multi-attribute filtering works as AND via separate `EXISTS` conditions.
 
 This keeps existing DB schema and URL format (`attr_{id}`, `attr_{id}_min`, `attr_{id}_max`) intact while removing legacy runtime branches based on JOIN alias chains.
+
+Adding a language requires exactly two steps:
+
+1. Add a line to `config/languages.php` (e.g., `'pl' => 'Polski'`).
+2. Create `lang/pl.php` (core translation) and, if necessary, `lang/pl.json` for active plugins.
+
+Everything else—the `/language/{lang}` route, the settings dropdown, and the switchers in the 'modern' and 'premium' themes—automatically picks up the list without any code editing.

@@ -94,7 +94,9 @@
                 <?php $outOfStock = render_stock_badge($product) !== ''; ?>
                 <article style="border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1rem; background: #fff; display: flex; flex-direction: column;">
                     <?php if (!empty($product['image'])): ?>
-                        <img src="<?= htmlspecialchars(product_image_variant_path((string) $product['image'], 'medium')) ?>" alt="<?= htmlspecialchars($product['name']) ?>" style="width: 100%; height: 180px; object-fit: cover; border-radius: 0.5rem; margin-bottom: 0.75rem;<?= $outOfStock ? ' opacity: 0.55;' : '' ?>">
+                        <a href="/product/<?= htmlspecialchars($product['slug']) ?>" style="text-decoration: none; color: #111827;">
+                            <img src="<?= htmlspecialchars(product_image_variant_path((string) $product['image'], 'medium')) ?>" alt="<?= htmlspecialchars($product['name']) ?>" style="width: 100%; height: 180px; object-fit: cover; border-radius: 0.5rem; margin-bottom: 0.75rem;<?= $outOfStock ? ' opacity: 0.55;' : '' ?>">
+                        </a>
                     <?php endif; ?>
                     <h3 style="margin: 0 0 0.5rem;">
                         <a href="/product/<?= htmlspecialchars($product['slug']) ?>" style="text-decoration: none; color: #111827;"><?= htmlspecialchars($product['name']) ?></a>
@@ -138,7 +140,9 @@
                 <?php $outOfStock = render_stock_badge($product) !== ''; ?>
                 <article style="border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1rem; background: #fff; display: flex; flex-direction: column;">
                     <?php if (!empty($product['image'])): ?>
-                        <img src="<?= htmlspecialchars(product_image_variant_path((string) $product['image'], 'medium')) ?>" alt="<?= htmlspecialchars($product['name']) ?>" style="width: 100%; height: 180px; object-fit: cover; border-radius: 0.5rem; margin-bottom: 0.75rem;<?= $outOfStock ? ' opacity: 0.55;' : '' ?>">
+                        <a href="/product/<?= htmlspecialchars($product['slug']) ?>" style="text-decoration: none; color: #111827;">
+                            <img src="<?= htmlspecialchars(product_image_variant_path((string) $product['image'], 'medium')) ?>" alt="<?= htmlspecialchars($product['name']) ?>" style="width: 100%; height: 180px; object-fit: cover; border-radius: 0.5rem; margin-bottom: 0.75rem;<?= $outOfStock ? ' opacity: 0.55;' : '' ?>">
+                        </a>
                     <?php endif; ?>
                     <h3 style="margin: 0 0 0.5rem;">
                         <a href="/product/<?= htmlspecialchars($product['slug']) ?>" style="text-decoration: none; color: #111827;"><?= htmlspecialchars($product['name']) ?></a>

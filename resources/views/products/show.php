@@ -285,17 +285,17 @@ if (isset($_SESSION['user']['id'])) {
                             <input type="hidden" name="parent_id" id="pdp-review-parent-id" value="">
                 
                             <div class="pdp-form-header">
-                                <h3 id="pdp-form-title">Залишити відгук</h3>
+                                <h3 id="pdp-form-title"><?= __('review_leave_review') ?></h3>
                                 <div id="pdp-reply-target" style="display:none;"></div>
                             </div>
 
                             <!-- Блок рейтингу зірочками -->
                             <div class="pdp-rating-wrapper">
-                                <label>Ваша оцінка:</label>
+                                <label><?= __('review_your_rating') ?></label>
                                 <div class="pdp-star-rating">
                                     <?php for ($i = 5; $i >= 1; $i--): ?>
                                     <input type="radio" id="star<?= $i ?>" name="rating" value="<?= $i ?>" <?= $i === 5 ? 'checked' : '' ?>>
-                                    <label for="star<?= $i ?>" title="<?= $i ?> зірок">
+                                    <label for="star<?= $i ?>" title="<?= $i ?> <?= __('review_stars_title') ?>">
                                         <svg viewBox="0 0 24 24" width="24" height="24">
                                             <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
                                         </svg>
@@ -305,29 +305,29 @@ if (isset($_SESSION['user']['id'])) {
                             </div>
 
                             <div class="pdp-input-group">
-                                <label for="pdp-review-body">Текст повідомлення:</label>
+                                <label for="pdp-review-body"><?= __('review_message_text') ?></label>
                                 <textarea
                                     name="body"
                                     id="pdp-review-body"
                                     rows="4"
                                     required
                                     maxlength="2000"
-                                    placeholder="Поділіться враженнями про товар...">
+                                    placeholder="<?= __('review_placeholder') ?>">
                                 </textarea>
                             </div>
 
                             <div class="pdp-form-actions">
                                 <button type="submit" class="pdp-btn pdp-btn-primary">
-                                    <span>Надіслати відгук</span>
+                                    <span><?= __('review_submit') ?></span>
                                 </button>
                                 <button type="button" id="pdp-cancel-reply" class="pdp-btn pdp-btn-ghost" style="display:none;">
-                                    Скасувати відповідь
+                                    <?= __('review_cancel_reply') ?>
                                 </button>
                             </div>
                         </form>
                         <?php else: ?>
                             <div class="pdp-auth-prompt">
-                                <p>Лише зареєстровані користувачі можуть залишати відгуки. <a href="/login">Увійти</a></p>
+                                <p><?= __('review_auth_required_text') ?></p>
                             </div>
                         <?php endif; ?>
 
@@ -342,7 +342,7 @@ if (isset($_SESSION['user']['id'])) {
                 class="pdp-btn pdp-btn-outline"
                 type="button"
                 style="display:none;">
-                Показати ще відгуки
+                <?= __('review_show_more') ?>
             </button>
         </div>
     </div>
@@ -1536,6 +1536,13 @@ if (isset($_SESSION['user']['id'])) {
     const modalImg = document.getElementById('modal-img');
     const captionText = document.getElementById('modal-caption');
     const galleryImages = <?php echo json_encode(array_column($galleryImages, 'original')); ?>;
+    const reviewTranslations = {
+        reply: <?= json_encode(__('review_reply')) ?>,
+        replyTo: <?= json_encode(__('review_reply_to')) ?>,
+        starsTitle: <?= json_encode(__('review_stars_title')) ?>,
+        galleryPhotoOf: <?= json_encode(__('gallery_photo_of')) ?>,
+        showMore: <?= json_encode(__('review_show_more')) ?>
+    };
     let currentImgIndex = 0;
 
     const updateModalImage = (index) => {
@@ -1543,7 +1550,7 @@ if (isset($_SESSION['user']['id'])) {
         if (index >= galleryImages.length) index = 0;
         currentImgIndex = index;
         modalImg.src = galleryImages[currentImgIndex];
-        captionText.innerHTML = `Фото ${currentImgIndex + 1} із ${galleryImages.length}`;
+        captionText.innerHTML = `${reviewTranslations.galleryPhotoOf} ${currentImgIndex + 1} із ${galleryImages.length}`;
     };
 
     if (mainImage) {
@@ -1689,7 +1696,7 @@ if (isset($_SESSION['user']['id'])) {
                     </div>
                     ${renderStars(item.rating)}
                     <div style="margin:8px 0;">${escapeHtml(item.body)}</div>
-                    ${isLoggedIn ? `<button class="pdp-reply-btn pdp-btn pdp-btn-ghost" style="padding:4px 8px; font-size:12px;" data-id="${item.id}" data-author="${item.author_name}">Відповісти</button>` : ''}
+                    ${isLoggedIn ? `<button class="pdp-reply-btn pdp-btn pdp-btn-ghost" style="padding:4px 8px; font-size:12px;" data-id="${item.id}" data-author="${item.author_name}">${reviewTranslations.reply}</button>` : ''}
                     <div class="pdp-review-replies">${replies}</div>
                 </div>`;
         };
@@ -1714,7 +1721,7 @@ if (isset($_SESSION['user']['id'])) {
                 if (!btn) return;
                 document.getElementById('pdp-review-parent-id').value = btn.dataset.id;
                 if (ratingWrapper) ratingWrapper.style.display = 'none'; // ХОВАЄМО зірочки при відповіді
-                if (replyTarget) { replyTarget.innerHTML = `Відповідь для <b>${btn.dataset.author}</b>`; replyTarget.style.display = 'block'; }
+                if (replyTarget) { replyTarget.innerHTML = `${reviewTranslations.replyTo} <b>${btn.dataset.author}</b>`; replyTarget.style.display = 'block'; }
                 if (cancelBtn) cancelBtn.style.display = 'inline-block';
                 form.scrollIntoView({behavior:'smooth', block:'center'});
             });

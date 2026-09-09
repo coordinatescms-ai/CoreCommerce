@@ -25,7 +25,7 @@ DELIMITER $$
 --
 -- Процедури
 --
-CREATE DEFINER=`root`@`%` PROCEDURE `AddSlugColumns` ()   BEGIN
+CREATE PROCEDURE `AddSlugColumns` ()   BEGIN
     -- Перевірка та додавання колонок до таблиці products
     IF NOT EXISTS (SELECT * FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'slug' AND table_schema = DATABASE()) THEN
         ALTER TABLE products ADD COLUMN slug VARCHAR(255) UNIQUE NOT NULL AFTER name;
@@ -804,38 +804,6 @@ CREATE TABLE `product_reviews` (
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Тригери `product_reviews`
---
-DELIMITER $$
-CREATE TRIGGER `trg_reviews_validate_insert` BEFORE INSERT ON `product_reviews` FOR EACH ROW BEGIN
-  IF NEW.parent_id IS NULL THEN
-    IF NEW.rating IS NULL OR NEW.rating < 1 OR NEW.rating > 5 THEN
-      SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Root review rating must be between 1 and 5';
-    END IF;
-  ELSE
-    IF NEW.rating IS NOT NULL THEN
-      SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Reply review must not have rating';
-    END IF;
-  END IF;
-END
-$$
-DELIMITER ;
-DELIMITER $$
-CREATE TRIGGER `trg_reviews_validate_update` BEFORE UPDATE ON `product_reviews` FOR EACH ROW BEGIN
-  IF NEW.parent_id IS NULL THEN
-    IF NEW.rating IS NULL OR NEW.rating < 1 OR NEW.rating > 5 THEN
-      SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Root review rating must be between 1 and 5';
-    END IF;
-  ELSE
-    IF NEW.rating IS NOT NULL THEN
-      SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Reply review must not have rating';
-    END IF;
-  END IF;
-END
-$$
-DELIMITER ;
 
 -- --------------------------------------------------------
 
