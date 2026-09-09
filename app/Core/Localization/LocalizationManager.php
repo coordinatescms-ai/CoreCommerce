@@ -23,8 +23,8 @@ class LocalizationManager
     private const CORE_NAMESPACE = 'core';
     private const NS_SEPARATOR   = '::';
 
-    /** @var string[] */
-    private static array $supportedLanguages = ['ua', 'en'];
+    /** @var string[]|null null = ще не завантажено з config/languages.php */
+    private static ?array $supportedLanguages = null;
 
     private static string $defaultLanguage = 'ua';
 
@@ -169,22 +169,66 @@ class LocalizationManager
 
     public static function isLanguageSupported(string $lang): bool
     {
-        return in_array($lang, self::$supportedLanguages, true);
+        return in_array($lang, self::loadSupportedLanguages(), true);
     }
 
     public static function getSupportedLanguages(): array
     {
-        return self::$supportedLanguages;
+        return self::loadSupportedLanguages();
     }
 
     /**
-     * Додати нову підтримувану мову (наприклад плагін локалізації).
+     * Додати нову підтримувану мову динамічно (наприклад, плагін
+     * локалізації реєструє мову без редагування config/languages.php).
      */
     public static function addLanguage(string $lang): void
     {
+        self::loadSupportedLanguages();
         if (!in_array($lang, self::$supportedLanguages, true)) {
             self::$supportedLanguages[] = $lang;
         }
+    }
+
+    /**
+     * Код мови => назва мови ЇЇ ЖЕ мовою (для рендеру перемикачів,
+     * замінює раніше захардкожені списки в темах/адмінці).
+     *
+     * @return array<string, string>
+     */
+    public static function getLanguageNames(): array
+    {
+        $file = dirname(__DIR__, 3) . '/config/languages.php';
+        if (is_file($file)) {
+            $data = require $file;
+            if (is_array($data)) {
+                return $data;
+            }
+        }
+        return array_combine(self::loadSupportedLanguages(), self::loadSupportedLanguages());
+    }
+
+    /**
+     * @return string[]
+     */
+    private static function loadSupportedLanguages(): array
+    {
+        if (self::$supportedLanguages !== null) {
+            return self::$supportedLanguages;
+        }
+
+        $file = dirname(__DIR__, 3) . '/config/languages.php';
+        if (is_file($file)) {
+            $data = require $file;
+            if (is_array($data) && !empty($data)) {
+                self::$supportedLanguages = array_keys($data);
+                return self::$supportedLanguages;
+            }
+        }
+
+        // Файл конфігурації відсутній/порожній (не мало б трапитись) —
+        // безпечний хардкод-фолбек, щоб сайт не впав без мов узагалі.
+        self::$supportedLanguages = ['ua', 'en'];
+        return self::$supportedLanguages;
     }
 
     // ── Завантаження перекладів ───────────────────────────────────────────────

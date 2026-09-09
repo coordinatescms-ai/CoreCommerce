@@ -37,6 +37,14 @@ function get_supported_languages()
     return LocalizationManager::getSupportedLanguages();
 }
 
+/**
+ * Код мови => назва мови ЇЇ ЖЕ мовою (для рендеру перемикача мов)
+ */
+function get_language_names()
+{
+    return LocalizationManager::getLanguageNames();
+}
+
 function get_setting($key, $default = null)
 {
     return Setting::get($key, $default);

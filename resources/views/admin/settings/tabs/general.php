@@ -55,7 +55,7 @@ $currencySource  = get_setting('currency_source', 'manual');
                 <?php $activeLogotype = trim((string) get_setting('active_logotype', '')); ?>
                 <?php if ($activeLogotype !== ''): ?>
                     <div style="margin-top: 0.5rem;">
-                        <img src="<?php echo htmlspecialchars($activeLogotype); ?>" alt="Поточний логотип" style="max-height: 60px; width: auto; border: 1px solid #ddd; border-radius: 6px; padding: 4px; background: #fff;">
+                        <img src="<?php echo htmlspecialchars($activeLogotype); ?>" alt="<?= __("admin_settings_current_logo_alt") ?>" style="max-height: 60px; width: auto; border: 1px solid #ddd; border-radius: 6px; padding: 4px; background: #fff;">
                     </div>
                 <?php endif; ?>
             </div>
@@ -69,8 +69,9 @@ $currencySource  = get_setting('currency_source', 'manual');
             <div class="form-group">
                 <label for="default_language"><?= __('settings_default_lang') ?></label>
                 <select name="settings[default_language]" id="default_language" class="form-control">
-                    <option value="ua" <?php echo get_setting('default_language', 'ua') === 'ua' ? 'selected' : ''; ?>><?= __('ukrainian') ?></option>
-                    <option value="en" <?php echo get_setting('default_language', 'ua') === 'en' ? 'selected' : ''; ?>><?= __('english') ?></option>
+                    <?php foreach (get_language_names() as $langCode => $langName): ?>
+                        <option value="<?= htmlspecialchars($langCode) ?>" <?php echo get_setting('default_language', 'ua') === $langCode ? 'selected' : ''; ?>><?= htmlspecialchars($langName) ?></option>
+                    <?php endforeach; ?>
                 </select>
             </div>
         </div>
@@ -233,7 +234,7 @@ $currencySource  = get_setting('currency_source', 'manual');
                 </div>
             </div>
             <p style="font-size:.8rem; color:#94a3b8; margin:.5rem 0 0;">
-                <i class="fas fa-shield-alt"></i> Для тестування відправки перейдіть у
+                <i class="fas fa-shield-alt"></i> <?= __('admin_settings_smtp_goto_system') ?>
                 <a href="/admin/system?tab=mail"><?= __('smtp_goto_system') ?></a>.
             </p>
         </div>

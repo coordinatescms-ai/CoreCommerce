@@ -2,30 +2,28 @@
 
 namespace App\Controllers;
 
+use App\Core\Localization\LocalizationManager;
+
 class LanguageController
 {
     /**
      * Зміна мови та збереження у сесію та кукі
-     * 
-     * @param string $lang Код мови (ua, en)
+     *
+     * @param string $lang Код мови (зі списку config/languages.php)
      * @return void
      */
     public function change($lang = 'ua')
     {
-        // Список підтримуваних мов
-        $supported_languages = ['ua', 'en'];
-        
-        // Перевірка, чи мова підтримується
-        if (!in_array($lang, $supported_languages)) {
-            $lang = 'ua'; // За замовчуванням українська
+        // Єдине джерело істини — config/languages.php (через LocalizationManager),
+        // а не власний список тут. Раніше цей контролер мав СВІЙ окремий
+        // хардкод-масив мов, який легко забути оновити при додаванні нової
+        // мови — тепер він завжди узгоджений з рештою сайту автоматично.
+        if (!LocalizationManager::isLanguageSupported($lang)) {
+            $lang = 'ua';
         }
-        
-        // Збереження мови у сесію
-        $_SESSION['lang'] = $lang;
-        
-        // Збереження мови у кукі на 1 рік
-        setcookie('lang', $lang, time() + (365 * 24 * 60 * 60), '/', '', false, true);
-        
+
+        LocalizationManager::setLanguage($lang);
+
         // Редирект на попередню сторінку або на головну
         $referer = $_SERVER['HTTP_REFERER'] ?? '/';
         header('Location: ' . $referer);

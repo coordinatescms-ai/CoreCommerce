@@ -301,8 +301,11 @@ $cartCount = isset($_SESSION['cart']) ? count($_SESSION['cart']) : 0;
                             <i class="fas fa-globe"></i>
                         </a>
                         <div class="dropdown-menu" id="langMenu" style="display:none; position:absolute; right:0; background:white; border:1px solid #eee; padding:0.5rem; min-width:120px; box-shadow: var(--shadow); z-index: 1001; border-radius: 8px;">
-                            <a href="/language/ua" style="display:block; padding:0.5rem; font-size:0.85rem; color: var(--dark);">Українська</a>
-                            <a href="/language/en" style="display:block; padding:0.5rem; font-size:0.85rem; color: var(--dark);">English</a>
+                            <?php foreach ((function_exists('get_language_names') ? get_language_names() : ['ua' => 'Українська', 'en' => 'English']) as $langCode => $langName): ?>
+                                <?php if ($langCode !== $currentLang): ?>
+                                    <a href="/language/<?= htmlspecialchars($langCode) ?>" style="display:block; padding:0.5rem; font-size:0.85rem; color: var(--dark);"><?= htmlspecialchars($langName) ?></a>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
                         </div>
                     </div>
 

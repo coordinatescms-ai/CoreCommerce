@@ -1016,20 +1016,21 @@
 
                     <div class="nav-actions">
                         <!-- Мова -->
-                        <?php if (function_exists('get_supported_languages')): ?>
+                        <?php if (function_exists('get_language_names')): ?>
                         <div class="lang-dropdown">
+                            <?php
+                            $current = get_current_language();
+                            $langNames = get_language_names();
+                            ?>
                             <button class="lang-dropbtn">
-                                <?php
-                                $current = get_current_language();
-                                echo $current === 'ua' ? (function_exists('__') ? __('ukrainian') : 'UA') : (function_exists('__') ? __('english') : 'EN');
-                                ?>
+                                <?php echo htmlspecialchars($langNames[$current] ?? strtoupper($current)); ?>
                                 <span class="arrow">▼</span>
                             </button>
                             <div class="dropdown-menu">
-                                <?php foreach (get_supported_languages() as $lang): ?>
+                                <?php foreach ($langNames as $lang => $name): ?>
                                     <?php if ($lang !== $current): ?>
                                         <a href="/language/<?php echo $lang; ?>">
-                                            <?php echo $lang === 'ua' ? (function_exists('__') ? __('ukrainian') : 'Ukrainian') : (function_exists('__') ? __('english') : 'English'); ?>
+                                            <?php echo htmlspecialchars($name); ?>
                                         </a>
                                     <?php endif; ?>
                                 <?php endforeach; ?>

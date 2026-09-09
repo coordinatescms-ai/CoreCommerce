@@ -167,7 +167,7 @@ class ProductController
             )->fetch()['total'] ?? 0);
 
             $products = Product::query(
-                "SELECT p.*, COUNT(f.id) AS popularity_score
+                "SELECT p.*, COUNT(*) AS popularity_score
                  FROM products p
                  INNER JOIN favorites f ON f.product_id = p.id
                  WHERE p.is_visible = 1
@@ -423,10 +423,18 @@ class ProductController
             return;
         }
 
-        if ($parentId === null && ($rating === null || $rating < 1 || $rating > 5)) {
-            http_response_code(422);
-            echo json_encode(['success' => false, 'message' => __('review_rating_required')]);
-            return;
+        if ($parentId === null) {
+            if ($rating === null || $rating < 1 || $rating > 5) {
+                http_response_code(422);
+                echo json_encode(['success' => false, 'message' => __('review_rating_root_invalid')]);
+                return;
+            }
+        } else {
+            if ($rating !== null) {
+                http_response_code(422);
+                echo json_encode(['success' => false, 'message' => __('review_rating_reply_forbidden')]);
+                return;
+            }
         }
 
         if ($parentId !== null) {
