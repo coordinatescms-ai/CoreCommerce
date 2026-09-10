@@ -26,7 +26,7 @@ if (!is_array($data)) {
 // Отримаємо мову з запиту (за замовчуванням 'uk')
 $lang = $data['lang'] ?? 'uk';
 if (!in_array($lang, ['uk', 'en'])) {
-    $lang = 'uk';
+    $lang = 'en';
 }
 
 // Завантажуємо мовний файл

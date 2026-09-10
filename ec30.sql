@@ -11,7 +11,6 @@ SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
 
-
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
@@ -1094,7 +1093,7 @@ CREATE TABLE `shop_methods` (
 --
 
 INSERT INTO `shop_methods` (`id`, `type`, `code`, `name`, `icon`, `description`, `is_active`, `is_test_mode`, `settings`, `sort_order`, `created_at`, `updated_at`) VALUES
-(1, 'shipping', 'nova_poshta', 'Нова Пошта', NULL, '', 0, 0, '{\"cost\": \"70\", \"api_key\": \"d175da6cdfcd3f2121c9ec459cc7abe5\"}', 0, '2026-04-20 16:09:35', '2026-09-07 17:19:01'),
+(1, 'shipping', 'nova_poshta', 'Нова Пошта', NULL, '', 0, 0, '{\"cost\": \"70\", \"api_key\": \"\"}', 0, '2026-04-20 16:09:35', '2026-09-07 17:19:01'),
 (2, 'shipping', 'self_pickup', 'Self-pickup', NULL, '', 1, 0, '{\"address\": \"1 Tsentralna St., Kyiv\"}', 0, '2026-04-20 16:09:35', '2026-09-07 17:19:01'),
 (3, 'payment', 'cash', 'Payment upon receipt', NULL, '', 1, 0, '{\"gateway_name\": \"cash\"}', 0, '2026-04-20 16:09:35', '2026-09-08 17:30:37'),
 (4, 'payment', 'liqpay', 'Онлайн-оплата (LiqPay)', NULL, '', 0, 1, '{\"public_key\": \"\", \"private_key\": \"\", \"gateway_name\": \"liqpay\"}', 0, '2026-04-20 16:09:35', '2026-09-08 17:30:37');
