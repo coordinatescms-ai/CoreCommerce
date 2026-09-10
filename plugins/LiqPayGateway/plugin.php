@@ -184,12 +184,58 @@ return new class implements PluginInterface {
                 static $translations = null;
 
                 if ($translations === null) {
-                    $lang = function_exists('get_current_language') ? get_current_language() : 'ua';
-                    $file = __DIR__ . '/lang/' . ($lang === 'en' ? 'en' : 'ua') . '.json';
+                    $lang = $this->getCurrentLanguage();
+                    $file = __DIR__ . '/lang/' . $lang . '.json';
                     $translations = is_file($file) ? (json_decode((string) file_get_contents($file), true) ?: []) : [];
+
+                    // Fallback до української якщо файл не знайдено
+                    if (empty($translations)) {
+                        $fallbackFile = __DIR__ . '/lang/ua.json';
+                        $translations = is_file($fallbackFile) ? (json_decode((string) file_get_contents($fallbackFile), true) ?: []) : [];
+                    }
                 }
 
                 return $translations[$key] ?? $default;
+            }
+
+            /**
+             * Отримати поточну мову з підтримкою всіх налаштованих мов
+             */
+            private function getCurrentLanguage(): string
+            {
+                // Пробуємо отримати через LocalizationManager
+                if (function_exists('get_current_language')) {
+                    return get_current_language();
+                }
+
+                // Fallback через сесію
+                $lang = $_SESSION['lang'] ?? 'ua';
+
+                // Перевіряємо, чи існує файл перекладу для цієї мови
+                $supportedLangs = $this->getSupportedLanguages();
+                if (!in_array($lang, $supportedLangs)) {
+                    $lang = 'ua'; // дефолтна мова
+                }
+
+                return $lang;
+            }
+
+            /**
+             * Отримати список підтримуваних мов плагіна
+             */
+            private function getSupportedLanguages(): array
+            {
+                $langDir = __DIR__ . '/lang';
+                $languages = [];
+
+                if (is_dir($langDir)) {
+                    foreach (glob($langDir . '/*.json') as $file) {
+                        $langCode = basename($file, '.json');
+                        $languages[] = $langCode;
+                    }
+                }
+
+                return $languages ?: ['ua']; // fallback якщо папка порожня
             }
         });
     }

@@ -23,16 +23,13 @@ return new class implements PluginInterface {
 
     public function renderWidget(): void
     {
-        // Визначаємо поточну мову (за замовчуванням 'uk')
-        $lang = $_SESSION['lang'] ?? 'uk';
-        if (!in_array($lang, ['uk', 'en'])) {
-            $lang = 'uk';
-        }
+        // Визначаємо поточну мову динамічно
+        $lang = $this->getCurrentLanguage();
 
         // Шлях до мовного файлу
         $langFile = __DIR__ . '/lang/' . $lang . '.json';
         $translations = [];
-        
+
         if (file_exists($langFile)) {
             $translations = json_decode(file_get_contents($langFile), true) ?? [];
         }
@@ -47,6 +44,46 @@ return new class implements PluginInterface {
 
         // Виводимо віджет
         echo $this->getWidgetHTML($translations, $lang);
+    }
+
+    /**
+     * Отримати поточну мову з підтримкою всіх налаштованих мов
+     */
+    private function getCurrentLanguage(): string
+    {
+        // Пробуємо отримати через LocalizationManager
+        if (function_exists('get_current_language')) {
+            return get_current_language();
+        }
+
+        // Fallback через сесію
+        $lang = $_SESSION['lang'] ?? 'uk';
+
+        // Перевіряємо, чи існує файл перекладу для цієї мови
+        $supportedLangs = $this->getSupportedLanguages();
+        if (!in_array($lang, $supportedLangs)) {
+            $lang = 'uk'; // дефолтна мова
+        }
+
+        return $lang;
+    }
+
+    /**
+     * Отримати список підтримуваних мов плагіна
+     */
+    private function getSupportedLanguages(): array
+    {
+        $langDir = __DIR__ . '/lang';
+        $languages = [];
+
+        if (is_dir($langDir)) {
+            foreach (glob($langDir . '/*.json') as $file) {
+                $langCode = basename($file, '.json');
+                $languages[] = $langCode;
+            }
+        }
+
+        return $languages ?: ['uk']; // fallback якщо папка порожня
     }
 
     private function getWidgetHTML(array $translations, string $lang): string
