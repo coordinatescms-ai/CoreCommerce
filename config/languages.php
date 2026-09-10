@@ -17,4 +17,5 @@
 return [
     'ua' => 'Українська',
     'en' => 'English',
+    'pl' => 'Polski',
 ];

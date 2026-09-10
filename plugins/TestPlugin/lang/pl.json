@@ -1,0 +1,7 @@
+{
+    "footer_message_default": "Pozdrowienia z TestPlugin!",
+    "settings_show_footer_message_label": "Wyświetlaj komunikaty w stopce",
+    "settings_show_footer_message_hint": "Wyświetl komunikat w komentarzu HTML w stopce strony.",
+    "settings_footer_message_label": "Treść wiadomości",
+    "settings_footer_message_hint": "Ten tekst zostanie wyświetlony wewnątrz znacznika komentarza (<!-- comments -->) w obrębie znacznika stopki (footer)."
+}

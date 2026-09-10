@@ -1,0 +1,14 @@
+{
+    "button_title": "Zamów połączenie",
+    "modal_title": "Zamów połączenie",
+    "placeholder_name": "Twoje imię",
+    "placeholder_phone": "Twój telefon",
+    "submit_button": "Oddzwoń do mnie",
+    "success_message": "Dziękujemy! Oddzwonimy do Ciebie wkrótce.",
+    "error_message": "Proszę wypełnić wszystkie wymagane pola.",
+    "validation_error": "Proszę poprawnie wypełnić wszystkie pola.",
+    "server_error": "Błąd serwera. Spróbuj później.",
+    "csrf_error": "Sesja wygasła, odśwież stronę i spróbuj ponownie.",
+    "email_subject": "Nowe zgłoszenie o oddzwonienie",
+    "email_body": "Imię: {name}\nTelefon: {phone}\nData: {date}"
+}
