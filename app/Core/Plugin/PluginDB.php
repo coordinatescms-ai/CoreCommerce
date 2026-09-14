@@ -50,7 +50,7 @@ class PluginDB
 
         if (!$this->isSelectQuery($sql)) {
             throw new PluginSecurityException(
-                "Плагін «{$this->slug}»: метод select() приймає тільки SELECT-запити."
+                sprintf(__('plugin_db_select_only'), $this->slug)
             );
         }
 
@@ -67,7 +67,7 @@ class PluginDB
 
         if ($this->isSelectQuery($sql)) {
             throw new PluginSecurityException(
-                "Плагін «{$this->slug}»: використовуйте select() для читання даних."
+                sprintf(__('plugin_db_use_select'), $this->slug)
             );
         }
 
@@ -75,8 +75,7 @@ class PluginDB
         foreach ($tables as $table) {
             if (!str_starts_with($table, $this->tablePrefix)) {
                 throw new PluginSecurityException(
-                    "Плагін «{$this->slug}»: запис дозволений тільки у таблиці з префіксом «{$this->tablePrefix}». " .
-                    "Спроба запису в «{$table}»."
+                    sprintf(__('plugin_db_write_only_prefix'), $this->slug, $this->tablePrefix, $table)
                 );
             }
         }

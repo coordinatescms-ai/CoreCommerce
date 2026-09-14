@@ -85,8 +85,15 @@
             left: 0;
             z-index: 30;
         }
-        .nav-dropdown:hover > .nav-dropdown-menu,
-        .nav-dropdown:focus-within > .nav-dropdown-menu { display: block; }
+        /* Єдине джерело істини для відкриття меню на всіх пристроях/розмірах — клас .is-open, керований JS (нижче). */
+        .nav-dropdown.is-open > .nav-dropdown-menu { display: block; }
+        /* Наведення мишкою — лише додаткова зручність, і лише для пристроїв зі "справжньою" мишкою.
+           Навмисно НЕ використовуємо :focus-within — саме воно спричиняло "миготіння" і неробочі
+           посилання: клік по посиланню всередині меню спочатку знімає фокус з кнопки (blur),
+           через що CSS ховає меню ДО того, як браузер встигає перейти за посиланням. */
+        @media (hover: hover) and (pointer: fine) {
+            .nav-dropdown:hover > .nav-dropdown-menu { display: block; }
+        }
         .nav-dropdown-menu li { margin: 0; }
         .nav-dropdown-menu a {
             display: block;
@@ -132,8 +139,6 @@
                 max-height: none;
                 margin-top: 0.5rem;
             }
-            .nav-dropdown.is-open > .nav-dropdown-menu { display: block; }
-            .nav-dropdown:hover > .nav-dropdown-menu { display: none; }
             .language-selector { justify-content: center; }
         }
     </style>
@@ -269,19 +274,40 @@
     </footer>
     <script>
         (() => {
-            if (window.matchMedia('(max-width: 768px)').matches === false) {
-                return;
-            }
+            // Клік-перемикач працює на будь-якій ширині вікна (не лише "мобільній" на момент
+            // завантаження сторінки) — раніше matchMedia перевірявся один раз при завантаженні,
+            // тому звуження вже відкритого вікна браузера на ПК залишало кнопку "мертвою".
+            const dropdowns = Array.from(document.querySelectorAll('[data-nav-dropdown]'));
 
-            document.querySelectorAll('[data-nav-dropdown]').forEach((dropdown) => {
+            const closeDropdown = (dropdown) => {
+                dropdown.classList.remove('is-open');
                 const button = dropdown.querySelector('.nav-dropdown-toggle');
-                if (!button) {
-                    return;
-                }
+                if (button) button.setAttribute('aria-expanded', 'false');
+            };
 
-                button.addEventListener('click', () => {
+            dropdowns.forEach((dropdown) => {
+                const button = dropdown.querySelector('.nav-dropdown-toggle');
+                if (!button) return;
+
+                button.addEventListener('click', (event) => {
+                    event.stopPropagation();
                     const isOpen = dropdown.classList.toggle('is-open');
                     button.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                });
+
+                dropdown.addEventListener('keydown', (event) => {
+                    if (event.key === 'Escape') {
+                        closeDropdown(dropdown);
+                        button.focus();
+                    }
+                });
+            });
+
+            document.addEventListener('click', (event) => {
+                dropdowns.forEach((dropdown) => {
+                    if (dropdown.classList.contains('is-open') && !dropdown.contains(event.target)) {
+                        closeDropdown(dropdown);
+                    }
                 });
             });
         })();

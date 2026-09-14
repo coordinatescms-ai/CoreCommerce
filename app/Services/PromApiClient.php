@@ -173,7 +173,7 @@ class PromApiClient
     {
         if ($this->apiKey === '') {
             $this->log('ERROR', $method, $path, 'API ключ не налаштований');
-            return ['error' => 'API ключ не налаштований у налаштуваннях магазину.'];
+            return ['error' => __('prom_api_key_not_configured')];
         }
 
         $url     = self::BASE_URL . $path;
@@ -227,14 +227,14 @@ class PromApiClient
         // Не вдалося з'єднатися взагалі
         if ($responseBody === false) {
             $this->log('NETWORK_ERROR', $method, $path, $lastError, $httpCode);
-            return ['error' => 'Помилка мережі: ' . $lastError];
+            return ['error' => sprintf(__('prom_network_error'), $lastError)];
         }
 
         $decoded = json_decode($responseBody, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
             $this->log('JSON_ERROR', $method, $path, $responseBody, $httpCode);
-            return ['error' => 'Prom повернув некоректний JSON. Код: ' . $httpCode];
+            return ['error' => sprintf(__('prom_invalid_json_response'), (string) $httpCode)];
         }
 
         // Логуємо помилкові відповіді (4xx, 5xx)
@@ -259,7 +259,7 @@ class PromApiClient
             return [
                 'success'   => false,
                 'http_code' => 0,
-                'message'   => 'API ключ не введено.',
+                'message'   => __('prom_api_key_missing'),
             ];
         }
 
@@ -279,14 +279,14 @@ class PromApiClient
             return [
                 'success'   => false,
                 'http_code' => 401,
-                'message'   => 'Неправильний API ключ. Перевірте правильність копіювання.',
+                'message'   => __('prom_api_key_invalid'),
             ];
         }
 
         return [
             'success'   => true,
             'http_code' => 200,
-            'message'   => "З'єднання успішне! Магазин підключено до Prom.ua.",
+            'message'   => __('prom_connection_success'),
         ];
     }
 

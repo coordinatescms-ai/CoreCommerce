@@ -38,7 +38,7 @@ class BankCurrencyService
 
         if ($response === false) {
             throw new \RuntimeException(
-                "Не вдалося з'єднатися з API НБУ для валюти «{$code}»."
+                sprintf(__('currency_nbu_connection_failed'), $code)
             );
         }
 
@@ -46,13 +46,13 @@ class BankCurrencyService
 
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new \RuntimeException(
-                'API НБУ повернув некоректний JSON: ' . json_last_error_msg()
+                sprintf(__('currency_nbu_invalid_json'), json_last_error_msg())
             );
         }
 
         if (empty($data) || !isset($data[0]['rate'])) {
             throw new \RuntimeException(
-                "API НБУ не повернув курс для валюти «{$code}». Перевірте код валюти або API-ключ."
+                sprintf(__('currency_nbu_rate_not_found'), $code)
             );
         }
 
@@ -60,7 +60,7 @@ class BankCurrencyService
 
         if ($rate <= 0) {
             throw new \RuntimeException(
-                "API НБУ повернув некоректний курс ({$rate}) для «{$code}»."
+                sprintf(__('currency_nbu_invalid_rate'), (string) $rate, $code)
             );
         }
 
