@@ -63,7 +63,7 @@ class LocalStockService implements StockServiceInterface
         if ($stmt->rowCount() !== 1) {
             return false;
         }
-        $this->log($sku, 'reserve', $qty, 'Автоматичне резервування');
+        $this->log($sku, 'reserve', $qty, __('stock_log_auto_reserve'));
         return true;
     }
 
@@ -77,7 +77,7 @@ class LocalStockService implements StockServiceInterface
         if ($stmt->rowCount() !== 1) {
             return false;
         }
-        $this->log($sku, 'release', $qty, 'Зняття резерву');
+        $this->log($sku, 'release', $qty, __('stock_log_release_reserve'));
         return true;
     }
 
@@ -92,7 +92,7 @@ class LocalStockService implements StockServiceInterface
             }
             $this->ensureStockRow($sku);
             DB::query('UPDATE product_stocks SET quantity = ?, updated_at = NOW() WHERE sku = ?', [$qty, $sku]);
-            $this->log($sku, 'sync', $qty, 'External sync');
+            $this->log($sku, 'sync', $qty, __('stock_log_external_sync'));
             $updated++;
         }
         return $updated;

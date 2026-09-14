@@ -90,7 +90,7 @@ class PluginManager
             $plugins[] = [
                 'slug'          => $slug,
                 'name'          => $meta['name']         ?? $slug,
-                'description'   => $meta['description']  ?? 'Опис відсутній.',
+                'description'   => $meta['description']  ?? '<?php echo e(__("description_empty")); ?>',
                 'version'       => $meta['version']       ?? 'n/a',
                 'author'        => $meta['author']        ?? 'Unknown',
                 'requires_php'  => $meta['requires_php']  ?? '',
@@ -115,13 +115,13 @@ class PluginManager
         $plugin = DB::query('SELECT slug FROM plugins WHERE slug = ? LIMIT 1', [$slug])->fetch();
 
         if (!$plugin) {
-            return ['success' => false, 'message' => 'Плагін не знайдено.'];
+            return ['success' => false, 'message' => __('plugin_not_found_hardcoded')];
         }
 
         if ($activate) {
             $meta = $this->readPluginMetadata($slug);
             if ($meta === null) {
-                return ['success' => false, 'message' => 'Папка плагіна або info.json не знайдені.'];
+                return ['success' => false, 'message' => __('plugin_folder_missing')];
             }
 
             $compatibilityError = $this->validateCompatibility($meta);
@@ -145,23 +145,23 @@ class PluginManager
         DB::query('UPDATE plugins SET is_active = ?, updated_at = NOW() WHERE slug = ?', [$activate ? 1 : 0, $slug]);
         $this->clearCache();
 
-        return ['success' => true, 'message' => $activate ? 'Плагін активовано.' : 'Плагін вимкнено.'];
+        return ['success' => true, 'message' => $activate ? __('plugin_activated') : __('plugin_deactivated')];
     }
 
     public function uploadPlugin(array $uploadedFile, int $maxSizeBytes = 10485760): array
     {
         if (($uploadedFile['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-            return ['success' => false, 'message' => 'Помилка завантаження файлу.'];
+            return ['success' => false, 'message' => __('plugin_upload_error')];
         }
 
         if (($uploadedFile['size'] ?? 0) > $maxSizeBytes) {
-            return ['success' => false, 'message' => 'Файл перевищує допустимий розмір.'];
+            return ['success' => false, 'message' => __('plugin_file_too_large')];
         }
 
         $originalName = (string) ($uploadedFile['name'] ?? '');
         $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
         if ($extension !== 'zip') {
-            return ['success' => false, 'message' => 'Дозволені тільки ZIP-файли.'];
+            return ['success' => false, 'message' => __('plugin_invalid_zip')];
         }
 
         $tmpName = (string) ($uploadedFile['tmp_name'] ?? '');
@@ -172,12 +172,12 @@ class PluginManager
         if ($finfo) { finfo_close($finfo); }
 
         if ($realMime !== 'application/zip' && $realMime !== 'application/x-zip-compressed') {
-            return ['success' => false, 'message' => 'Файл не є ZIP-архівом (перевірено за вмістом).'];
+            return ['success' => false, 'message' => __('plugin_invalid_mime')];
         }
 
         $zip = new \ZipArchive();
         if ($zip->open($tmpName) !== true) {
-            return ['success' => false, 'message' => 'Архів пошкоджений або не є ZIP.'];
+            return ['success' => false, 'message' => __('plugin_invalid_zip_error')];
         }
 
         $zipError = $this->validateZipEntries($zip);
@@ -186,32 +186,36 @@ class PluginManager
             return ['success' => false, 'message' => $zipError];
         }
 
-        $extractRoot = sys_get_temp_dir() . '/plugin_upload_' . bin2hex(random_bytes(8));
+        $tmpDir = dirname($this->cacheFile) . '/tmp';
+        if (!is_dir($tmpDir)) {
+            mkdir($tmpDir, 0775, true);
+        }
+        $extractRoot = $tmpDir . '/plugin_upload_' . bin2hex(random_bytes(8));
         mkdir($extractRoot, 0775, true);
         if (!$zip->extractTo($extractRoot)) {
             $zip->close();
             $this->deleteDirectory($extractRoot);
-            return ['success' => false, 'message' => 'Не вдалося розпакувати ZIP-файл.'];
+            return ['success' => false, 'message' => __('plugin_extract_error')];
         }
         $zip->close();
 
         $pluginDir = $this->resolvePluginRootDir($extractRoot);
         if ($pluginDir === null) {
             $this->deleteDirectory($extractRoot);
-            return ['success' => false, 'message' => 'Не знайдено обов’язкові файли info.json та plugin.php.'];
+            return ['success' => false, 'message' => __('plugin_files_missing_not_found')];
         }
 
         $infoPath = $pluginDir . '/info.json';
         $meta = json_decode((string) file_get_contents($infoPath), true);
         if (!is_array($meta) || empty($meta['slug'])) {
             $this->deleteDirectory($extractRoot);
-            return ['success' => false, 'message' => 'Некоректний info.json (поле slug обовʼязкове).'];
+            return ['success' => false, 'message' => __('plugin_invalid_info_json')];
         }
 
         $safeSlug = $this->sanitizeSlug((string) $meta['slug']);
         if ($safeSlug === '' || $safeSlug !== (string) $meta['slug']) {
             $this->deleteDirectory($extractRoot);
-            return ['success' => false, 'message' => 'Некоректний slug плагіна.'];
+            return ['success' => false, 'message' => __('plugin_invalid_slug')];
         }
 
         $compatibilityError = $this->validateCompatibility($meta);
@@ -223,19 +227,19 @@ class PluginManager
         $targetDir = $this->pluginsPath . '/' . $safeSlug;
         if (is_dir($targetDir)) {
             $this->deleteDirectory($extractRoot);
-            return ['success' => false, 'message' => 'Плагін з таким slug вже існує.'];
+            return ['success' => false, 'message' => __('plugin_already_exists')];
         }
 
         if (!rename($pluginDir, $targetDir)) {
             $this->deleteDirectory($extractRoot);
-            return ['success' => false, 'message' => 'Не вдалося зберегти плагін.'];
+            return ['success' => false, 'message' => __('plugin_save_error')];
         }
         $this->deleteDirectory($extractRoot);
 
         $this->syncPluginsTable();
         $this->clearCache();
 
-        return ['success' => true, 'message' => 'Плагін успішно завантажено.'];
+        return ['success' => true, 'message' => __('plugin_uploaded_success')];
     }
 
     // ── Налаштування плагіна ─────────────────────────────────────────────────
@@ -295,14 +299,14 @@ class PluginManager
     {
         $settings = $this->getPluginSettings($slug);
         if (empty($settings)) {
-            return ['success' => false, 'message' => 'Плагін не має налаштувань.'];
+            return ['success' => false, 'message' => __('plugin_no_settings')];
         }
 
         foreach ($settings as $key => $field) {
             if ($field['required'] && empty($data[$key])) {
                 return [
                     'success' => false,
-                    'message' => "Поле «{$field['label']}» є обов'язковим.",
+                    'message' => __('plugin_field') . ' "' . $field['label'] . '" ' . __('plugin_field_required'),
                 ];
             }
 
@@ -316,7 +320,7 @@ class PluginManager
             );
         }
 
-        return ['success' => true, 'message' => 'Налаштування збережено.'];
+        return ['success' => true, 'message' => __('plugin_settings_saved')];
     }
 
     // ── Залежності ───────────────────────────────────────────────────────────
@@ -340,7 +344,7 @@ class PluginManager
             if (!isset($activePlugins[$depSlug])) {
                 $depMeta = $this->readPluginMetadata($depSlug);
                 $depName = $depMeta['name'] ?? $depSlug;
-                return "Залежність не виконана: потрібен активний плагін «{$depName}».";
+                return __('plugin_dependency_not_met') . ' «' . $depName . '».';
             }
 
             // Перевірка версії якщо вказано не '*'
@@ -349,7 +353,7 @@ class PluginManager
                 if (!$this->versionSatisfies($installedVersion, $versionConstraint)) {
                     $depMeta = $this->readPluginMetadata($depSlug);
                     $depName = $depMeta['name'] ?? $depSlug;
-                    return "Залежність «{$depName}»: потрібна версія {$versionConstraint}, встановлена {$installedVersion}.";
+                    return __("plugin_dependency") . " «{$depName}»: " . __("plugin_dependency_not_met") . " " . __("plugin_required_version") . " {$versionConstraint}, " . __("plugin_installed") . " {$installedVersion}.";
                 }
             }
         }
@@ -372,7 +376,7 @@ class PluginManager
             $requires = $meta['requires'] ?? [];
             if (isset($requires[$slug])) {
                 $activeName = $meta['name'] ?? $activeSlug;
-                return "Не можна вимкнути: плагін «{$activeName}» залежить від цього.";
+                return __("plugin_cannot_disable") . " «{$activeName}» " . __("plugin_dependency") . " " . __("plugin_dependency_not_met");
             }
         }
 
@@ -567,13 +571,13 @@ class PluginManager
     {
         $requiresPhp = (string) ($meta['requires_php'] ?? '');
         if ($requiresPhp !== '' && !version_compare(PHP_VERSION, $requiresPhp, '>=')) {
-            return sprintf('Плагін вимагає PHP %s, у вас %s.', $requiresPhp, PHP_VERSION);
+            return sprintf(__('plugin_requires_php'), $requiresPhp, PHP_VERSION);
         }
 
         $requiresCore = (string) ($meta['requires_core'] ?? '');
         $currentCore = defined('CORE_VERSION') ? (string) CORE_VERSION : '0.0.0';
         if ($requiresCore !== '' && !version_compare($currentCore, $requiresCore, '>=')) {
-            return sprintf('Плагін вимагає Core %s, у вас %s.', $requiresCore, $currentCore);
+            return sprintf(__('plugin_requires_core'), $requiresCore, $currentCore);
         }
 
         return null;
@@ -582,23 +586,23 @@ class PluginManager
     private function validateZipEntries(\ZipArchive $zip): ?string
     {
         if ($zip->numFiles < 1) {
-            return 'ZIP-архів порожній.';
+            return __('plugin_zip_empty');
         }
 
         for ($i = 0; $i < $zip->numFiles; $i++) {
             $name = $zip->getNameIndex($i);
             if (!is_string($name)) {
-                return 'ZIP-архів містить некоректний шлях.';
+                return __('plugin_zip_invalid_path');
             }
 
             $isDirectory = str_ends_with(str_replace('\\', '/', $name), '/');
             $path = $this->normalizeArchivePath($name);
             if ($path === null) {
-                return 'ZIP-архів містить небезпечний шлях.';
+                return __('plugin_zip_dangerous_path');
             }
 
             if (!$isDirectory && !$this->hasAllowedUploadExtension($path)) {
-                return 'ZIP-архів містить заборонений тип файлу.';
+                return __('plugin_zip_forbidden_file_type');
             }
         }
 
@@ -659,8 +663,17 @@ class PluginManager
 
     private function sanitizeSlug(string $slug): string
     {
-        $slug = strtolower(trim($slug));
-        $slug = preg_replace('/[^a-z0-9\-]/', '-', $slug) ?? '';
+        // ВАЖЛИВО: раніше тут стояв strtolower(), через що ЖОДЕН плагін з
+        // PascalCase-назвою (DHLDomesticShipping, HotlineExport,
+        // LiveChatWidget — тобто взагалі всі наявні плагіни) не міг пройти
+        // завантаження через кнопку в адмінці: info.json оголошував
+        // "LiveChatWidget", санітайзер "нормалізував" його в "livechatwidget",
+        // а порівняння $safeSlug !== $meta['slug'] завжди не збігалось.
+        // Регістр символів сам по собі не є загрозою безпеці — небезпечні
+        // лише шляхи виходу за межі теки (../, /) та подібні символи, тому
+        // лишаємо валідацію лише на допустимий набір символів.
+        $slug = trim($slug);
+        $slug = preg_replace('/[^A-Za-z0-9_\-]/', '-', $slug) ?? '';
         $slug = preg_replace('/-+/', '-', $slug) ?? '';
         return trim($slug, '-');
     }

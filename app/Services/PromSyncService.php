@@ -49,7 +49,7 @@ class PromSyncService
     public function generateXmlFeed(): array
     {
         if (!PromApiClient::isEnabled()) {
-            return ['success' => false, 'message' => 'Інтеграція з Prom.ua вимкнена.', 'products_count' => 0, 'file_path' => ''];
+            return ['success' => false, 'message' => __('admin_prom_integration_disabled'), 'products_count' => 0, 'file_path' => ''];
         }
 
         $products = $this->fetchProductsForFeed();
@@ -57,7 +57,7 @@ class PromSyncService
         if (empty($products)) {
             return [
                 'success'        => false,
-                'message'        => 'Немає видимих товарів для генерації фіду.',
+                'message'        => __('prom_feed_no_products'),
                 'products_count' => 0,
                 'file_path'      => '',
             ];
@@ -76,7 +76,7 @@ class PromSyncService
             $this->log('FEED_ERROR', 'Не вдалося записати файл: ' . $this->feedPath);
             return [
                 'success'        => false,
-                'message'        => 'Помилка запису файлу фіду.',
+                'message'        => __('prom_feed_write_error'),
                 'products_count' => 0,
                 'file_path'      => '',
             ];
@@ -95,7 +95,7 @@ class PromSyncService
 
         return [
             'success'        => true,
-            'message'        => "Фід згенеровано: {$count} товарів.",
+            'message'        => sprintf(__('prom_feed_generated'), $count),
             'products_count' => $count,
             'file_path'      => $this->feedPath,
             'feed_url'       => $this->siteUrl . '/prom/feed.xml',

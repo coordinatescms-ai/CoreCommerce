@@ -93,11 +93,11 @@ class PromStatusService
     public function sendTtn(int $orderId, string $ttnCode, string $provider = 'nova_poshta'): array
     {
         if (!PromApiClient::isEnabled()) {
-            return ['success' => false, 'message' => 'Інтеграція з Prom.ua вимкнена.'];
+            return ['success' => false, 'message' => __('admin_prom_integration_disabled')];
         }
 
         if ($ttnCode === '') {
-            return ['success' => false, 'message' => 'ТТН не може бути порожнім.'];
+            return ['success' => false, 'message' => __('prom_ttn_empty')];
         }
 
         $order = DB::query(
@@ -106,7 +106,7 @@ class PromStatusService
         )->fetch(\PDO::FETCH_ASSOC);
 
         if (!$order || empty($order['prom_order_id'])) {
-            return ['success' => false, 'message' => 'Замовлення не прив\'язане до Prom.'];
+            return ['success' => false, 'message' => __('prom_order_not_linked')];
         }
 
         $promOrderId = (int)$order['prom_order_id'];
@@ -115,11 +115,11 @@ class PromStatusService
         if (isset($result['error']) || isset($result['errors'])) {
             $error = $result['error'] ?? json_encode($result['errors']);
             $this->log('TTN_FAIL', "order #{$orderId}, prom #{$promOrderId}: {$error}");
-            return ['success' => false, 'message' => 'Помилка Prom API: ' . $error];
+            return ['success' => false, 'message' => sprintf(__('prom_api_error_prefix'), $error)];
         }
 
         $this->log('TTN_OK', "order #{$orderId}, prom #{$promOrderId}, TTN: {$ttnCode}");
-        return ['success' => true, 'message' => 'ТТН передано в Prom.ua.'];
+        return ['success' => true, 'message' => __('prom_ttn_sent')];
     }
 
     // =========================================================================

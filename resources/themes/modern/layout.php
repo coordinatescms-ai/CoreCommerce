@@ -269,9 +269,16 @@
             z-index: 40;
         }
 
-        .nav-dropdown:hover > .nav-dropdown-menu,
-        .nav-dropdown:focus-within > .nav-dropdown-menu {
+        /* Єдине джерело істини для відкриття меню — клас .is-open, керований JS (див. скрипт бургер-меню внизу). */
+        .nav-dropdown.is-open > .nav-dropdown-menu {
             display: block;
+        }
+        /* :focus-within навмисно не використовуємо — саме він спричиняв "миготіння" і неробочі
+           посилання (клік по посиланню знімає фокус з кнопки ДО переходу за посиланням). */
+        @media (hover: hover) and (pointer: fine) {
+            .nav-dropdown:hover > .nav-dropdown-menu {
+                display: block;
+            }
         }
 
         .nav-dropdown-menu a,
@@ -916,10 +923,6 @@
                 display: none;
                 padding: 0;
             }
-            .nav-dropdown.is-open > .nav-dropdown-menu { display: block; }
-            .nav-dropdown:hover > .nav-dropdown-menu { display: none; }
-            .nav-dropdown.is-open:hover > .nav-dropdown-menu { display: block; }
-
             .nav-dropdown-menu a { color: rgba(255,255,255,.9) !important; padding: .5rem 1.5rem; }
             .nav-dropdown-menu a:hover { background: rgba(255,255,255,.1) !important; }
         }
@@ -1198,24 +1201,6 @@
     </footer>
     <script>
         (() => {
-            if (window.matchMedia('(max-width: 768px)').matches === false) {
-                return;
-            }
-
-            document.querySelectorAll('[data-nav-dropdown]').forEach((dropdown) => {
-                const button = dropdown.querySelector('.nav-dropdown-toggle');
-                if (!button) {
-                    return;
-                }
-
-                button.addEventListener('click', () => {
-                    const isOpen = dropdown.classList.toggle('is-open');
-                    button.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-                });
-            });
-        })();
-
-        (() => {
             const badge = document.querySelector('[data-cart-count]');
             if (!badge) return;
 
@@ -1290,14 +1275,39 @@
         }
     });
 
-    // Dropdown у мобільному меню — toggle по кліку
-    panel.querySelectorAll('[data-nav-dropdown]').forEach(function (dd) {
+    // Dropdown "Категорії" — єдиний обробник кліку, працює на будь-якій ширині вікна
+    // (не лише в мобільній панелі) і не залежить від matchMedia на момент завантаження.
+    const navDropdowns = Array.from(panel.querySelectorAll('[data-nav-dropdown]'));
+
+    const closeNavDropdown = (dd) => {
+        dd.classList.remove('is-open');
+        const btn = dd.querySelector('.nav-dropdown-toggle');
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+    };
+
+    navDropdowns.forEach(function (dd) {
         const btn = dd.querySelector('.nav-dropdown-toggle');
         if (!btn) return;
+
         btn.addEventListener('click', function (e) {
             e.stopPropagation();
             const isOpen = dd.classList.toggle('is-open');
             btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+
+        dd.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                closeNavDropdown(dd);
+                btn.focus();
+            }
+        });
+    });
+
+    document.addEventListener('click', function (e) {
+        navDropdowns.forEach(function (dd) {
+            if (dd.classList.contains('is-open') && !dd.contains(e.target)) {
+                closeNavDropdown(dd);
+            }
         });
     });
 })();

@@ -21,20 +21,20 @@ class ImageManager
         $tmpName = (string) ($file['tmp_name'] ?? '');
         $mime = $this->detectMimeType($tmpName);
         if (!in_array($mime, self::ALLOWED_MIME_TYPES, true)) {
-            throw new \RuntimeException('Дозволені формати зображень: jpg, jpeg, png, webp.');
+            throw new \RuntimeException(__('image_manager_invalid_format'));
         }
 
         try {
             $resource = $this->createResourceFromFile($tmpName, $mime);
             if (!$resource) {
-                throw new \RuntimeException('Не вдалося відкрити файл зображення.');
+                throw new \RuntimeException(__('image_manager_cannot_open'));
             }
 
             $width = imagesx($resource);
             $height = imagesy($resource);
             if ($width <= 0 || $height <= 0) {
                 imagedestroy($resource);
-                throw new \RuntimeException('Некоректні розміри зображення.');
+                throw new \RuntimeException(__('image_manager_invalid_dimensions'));
             }
 
             $quality = (int) ($config['quality'] ?? 82);
@@ -59,7 +59,7 @@ class ImageManager
             foreach ($targetDirs as $dir) {
                 if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
                     imagedestroy($resource);
-                    throw new \RuntimeException('Не вдалося створити директорію для зображень.');
+                    throw new \RuntimeException(__('image_manager_cannot_create_dir'));
                 }
             }
 
@@ -128,12 +128,12 @@ class ImageManager
     private function validateUpload(array $file): void
     {
         if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-            throw new \RuntimeException('Помилка завантаження файлу.');
+            throw new \RuntimeException(__('image_manager_upload_error'));
         }
 
         $size = (int) ($file['size'] ?? 0);
         if ($size <= 0 || $size > self::MAX_FILE_SIZE_BYTES) {
-            throw new \RuntimeException('Максимальний розмір одного зображення — 5MB.');
+            throw new \RuntimeException(__('image_manager_max_size'));
         }
     }
 
@@ -222,7 +222,7 @@ class ImageManager
         }
 
         if (!$saved) {
-            throw new \RuntimeException('Не вдалося зберегти зображення.');
+            throw new \RuntimeException(__('image_manager_save_error'));
         }
 
         return $publicPrefix . basename($targetPath);

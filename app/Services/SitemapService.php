@@ -47,7 +47,7 @@ class SitemapService
         $outputDir = rtrim($outputDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
 
         if (!is_dir($outputDir) && !mkdir($outputDir, 0775, true)) {
-            throw new \RuntimeException("Cannot create output dir: $outputDir");
+            throw new \RuntimeException(sprintf(__('sitemap_cannot_create_dir'), $outputDir));
         }
 
         $sitemapFiles = []; // [filename => lastmod]
@@ -299,7 +299,7 @@ class SitemapService
         $w = new XMLWriter();
 
         if (!$w->openURI($path)) {
-            throw new \RuntimeException("XMLWriter cannot open file: $path");
+            throw new \RuntimeException(sprintf(__('sitemap_cannot_open_file'), $path));
         }
 
         $w->startDocument('1.0', 'UTF-8');
