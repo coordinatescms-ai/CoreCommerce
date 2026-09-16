@@ -3,7 +3,6 @@
 
 # Файли конфігурації (там зазвичай паролі до БД)
 .env
-backups/
 
 # Local updater packages
 storage/local_updates/*.zip
