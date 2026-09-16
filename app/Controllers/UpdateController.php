@@ -662,7 +662,7 @@ class UpdateController
 
     /**
      * Завантажити manifest.json з remote update-сервера.
-     * Сервер повинен повернути JSON із полями: version, changelog, sha256, download_url, min_php
+     * Сервер повинен повернути JSON із полями: version, changelog, sha256, package (або download_url), min_php
      */
     private function loadRemoteManifest(): array
     {
@@ -675,12 +675,8 @@ class UpdateController
         $apiKey         = (string) ($this->config['api_key'] ?? '');
         $timeout        = (int)    ($this->config['remote_timeout'] ?? 15);
 
-        // Формуємо URL запиту
-        $url = $serverUrl . '/check?' . http_build_query([
-            'version' => $currentVersion,
-            'php'     => PHP_VERSION,
-            'domain'  => $_SERVER['HTTP_HOST'] ?? '',
-        ]);
+        // Формуємо URL запиту до manifest.json
+        $url = $serverUrl . '/manifest.json';
 
         $context = stream_context_create([
             'http' => [
@@ -717,7 +713,7 @@ class UpdateController
         }
 
         // Валідація обов'язкових полів
-        foreach (['version', 'sha256', 'download_url'] as $field) {
+        foreach (['version', 'sha256'] as $field) {
             if (empty($decoded[$field])) {
                 return [null, sprintf(__('update_server_missing_field'), $field)];
             }
@@ -725,6 +721,17 @@ class UpdateController
 
         if (!preg_match('/^[a-f0-9]{64}$/i', (string) $decoded['sha256'])) {
             return [null, __('update_server_invalid_sha256')];
+        }
+
+        // Конвертуємо 'package' в 'download_url' якщо потрібно
+        if (empty($decoded['download_url']) && !empty($decoded['package'])) {
+            $packageName = basename(str_replace('\\', '/', trim((string) $decoded['package'])));
+            $decoded['download_url'] = $serverUrl . '/' . $packageName;
+        }
+
+        // Перевіряємо наявність download_url після конвертації
+        if (empty($decoded['download_url'])) {
+            return [null, sprintf(__('update_server_missing_field'), 'download_url/package')];
         }
 
         // Додаємо min_php якщо не прийшло
