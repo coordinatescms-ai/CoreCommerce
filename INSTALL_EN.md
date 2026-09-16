@@ -135,7 +135,7 @@ Once logged in, navigate to **Settings → General** and fill in the following:
 | Field | What to enter |
 |---|---|
 | Store Name | Name of your online store |
-| Store URL | `https://site.com` (must match `.env APP_URL`) |
+| Store URL | `https://site.com` (must match `.env APP_URL`) | - IMPORTANTLY!
 | Contact Email | Support email address (displayed in the footer) |
 | Contact Phone | Store phone number |
 | Store Address | Physical address (or leave empty) |

@@ -109,14 +109,38 @@ if (!function_exists('renderCategorySidebarAccordion')) {
             $filterAjaxEnabled = true;
             include __DIR__ . '/../components/product_filters.php';
             ?>
+
+            <?php
+            /**
+             * Слот для банера в лівому сайдбарі, під деревом категорій і фільтрами.
+             * Майбутній плагін керування банерами вішається сюди через add_action().
+             */
+            do_action('catalog.sidebar.after_filters', $category);
+            ?>
         </aside>
 
         <section class="category-content">
+            <?php
+            /**
+             * Слот для банера над сіткою товарів. Навмисно ПОЗА
+             * #category-products (AJAX-контейнером фільтрів), щоб банер не
+             * перезавантажувався/не блимав при кожній зміні фільтра чи сторінки.
+             */
+            do_action('catalog.content.before_products', $category);
+            ?>
             <div id="category-products" data-products-container>
                 <?php include __DIR__ . '/partials/category_products.php'; ?>
             </div>
         </section>
     </div>
+
+    <?php
+    /**
+     * Слот для банера внизу сторінки — так само поза AJAX-контейнером,
+     * тому лишається на місці при фільтрації/пагінації.
+     */
+    do_action('catalog.content.after', $category);
+    ?>
 </div>
 
 <style>
