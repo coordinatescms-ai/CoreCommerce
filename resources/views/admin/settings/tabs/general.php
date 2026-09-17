@@ -103,7 +103,15 @@ $currencySource  = get_setting('currency_source', 'manual');
             </div>
 
             <div class="form-group">
-                <label style="display:flex; align-items:center; gap:.75rem; cursor:pointer; font-weight:600;">                     <?= __("admin_settings_rate_source") ?><label style="display:flex; align-items:center; gap:.3rem; font-weight:400; cursor:pointer;">
+                <label style="display:flex; align-items:center; gap:.5rem; cursor:pointer; font-weight:600;">
+                    <input type="checkbox" name="skip_recalculation" id="skip_recalculation" value="1"
+                           form="currencyUpdateForm" onchange="toggleRecalculation()">
+                    <?= __("admin_settings_skip_recalculation") ?>
+                </label>
+                <small style="color:#64748b; font-size:.8rem; margin-top:.25rem; display:block;"><?= __("admin_settings_skip_recalculation_hint") ?></small>
+            </div>
+
+            <div class="form-group" id="rate_source_group">
                         <input type="radio" name="currency_source" value="manual"
                                id="src_manual"
                                form="currencyUpdateForm"
@@ -141,10 +149,11 @@ $currencySource  = get_setting('currency_source', 'manual');
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-primary"
+            <button type="submit" class="btn btn-primary" id="currency_submit_btn"
                     form="currencyUpdateForm"
-                    onclick="return confirm(<?= json_encode(__("admin_settings_currency_confirm")) ?>)">
-                <i class="fas fa-sync-alt"></i> <?= __("admin_settings_currency_update") ?>
+                    data-confirm-text="<?= htmlspecialchars(__("admin_settings_currency_confirm")) ?>"
+                    onclick="return confirm(this.dataset.confirmText)">
+                <i class="fas fa-sync-alt"></i> <span class="btn-label"><?= __("admin_settings_currency_update") ?></span>
             </button>
         </div>
     </div>
@@ -424,9 +433,26 @@ $currencySource  = get_setting('currency_source', 'manual');
 <script>
 function toggleRateSource() {
     const isApi = document.getElementById('src_api').checked;
-    document.getElementById('manual_rate_group').style.display = isApi ? 'none' : '';
-    document.getElementById('api_rate_group').style.display    = isApi ? '' : 'none';
-    document.getElementById('manual_rate').required = !isApi;
+    const skip = document.getElementById('skip_recalculation').checked;
+    document.getElementById('manual_rate_group').style.display = (isApi || skip) ? 'none' : '';
+    document.getElementById('api_rate_group').style.display    = (isApi && !skip) ? '' : 'none';
+    document.getElementById('manual_rate').required = !isApi && !skip;
 }
 toggleRateSource();
+
+function toggleRecalculation() {
+    const skip = document.getElementById('skip_recalculation').checked;
+
+    document.getElementById('rate_source_group').style.display = skip ? 'none' : '';
+
+    const submitBtn = document.getElementById('currency_submit_btn');
+    submitBtn.dataset.confirmText = skip
+        ? window.LANG.admin_settings_currency_switch_confirm
+        : window.LANG.admin_settings_currency_confirm;
+    submitBtn.querySelector('.btn-label').textContent = skip
+        ? window.LANG.admin_settings_currency_switch_only
+        : window.LANG.admin_settings_currency_update;
+
+    toggleRateSource();
+}
 </script>

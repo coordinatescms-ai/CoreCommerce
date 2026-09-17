@@ -367,6 +367,21 @@ if (!isset($request_uri)) {
             save_error:                <?= json_encode(__('save_error')) ?>,
             ban_reason_prompt:         <?= json_encode(__('ban_reason_prompt')) ?>,
             bonus_reason_prompt:       <?= json_encode(__('bonus_reason_prompt')) ?>,
+
+            price_batch_preview_loading: <?= json_encode(__('price_batch_preview_loading')) ?>,
+            price_batch_preview_zero:    <?= json_encode(__('price_batch_preview_zero')) ?>,
+            price_batch_preview_count:   <?= json_encode(__('price_batch_preview_count')) ?>,
+            price_batch_network_error:   <?= json_encode(__('price_batch_network_error')) ?>,
+            price_batch_confirm:         <?= json_encode(__('price_batch_confirm')) ?>,
+            price_batch_applying:        <?= json_encode(__('price_batch_applying')) ?>,
+            price_batch_apply_btn:       <?= json_encode(__('price_batch_apply_btn')) ?>,
+            price_batch_invalid_value:   <?= json_encode(__('price_batch_invalid_value')) ?>,
+            price_batch_main_currency_tag: <?= json_encode(__('price_batch_main_currency_tag')) ?>,
+            crm_activity_log_clear_confirm: <?= json_encode(__('crm_activity_log_clear_confirm')) ?>,
+            admin_settings_currency_update: <?= json_encode(__('admin_settings_currency_update')) ?>,
+            admin_settings_currency_confirm: <?= json_encode(__('admin_settings_currency_confirm')) ?>,
+            admin_settings_currency_switch_only: <?= json_encode(__('admin_settings_currency_switch_only')) ?>,
+            admin_settings_currency_switch_confirm: <?= json_encode(__('admin_settings_currency_switch_confirm')) ?>,
         };
 
         window.UPDATER_TRANSLATIONS = {
