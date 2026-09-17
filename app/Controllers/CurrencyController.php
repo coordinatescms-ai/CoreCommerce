@@ -146,12 +146,62 @@ class CurrencyController
         }
 
         // БАГ #3 fix: використовуємо ?? щоб уникнути PHP Notice
-        $source        = (($_POST['currency_source'] ?? '') === 'api') ? 'api' : 'manual';
-        $targetCode    = strtoupper(trim((string)($_POST['target_currency'] ?? '')));
-        $manualRateRaw = trim((string)($_POST['manual_rate'] ?? ''));
+        $source             = (($_POST['currency_source'] ?? '') === 'api') ? 'api' : 'manual';
+        $targetCode         = strtoupper(trim((string)($_POST['target_currency'] ?? '')));
+        $manualRateRaw      = trim((string)($_POST['manual_rate'] ?? ''));
+        $skipRecalculation  = !empty($_POST['skip_recalculation']);
 
         if ($targetCode === '') {
             $_SESSION['error'] = __('admin_currency_target_required');
+            header('Location: /admin/settings?tab=general');
+            exit;
+        }
+
+        // ---------------------------------------------------------------
+        // Режим "без перерахунку" — лише перемикає активну валюту сайту,
+        // ціни товарів не чіпає взагалі. Курс і джерело курсу в цьому
+        // режимі не мають значення (їх ніхто не вводив) — тому це окрема,
+        // навмисно спрощена гілка, а не варіант основної.
+        // ---------------------------------------------------------------
+        if ($skipRecalculation) {
+            $targetCurrency = DB::query(
+                'SELECT * FROM currencies WHERE code = ?', [$targetCode]
+            )->fetch(\PDO::FETCH_ASSOC);
+
+            if (!$targetCurrency) {
+                $_SESSION['error'] = sprintf(__('admin_currency_target_not_found'), $targetCode);
+                header('Location: /admin/settings?tab=general');
+                exit;
+            }
+
+            try {
+                DB::beginTransaction();
+
+                // Активна валюта за конвенцією проєкту завжди має rate = 1.0000
+                // (так само як UAH у базовому стані) — це важливо для інших
+                // функцій, які читають "курс головної валюти" (масова зміна
+                // цін за курсом, format_price тощо).
+                DB::query('UPDATE currencies SET rate = 1.0000 WHERE code = ?', [$targetCode]);
+                DB::query('UPDATE currencies SET is_active = 0');
+                DB::query('UPDATE currencies SET is_active = 1 WHERE code = ?', [$targetCode]);
+
+                DB::query(
+                    "INSERT INTO settings (`key`, `value`, `group`, `type`, updated_at)
+                     VALUES ('default_currency', ?, 'localization', 'select', NOW())
+                     ON DUPLICATE KEY UPDATE `value` = ?, updated_at = NOW()",
+                    [$targetCode, $targetCode]
+                );
+
+                DB::commit();
+
+                $_SESSION['success'] = sprintf(__('admin_currency_switched_no_recalc'), $targetCode);
+            } catch (\Throwable $e) {
+                if (DB::inTransaction()) {
+                    DB::rollBack();
+                }
+                $_SESSION['error'] = sprintf(__('admin_currency_recalculation_error'), $e->getMessage());
+            }
+
             header('Location: /admin/settings?tab=general');
             exit;
         }
