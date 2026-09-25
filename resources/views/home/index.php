@@ -1,3 +1,4 @@
+<?php do_action('home.content.top'); ?>
 <!-- 
 <section style="padding: 2rem 0;">
     <h1 style="margin-bottom: 0.5rem;"><?= __('homepage_hero_title') ?></h1>
@@ -30,11 +31,17 @@
                     class="category-luxury-card"
                     style="display: flex; flex-direction: column; align-items: center; text-align: center; padding: 2.5rem 1.5rem; text-decoration: none; color: var(--dark); background: #fff; border: 1px solid #f0f0f0; border-radius: 15px; transition: var(--transition); position: relative; overflow: hidden;"
                 >
-                    <div class="category-icon-wrapper" style="width: 70px; height: 70px; background: #fcf8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; color: var(--primary); font-size: 1.8rem; font-family: 'Playfair Display', serif; font-weight: 800; border: 1px solid #f5eeda; transition: var(--transition); position: relative; z-index: 2;">
-                        <?= mb_substr(htmlspecialchars($category['name']), 0, 1) ?>
+                    <div class="category-icon-wrapper" style="width: 70px; height: 70px; background: #fcf8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; color: var(--primary); font-size: 1.8rem; font-family: 'Playfair Display', serif; font-weight: 800; border: 1px solid #f5eeda; transition: var(--transition); position: relative; z-index: 2; overflow: hidden;">
+                        <?php if (!empty($category['image'])): ?>
+                            <img src="<?= htmlspecialchars($category['image']) ?>" alt="<?= htmlspecialchars($category['name']) ?>" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">
+                        <?php else: ?>
+                            <?= mb_substr(htmlspecialchars($category['name']), 0, 1) ?>
+                        <?php endif; ?>
                     </div>
-                    <strong style="display: block; font-size: 1.1rem; margin-bottom: 0.5rem; font-family: 'Inter', sans-serif; position: relative; z-index: 2;"><?= htmlspecialchars($category['name']) ?></strong>
-                    <span style="color: var(--gray-600); font-size: 0.85rem; position: relative; z-index: 2;"><?= __('products_count') ?> <?= (int)($category['products_count'] ?? 0) ?></span>
+                    <div style="display: flex; flex-direction: column; align-items: center; margin-top: auto; position: relative; z-index: 2;">
+                        <strong style="font-size: 1.1rem; margin-bottom: 0.5rem; font-family: 'Inter', sans-serif;"><?= htmlspecialchars($category['name']) ?></strong>
+                        <span style="color: var(--gray-600); font-size: 0.85rem; white-space: nowrap;"><?= __('products_count') ?> <?= (int)($category['products_count'] ?? 0) ?></span>
+                    </div>
                     
                     <!-- Decorative background element -->
                     <div style="position: absolute; bottom: -20px; right: -20px; font-size: 5rem; font-family: 'Playfair Display', serif; font-weight: 900; color: #fcfcfc; z-index: 1; pointer-events: none; opacity: 0.5;">
@@ -105,13 +112,16 @@
                         <p style="margin: 0 0 0.5rem;"><?= render_stock_badge($product) ?></p>
                     <?php endif; ?>
                     <p style="margin: 0 0 0.75rem; margin-top: auto;"><?= render_product_price($product) ?></p>
-                    <form action="/cart/add/<?= (int)$product['id'] ?>" method="POST" style="display: inline-block; margin: 0;">
-                        <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
-                        <input type="hidden" name="return_url" value="<?= htmlspecialchars($_SERVER['REQUEST_URI'] ?? '/products') ?>">
-                        <button type="submit" <?= $outOfStock ? 'disabled' : '' ?> style="display: inline-block; padding: 0.5rem 0.85rem; background: <?= $outOfStock ? '#9ca3af' : '#111827' ?>; color: #fff; text-decoration: none; border-radius: 0.45rem; border: 0; cursor: <?= $outOfStock ? 'not-allowed' : 'pointer' ?>;">
-                            <?= $outOfStock ? __('out_of_stock') : __('add_to_cart') ?>
-                        </button>
-                    </form>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <form action="/cart/add/<?= (int)$product['id'] ?>" method="POST" style="display: inline-block; margin: 0;">
+                            <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
+                            <input type="hidden" name="return_url" value="<?= htmlspecialchars($_SERVER['REQUEST_URI'] ?? '/products') ?>">
+                            <button type="submit" <?= $outOfStock ? 'disabled' : '' ?> style="display: inline-block; padding: 0.5rem 0.85rem; background: <?= $outOfStock ? '#9ca3af' : '#111827' ?>; color: #fff; text-decoration: none; border-radius: 0.45rem; border: 0; cursor: <?= $outOfStock ? 'not-allowed' : 'pointer' ?>;">
+                                <?= $outOfStock ? __('out_of_stock') : __('add_to_cart') ?>
+                            </button>
+                        </form>
+                        <?= render_compare_button((int) $product['id'], $compareProductIds ?? []) ?>
+                    </div>
                 </article>
             <?php endforeach; ?>
         </div>
@@ -151,13 +161,16 @@
                         <p style="margin: 0 0 0.5rem;"><?= render_stock_badge($product) ?></p>
                     <?php endif; ?>
                     <p style="margin: 0 0 0.75rem; margin-top: auto;"><?= render_product_price($product) ?></p>
-                    <form action="/cart/add/<?= (int)$product['id'] ?>" method="POST" style="display: inline-block; margin: 0;">
-                        <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
-                        <input type="hidden" name="return_url" value="<?= htmlspecialchars($_SERVER['REQUEST_URI'] ?? '/products') ?>">
-                        <button type="submit" <?= $outOfStock ? 'disabled' : '' ?> style="display: inline-block; padding: 0.5rem 0.85rem; background: <?= $outOfStock ? '#9ca3af' : '#111827' ?>; color: #fff; text-decoration: none; border-radius: 0.45rem; border: 0; cursor: <?= $outOfStock ? 'not-allowed' : 'pointer' ?>;">
-                            <?= $outOfStock ? __('out_of_stock') : __('add_to_cart') ?>
-                        </button>
-                    </form>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <form action="/cart/add/<?= (int)$product['id'] ?>" method="POST" style="display: inline-block; margin: 0;">
+                            <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
+                            <input type="hidden" name="return_url" value="<?= htmlspecialchars($_SERVER['REQUEST_URI'] ?? '/products') ?>">
+                            <button type="submit" <?= $outOfStock ? 'disabled' : '' ?> style="display: inline-block; padding: 0.5rem 0.85rem; background: <?= $outOfStock ? '#9ca3af' : '#111827' ?>; color: #fff; text-decoration: none; border-radius: 0.45rem; border: 0; cursor: <?= $outOfStock ? 'not-allowed' : 'pointer' ?>;">
+                                <?= $outOfStock ? __('out_of_stock') : __('add_to_cart') ?>
+                            </button>
+                        </form>
+                        <?= render_compare_button((int) $product['id'], $compareProductIds ?? []) ?>
+                    </div>
                     <?php if (isset($product['orders_count'])): ?>
                         <p style="margin: 0.5rem 0 0; color: #6b7280; font-size: 0.9rem;"><?= __('orders_count') ?> <?= (int)$product['orders_count'] ?></p>
                     <?php endif; ?>
@@ -166,3 +179,5 @@
         </div>
     <?php endif; ?>
 </section>
+
+<?php do_action('home.content.after'); ?>

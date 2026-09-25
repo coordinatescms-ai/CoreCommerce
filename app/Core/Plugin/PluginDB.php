@@ -139,26 +139,32 @@ class PluginDB
 
     /**
      * Простий парсер назв таблиць для INSERT/UPDATE/DELETE.
+     *
+     * Патерни прив'язані до ПОЧАТКУ інструкції (^), а не шукаються будь-де
+     * в тексті: інакше конструкція "... ON UPDATE CURRENT_TIMESTAMP" у
+     * визначенні колонки (типовий MySQL-ідіом для updated_at) хибно
+     * розпізнавалась як окрема UPDATE-інструкція з "таблицею"
+     * CURRENT_TIMESTAMP і блокувала легітимний CREATE TABLE плагіна.
      */
     private function extractTableNames(string $sql): array
     {
         $tables = [];
-        $sql    = preg_replace('/\s+/', ' ', strtolower($sql));
+        $sql    = preg_replace('/\s+/', ' ', strtolower(trim($sql)));
 
         // INSERT INTO `table`
-        if (preg_match('/insert\s+into\s+[`"]?(\w+)[`"]?/i', $sql, $m)) {
+        if (preg_match('/^insert\s+(?:ignore\s+)?into\s+[`"]?(\w+)[`"]?/i', $sql, $m)) {
             $tables[] = $m[1];
         }
         // UPDATE `table`
-        if (preg_match('/update\s+[`"]?(\w+)[`"]?/i', $sql, $m)) {
+        if (preg_match('/^update\s+[`"]?(\w+)[`"]?/i', $sql, $m)) {
             $tables[] = $m[1];
         }
         // DELETE FROM `table`
-        if (preg_match('/delete\s+from\s+[`"]?(\w+)[`"]?/i', $sql, $m)) {
+        if (preg_match('/^delete\s+from\s+[`"]?(\w+)[`"]?/i', $sql, $m)) {
             $tables[] = $m[1];
         }
         // CREATE TABLE / DROP TABLE
-        if (preg_match('/(?:create|drop)\s+table\s+(?:if\s+(?:not\s+)?exists\s+)?[`"]?(\w+)[`"]?/i', $sql, $m)) {
+        if (preg_match('/^(?:create|drop)\s+table\s+(?:if\s+(?:not\s+)?exists\s+)?[`"]?(\w+)[`"]?/i', $sql, $m)) {
             $tables[] = $m[1];
         }
 

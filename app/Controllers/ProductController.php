@@ -81,6 +81,11 @@ class ProductController
             'childCategories'=> Category::getChildren($category['id']),
             'seoSettings'    => $seoSettings,
             'seo'            => $this->resolveCategorySeoPage($category, $seoSettings),
+            // renderCategoryProductsHtml() рендерить partial напряму через include (AJAX-фільтр),
+            // минаючи View::render() — там compareProductIds підставляється автоматично для звичайного
+            // рендеру сторінки категорії, а тут довантажуємо вручну, щоб кнопка "Порівняти" лишалась
+            // коректною і в AJAX-відповіді.
+            'compareProductIds' => \App\Models\CompareList::getProductIds(),
         ];
     }
 
@@ -348,6 +353,11 @@ class ProductController
 
         if ($isAjax) {
             header('Content-Type: application/json; charset=utf-8');
+            // Без цього браузер може закешувати цю JSON-відповідь за URL і
+            // віддати її ж на звичайну (не-AJAX) навігацію на той самий
+            // /category/{path}/filter URL — саме так і виглядає "сира
+            // JSON-сторінка замість каталогу" для користувача.
+            header('Cache-Control: no-store');
             echo json_encode([
                 'html'  => $this->renderCategoryProductsHtml($data),
                 'total' => $data['totalProducts'],

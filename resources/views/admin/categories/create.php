@@ -5,7 +5,7 @@
     </a>
 </div>
 
-<form action="/admin/categories/store" method="POST">
+<form action="/admin/categories/store" method="POST" enctype="multipart/form-data">
     <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf']); ?>">
     
     <div class="card">
@@ -35,6 +35,11 @@
             <div class="form-group">
                 <label for="description"><?= __('category_description') ?></label>
                 <textarea name="description" id="description" class="form-control" rows="4"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="image"><?= __('category_image') ?></label>
+                <input type="file" name="image" id="image" class="form-control" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+                <small style="color: #64748b;"><?= __('category_image_hint') ?></small>
             </div>
         </div>
     </div>

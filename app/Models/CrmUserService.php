@@ -164,6 +164,22 @@ class CrmUserService
         )->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
+    /**
+     * Очистити лог активності користувача — таблиця crm_user_activity_logs
+     * поповнюється на кожну дію (замовлення, зміна підписки, блокування тощо)
+     * і без періодичного очищення з часом розростається до величезних розмірів.
+     * Сам факт очищення фіксується окремо в crm_user_action_audit (не тут) —
+     * щоб лишався слід, хто і коли це зробив.
+     *
+     * @return int Кількість видалених записів.
+     */
+    public static function clearActivity(int $userId): int
+    {
+        self::ensureSchema();
+
+        return DB::query('DELETE FROM crm_user_activity_logs WHERE user_id = ?', [$userId])->rowCount();
+    }
+
     public static function getBonusBalance(int $userId): int
     {
         self::ensureSchema();

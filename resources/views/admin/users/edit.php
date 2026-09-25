@@ -119,8 +119,16 @@ $lastOrderAt = $lastOrderRaw !== '' ? date('d.m.Y H:i', strtotime($lastOrderRaw)
             <a href="/admin/users/create-order/<?php echo (int) $user['id']; ?>" class="btn btn-primary"><i class="fas fa-plus"></i> <?php echo __('crm_action_create_order'); ?></a>
         </div>
 
-        <h3 style="margin: 1rem 0 .5rem;"><?php echo __('crm_activity_log_title'); ?></h3>
-        <ul class="crm-list"><?php foreach (($crmData['activity_log'] ?? []) as $entry): ?><li><?php echo htmlspecialchars((string) ($entry['created_at'] ?? '')); ?> — <?php echo htmlspecialchars((string) ($entry['description'] ?? '')); ?></li><?php endforeach; ?></ul>
+        <h3 style="margin: 1rem 0 .5rem; display: flex; align-items: center; justify-content: space-between; gap: .5rem;">
+            <span><?php echo __('crm_activity_log_title'); ?></span>
+            <?php if (!empty($crmData['activity_log'])): ?>
+                <button type="button" id="crm-clear-activity-log" class="btn btn-outline" style="font-size: .78rem; padding: .3rem .7rem; color: #dc2626; border-color: #fecaca;">
+                    <i class="fas fa-trash"></i> <?php echo __('crm_activity_log_clear'); ?>
+                </button>
+            <?php endif; ?>
+        </h3>
+        <ul class="crm-list" id="crm-activity-list"><?php foreach (($crmData['activity_log'] ?? []) as $entry): ?><li><?php echo htmlspecialchars((string) ($entry['created_at'] ?? '')); ?> — <?php echo htmlspecialchars((string) ($entry['description'] ?? '')); ?></li><?php endforeach; ?></ul>
+        <p id="crm-activity-empty" class="crm-list" style="<?php echo empty($crmData['activity_log']) ? '' : 'display:none;'; ?> color:#94a3b8;"><?php echo __('crm_activity_log_empty'); ?></p>
 
         <?php /*
             Бонусна система: backend повністю реалізований і протестований
@@ -250,6 +258,29 @@ $lastOrderAt = $lastOrderRaw !== '' ? date('d.m.Y H:i', strtotime($lastOrderRaw)
             const response = await postForm('/admin/users/subscription/' + userId, new URLSearchParams({csrf, marketing_email: this.checked ? '1' : '0'}));
             const data = await response.json();
             if (!data.success) { this.checked = !this.checked; alert(data.message || window.LANG.error); }
+        });
+    }
+
+    const clearActivityBtn = document.getElementById('crm-clear-activity-log');
+    if (clearActivityBtn) {
+        clearActivityBtn.addEventListener('click', async function () {
+            if (!confirm(window.LANG.crm_activity_log_clear_confirm)) return;
+
+            this.disabled = true;
+            const response = await postForm('/admin/users/activity-log/clear/' + userId, new URLSearchParams({csrf}));
+            const data = await response.json();
+
+            if (!data.success) {
+                alert(data.message || window.LANG.error);
+                this.disabled = false;
+                return;
+            }
+
+            const list = document.getElementById('crm-activity-list');
+            const emptyNote = document.getElementById('crm-activity-empty');
+            if (list) list.innerHTML = '';
+            if (emptyNote) emptyNote.style.display = '';
+            this.remove();
         });
     }
 

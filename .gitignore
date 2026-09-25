@@ -11,3 +11,8 @@ storage/local_updates/*.ZIP
 # Local release/test artifacts
 storage/backups/*.sql
 storage/testing/
+
+# Логи, кеш та тимчасові файли
+storage/logs/
+storage/cache/
+storage/temp/

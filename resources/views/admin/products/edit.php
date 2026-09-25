@@ -146,7 +146,7 @@
                                 <?php endif; ?>
                             </select>
                             <div class="attribute-value-wrap">
-                                <input type="text" name="attribute_value[]" class="form-control" value="<?php echo htmlspecialchars($row['value'] ?? ''); ?>" placeholder="<?= __('product_attribute_value_placeholder') ?>">
+                                <input type="text" name="attribute_value[]" class="form-control" value="<?php echo htmlspecialchars($row['value'] ?? ''); ?>" placeholder="<?= __('product_attribute_value_placeholder') ?>" data-initial-value="<?php echo htmlspecialchars($row['value'] ?? ''); ?>">
                             </div>
                             <button type="button" class="btn btn-outline attribute-remove-btn" style="border: 1px solid #ddd; color: #ef4444;" title="<?= __('remove') ?>">
                                 <i class="fas fa-trash" aria-hidden="true"></i>
@@ -262,6 +262,7 @@
         const existingGallery = document.getElementById('existing-gallery');
         const deleteGalleryInputs = document.getElementById('delete-gallery-inputs');
         let allowedAttributes = <?php echo json_encode($allowedAttributes ?? [], JSON_UNESCAPED_UNICODE); ?>;
+        let existingAttributesData = <?php echo json_encode($existingAttributes ?? [], JSON_UNESCAPED_UNICODE); ?>;
 
         function showWarning(message) {
             warningBox.textContent = message;
@@ -296,7 +297,24 @@
 
         function findAttributeById(attributeId) {
             const id = String(attributeId || '');
-            return allowedAttributes.find(item => String(item.id) === id) || null;
+
+            // First search in allowed attributes
+            let attribute = allowedAttributes.find(item => String(item.id) === id);
+            if (attribute) return attribute;
+
+            // If not found in allowed, search in existing attributes
+            attribute = existingAttributesData.find(item => String(item.attribute_id) === id);
+            if (attribute) {
+                // Transform existing attribute to match allowed attributes structure
+                return {
+                    id: attribute.attribute_id,
+                    name: attribute.attribute_name || attribute.name,
+                    type: attribute.attribute_type || attribute.type,
+                    options: attribute.attribute_options || []
+                };
+            }
+
+            return null;
         }
 
         function escapeHtml(value) {
@@ -314,7 +332,7 @@
             const safeValue = escapeHtml(currentValue);
 
             if (attribute && attribute.type === 'range') {
-                container.innerHTML = '<input type=\"number\" step=\"0.01\" inputmode=\"decimal\" name=\"attribute_value[]\" class=\"form-control\" placeholder=\"<?= __('product_numeric_value') ?>\" value=\"' + safeValue + '\">';
+                container.innerHTML = '<input type="number" step="0.01" inputmode="decimal" name="attribute_value[]" class="form-control" placeholder="<?= __('product_numeric_value') ?>" value="' + safeValue + '">';
                 return;
             }
 
@@ -323,14 +341,14 @@
                 const options = Array.isArray(attribute.options) ? attribute.options : [];
                 const optionsHtml = options.map(function (option) {
                     const value = escapeHtml(option.name || option.value || '');
-                    return '<option value=\"' + value + '\"></option>';
+                    return '<option value="' + value + '"></option>';
                 }).join('');
 
-                container.innerHTML = '<input type=\"text\" name=\"attribute_value[]\" class=\"form-control\" list=\"' + listId + '\" placeholder=\"<?= __('product_select_or_enter_value') ?>\" value=\"' + safeValue + '\"><datalist id=\"' + listId + '\">' + optionsHtml + '</datalist>';
+                container.innerHTML = '<input type="text" name="attribute_value[]" class="form-control" list="' + listId + '" placeholder="<?= __('product_select_or_enter_value') ?>" value="' + safeValue + '"><datalist id="' + listId + '">' + optionsHtml + '</datalist>';
                 return;
             }
 
-            container.innerHTML = '<input type=\"text\" name=\"attribute_value[]\" class=\"form-control\" placeholder=\"<?= __('product_attribute_value_placeholder') ?>\" value=\"' + safeValue + '\">';
+            container.innerHTML = '<input type="text" name="attribute_value[]" class="form-control" placeholder="<?= __('product_attribute_value_placeholder') ?>" value="' + safeValue + '">';
         }
 
         function bindRemoveButton(button) {
@@ -349,6 +367,7 @@
                         firstSelect.value = '';
                     }
                     syncSelectableHidden(rows[0]);
+                    syncSelectableFields(rows[0]);
                     return;
                 }
 
@@ -472,7 +491,7 @@
                 const currentValueText = valueInput ? valueInput.value : '';
                 select.innerHTML = buildAttributeOptions(currentValue);
                 if (currentValue && !select.value) {
-                renderValueInput(row, '', '');
+                    renderValueInput(row, '', '');
                     syncSelectableHidden(row);
                     syncSelectableFields(row);
                     return;
@@ -519,7 +538,7 @@
         }
 
         categorySelect.addEventListener('change', fetchAllowedAttributes);
-        rowsContainer.querySelectorAll('.attribute-remove-btn').forEach(bindRemoveButton);
+
         function updateGalleryPreview(files) {
             if (!galleryPreview) {
                 return;
@@ -570,7 +589,7 @@
             imagesInput.addEventListener('change', function () {
                 const existingItemsCount = existingGallery ? existingGallery.querySelectorAll('[data-gallery-item]').length : 0;
                 if ((existingItemsCount + imagesInput.files.length) > galleryLimit) {
-                    alert('<?= __('gallery_limit_reached') ?> ' + galleryLimit + ' ' + <?= __('product_gallery_photo') ?> + '. ' + <?= __('gallery_limit_reached_delete') ?>);
+                    alert('<?= __('gallery_limit_reached') ?> ' + galleryLimit + ' <?= __('product_gallery_photo') ?>. <?= __('gallery_limit_reached_delete') ?>');
                     imagesInput.value = '';
                     updateGalleryPreview([]);
                     return;
@@ -583,9 +602,14 @@
         rowsContainer.querySelectorAll('.attribute-row').forEach(function (row) {
             const select = row.querySelector('.attribute-id-select');
             const valueInput = row.querySelector('input[name="attribute_value[]"]');
-            const valueText = valueInput ? valueInput.value : '';
+            const valueText = valueInput ? (valueInput.dataset.initialValue || valueInput.value) : '';
             const selectableCheckbox = row.querySelector('.attribute-is-selectable-checkbox');
+            const removeButton = row.querySelector('.attribute-remove-btn');
+
             bindAttributeSelectProtection(select);
+            if (removeButton) {
+                bindRemoveButton(removeButton);
+            }
             select.addEventListener('change', function () {
                 renderValueInput(row, select.value, '');
             });
@@ -617,6 +641,9 @@
             }
         });
 
-        fetchAllowedAttributes();
+        // Only fetch attributes via AJAX if we don't have them from server-side yet
+        if (!hasCategory() || allowedAttributes.length === 0) {
+            fetchAllowedAttributes();
+        }
     })();
 </script>

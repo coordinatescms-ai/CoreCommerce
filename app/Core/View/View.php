@@ -23,6 +23,13 @@ class View
             $data['headerCategories'] = Category::getTree();
         }
 
+        // ID товарів у списку порівняння — для позначення стану кнопки "Порівняти"
+        // на картках товарів (каталог, категорія, головна, сторінка товару) без
+        // потреби прокидувати це вручну з кожного контролера.
+        if ($layout === 'theme' && !array_key_exists('compareProductIds', $data)) {
+            $data['compareProductIds'] = \App\Models\CompareList::getProductIds();
+        }
+
         // ДОДАЄМО СТОРІНКИ ДЛЯ ФУТЕРА
         // Робимо це тільки для 'theme' (frontend), щоб не навантажувати адмінку
         if ($layout === 'theme' && !array_key_exists('footerPages', $data)) {

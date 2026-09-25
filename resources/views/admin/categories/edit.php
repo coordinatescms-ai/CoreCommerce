@@ -5,7 +5,7 @@
     </a>
 </div>
 
-<form action="/admin/categories/update/<?php echo $category['id']; ?>" method="POST">
+<form action="/admin/categories/update/<?php echo $category['id']; ?>" method="POST" enctype="multipart/form-data">
     <input type="hidden" name="csrf" value="<?php echo htmlspecialchars($_SESSION['csrf']); ?>">
     
     <div class="card">
@@ -36,6 +36,19 @@
             <div class="form-group">
                 <label for="description"><?= __('category_description') ?></label>
                 <textarea name="description" id="description" class="form-control" rows="4"><?php echo htmlspecialchars($category['description'] ?? ''); ?></textarea>
+            </div>
+            <div class="form-group">
+                <label for="image"><?= __('category_image') ?></label>
+                <?php if (!empty($category['image'])): ?>
+                    <div style="margin-bottom: 0.75rem;">
+                        <img src="<?php echo htmlspecialchars($category['image']); ?>" alt="<?php echo htmlspecialchars($category['name']); ?>" style="max-width: 160px; max-height: 160px; border-radius: 8px; border: 1px solid #eee; display: block; margin-bottom: 0.5rem; object-fit: cover;">
+                        <label style="font-weight: normal; display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer;">
+                            <input type="checkbox" name="remove_image" value="1"> <?= __('category_image_remove') ?>
+                        </label>
+                    </div>
+                <?php endif; ?>
+                <input type="file" name="image" id="image" class="form-control" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+                <small style="color: #64748b;"><?= __('category_image_hint') ?></small>
             </div>
         </div>
     </div>

@@ -79,7 +79,8 @@ class AdminReviewController
     {
         $this->checkAdmin();
 
-        if (!Csrf::isValid()) {
+        $payload = json_decode(file_get_contents('php://input') ?: '', true) ?? [];
+        if (!hash_equals((string)($_SESSION['csrf'] ?? ''), (string)($payload['csrf'] ?? ''))) {
             $this->json(['success' => false, 'message' => __('review_csrf_invalid')], 419);
         }
 
@@ -100,7 +101,8 @@ class AdminReviewController
     {
         $this->checkAdmin();
 
-        if (!Csrf::isValid()) {
+        $payload = json_decode(file_get_contents('php://input') ?: '', true) ?? [];
+        if (!hash_equals((string)($_SESSION['csrf'] ?? ''), (string)($payload['csrf'] ?? ''))) {
             $this->json(['success' => false, 'message' => __('review_csrf_invalid')], 419);
         }
 

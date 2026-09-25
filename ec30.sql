@@ -3,13 +3,14 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: MySQL-8.0:3306
--- Час створення: Вер 08 2026 р., 19:32
+-- Час створення: Вер 25 2026 р., 09:59
 -- Версія сервера: 8.0.45
 -- Версія PHP: 8.3.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
+
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -24,7 +25,7 @@ DELIMITER $$
 --
 -- Процедури
 --
-CREATE PROCEDURE `AddSlugColumns` ()   BEGIN
+CREATE DEFINER=`root`@`%` PROCEDURE `AddSlugColumns` ()   BEGIN
     -- Перевірка та додавання колонок до таблиці products
     IF NOT EXISTS (SELECT * FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'slug' AND table_schema = DATABASE()) THEN
         ALTER TABLE products ADD COLUMN slug VARCHAR(255) UNIQUE NOT NULL AFTER name;
@@ -172,11 +173,11 @@ CREATE TABLE `categories` (
 --
 
 INSERT INTO `categories` (`id`, `name`, `parent_id`, `slug`, `path`, `description`, `sort_order`, `image`, `is_active`, `meta_title`, `meta_description`, `meta_keywords`, `created_at`, `updated_at`) VALUES
-(1, 'Smartphones', NULL, 'smartfoni', '/smartfoni', 'Smartphone category', 0, NULL, 1, 'Buy Smartphones', 'A wide selection of smartphones!', NULL, '2026-04-04 07:47:51', '2026-08-25 10:25:40'),
+(1, 'Smartphones', NULL, 'smartfoni', '/smartfoni', 'Smartphone category', 0, '/uploads/categories/category_106c7944bb3e5632.jpg', 1, 'Buy Smartphones', 'A wide selection of smartphones!', NULL, '2026-04-04 07:47:51', '2026-09-23 19:27:48'),
 (2, 'iPhone', 1, 'iphone', '/smartfoni/iphone', 'iPhone! iPhone! iPhone! iPhone! iPhone! iPhone!', 0, NULL, 1, 'iPhone!', 'iPhone! iPhone!', NULL, '2026-04-04 15:31:02', '2026-08-25 10:39:43'),
-(3, 'Televisions', NULL, 'televzori', '/televzori', 'The most modern televisions.', 0, NULL, 1, 'The most modern televisions.', 'televisions televisions televisions televisions!', NULL, '2026-04-04 21:23:11', '2026-08-25 10:19:52'),
+(3, 'Televisions', NULL, 'televzori', '/televzori', 'The most modern televisions.', 0, '/uploads/categories/category_088f70fc1d096947.png', 1, 'The most modern televisions.', 'televisions televisions televisions televisions!', NULL, '2026-04-04 21:23:11', '2026-09-23 19:26:56'),
 (4, 'Refurbished smartphones', 1, 'vdnovlen-smartfoni', '/smartfoni/vdnovlen-smartfoni', 'Used smartphones', 0, NULL, 1, '', '', NULL, '2026-07-04 11:38:04', '2026-08-25 10:41:10'),
-(5, 'Headphone', NULL, 'navushniki', '/navushniki', '', 0, NULL, 1, '', '', NULL, '2026-07-07 08:28:14', '2026-08-25 10:37:40'),
+(5, 'Headphone', NULL, 'navushniki', '/navushniki', '', 0, '/uploads/categories/category_11e098608661ab5a.jpg', 1, '', '', NULL, '2026-07-07 08:28:14', '2026-09-23 19:28:32'),
 (6, 'Headphone accessories', 5, 'aksesuari-dlya-navushnikv', '/navushniki/aksesuari-dlya-navushnikv', '', 0, NULL, 1, '', '', NULL, '2026-07-07 08:28:53', '2026-08-25 10:38:27');
 
 -- --------------------------------------------------------
@@ -277,6 +278,22 @@ CREATE TABLE `chat_sessions` (
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Дамп даних таблиці `chat_sessions`
+--
+
+INSERT INTO `chat_sessions` (`id`, `visitor_id`, `operator_id`, `channel_token`, `status`, `source_url`, `source_title`, `started_at`, `accepted_at`, `closed_at`, `last_message_at`, `last_message_preview`, `created_at`, `updated_at`) VALUES
+(17, 7, NULL, 'fc5f1f098439bf6393a5aa9889614608879f7eeb38727b7b6ed8da145b2eb617', 'offline_form', 'https://mysite.test/', 'MySite', '2026-09-10 17:59:29', NULL, NULL, NULL, NULL, '2026-09-10 17:59:29', '2026-09-10 17:59:29'),
+(18, 7, NULL, '03691b44254246473b11fe20f00e3bd036c48c19a495ef3e59b92bbb3fa812e9', 'offline_form', 'https://mysite.test/', 'MySite', '2026-09-10 17:59:42', NULL, NULL, NULL, NULL, '2026-09-10 17:59:42', '2026-09-10 17:59:42'),
+(19, 7, NULL, '0ab19c767e5ea3809db08694d010af01cfc6684ab176cacb940662823f2d803e', 'offline_form', 'https://mysite.test/', 'MySite', '2026-09-10 17:59:55', NULL, NULL, NULL, NULL, '2026-09-10 17:59:55', '2026-09-10 17:59:55'),
+(20, 7, NULL, '3d42fd83453ae99a57da9d00ccf22b8e0e134b4f2957214f4d205d18636cb8d8', 'offline_form', 'https://mysite.test/', 'MySite', '2026-09-10 18:00:23', NULL, NULL, NULL, NULL, '2026-09-10 18:00:23', '2026-09-10 18:00:23'),
+(21, 7, NULL, 'e7cf70507783c47229f4b3fe725874cf1b50ce84900a1048c30abdbea1a12c50', 'offline_form', 'https://mysite.test/', 'MySite', '2026-09-10 18:23:43', NULL, NULL, NULL, NULL, '2026-09-10 18:23:43', '2026-09-10 18:23:43'),
+(22, 7, NULL, 'be849f888dbd953d152a504fdc2658582409c1a09d9dfd6fe31f186b7fe14d99', 'offline_form', 'https://mysite.test/', 'MySite', '2026-09-10 18:23:58', NULL, NULL, NULL, NULL, '2026-09-10 18:23:58', '2026-09-10 18:23:58'),
+(23, 7, NULL, '867689c1a7b8ab4ca8e70c34cfa14d77649a362c2377cde117d9cd14d64a3143', 'offline_form', 'https://mysite.test/', 'MySite', '2026-09-10 18:24:14', NULL, NULL, NULL, NULL, '2026-09-10 18:24:14', '2026-09-10 18:24:14'),
+(24, 8, NULL, '1aa26098683e3d5aef5698890f92be63cbb09f7ac5e54aeba79af5b186e482cf', 'offline_form', 'https://mysite.test/', 'MySite', '2026-09-11 20:39:01', NULL, NULL, NULL, NULL, '2026-09-11 20:39:01', '2026-09-11 20:39:01'),
+(25, 8, NULL, 'e1c968f0a2209b8e2c2dcb4d92a9c8a19430ceb89d48463b7d331f2d2dde26b8', 'offline_form', 'https://mysite.test/', 'MySite', '2026-09-11 20:39:13', NULL, NULL, NULL, NULL, '2026-09-11 20:39:13', '2026-09-11 20:39:13'),
+(26, 7, NULL, '56f0f252debc91111031e626759c8922cb5efe61d1ef5df1bcc84573d41d3b5d', 'offline_form', 'https://mysite.test/', 'MySite', '2026-09-11 20:59:18', NULL, NULL, NULL, NULL, '2026-09-11 20:59:18', '2026-09-11 20:59:18');
+
 -- --------------------------------------------------------
 
 --
@@ -294,6 +311,28 @@ CREATE TABLE `chat_visitors` (
   `user_agent` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `first_seen_at` datetime NOT NULL,
   `last_seen_at` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Дамп даних таблиці `chat_visitors`
+--
+
+INSERT INTO `chat_visitors` (`id`, `visitor_uuid`, `user_id`, `name`, `email`, `phone`, `ip_address`, `user_agent`, `first_seen_at`, `last_seen_at`) VALUES
+(7, 'ad3317d9-471d-45a3-a4c4-96e129049291', NULL, NULL, NULL, NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36', '2026-09-10 17:59:29', '2026-09-11 20:59:18'),
+(8, 'cb51ab2b-50b7-40c4-b190-025a5abaf67e', NULL, NULL, NULL, NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36 Edg/151.0.0.0', '2026-09-11 20:39:01', '2026-09-11 20:39:13');
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблиці `compare_list`
+--
+
+CREATE TABLE `compare_list` (
+  `id` int NOT NULL,
+  `user_id` int DEFAULT NULL,
+  `session_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `product_id` int NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -400,7 +439,7 @@ CREATE TABLE `currencies` (
 
 INSERT INTO `currencies` (`id`, `code`, `symbol`, `rate`, `is_active`) VALUES
 (1, 'UAH', '₴', 1.0000, 1),
-(2, 'USD', '$', 44.8596, 0),
+(2, 'USD', '$', 1.0000, 0),
 (3, 'EUR', '€', 45.2000, 0);
 
 -- --------------------------------------------------------
@@ -433,30 +472,6 @@ CREATE TABLE `filter_history` (
 -- --------------------------------------------------------
 
 --
--- Структура таблиці `hotline_categories_mapping`
---
-
-CREATE TABLE `hotline_categories_mapping` (
-  `store_category_id` int NOT NULL,
-  `override_name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Маппінг категорій магазину на категорії Hotline.ua (плагін HotlineExport)';
-
---
--- Дамп даних таблиці `hotline_categories_mapping`
---
-
-INSERT INTO `hotline_categories_mapping` (`store_category_id`, `override_name`, `updated_at`) VALUES
-(1, 'Смартфони', '2026-09-02 19:19:11'),
-(2, 'iPhone', '2026-09-02 19:19:11'),
-(3, 'Телевізори', '2026-09-02 19:19:11'),
-(4, 'Відновлені смартфони', '2026-09-02 19:19:11'),
-(5, 'Навушники', '2026-09-02 19:19:10'),
-(6, 'Аксесуари для навушників', '2026-09-02 19:19:11');
-
--- --------------------------------------------------------
-
---
 -- Структура таблиці `inventory_log`
 --
 
@@ -484,7 +499,9 @@ INSERT INTO `inventory_log` (`id`, `sku`, `event_type`, `qty`, `comment`, `creat
 (8, 'Grunhelm-24H300-T2', 'reserve', 1, 'Автоматичне резервування', '2026-07-11 16:05:33'),
 (9, 'ugreen-lp152', 'reserve', 1, 'Автоматичне резервування', '2026-08-04 18:05:55'),
 (10, 'Grunhelm-24H300-T2', 'reserve', 1, 'Автоматичне резервування', '2026-08-04 18:05:55'),
-(11, 'Grunhelm-24H300-T2', 'reserve', 1, 'Автоматичне резервування', '2026-08-24 18:21:19');
+(11, 'Grunhelm-24H300-T2', 'reserve', 1, 'Автоматичне резервування', '2026-08-24 18:21:19'),
+(12, 'Grunhelm-24H300-T2', 'reserve', 1, 'Автоматичне резервування', '2026-09-24 11:27:28'),
+(13, 'ugreen-lp152', 'reserve', 1, 'Автоматичне резервування', '2026-09-24 11:27:28');
 
 -- --------------------------------------------------------
 
@@ -516,7 +533,17 @@ INSERT INTO `login_attempts` (`id`, `ip`, `email`, `success`, `created_at`) VALU
 (9, '127.0.0.1', 'admin@example.com', 1, '2026-08-23 23:52:58'),
 (11, '127.0.0.1', 'admin@example.com', 1, '2026-08-26 19:16:28'),
 (13, '127.0.0.1', 'admin@example.com', 1, '2026-08-30 14:53:35'),
-(14, '127.0.0.1', 'admin@example.com', 1, '2026-09-08 19:28:43');
+(14, '127.0.0.1', 'admin@example.com', 1, '2026-09-08 19:28:43'),
+(15, '127.0.0.1', 'admin@example.com', 1, '2026-09-09 11:39:02'),
+(16, '127.0.0.1', 'admin@example.com', 1, '2026-09-09 16:51:54'),
+(17, '127.0.0.1', 'admin@example.com', 1, '2026-09-09 22:22:13'),
+(18, '127.0.0.1', 'admin@example.com', 1, '2026-09-10 17:58:56'),
+(19, '127.0.0.1', 'admin@example.com', 1, '2026-09-11 20:39:59'),
+(20, '127.0.0.1', 'admin@example.com', 1, '2026-09-12 10:46:09'),
+(21, '127.0.0.1', 'admin@example.com', 1, '2026-09-12 13:33:53'),
+(22, '127.0.0.1', 'admin@example.com', 1, '2026-09-12 18:13:30'),
+(23, '127.0.0.1', 'admin@example.com', 1, '2026-09-13 12:12:56'),
+(24, '127.0.0.1', 'admin@example.com', 1, '2026-09-16 12:31:27');
 
 -- --------------------------------------------------------
 
@@ -653,9 +680,9 @@ CREATE TABLE `plugins` (
 --
 
 INSERT INTO `plugins` (`id`, `name`, `slug`, `main_file`, `is_active`, `version`, `created_at`, `updated_at`) VALUES
-(1, 'Test Plugin', 'TestPlugin', 'D:\\OSPanel\\home\\mysite.test/plugins/TestPlugin/plugin.php', 0, '1.0.0', '2026-04-30 19:25:51', '2026-09-08 19:29:47'),
-(2, 'LiqPay — Online payment', 'LiqPayGateway', 'D:\\OSPanel\\home\\mysite.test/plugins/LiqPayGateway/plugin.php', 1, '1.0.0', '2026-06-10 13:42:15', '2026-09-08 19:29:47'),
-(4, 'Request a call', 'CallbackWidget', 'D:\\OSPanel\\home\\mysite.test/plugins/CallbackWidget/plugin.php', 1, '1.0.0', '2026-07-29 20:32:45', '2026-09-08 19:29:47');
+(1, 'Test Plugin', 'TestPlugin', 'D:\\OSPanel\\home\\mysite.test/plugins/TestPlugin/plugin.php', 0, '1.0.0', '2026-04-30 19:25:51', '2026-09-25 09:38:38'),
+(2, 'LiqPay — Online payment', 'LiqPayGateway', 'D:\\OSPanel\\home\\mysite.test/plugins/LiqPayGateway/plugin.php', 1, '1.0.0', '2026-06-10 13:42:15', '2026-09-25 09:38:38'),
+(4, 'Request a call', 'CallbackWidget', 'D:\\OSPanel\\home\\mysite.test/plugins/CallbackWidget/plugin.php', 1, '1.0.0', '2026-07-29 20:32:45', '2026-09-25 09:38:38');
 
 -- --------------------------------------------------------
 
@@ -670,6 +697,68 @@ CREATE TABLE `plugin_settings` (
   `value` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблиці `price_change_batches`
+--
+
+CREATE TABLE `price_change_batches` (
+  `id` int NOT NULL,
+  `admin_id` int DEFAULT NULL,
+  `mode` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'percent | fixed | currency',
+  `mode_params` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'JSON з параметрами розрахунку',
+  `scope_category_id` int DEFAULT NULL,
+  `scope_include_subcategories` tinyint(1) NOT NULL DEFAULT '0',
+  `scope_vendor` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `affected_count` int NOT NULL DEFAULT '0',
+  `skipped_count` int NOT NULL DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `reverted_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Дамп даних таблиці `price_change_batches`
+--
+
+INSERT INTO `price_change_batches` (`id`, `admin_id`, `mode`, `mode_params`, `scope_category_id`, `scope_include_subcategories`, `scope_vendor`, `affected_count`, `skipped_count`, `created_at`, `reverted_at`) VALUES
+(1, 5, 'percent', '{\"value\":5,\"direction\":\"increase\"}', NULL, 0, NULL, 7, 0, '2026-09-15 07:01:30', NULL),
+(2, 5, 'percent', '{\"value\":5,\"direction\":\"decrease\",\"round_price\":true}', NULL, 0, NULL, 7, 0, '2026-09-15 16:34:12', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблиці `price_change_batch_items`
+--
+
+CREATE TABLE `price_change_batch_items` (
+  `id` int NOT NULL,
+  `batch_id` int NOT NULL,
+  `product_id` int NOT NULL,
+  `old_price` decimal(10,2) NOT NULL,
+  `new_price` decimal(10,2) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Дамп даних таблиці `price_change_batch_items`
+--
+
+INSERT INTO `price_change_batch_items` (`id`, `batch_id`, `product_id`, `old_price`, `new_price`) VALUES
+(1, 1, 7, 949.00, 996.45),
+(2, 1, 1, 999.00, 1048.95),
+(3, 1, 2, 2050.08, 2152.58),
+(4, 1, 3, 5199.00, 5458.95),
+(5, 1, 5, 5299.00, 5563.95),
+(6, 1, 4, 5599.00, 5878.95),
+(7, 1, 6, 29199.00, 30658.95),
+(8, 2, 7, 996.45, 947.00),
+(9, 2, 1, 1048.95, 997.00),
+(10, 2, 2, 2152.58, 2045.00),
+(11, 2, 3, 5458.95, 5186.00),
+(12, 2, 5, 5563.95, 5286.00),
+(13, 2, 4, 5878.95, 5585.00),
+(14, 2, 6, 30658.95, 29126.00);
 
 -- --------------------------------------------------------
 
@@ -703,13 +792,13 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`id`, `sku`, `vendor`, `hotline_excluded`, `is_visible`, `category_id`, `name`, `description`, `image`, `slug`, `meta_title`, `meta_description`, `meta_keywords`, `price`, `created_at`, `updated_at`, `views_count`, `prom_product_id`) VALUES
-(1, 'ID-1', NULL, 0, 1, 2, 'Smart TV Apple 55\" I Android 15 120 Гц/Smart TV/DVB/T2/FullHD/USB/ (1980x1080)', 'The 55\" Apple Smart TV (Android 15) combines cutting-edge technology with a stylish design. It is ideal for home cinema, gaming, and everyday use. High image quality, fast response times, and user-friendly controls make this TV an excellent choice for the whole family.\r\n\r\nWith Full HD resolution (1980x1080) and a 120 Hz refresh rate, the TV delivers a crisp image and smooth motion. A response time of just 1 ms ensures there is no blur, even during fast-paced action scenes.\r\n\r\nThe TV is equipped with 2 GB of RAM and 16 GB of internal storage, ensuring fast app performance and stable operation of Android 15. The device supports Smart TV, DVB-T2, and USB connectivity, allowing for easy content viewing from various sources.', '/uploads/products/gallery/original/product_6a8e9f6d243fc044107860.webp', 'iphone-13', '', '', NULL, 999.00, '2026-03-30 07:45:12', '2026-08-26 09:02:46', 0, NULL),
-(2, 'ID-2', NULL, 0, 1, 3, 'Xiaomi', 'Xiaomi Xiaomi Xiaomi Xiaomi Xiaomi Xiaomi Xiaomi Xiaomi Xiaomi Xiaomi Xiaomi Xiaomi Xiaomi Xiaomi Xiaomi!', '/uploads/products/gallery/original/product_69e608b6ddae3707094810.webp', 'siom', 'Xiaomi is a cool product.', '', NULL, 2050.08, '2026-04-05 08:11:57', '2026-08-26 08:46:31', 51, NULL),
-(3, 'BRAVIS-24K5000H', NULL, 0, 1, 3, 'Television BRAVIS 24K5000H', 'BRAVIS 24K5000H — an ideal choice for small rooms, kitchens, or as a second TV in the bedroom. It features a stylish, slim 24-inch design with a black bezel that complements any interior. (Design details confirmed by multiple sources, for example.)', '/uploads/products/gallery/original/product_6a48eefff07ba546360331.jpg', 'bravis-24k5000h', '', '', NULL, 5199.00, '2026-07-03 21:27:11', '2026-08-26 08:04:18', 0, NULL),
-(4, 'SetUP-32HSF30', NULL, 0, 1, 3, 'Television SetUP 32HSF30', 'The HD format supported by the TV delivers excellent image detail and clarity. Experience your favorite TV shows and movies in a whole new way.', '/uploads/products/gallery/original/product_6a48eef337307640388684.jpg', 'setup-32hsf30', '', '', NULL, 5599.00, '2026-07-03 21:27:12', '2026-08-25 10:53:30', 0, NULL),
-(5, 'Grunhelm-24H300-T2', NULL, 0, 1, 3, 'Television Grunhelm 24H300-T2', 'GRUNHELM 24H300‑T2 - the TV features a 24-inch screen with a resolution of 1366×768 (HD Ready), providing acceptable image quality for small rooms or kitchens. It is equipped with LED backlighting (Direct LED type) and a VA panel, offering wide viewing angles of up to 170° both horizontally and vertically.', '/uploads/products/gallery/original/product_6a482b3f04178722104981.jpg', 'grunhelm-24H300-T2', '', '', NULL, 5299.00, '2026-07-03 21:27:12', '2026-08-25 10:49:41', 0, NULL),
-(6, 'ID-3', NULL, 0, 1, 2, 'iPhone 15 128GB Black', 'iPhone 15 — this is a smartphone that embodies innovation in every aspect, from design to performance. Unrivaled from its exterior to its internal components, this device will become your reliable partner in daily life, ensuring maximum convenience and productivity. With its refreshed look, powerful A16 Bionic chip, and 48MP camera, the iPhone 15 opens up a boundless world of new possibilities.', '/uploads/products/gallery/original/product_6a48edeb1719a274349597.jpg', 'iphone-15-128gv-black', '', '', NULL, 29199.00, '2026-07-04 11:24:17', '2026-08-25 10:46:23', 0, NULL),
-(7, 'ugreen-lp152', NULL, 0, 1, 6, 'Headphone case UGREEN LP152 Travel Storage Case Gray', 'Accessory organizer case UGREEN LP152 Travel Storage Case.\r\n\r\nStoring and transporting electronic accessories has never been so simple and secure! Introducing the Ugreen Compact Travel Bag, measuring 20.3 x 12.9 x 7.2 cm. This optimal size allows you to carry a variety of handy items, including:\r\n\r\ncables,\r\nelectronic gadgets,\r\ncosmetics.\r\nEverything is organized and kept in one place, making it easy to find exactly what you need.', '/uploads/products/gallery/original/product_6a4cbe67e5901786626367.webp', 'chohol-dlya-navushnikv-ugreen-lp152-travel-storage-case-gray', '', '', NULL, 949.00, '2026-07-07 08:51:11', '2026-08-25 10:43:56', 0, NULL);
+(1, 'ID-1', NULL, 0, 1, 2, 'Smart TV Apple 55\" I Android 15 120 Гц/Smart TV/DVB/T2/FullHD/USB/ (1980x1080)', 'The 55\" Apple Smart TV (Android 15) combines cutting-edge technology with a stylish design. It is ideal for home cinema, gaming, and everyday use. High image quality, fast response times, and user-friendly controls make this TV an excellent choice for the whole family.\r\n\r\nWith Full HD resolution (1980x1080) and a 120 Hz refresh rate, the TV delivers a crisp image and smooth motion. A response time of just 1 ms ensures there is no blur, even during fast-paced action scenes.\r\n\r\nThe TV is equipped with 2 GB of RAM and 16 GB of internal storage, ensuring fast app performance and stable operation of Android 15. The device supports Smart TV, DVB-T2, and USB connectivity, allowing for easy content viewing from various sources.', '/uploads/products/gallery/original/product_6a8e9f6d243fc044107860.webp', 'iphone-13', '', '', NULL, 997.00, '2026-03-30 07:45:12', '2026-09-15 16:34:12', 0, NULL),
+(2, 'ID-2', NULL, 0, 1, 3, 'Xiaomi', 'Xiaomi Xiaomi Xiaomi Xiaomi Xiaomi Xiaomi Xiaomi Xiaomi Xiaomi Xiaomi Xiaomi Xiaomi Xiaomi Xiaomi Xiaomi!', '/uploads/products/gallery/original/product_69e608b6ddae3707094810.webp', 'siom', 'Xiaomi is a cool product.', '', NULL, 2045.00, '2026-04-05 08:11:57', '2026-09-21 17:37:22', 51, NULL),
+(3, 'BRAVIS-24K5000H', NULL, 0, 1, 3, 'Television BRAVIS 24K5000H', 'BRAVIS 24K5000H — an ideal choice for small rooms, kitchens, or as a second TV in the bedroom. It features a stylish, slim 24-inch design with a black bezel that complements any interior. (Design details confirmed by multiple sources, for example.)', '/uploads/products/gallery/original/product_6a48eefff07ba546360331.jpg', 'bravis-24k5000h', '', '', NULL, 5186.00, '2026-07-03 21:27:11', '2026-09-21 17:37:05', 0, NULL),
+(4, 'SetUP-32HSF30', NULL, 0, 1, 3, 'Television SetUP 32HSF30', 'The HD format supported by the TV delivers excellent image detail and clarity. Experience your favorite TV shows and movies in a whole new way.', '/uploads/products/gallery/original/product_6a48eef337307640388684.jpg', 'setup-32hsf30', '', '', NULL, 5585.00, '2026-07-03 21:27:12', '2026-09-21 17:37:12', 0, NULL),
+(5, 'Grunhelm-24H300-T2', 'Grunhel', 0, 1, 3, 'Television Grunhelm 24H300-T2', 'GRUNHELM 24H300‑T2 - the TV features a 24-inch screen with a resolution of 1366×768 (HD Ready), providing acceptable image quality for small rooms or kitchens. It is equipped with LED backlighting (Direct LED type) and a VA panel, offering wide viewing angles of up to 170° both horizontally and vertically.', '/uploads/products/gallery/original/product_6a482b3f04178722104981.jpg', 'grunhelm-24H300-T2', '', '', NULL, 5286.00, '2026-07-03 21:27:12', '2026-09-21 17:36:53', 0, NULL),
+(6, 'ID-3', NULL, 0, 1, 2, 'iPhone 15 128GB Black', 'iPhone 15 — this is a smartphone that embodies innovation in every aspect, from design to performance. Unrivaled from its exterior to its internal components, this device will become your reliable partner in daily life, ensuring maximum convenience and productivity. With its refreshed look, powerful A16 Bionic chip, and 48MP camera, the iPhone 15 opens up a boundless world of new possibilities.', '/uploads/products/gallery/original/product_6a48edeb1719a274349597.jpg', 'iphone-15-128gv-black', '', '', NULL, 29126.00, '2026-07-04 11:24:17', '2026-09-21 17:36:25', 0, NULL),
+(7, 'ugreen-lp152', NULL, 0, 1, 6, 'Headphone case UGREEN LP152 Travel Storage Case Gray', 'Accessory organizer case UGREEN LP152 Travel Storage Case.\r\n\r\nStoring and transporting electronic accessories has never been so simple and secure! Introducing the Ugreen Compact Travel Bag, measuring 20.3 x 12.9 x 7.2 cm. This optimal size allows you to carry a variety of handy items, including:\r\n\r\ncables,\r\nelectronic gadgets,\r\ncosmetics.\r\nEverything is organized and kept in one place, making it easy to find exactly what you need.', '/uploads/products/gallery/original/product_6a4cbe67e5901786626367.webp', 'chohol-dlya-navushnikv-ugreen-lp152-travel-storage-case-gray', '', '', NULL, 947.00, '2026-07-07 08:51:11', '2026-09-21 07:40:31', 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -737,8 +826,9 @@ CREATE TABLE `product_attributes` (
 --
 
 INSERT INTO `product_attributes` (`id`, `sku`, `product_id`, `attribute_id`, `value`, `attribute_option_id`, `price_modifier`, `price_operation`, `stock_quantity`, `is_selectable`, `created_at`, `updated_at`) VALUES
-(41, NULL, 2, 3, 'Plastics', 108, 0.00, '+', NULL, 0, '2026-08-26 08:52:51', '2026-08-26 08:52:51'),
-(42, 'ID-2-106', 2, 4, 'Redmi', 106, 150.00, '+', 5, 1, '2026-08-26 08:52:51', '2026-08-26 08:52:51');
+(45, NULL, 2, 3, 'Plastics', 108, 0.00, '+', NULL, 0, '2026-09-21 17:37:23', '2026-09-21 17:37:23'),
+(46, 'ID-2-106', 2, 4, 'Redmi', 106, 150.00, '+', 5, 1, '2026-09-21 17:37:23', '2026-09-21 17:37:23'),
+(47, 'BRAVIS-24K5000H-108', 3, 3, 'Plastics', 108, 9.95, '+', 10, 1, '2026-09-22 17:16:13', '2026-09-22 17:16:13');
 
 -- --------------------------------------------------------
 
@@ -804,6 +894,38 @@ CREATE TABLE `product_reviews` (
   `updated_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Тригери `product_reviews`
+--
+DELIMITER $$
+CREATE TRIGGER `trg_reviews_validate_insert` BEFORE INSERT ON `product_reviews` FOR EACH ROW BEGIN
+  IF NEW.parent_id IS NULL THEN
+    IF NEW.rating IS NULL OR NEW.rating < 1 OR NEW.rating > 5 THEN
+      SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Root review rating must be between 1 and 5';
+    END IF;
+  ELSE
+    IF NEW.rating IS NOT NULL THEN
+      SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Reply review must not have rating';
+    END IF;
+  END IF;
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `trg_reviews_validate_update` BEFORE UPDATE ON `product_reviews` FOR EACH ROW BEGIN
+  IF NEW.parent_id IS NULL THEN
+    IF NEW.rating IS NULL OR NEW.rating < 1 OR NEW.rating > 5 THEN
+      SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Root review rating must be between 1 and 5';
+    END IF;
+  ELSE
+    IF NEW.rating IS NOT NULL THEN
+      SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Reply review must not have rating';
+    END IF;
+  END IF;
+END
+$$
+DELIMITER ;
+
 -- --------------------------------------------------------
 
 --
@@ -829,10 +951,11 @@ INSERT INTO `product_stocks` (`id`, `product_id`, `option_id`, `sku`, `quantity`
 (8, 0, NULL, 'ID-2', 10, 2, '2026-06-26 22:18:44'),
 (12, 3, NULL, 'BRAVIS-24K5000H', 25, 1, '2026-07-10 09:04:27'),
 (13, 4, NULL, 'SetUP-32HSF30', 40, 0, '2026-07-03 21:27:12'),
-(14, 5, NULL, 'Grunhelm-24H300-T2', 18, 3, '2026-08-24 18:21:19'),
+(14, 5, NULL, 'Grunhelm-24H300-T2', 18, 4, '2026-09-24 11:27:28'),
 (17, 6, NULL, NULL, 25, 0, '2026-07-04 11:27:15'),
-(18, 7, NULL, 'ugreen-lp152', 25, 2, '2026-08-04 18:05:55'),
-(29, 2, 106, 'ID-2-106', 5, 0, '2026-08-26 08:52:51');
+(18, 7, NULL, 'ugreen-lp152', 25, 3, '2026-09-24 11:27:28'),
+(31, 2, 106, 'ID-2-106', 5, 0, '2026-09-21 17:37:23'),
+(32, 3, 108, 'BRAVIS-24K5000H-108', 10, 0, '2026-09-22 17:16:13');
 
 -- --------------------------------------------------------
 
@@ -921,7 +1044,8 @@ INSERT INTO `search_cache` (`id`, `query_hash`, `query_text`, `results`, `hits`,
 (55, '367c7b591c5e7e474fd5ce754031a735ed52f76913a4e654e232ef748ce07297', 'test', '{\"results\":[],\"total\":0,\"page\":1,\"pages\":1,\"query\":\"test\",\"tokens\":[\"test\"],\"suggestion\":null,\"strategy\":\"fuzzy\",\"from_cache\":false}', 1, '2026-06-23 11:03:59', '2026-06-23 09:13:59'),
 (57, 'dbce177f0d78cb0970569cf5e666606072ae9f8869fa69183061cef9b30e139e', 'klklklkl', '{\"results\":[],\"total\":0,\"page\":1,\"pages\":1,\"query\":\"klklklkl\",\"tokens\":[\"klklklkl\"],\"suggestion\":null,\"strategy\":\"fuzzy\",\"from_cache\":false}', 2, '2026-06-26 19:28:10', '2026-06-26 17:38:15'),
 (62, 'c4473488202d13ee17e0539576c5f5bc2f5a9e1740a018942b0672da327d20d6', 'iphone', '{\"results\":[{\"id\":6,\"sku\":\"ID-3\",\"vendor\":null,\"is_visible\":1,\"category_id\":2,\"name\":\"iPhone 15 128GB Black\",\"description\":\"iPhone 15 — this is a smartphone that embodies innovation in every aspect, from design to performance. Unrivaled from its exterior to its internal components, this device will become your reliable partner in daily life, ensuring maximum convenience and productivity. With its refreshed look, powerful A16 Bionic chip, and 48MP camera, the iPhone 15 opens up a boundless world of new possibilities.\",\"image\":\"\\/uploads\\/products\\/gallery\\/original\\/product_6a48edeb1719a274349597.jpg\",\"slug\":\"iphone-15-128gv-black\",\"meta_title\":\"\",\"meta_description\":\"\",\"meta_keywords\":null,\"price\":\"29199.00\",\"created_at\":\"2026-07-04 13:24:17\",\"updated_at\":\"2026-08-25 12:46:23\",\"views_count\":0,\"prom_product_id\":null,\"category_name\":\"iPhone\",\"stock_qty\":0,\"relevance\":3.570953607559204}],\"total\":1,\"page\":1,\"pages\":1,\"query\":\"iphone\",\"tokens\":[\"iphone\"],\"suggestion\":null,\"strategy\":\"fulltext\",\"from_cache\":false}', 2, '2026-08-29 13:47:46', '2026-08-29 11:58:03'),
-(64, '7f1d383120eaa9ac2a5e65eff0a24852c294b5d82d6ae0251f373ba841e92ece', 'television grunhelm 24h300-t2', '{\"results\":[{\"id\":5,\"sku\":\"Grunhelm-24H300-T2\",\"vendor\":null,\"is_visible\":1,\"category_id\":3,\"name\":\"Television Grunhelm 24H300-T2\",\"description\":\"GRUNHELM 24H300‑T2 - the TV features a 24-inch screen with a resolution of 1366×768 (HD Ready), providing acceptable image quality for small rooms or kitchens. It is equipped with LED backlighting (Direct LED type) and a VA panel, offering wide viewing angles of up to 170° both horizontally and vertically.\",\"image\":\"\\/uploads\\/products\\/gallery\\/original\\/product_6a482b3f04178722104981.jpg\",\"slug\":\"grunhelm-24H300-T2\",\"meta_title\":\"\",\"meta_description\":\"\",\"meta_keywords\":null,\"price\":\"5299.00\",\"created_at\":\"2026-07-03 23:27:12\",\"updated_at\":\"2026-08-25 12:49:41\",\"views_count\":0,\"prom_product_id\":null,\"category_name\":\"Televisions\",\"stock_qty\":18,\"relevance\":5.1913652420043945}],\"total\":1,\"page\":1,\"pages\":1,\"query\":\"television grunhelm 24h300-t2\",\"tokens\":[\"television\",\"grunhelm\",\"24h300-t2\"],\"suggestion\":null,\"strategy\":\"fulltext\",\"from_cache\":false}', 2, '2026-08-29 13:48:42', '2026-08-29 11:58:52');
+(64, '7f1d383120eaa9ac2a5e65eff0a24852c294b5d82d6ae0251f373ba841e92ece', 'television grunhelm 24h300-t2', '{\"results\":[{\"id\":5,\"sku\":\"Grunhelm-24H300-T2\",\"vendor\":null,\"is_visible\":1,\"category_id\":3,\"name\":\"Television Grunhelm 24H300-T2\",\"description\":\"GRUNHELM 24H300‑T2 - the TV features a 24-inch screen with a resolution of 1366×768 (HD Ready), providing acceptable image quality for small rooms or kitchens. It is equipped with LED backlighting (Direct LED type) and a VA panel, offering wide viewing angles of up to 170° both horizontally and vertically.\",\"image\":\"\\/uploads\\/products\\/gallery\\/original\\/product_6a482b3f04178722104981.jpg\",\"slug\":\"grunhelm-24H300-T2\",\"meta_title\":\"\",\"meta_description\":\"\",\"meta_keywords\":null,\"price\":\"5299.00\",\"created_at\":\"2026-07-03 23:27:12\",\"updated_at\":\"2026-08-25 12:49:41\",\"views_count\":0,\"prom_product_id\":null,\"category_name\":\"Televisions\",\"stock_qty\":18,\"relevance\":5.1913652420043945}],\"total\":1,\"page\":1,\"pages\":1,\"query\":\"television grunhelm 24h300-t2\",\"tokens\":[\"television\",\"grunhelm\",\"24h300-t2\"],\"suggestion\":null,\"strategy\":\"fulltext\",\"from_cache\":false}', 2, '2026-08-29 13:48:42', '2026-08-29 11:58:52'),
+(66, '7a399dd2a58096468f9b9333a2e0e5ff675e4b0e6329dc31130f23b4677b45b2', 'television bravis 24k5000h', '{\"results\":[{\"id\":3,\"sku\":\"BRAVIS-24K5000H\",\"vendor\":null,\"hotline_excluded\":0,\"is_visible\":1,\"category_id\":3,\"name\":\"Television BRAVIS 24K5000H\",\"description\":\"BRAVIS 24K5000H — an ideal choice for small rooms, kitchens, or as a second TV in the bedroom. It features a stylish, slim 24-inch design with a black bezel that complements any interior. (Design details confirmed by multiple sources, for example.)\",\"image\":\"\\/uploads\\/products\\/gallery\\/original\\/product_6a48eefff07ba546360331.jpg\",\"slug\":\"bravis-24k5000h\",\"meta_title\":\"\",\"meta_description\":\"\",\"meta_keywords\":null,\"price\":\"5186.00\",\"created_at\":\"2026-07-03 23:27:11\",\"updated_at\":\"2026-09-21 19:37:05\",\"views_count\":0,\"prom_product_id\":null,\"category_name\":\"Televisions\",\"stock_qty\":25,\"relevance\":5.1913652420043945}],\"total\":1,\"page\":1,\"pages\":1,\"query\":\"television bravis 24k5000h\",\"tokens\":[\"television\",\"bravis\",\"24k5000h\"],\"suggestion\":null,\"strategy\":\"fulltext\",\"from_cache\":false}', 5, '2026-09-24 18:17:06', '2026-09-24 16:37:09');
 
 -- --------------------------------------------------------
 
@@ -949,7 +1073,8 @@ INSERT INTO `search_queries` (`id`, `query`, `results_count`, `search_count`, `l
 (55, 'test', 0, 1, '2026-06-23 11:03:59'),
 (57, 'klklklkl', 0, 2, '2026-06-26 19:28:15'),
 (62, 'iphone', 1, 2, '2026-08-29 13:48:03'),
-(64, 'television grunhelm 24h300-t2', 1, 2, '2026-08-29 13:48:52');
+(64, 'television grunhelm 24h300-t2', 1, 2, '2026-08-29 13:48:52'),
+(66, 'television bravis 24k5000h', 1, 5, '2026-09-24 18:27:09');
 
 -- --------------------------------------------------------
 
@@ -1008,14 +1133,14 @@ INSERT INTO `settings` (`key`, `value`, `group`, `type`, `created_at`, `updated_
 ('contact_address', 'Kyiv, Ukraine', 'contact', 'text', '2026-08-22 17:39:29', '2026-09-07 17:16:54'),
 ('contact_email', 'admin@mysite.test', 'contact', 'text', '2026-04-03 08:17:13', '2026-09-07 17:16:53'),
 ('contact_phone', '+380 00 000 00 00', 'contact', 'text', '2026-04-03 08:17:13', '2026-09-07 17:16:53'),
-('csp_mode', 'off', 'security', 'select', '2026-07-02 18:09:14', '2026-07-02 18:09:14'),
+('csp_mode', 'off', 'security', 'select', '2026-07-02 18:09:14', '2026-09-25 07:33:22'),
 ('currency_source', 'manual', 'currency', 'select', '2026-06-05 10:00:00', '2026-06-27 10:03:31'),
 ('date_format', 'd.m.Y H:i', 'general', 'text', '2026-06-13 18:37:31', '2026-09-07 17:16:52'),
-('default_currency', 'UAH', 'localization', 'select', '2026-04-03 08:17:13', '2026-06-27 10:03:31'),
+('default_currency', 'UAH', 'localization', 'select', '2026-04-03 08:17:13', '2026-09-17 16:37:40'),
 ('default_language', 'en', 'localization', 'select', '2026-04-03 08:17:13', '2026-09-07 17:16:52'),
 ('display_errors', '0', 'system', 'checkbox', '2026-09-06 17:36:21', '2026-09-06 17:36:21'),
 ('email', 'admin@localhost.local', 'general', 'text', '2026-04-12 16:35:40', '2026-06-13 18:37:31'),
-('engine_version', '1.0.1', 'system', 'text', '2026-07-01 09:41:28', '2026-07-02 08:40:37'),
+('engine_version', '1.1.0', 'system', 'text', '2026-07-01 09:41:28', '2026-09-16 10:38:31'),
 ('facebook_auth_enabled', '0', 'social_auth', 'checkbox', '2026-05-09 12:03:51', '2026-09-07 17:16:54'),
 ('facebook_client_id', '', 'social_auth', 'text', '2026-05-09 12:01:55', '2026-09-07 17:16:54'),
 ('facebook_client_secret', '', 'social_auth', 'text', '2026-05-09 12:01:55', '2026-09-07 17:16:54'),
@@ -1026,11 +1151,11 @@ INSERT INTO `settings` (`key`, `value`, `group`, `type`, `created_at`, `updated_
 ('google_client_id', '', 'social_auth', 'text', '2026-05-09 12:01:55', '2026-09-07 17:16:54'),
 ('google_client_secret', '', 'social_auth', 'text', '2026-05-09 12:01:55', '2026-09-07 17:16:54'),
 ('google_redirect_url', 'http://mysite.test/auth/google/callback', 'social_auth', 'text', '2026-05-09 12:02:18', '2026-09-07 17:16:54'),
-('hsts_enabled', '0', 'security', 'checkbox', '2026-07-02 18:09:14', '2026-07-02 18:09:14'),
+('hsts_enabled', '0', 'security', 'checkbox', '2026-07-02 18:09:14', '2026-09-25 07:33:22'),
 ('hsts_max_age', '300', 'security', 'number', '2026-07-02 18:09:14', '2026-07-02 18:09:14'),
 ('hsts_preload', '0', 'security', 'checkbox', '2026-07-02 18:09:14', '2026-07-02 18:09:14'),
 ('hsts_subdomains', '0', 'security', 'checkbox', '2026-07-02 18:09:14', '2026-07-02 18:09:14'),
-('https_redirect', '1', 'security', 'checkbox', '2026-07-02 18:09:14', '2026-07-02 18:09:14'),
+('https_redirect', '0', 'security', 'checkbox', '2026-07-02 18:09:14', '2026-09-25 07:33:22'),
 ('maintenance_message', 'We apologize, but the store is temporarily closed for maintenance.', 'general', 'textarea', '2026-04-03 08:17:13', '2026-09-07 17:16:52'),
 ('media_apply_watermark', '0', 'media', 'checkbox', '2026-04-13 09:12:17', '2026-09-08 17:30:37'),
 ('media_auto_webp', '0', 'media', 'checkbox', '2026-04-13 09:12:17', '2026-09-08 17:30:37'),
@@ -1064,7 +1189,7 @@ INSERT INTO `settings` (`key`, `value`, `group`, `type`, `created_at`, `updated_
 ('smtp_username', '', 'general', 'text', '2026-06-14 14:55:14', '2026-09-07 17:16:52'),
 ('smtr', '127.0.0.1', 'general', 'text', '2026-04-12 16:28:35', '2026-06-13 18:37:31'),
 ('store_status', 'open', 'general', 'select', '2026-04-03 08:17:13', '2026-09-07 17:16:52'),
-('update_last_checked', '2026-07-02 08:40:19', 'system', 'text', '2026-07-01 09:39:47', '2026-07-02 08:40:19'),
+('update_last_checked', '2026-09-17 16:52:23', 'system', 'text', '2026-07-01 09:39:47', '2026-09-17 16:52:23'),
 ('upload_max_filesize', '10M', 'general', 'text', '2026-05-16 09:39:11', '2026-05-16 09:39:11');
 
 -- --------------------------------------------------------
@@ -1093,7 +1218,7 @@ CREATE TABLE `shop_methods` (
 --
 
 INSERT INTO `shop_methods` (`id`, `type`, `code`, `name`, `icon`, `description`, `is_active`, `is_test_mode`, `settings`, `sort_order`, `created_at`, `updated_at`) VALUES
-(1, 'shipping', 'nova_poshta', 'Нова Пошта', NULL, '', 0, 0, '{\"cost\": \"70\", \"api_key\": \"\"}', 0, '2026-04-20 16:09:35', '2026-09-07 17:19:01'),
+(1, 'shipping', 'nova_poshta', 'Нова Пошта', NULL, '', 0, 0, '{\"cost\": \"70\", \"api_key\": \"d175da6cdfcd3f2121c9ec459cc7abe5\"}', 0, '2026-04-20 16:09:35', '2026-09-07 17:19:01'),
 (2, 'shipping', 'self_pickup', 'Self-pickup', NULL, '', 1, 0, '{\"address\": \"1 Tsentralna St., Kyiv\"}', 0, '2026-04-20 16:09:35', '2026-09-07 17:19:01'),
 (3, 'payment', 'cash', 'Payment upon receipt', NULL, '', 1, 0, '{\"gateway_name\": \"cash\"}', 0, '2026-04-20 16:09:35', '2026-09-08 17:30:37'),
 (4, 'payment', 'liqpay', 'Онлайн-оплата (LiqPay)', NULL, '', 0, 1, '{\"public_key\": \"\", \"private_key\": \"\", \"gateway_name\": \"liqpay\"}', 0, '2026-04-20 16:09:35', '2026-09-08 17:30:37');
@@ -1322,6 +1447,15 @@ ALTER TABLE `chat_visitors`
   ADD KEY `idx_chat_visitor_user` (`user_id`);
 
 --
+-- Індекси таблиці `compare_list`
+--
+ALTER TABLE `compare_list`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_compare_user` (`user_id`),
+  ADD KEY `idx_compare_session` (`session_id`),
+  ADD KEY `idx_compare_product` (`product_id`);
+
+--
 -- Індекси таблиці `crm_user_action_audit`
 --
 ALTER TABLE `crm_user_action_audit`
@@ -1377,12 +1511,6 @@ ALTER TABLE `filter_history`
   ADD KEY `idx_category_id` (`category_id`),
   ADD KEY `idx_created_at` (`created_at`),
   ADD KEY `user_id` (`user_id`);
-
---
--- Індекси таблиці `hotline_categories_mapping`
---
-ALTER TABLE `hotline_categories_mapping`
-  ADD PRIMARY KEY (`store_category_id`);
 
 --
 -- Індекси таблиці `inventory_log`
@@ -1457,6 +1585,21 @@ ALTER TABLE `plugins`
 ALTER TABLE `plugin_settings`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `uq_plugin_key` (`plugin_slug`,`key`);
+
+--
+-- Індекси таблиці `price_change_batches`
+--
+ALTER TABLE `price_change_batches`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_batch_created` (`created_at`);
+
+--
+-- Індекси таблиці `price_change_batch_items`
+--
+ALTER TABLE `price_change_batch_items`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_item_batch` (`batch_id`),
+  ADD KEY `idx_item_product` (`product_id`);
 
 --
 -- Індекси таблиці `products`
@@ -1655,7 +1798,7 @@ ALTER TABLE `attribute_options`
 -- AUTO_INCREMENT для таблиці `cart`
 --
 ALTER TABLE `cart`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
 
 --
 -- AUTO_INCREMENT для таблиці `categories`
@@ -1691,25 +1834,31 @@ ALTER TABLE `chat_operators`
 -- AUTO_INCREMENT для таблиці `chat_sessions`
 --
 ALTER TABLE `chat_sessions`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT для таблиці `chat_visitors`
 --
 ALTER TABLE `chat_visitors`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+
+--
+-- AUTO_INCREMENT для таблиці `compare_list`
+--
+ALTER TABLE `compare_list`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT для таблиці `crm_user_action_audit`
 --
 ALTER TABLE `crm_user_action_audit`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT для таблиці `crm_user_activity_logs`
 --
 ALTER TABLE `crm_user_activity_logs`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=466;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=536;
 
 --
 -- AUTO_INCREMENT для таблиці `cron_tasks`
@@ -1733,13 +1882,13 @@ ALTER TABLE `filter_history`
 -- AUTO_INCREMENT для таблиці `inventory_log`
 --
 ALTER TABLE `inventory_log`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT для таблиці `login_attempts`
 --
 ALTER TABLE `login_attempts`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT для таблиці `login_logs`
@@ -1757,19 +1906,19 @@ ALTER TABLE `migrations`
 -- AUTO_INCREMENT для таблиці `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT для таблиці `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT для таблиці `order_status_history`
 --
 ALTER TABLE `order_status_history`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT для таблиці `pages`
@@ -1781,13 +1930,25 @@ ALTER TABLE `pages`
 -- AUTO_INCREMENT для таблиці `plugins`
 --
 ALTER TABLE `plugins`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT для таблиці `plugin_settings`
 --
 ALTER TABLE `plugin_settings`
   MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT для таблиці `price_change_batches`
+--
+ALTER TABLE `price_change_batches`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT для таблиці `price_change_batch_items`
+--
+ALTER TABLE `price_change_batch_items`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT для таблиці `products`
@@ -1799,7 +1960,7 @@ ALTER TABLE `products`
 -- AUTO_INCREMENT для таблиці `product_attributes`
 --
 ALTER TABLE `product_attributes`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
 
 --
 -- AUTO_INCREMENT для таблиці `product_discounts`
@@ -1817,13 +1978,13 @@ ALTER TABLE `product_images`
 -- AUTO_INCREMENT для таблиці `product_reviews`
 --
 ALTER TABLE `product_reviews`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT для таблиці `product_stocks`
 --
 ALTER TABLE `product_stocks`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
 
 --
 -- AUTO_INCREMENT для таблиці `promo_codes`
@@ -1847,13 +2008,13 @@ ALTER TABLE `prom_sync_queue`
 -- AUTO_INCREMENT для таблиці `search_cache`
 --
 ALTER TABLE `search_cache`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=66;
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=71;
 
 --
 -- AUTO_INCREMENT для таблиці `search_queries`
 --
 ALTER TABLE `search_queries`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=66;
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=71;
 
 --
 -- AUTO_INCREMENT для таблиці `seo_settings`
@@ -1895,7 +2056,7 @@ ALTER TABLE `url_redirects`
 -- AUTO_INCREMENT для таблиці `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT для таблиці `user_roles`
@@ -2004,12 +2165,6 @@ ALTER TABLE `favorites`
 ALTER TABLE `filter_history`
   ADD CONSTRAINT `filter_history_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `filter_history_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
-
---
--- Обмеження зовнішнього ключа таблиці `hotline_categories_mapping`
---
-ALTER TABLE `hotline_categories_mapping`
-  ADD CONSTRAINT `fk_hotline_cat_map_category` FOREIGN KEY (`store_category_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE;
 
 --
 -- Обмеження зовнішнього ключа таблиці `login_logs`

@@ -111,6 +111,9 @@ class AuthController
         // Перенести кошик з сесії до користувача (за старим ID, зафіксованим до регенерації)
         \App\Models\Cart::migrate($oldSessionId, $user['id']);
 
+        // Так само переносимо гостьовий список порівняння товарів
+        \App\Models\CompareList::migrate($oldSessionId, $user['id']);
+
         // Якщо користувач вибрав "Запам'ятати мене"
         if (!empty($_POST['remember_me'])) {
             $remember_token = bin2hex(random_bytes(32));

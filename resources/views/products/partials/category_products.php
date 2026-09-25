@@ -28,13 +28,16 @@ $category = $category ?? null;
                     <p style="margin: 0 0 0.5rem;"><?= render_stock_badge($product) ?></p>
                 <?php endif; ?>
                 <p style="margin: 0 0 0.75rem; margin-top: auto;"><?= render_product_price($product) ?></p>
-                <form action="/cart/add/<?= (int)$product['id'] ?>" method="POST" style="display: inline-block; margin: 0;">
-                    <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
-                    <input type="hidden" name="return_url" value="<?= htmlspecialchars($_SERVER['REQUEST_URI'] ?? '/products') ?>">
-                    <button type="submit" <?= $outOfStock ? 'disabled' : '' ?> style="display: inline-block; padding: 0.5rem 0.85rem; background: <?= $outOfStock ? '#9ca3af' : '#111827' ?>; color: #fff; text-decoration: none; border-radius: 0.45rem; border: 0; cursor: <?= $outOfStock ? 'not-allowed' : 'pointer' ?>;">
-                        <?= $outOfStock ? __('out_of_stock') : __('add_to_cart') ?>
-                    </button>
-                </form>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <form action="/cart/add/<?= (int)$product['id'] ?>" method="POST" style="display: inline-block; margin: 0;">
+                        <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
+                        <input type="hidden" name="return_url" value="<?= htmlspecialchars(sanitize_action_return_url($_SERVER['REQUEST_URI'] ?? '/products')) ?>">
+                        <button type="submit" <?= $outOfStock ? 'disabled' : '' ?> style="display: inline-block; padding: 0.5rem 0.85rem; background: <?= $outOfStock ? '#9ca3af' : '#111827' ?>; color: #fff; text-decoration: none; border-radius: 0.45rem; border: 0; cursor: <?= $outOfStock ? 'not-allowed' : 'pointer' ?>;">
+                            <?= $outOfStock ? __('out_of_stock') : __('add_to_cart') ?>
+                        </button>
+                    </form>
+                    <?= render_compare_button((int) $product['id'], $compareProductIds ?? []) ?>
+                </div>
             </article>
         <?php endforeach; ?>
     </div>

@@ -169,7 +169,7 @@ $cartCount = isset($_SESSION['cart']) ? count($_SESSION['cart']) : 0;
         .nav-brand span { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 800; color: var(--dark); }
 
         .header-actions { display: flex; align-items: center; gap: 1.5rem; }
-        .search-bar { position: relative; }
+        .search-bar { position: relative; display: flex; align-items: center; }
         .search-input { padding: 0.5rem 1rem 0.5rem 2.5rem; border-radius: 30px; width: 200px; font-size: 0.85rem; }
         .search-input:focus { width: 300px; }
         .search-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--gray-600); }
@@ -290,11 +290,13 @@ $cartCount = isset($_SESSION['cart']) ? count($_SESSION['cart']) : 0;
                 </a>
 
                 <div class="header-actions">
-                    <form action="/search" method="GET" class="search-bar">
-                        <i class="fas fa-search search-icon"></i>
-                        <input type="text" name="q" id="premium-search-input" class="search-input" placeholder="<?= __('search_placeholder') ?>" value="<?= htmlspecialchars($_GET['q'] ?? '') ?>" autocomplete="off">
+                    <div class="search-bar">
+                        <form action="/search" method="GET">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" name="q" id="premium-search-input" class="search-input" placeholder="<?= __('search_placeholder') ?>" value="<?= htmlspecialchars($_GET['q'] ?? '') ?>" autocomplete="off">
+                        </form>
                         <div id="premium-search-dropdown" style="display:none; position:absolute; top:100%; left:0; right:0; background:white; border:1px solid #eee; box-shadow: var(--shadow); z-index: 1002; border-radius: 10px; margin-top: 5px; overflow: hidden;"></div>
-                    </form>
+                    </div>
 
                     <div class="dropdown" style="position: relative;">
                         <a href="#" class="action-link" id="langSwitcher">
@@ -311,6 +313,11 @@ $cartCount = isset($_SESSION['cart']) ? count($_SESSION['cart']) : 0;
 
                     <a href="/profile" class="action-link">
                         <i class="far fa-user"></i>
+                    </a>
+
+                    <a href="/compare" class="action-link">
+                        <i class="fas fa-code-compare"></i>
+                        <span class="cart-count" data-compare-count>0</span>
                     </a>
 
                     <a href="/cart" class="action-link">
@@ -436,22 +443,27 @@ $cartCount = isset($_SESSION['cart']) ? count($_SESSION['cart']) : 0;
             });
         }
 
-        // Cart Count Sync
+        // Cart / Compare Count Sync
         (() => {
-            const badge = document.querySelector('[data-cart-count]');
-            if (!badge) return;
-            const syncCartCount = async () => {
-                try {
-                    const response = await fetch('/cart/count', {headers: {'X-Requested-With': 'XMLHttpRequest'}});
-                    if (response.ok) {
-                        const data = await response.json();
-                        badge.textContent = String(data.count ?? 0);
-                        badge.style.display = data.count > 0 ? 'flex' : 'none';
-                    }
-                } catch {}
+            const syncBadge = (selector, endpoint) => {
+                const badge = document.querySelector(selector);
+                if (!badge) return;
+                const sync = async () => {
+                    try {
+                        const response = await fetch(endpoint, {headers: {'X-Requested-With': 'XMLHttpRequest'}});
+                        if (response.ok) {
+                            const data = await response.json();
+                            badge.textContent = String(data.count ?? 0);
+                            badge.style.display = data.count > 0 ? 'flex' : 'none';
+                        }
+                    } catch {}
+                };
+                sync();
+                setInterval(sync, 30000);
             };
-            syncCartCount();
-            setInterval(syncCartCount, 30000);
+
+            syncBadge('[data-cart-count]', '/cart/count');
+            syncBadge('[data-compare-count]', '/compare/count');
         })();
 
         // Search Autocomplete

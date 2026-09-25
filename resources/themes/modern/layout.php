@@ -1014,6 +1014,8 @@
                                     <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
                                 </svg>
                             </button>
+                            <!-- Автодоповнення -->
+                            <div id="nav-search-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #ddd;border-top:none;border-radius:0 0 6px 6px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.1);"></div>
                         </form>
                     </div>
 
@@ -1040,6 +1042,14 @@
                             </div>
                         </div>
                         <?php endif; ?>
+
+                        <!-- Порівняння -->
+                        <a href="/compare" class="nav-cart-link" data-compare-link title="<?php echo function_exists('__') ? __('compare') : 'Compare'; ?>">
+                            <svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 512 512" fill="white">
+                                <path d="M470.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-96 96c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L370.7 288 192 288c-17.7 0-32-14.3-32-32s14.3-32 32-32l178.7 0-41.4-41.4c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l96 96zm-429.3 45.3c-12.5-12.5-12.5-32.8 0-45.3l96-96c12.5-12.5 32.8-12.5 45.3 0s12.5 32.8 0 45.3L141.3 224 320 224c17.7 0 32 14.3 32 32s-14.3 32-32 32l-178.7 0 41.4 41.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0l-96-96z"/>
+                            </svg>
+                            <span class="cart-counter" data-compare-count>0</span>
+                        </a>
 
                         <!-- Кошик -->
                         <a href="/cart" class="nav-cart-link" data-cart-link>
@@ -1201,31 +1211,36 @@
     </footer>
     <script>
         (() => {
-            const badge = document.querySelector('[data-cart-count]');
-            if (!badge) return;
+            const syncBadge = (selector, endpoint) => {
+                const badge = document.querySelector(selector);
+                if (!badge) return;
 
-            const syncCartCount = async () => {
-                try {
-                    const response = await fetch('/cart/count', {headers: {'X-Requested-With': 'XMLHttpRequest'}});
-                    if (!response.ok) return;
-                    const payload = await response.json();
-                    badge.textContent = String(payload.count ?? 0);
-                } catch (e) {
-                    // noop
-                }
+                const sync = async () => {
+                    try {
+                        const response = await fetch(endpoint, {headers: {'X-Requested-With': 'XMLHttpRequest'}});
+                        if (!response.ok) return;
+                        const payload = await response.json();
+                        badge.textContent = String(payload.count ?? 0);
+                    } catch (e) {
+                        // noop
+                    }
+                };
+
+                sync();
+                setInterval(sync, 15000);
+                document.addEventListener('visibilitychange', () => {
+                    if (!document.hidden) sync();
+                });
             };
 
-            syncCartCount();
-            setInterval(syncCartCount, 15000);
-            document.addEventListener('visibilitychange', () => {
-                if (!document.hidden) syncCartCount();
-            });
+            syncBadge('[data-cart-count]', '/cart/count');
+            syncBadge('[data-compare-count]', '/compare/count');
         })();
     </script>
 <script>
 (function () {
     const input    = document.getElementById('modern-search-input');
-    const dropdown = document.getElementById('modern-search-dropdown');
+    const dropdown = document.getElementById('nav-search-dropdown');
     if (!input || !dropdown) return;
     let timer = null;
     input.addEventListener('input', function () {

@@ -259,6 +259,68 @@ function render_stock_badge(array $product): string
         . '</span>';
 }
 
+/**
+ * Прибирає з URL AJAX-специфічні сліди (суфікс "/filter" від
+ * /category/{path}/filter, параметр ajax), щоб отримати URL, придатний для
+ * звичайної навігації браузера — це і є return_url для форм "у кошик" /
+ * "порівняти".
+ *
+ * Без цього: картка товару, промальована ВСЕРЕДИНІ AJAX-відповіді
+ * фільтра категорії, бере return_url із $_SERVER['REQUEST_URI'] цього ж
+ * AJAX-запиту (тобто сам /category/{path}/filter?... URL). Після дії форма
+ * редіректить туди — і замість сторінки користувач бачить сирий JSON
+ * (браузер міг узагалі віддати кешовану відповідь того самого fetch,
+ * навіть не звертаючись на сервер повторно).
+ */
+function sanitize_action_return_url(string $uri): string
+{
+    $parts = parse_url($uri);
+    $path = $parts['path'] ?? '/products';
+
+    if (str_ends_with($path, '/filter')) {
+        $path = substr($path, 0, -strlen('/filter'));
+        if ($path === '') {
+            $path = '/';
+        }
+    }
+
+    $query = [];
+    if (!empty($parts['query'])) {
+        parse_str($parts['query'], $query);
+    }
+    unset($query['ajax']);
+
+    return $path . (!empty($query) ? '?' . http_build_query($query) : '');
+}
+
+/**
+ * Кнопка "Порівняти" / стан "У порівнянні" для картки товару.
+ * $compareProductIds — масив ID товарів у поточному списку порівняння
+ * (App\Models\CompareList::getProductIds(), автоматично додається в
+ * App\Core\View\View::render() як $compareProductIds).
+ *
+ * @param array<int> $compareProductIds
+ */
+function render_compare_button(int $productId, array $compareProductIds): string
+{
+    $csrf = htmlspecialchars((string) ($_SESSION['csrf'] ?? ''));
+    $returnUrl = htmlspecialchars(sanitize_action_return_url((string) ($_SERVER['REQUEST_URI'] ?? '/products')));
+
+    if (in_array($productId, $compareProductIds, true)) {
+        return '<a href="/compare" style="display:inline-block;padding:0.5rem 0.85rem;background:#eef2ff;color:#3730a3;text-decoration:none;border-radius:0.45rem;font-size:0.85rem;font-weight:600;border:1px solid #e0e7ff;">'
+            . '✓ ' . htmlspecialchars(__('compare_already_added'))
+            . '</a>';
+    }
+
+    return '<form action="/compare/add/' . $productId . '" method="POST" style="display:inline-block;margin:0;">'
+        . '<input type="hidden" name="csrf" value="' . $csrf . '">'
+        . '<input type="hidden" name="return_url" value="' . $returnUrl . '">'
+        . '<button type="submit" style="padding:0.5rem 0.85rem;background:#fff;color:#111827;border:1px solid #d1d5db;border-radius:0.45rem;cursor:pointer;font-size:0.85rem;font-weight:600;">'
+        . htmlspecialchars(__('compare_add'))
+        . '</button>'
+        . '</form>';
+}
+
 function is_valid_phone_mask(string $mask): bool
 {
     if ($mask === '' || mb_strlen($mask) > 40) {

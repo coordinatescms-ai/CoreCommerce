@@ -254,6 +254,33 @@ class AdminUserController
         $this->jsonResponse(['success' => true]);
     }
 
+    public function clearActivityLog($id)
+    {
+        $this->checkAdmin();
+        $this->validateCsrfOrAbort();
+
+        $userId = (int) $id;
+        $targetUser = User::findById($userId);
+        if (!$targetUser) {
+            $this->jsonResponse(['success' => false, 'message' => __('admin_user_not_found')], 404);
+        }
+
+        $deleted = CrmUserService::clearActivity($userId);
+
+        // Слід про саме очищення лишаємо в окремому аудиті (не в щойно очищеному логу) —
+        // щоб було видно, хто і коли це зробив.
+        CrmUserService::recordAudit(
+            $userId,
+            (int) ($_SESSION['user']['id'] ?? 0),
+            'activity_log_cleared',
+            sprintf(__('admin_user_activity_log_clear_reason'), $deleted),
+            (string) $deleted,
+            '0'
+        );
+
+        $this->jsonResponse(['success' => true, 'message' => sprintf(__('admin_user_activity_log_cleared'), $deleted)]);
+    }
+
     public function updateSubscription($id)
     {
         $this->checkAdmin();

@@ -214,6 +214,8 @@
                     <a href="/register"><?= __('register') ?></a>
                 <?php endif; ?>
                 <span class="nav-separator">|</span>
+                <a href="/compare" class="nav-cart-link" data-compare-link><?= __('compare') ?><span class="cart-counter" data-compare-count>0</span></a>
+                <span class="nav-separator">|</span>
                 <a href="/cart" class="nav-cart-link" data-cart-link><?= __('cart') ?><span class="cart-counter" data-cart-count>0</span></a>
             </div>
         </div>
@@ -313,25 +315,30 @@
         })();
 
         (() => {
-            const badge = document.querySelector('[data-cart-count]');
-            if (!badge) return;
+            const syncBadge = (selector, endpoint) => {
+                const badge = document.querySelector(selector);
+                if (!badge) return;
 
-            const syncCartCount = async () => {
-                try {
-                    const response = await fetch('/cart/count', {headers: {'X-Requested-With': 'XMLHttpRequest'}});
-                    if (!response.ok) return;
-                    const payload = await response.json();
-                    badge.textContent = String(payload.count ?? 0);
-                } catch (e) {
-                    // noop
-                }
+                const sync = async () => {
+                    try {
+                        const response = await fetch(endpoint, {headers: {'X-Requested-With': 'XMLHttpRequest'}});
+                        if (!response.ok) return;
+                        const payload = await response.json();
+                        badge.textContent = String(payload.count ?? 0);
+                    } catch (e) {
+                        // noop
+                    }
+                };
+
+                sync();
+                setInterval(sync, 15000);
+                document.addEventListener('visibilitychange', () => {
+                    if (!document.hidden) sync();
+                });
             };
 
-            syncCartCount();
-            setInterval(syncCartCount, 15000);
-            document.addEventListener('visibilitychange', () => {
-                if (!document.hidden) syncCartCount();
-            });
+            syncBadge('[data-cart-count]', '/cart/count');
+            syncBadge('[data-compare-count]', '/compare/count');
         })();
     </script>
 <script>

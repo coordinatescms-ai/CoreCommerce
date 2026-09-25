@@ -5,8 +5,10 @@ use App\Controllers\ProductController;
 use App\Controllers\HomeController;
 use App\Controllers\SearchController;
 use App\Controllers\CartController;
+use App\Controllers\CompareController;
 use App\Controllers\OrderController;
 use App\Controllers\AdminProductController;
+use App\Controllers\AdminPriceBatchController;
 use App\Controllers\AdminCategoryController;
 use App\Controllers\AdminAttributeController;
 use App\Controllers\LanguageController;
@@ -47,6 +49,13 @@ $router->post('/cart/add/{id}',[CartController::class,'add']);
 $router->post('/cart/update',[CartController::class,'update']);
 $router->delete('/cart/remove/{id}',[CartController::class,'remove']);
 $router->delete('/cart/clear',[CartController::class,'clear']);
+
+// Порівняння товарів
+$router->get('/compare',[CompareController::class,'index']);
+$router->get('/compare/count',[CompareController::class,'count']);
+$router->post('/compare/add/{id}',[CompareController::class,'add']);
+$router->delete('/compare/remove/{id}',[CompareController::class,'remove']);
+$router->delete('/compare/clear',[CompareController::class,'clear']);
 
 $router->get('/checkout',[OrderController::class,'checkout']);
 $router->get('/order-success/{id}', [OrderController::class, 'success']);
@@ -174,6 +183,13 @@ $router->post('/admin/products/update/{id}', [AdminProductController::class, 'up
 $router->post('/admin/products/set-main-image/{id}', [AdminProductController::class, 'setMainImage']);
 $router->delete('/admin/products/delete/{id}', [AdminProductController::class, 'delete']);
 
+// Масове (пакетне) управління цінами
+$router->get('/admin/products/price-batch/preview-count', [AdminPriceBatchController::class, 'previewCount']);
+$router->get('/admin/products/price-batch/form-options', [AdminPriceBatchController::class, 'formOptions']);
+$router->post('/admin/products/price-batch/apply', [AdminPriceBatchController::class, 'apply']);
+$router->get('/admin/products/price-batch/history', [AdminPriceBatchController::class, 'history']);
+$router->post('/admin/products/price-batch/undo/{id}', [AdminPriceBatchController::class, 'undo']);
+
 // Управління категоріями в адмінці
 $router->get('/admin/categories', [AdminCategoryController::class, 'index']);
 $router->get('/admin/categories/create', [AdminCategoryController::class, 'create']);
@@ -218,6 +234,7 @@ $router->get('/admin/products/search', [AdminProductController::class, 'search']
 $router->post('/admin/users/bonus/{id}', [AdminUserController::class, 'updateBonus']);
 $router->post('/admin/users/block/{id}', [AdminUserController::class, 'updateBlockStatus']);
 $router->post('/admin/users/subscription/{id}', [AdminUserController::class, 'updateSubscription']);
+$router->post('/admin/users/activity-log/clear/{id}', [AdminUserController::class, 'clearActivityLog']);
 $router->post('/admin/users/send-email/{id}', [AdminUserController::class, 'sendEmail']);
 $router->delete('/admin/users/delete/{id}', [AdminUserController::class, 'delete']);
 

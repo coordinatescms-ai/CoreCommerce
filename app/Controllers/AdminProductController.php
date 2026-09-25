@@ -53,6 +53,42 @@ class AdminProductController
     }
 
     /**
+     * Enrich existing product attributes with full attribute information including options
+     *
+     * @param array $existingAttributes
+     * @return array
+     */
+    private function enrichExistingAttributes(array $existingAttributes)
+    {
+        foreach ($existingAttributes as &$attr) {
+            $attributeId = (int) ($attr['attribute_id'] ?? 0);
+            if ($attributeId > 0) {
+                $attribute = Attribute::findById($attributeId);
+                if ($attribute) {
+                    $attr['attribute_type'] = $attribute['type'] ?? 'text';
+                    $attr['attribute_slug'] = $attribute['slug'] ?? '';
+                    $attr['attribute_name'] = $attribute['name'] ?? '';
+                    $type = (string) ($attribute['type'] ?? '');
+                    if (in_array($type, [Attribute::TYPE_SELECT, 'multiselect', 'color'], true)) {
+                        $attr['attribute_options'] = array_values(array_map(function ($option) {
+                            return [
+                                'id' => (int) ($option['id'] ?? 0),
+                                'name' => (string) ($option['name'] ?? ''),
+                                'value' => (string) ($option['value'] ?? ''),
+                            ];
+                        }, Attribute::getOptions($attributeId)));
+                    } else {
+                        $attr['attribute_options'] = [];
+                    }
+                }
+            }
+        }
+        unset($attr);
+
+        return $existingAttributes;
+    }
+
+    /**
      * Підготувати рядки атрибутів із форми.
      *
      * @return array
@@ -634,6 +670,7 @@ class AdminProductController
         $formData = $this->consumeProductFormFlash();
         $selectedCategoryId = (int) ($formData['category_id'] ?? 0);
         $allowedAttributes = [];
+        // Always load allowed attributes for the selected category from form data
         if ($selectedCategoryId > 0) {
             $allowedAttributes = $this->enrichAllowedAttributes(
                 Category::getAllowedAttributes($selectedCategoryId)
@@ -955,10 +992,16 @@ class AdminProductController
         $existingAttributes = !empty($formData['attributes'])
             ? $formData['attributes']
             : ProductAttribute::getByProduct($id);
+
+        // Enrich existing attributes with full attribute information
+        $existingAttributes = $this->enrichExistingAttributes($existingAttributes);
+
         $allowedAttributes = [];
-        if (!empty($product['category_id'])) {
+        // Use category_id from form data if available (from validation errors), otherwise from product
+        $categoryIdForAttributes = !empty($formData['category_id']) ? (int) $formData['category_id'] : (int) ($product['category_id'] ?? 0);
+        if ($categoryIdForAttributes > 0) {
             $allowedAttributes = $this->enrichAllowedAttributes(
-                Category::getAllowedAttributes((int) $product['category_id'])
+                Category::getAllowedAttributes($categoryIdForAttributes)
             );
         }
 

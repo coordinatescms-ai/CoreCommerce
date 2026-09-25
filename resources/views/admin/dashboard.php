@@ -111,7 +111,7 @@
                 <i class="fas fa-folder-plus"></i> <?= __('category_new') ?>
             </a>
             <a href="/admin/settings" class="btn btn-primary">
-                <i class="fas fa-cog"></i> <?= __('settings_shop_name') ?>
+                <i class="fas fa-cog"></i> <?= __('admin_settings') ?>
             </a>
             <a href="/admin/plugins" class="btn btn-primary">
                 <i class="fas fa-plug"></i> <?= __('plugins_manage') ?>

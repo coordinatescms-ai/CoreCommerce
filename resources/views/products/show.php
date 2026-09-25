@@ -239,6 +239,16 @@ if (isset($_SESSION['user']['id'])) {
                                 <?= $isFavorite ? '❤️ ' . __('wishlist') : __('wishlist') ?>
                             </span>
                             </button>
+                        <?php $inCompare = in_array((int) $product['id'], $compareProductIds ?? [], true); ?>
+                        <?php if ($inCompare): ?>
+                            <a href="/compare" class="pdp-btn pdp-btn-ghost active"><?= '✓ ' . __('compare_already_added') ?></a>
+                        <?php else: ?>
+                            <form action="/compare/add/<?= (int) $product['id'] ?>" method="POST" style="display: inline-block; margin: 0;">
+                                <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
+                                <input type="hidden" name="return_url" value="<?= htmlspecialchars($_SERVER['REQUEST_URI'] ?? '/products') ?>">
+                                <button type="submit" class="pdp-btn pdp-btn-ghost"><?= __('compare_add') ?></button>
+                            </form>
+                        <?php endif; ?>
                     </div>
                     <div class="mt-2 small text-muted">
                         <?php if ($outOfStock): ?>
@@ -350,6 +360,7 @@ if (isset($_SESSION['user']['id'])) {
 
             </section>
 
+         <?php if (!empty($similarProducts)): ?>
             <section class="pdp-similar" aria-label="<?= __('similar_products') ?>" style="margin-top: 2rem;">
                 <h2 style="font-size: 1.35rem; margin-bottom: 1rem;"><?= __('similar_products') ?></h2>
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem;">
@@ -366,13 +377,16 @@ if (isset($_SESSION['user']['id'])) {
                                 <p style="margin: 0 0 0.5rem;"><?= render_stock_badge($item) ?></p>
                             <?php endif; ?>
                             <p style="margin: 0 0 0.75rem; margin-top: auto;"><?= render_product_price($item) ?></p>
-                            <form action="/cart/add/<?= (int)$item['id'] ?>" method="POST" style="display: inline-block; margin: 0;">
-                                <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
-                                <input type="hidden" name="return_url" value="<?= htmlspecialchars($_SERVER['REQUEST_URI'] ?? '/products') ?>">
-                                <button type="submit" <?= $outOfStock ? 'disabled' : '' ?> style="display: inline-block; padding: 0.5rem 0.85rem; background: <?= $outOfStock ? '#9ca3af' : '#111827' ?>; color: #fff; text-decoration: none; border-radius: 0.45rem; border: 0; cursor: <?= $outOfStock ? 'not-allowed' : 'pointer' ?>;">
-                                    <?= $outOfStock ? __('out_of_stock') : __('add_to_cart') ?>
-                                </button>
-                            </form>
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                <form action="/cart/add/<?= (int)$item['id'] ?>" method="POST" style="display: inline-block; margin: 0;">
+                                    <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['csrf'] ?? '') ?>">
+                                    <input type="hidden" name="return_url" value="<?= htmlspecialchars($_SERVER['REQUEST_URI'] ?? '/products') ?>">
+                                    <button type="submit" <?= $outOfStock ? 'disabled' : '' ?> style="display: inline-block; padding: 0.5rem 0.85rem; background: <?= $outOfStock ? '#9ca3af' : '#111827' ?>; color: #fff; text-decoration: none; border-radius: 0.45rem; border: 0; cursor: <?= $outOfStock ? 'not-allowed' : 'pointer' ?>;">
+                                        <?= $outOfStock ? __('out_of_stock') : __('add_to_cart') ?>
+                                    </button>
+                                </form>
+                                <?= render_compare_button((int) $item['id'], $compareProductIds ?? []) ?>
+                            </div>
                         </article>
                     <?php endforeach; ?>
 
@@ -390,9 +404,12 @@ if (isset($_SESSION['user']['id'])) {
                     <?php endif; ?>
                 </div>
             </section>
+        <?php endif; ?>
         </div>
     </div>
 </section>
+
+<?php do_action('product.content.after', $product); ?>
 
 <style>
 .pdp {

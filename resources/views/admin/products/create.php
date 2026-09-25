@@ -104,7 +104,14 @@ $attributeRows = $attributeRows ?? [];
                 <div class="attribute-row" style="border: 1px solid #e2e8f0; padding: 1rem; border-radius: 8px;">
                     <div style="display:grid; grid-template-columns: 1fr 1fr auto; gap: 0.75rem; margin-bottom: 0.75rem;">
                         <select name="attribute_id[]" class="form-control attribute-id-select">
-                            <option value=""><?php echo __('product_select_category_first'); ?></option>
+                            <?php if (empty($allowedAttributes)): ?>
+                                <option value=""><?php echo __('product_select_category_first'); ?></option>
+                            <?php else: ?>
+                                <option value=""><?php echo __('product_select_attribute'); ?></option>
+                                <?php foreach ($allowedAttributes as $attribute): ?>
+                                    <option value="<?php echo (int) $attribute['id']; ?>"><?php echo htmlspecialchars($attribute['name']); ?></option>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </select>
                         <div class="attribute-value-wrap">
                             <input type="text" name="attribute_value[]" class="form-control" placeholder="<?php echo __('product_attribute_value_placeholder'); ?>">
@@ -242,13 +249,13 @@ $attributeRows = $attributeRows ?? [];
 
         function buildAttributeOptions(selectedId = '') {
             if (!hasCategory()) {
-                return '<option value="">' . __('product_select_category_first') . '</option>';
+                return '<option value=""><?= __('product_select_category_first') ?></option>';
             }
             if (!allowedAttributes.length) {
-                return '<option value="">' . __('product_no_attributes') . '</option>';
+                return '<option value=""><?= __('product_no_attributes') ?></option>';
             }
             const normalizedSelectedId = String(selectedId || '');
-            return '<option value="">-- ' . __('product_select_attribute') . ' --</option>' + allowedAttributes.map(function (attribute) {
+            return '<option value="">-- <?= __('product_select_attribute') ?> --</option>' + allowedAttributes.map(function (attribute) {
                 const attributeId = String(attribute.id);
                 const selected = attributeId === normalizedSelectedId ? ' selected' : '';
                 return '<option value="' + attributeId + '"' + selected + '>' + attribute.name + '</option>';
@@ -275,7 +282,7 @@ $attributeRows = $attributeRows ?? [];
             const safeValue = escapeHtml(currentValue);
 
             if (attribute && attribute.type === 'range') {
-                container.innerHTML = '<input type="number" step="0.01" inputmode="decimal" name="attribute_value[]" class="form-control" placeholder="' . __('product_numeric_value') . '" value="' + safeValue + '">';
+                container.innerHTML = '<input type="number" step="0.01" inputmode="decimal" name="attribute_value[]" class="form-control" placeholder="<?= __('product_numeric_value') ?>" value="' + safeValue + '">';
                 return;
             }
             if (attribute && ['select', 'multiselect', 'color'].includes(attribute.type)) {
@@ -286,10 +293,10 @@ $attributeRows = $attributeRows ?? [];
                     return '<option value="' + value + '"></option>';
                 }).join('');
 
-                container.innerHTML = '<input type="text" name="attribute_value[]" class="form-control" list="' + listId + '" placeholder="' . __('product_select_or_enter_value') . '" value="' + safeValue + '"><datalist id="' + listId + '">' + optionsHtml + '</datalist>';
+                container.innerHTML = '<input type="text" name="attribute_value[]" class="form-control" list="' + listId + '" placeholder="<?= __('product_select_or_enter_value') ?>" value="' + safeValue + '"><datalist id="' + listId + '">' + optionsHtml + '</datalist>';
                 return;
             }
-            container.innerHTML = '<input type="text" name="attribute_value[]" class="form-control" placeholder="' . __('product_attribute_value_placeholder') . '" value="' + safeValue + '">';
+            container.innerHTML = '<input type="text" name="attribute_value[]" class="form-control" placeholder="<?= __('product_attribute_value_placeholder') ?>" value="' + safeValue + '">';
         }
 
         function bindRemoveButton(button) {
@@ -413,6 +420,7 @@ $attributeRows = $attributeRows ?? [];
                 if (currentValue && !select.value) {
                     renderValueInput(row, '', '');
                     syncSelectableHidden(row);
+                    syncSelectableFields(row);
                     return;
                 }
                 renderValueInput(row, select.value, currentValueText);
@@ -517,6 +525,9 @@ $attributeRows = $attributeRows ?? [];
             }
         });
 
-        fetchAllowedAttributes();
+        // Only fetch attributes via AJAX if we don't have them from server-side yet
+        if (!hasCategory() || allowedAttributes.length === 0) {
+            fetchAllowedAttributes();
+        }
     })();
 </script>
