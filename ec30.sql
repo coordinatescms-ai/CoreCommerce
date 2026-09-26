@@ -411,14 +411,6 @@ CREATE TABLE `cron_tasks` (
   `params` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Дамп даних таблиці `cron_tasks`
---
-
-INSERT INTO `cron_tasks` (`id`, `name`, `command`, `schedule`, `last_run`, `next_run`, `status`, `last_result`, `error_message`, `updated_at`, `params`) VALUES
-(1, 'Очищення старих сесій та логів', 'tasks/clear_logs.php', '0 3 * * *', NULL, '2026-05-26 03:00:00', 'disabled', 'success', NULL, '2026-06-29 19:15:00', NULL),
-(2, 'Автоматичний імпорт товарів з XML', 'tasks/import_products.php', '*/30 * * * *', NULL, '2026-05-25 16:00:00', 'disabled', 'success', NULL, '2026-06-29 19:15:01', NULL);
-
 -- --------------------------------------------------------
 
 --
@@ -1140,7 +1132,7 @@ INSERT INTO `settings` (`key`, `value`, `group`, `type`, `created_at`, `updated_
 ('default_language', 'en', 'localization', 'select', '2026-04-03 08:17:13', '2026-09-07 17:16:52'),
 ('display_errors', '0', 'system', 'checkbox', '2026-09-06 17:36:21', '2026-09-06 17:36:21'),
 ('email', 'admin@localhost.local', 'general', 'text', '2026-04-12 16:35:40', '2026-06-13 18:37:31'),
-('engine_version', '1.1.0', 'system', 'text', '2026-07-01 09:41:28', '2026-09-16 10:38:31'),
+('engine_version', '1.0.0', 'system', 'text', '2026-07-01 09:41:28', '2026-09-16 10:38:31'),
 ('facebook_auth_enabled', '0', 'social_auth', 'checkbox', '2026-05-09 12:03:51', '2026-09-07 17:16:54'),
 ('facebook_client_id', '', 'social_auth', 'text', '2026-05-09 12:01:55', '2026-09-07 17:16:54'),
 ('facebook_client_secret', '', 'social_auth', 'text', '2026-05-09 12:01:55', '2026-09-07 17:16:54'),
@@ -1187,7 +1179,7 @@ INSERT INTO `settings` (`key`, `value`, `group`, `type`, `created_at`, `updated_
 ('smtp_pass', '', 'general', 'text', '2026-04-12 16:47:28', '2026-09-07 17:16:52'),
 ('smtp_port', '', 'general', 'text', '2026-04-12 16:42:48', '2026-09-07 17:16:52'),
 ('smtp_username', '', 'general', 'text', '2026-06-14 14:55:14', '2026-09-07 17:16:52'),
-('smtr', '127.0.0.1', 'general', 'text', '2026-04-12 16:28:35', '2026-06-13 18:37:31'),
+('smtr', '', 'general', 'text', '2026-04-12 16:28:35', '2026-06-13 18:37:31'),
 ('store_status', 'open', 'general', 'select', '2026-04-03 08:17:13', '2026-09-07 17:16:52'),
 ('update_last_checked', '2026-09-17 16:52:23', 'system', 'text', '2026-07-01 09:39:47', '2026-09-17 16:52:23'),
 ('upload_max_filesize', '10M', 'general', 'text', '2026-05-16 09:39:11', '2026-05-16 09:39:11');
