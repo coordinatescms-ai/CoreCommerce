@@ -342,6 +342,7 @@ window.ORDERS_TRANSLATIONS = {
 <script>
 (() => {
     const t = window.ORDERS_TRANSLATIONS || {};
+    const CSRF_TOKEN     = <?= json_encode($_SESSION['csrf'] ?? '', JSON_UNESCAPED_UNICODE) ?>;
     const statusLabels = <?= json_encode($statusLabels, JSON_UNESCAPED_UNICODE) ?>;
     const modal        = document.getElementById('orderModal');
     const form         = document.getElementById('orderForm');
@@ -484,7 +485,8 @@ window.ORDERS_TRANSLATIONS = {
         try {
             const res = await fetch(`/admin/orders/delete/${orderId}`, {
                 method: 'POST',
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                body: JSON.stringify({ csrf: CSRF_TOKEN })
             });
             const data = await res.json();
 
@@ -513,6 +515,7 @@ window.ORDERS_TRANSLATIONS = {
         });
         const payload = {
             id: Number(document.getElementById('orderIdField').value || 0),
+            csrf: CSRF_TOKEN,
             customer_name:      document.getElementById('customerName').value.trim(),
             customer_phone:     document.getElementById('customerPhone').value.trim(),
             customer_email:     document.getElementById('customerEmail').value.trim(),
@@ -550,7 +553,7 @@ window.ORDERS_TRANSLATIONS = {
         const res    = await fetch('/admin/orders/update-status', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-            body: JSON.stringify({ order_id: Number(orderId), status, ttn_code: ttnCode }),
+            body: JSON.stringify({ order_id: Number(orderId), status, ttn_code: ttnCode, csrf: CSRF_TOKEN }),
         });
         const result = await res.json();
         if (!res.ok || !result.success) throw new Error(result.message || t.status_update_error || 'Не вдалося оновити статус');
@@ -599,7 +602,11 @@ window.ORDERS_TRANSLATIONS = {
 
     // ── Синхронізація ТТН ──
     document.getElementById('syncLogisticsBtn').addEventListener('click', async () => {
-        const res  = await fetch('/admin/orders/sync-logistics', { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+        const res  = await fetch('/admin/orders/sync-logistics', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            body: JSON.stringify({ csrf: CSRF_TOKEN })
+        });
         const data = await res.json();
         if (!res.ok || !data.success) return alert(data.message || window.LANG.sync_error);
         (data.updated || []).forEach((change) => {

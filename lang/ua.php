@@ -652,7 +652,7 @@ return [
     'product_show_in_store'   => 'Показувати товар на вітрині',
     'product_gallery'         => 'Поточна галерея',
     'product_gallery_add'     => 'Додати фото до галереї',
-    'product_gallery_hint'    => 'Дозволені формати: JPG, PNG, WEBP. Максимум 5MB на файл.',
+    'product_gallery_hint'    => 'Дозволені формати: JPG, PNG, WEBP. Максимум 5MB на файл. Можна обирати фото по одному або одразу декілька — вибір файлів можна повторювати, кожне нове фото додається до списку.',
     'product_preview'         => 'Перегляд товару',
     'product_view'            => 'Товар',
     'product_import_csv'      => 'Імпорт товарів з CSV',
@@ -889,6 +889,11 @@ return [
 
     // ── Адмін: налаштування ───────────────────────────────────────────────────
     'settings_general'        => 'Загальні',
+    'settings_appearance'     => 'Вигляд',
+    'settings_appearance_compare_toggle' => 'Показувати порівняння на публічних сторінках',
+    'settings_appearance_compare_hint'   => 'Якщо вимкнено — на сайті приховуються посилання "Порівняти" в шапці та кнопки "Порівняти" на картках товару. Вже додані до порівняння товари при цьому не видаляються.',
+    'settings_appearance_language_toggle' => 'Дозволити покупцям змінювати мову сайту',
+    'settings_appearance_language_hint'   => 'Якщо вимкнено — випадаючий список вибору мови приховується в шапці сайту. Сайт продовжує відображатись поточною мовою.',
     'settings_media'          => 'Мультимедіа',
     'settings_shipping'       => 'Налаштування доставки',
     'settings_payment'        => 'Методи оплати',
@@ -1230,6 +1235,7 @@ return [
     'plugin_db_select_only' => 'Плагін «%s»: метод select() приймає тільки SELECT-запити.',
     'plugin_db_use_select' => 'Плагін «%s»: використовуйте select() для читання даних.',
     'plugin_db_write_only_prefix' => 'Плагін «%s»: запис дозволений тільки у таблиці з префіксом «%s». Спроба запису в «%s».',
+    'plugin_db_select_forbidden_table' => 'Плагін «%s»: читання таблиці «%s» заборонене. SELECT дозволено лише для власних таблиць плагіна та публічного списку таблиць ядра.',
     'admin_settings_phone_mask_format' => 'Використовуйте символ <code>#</code> для цифр. Приклад: <code>+38 (###) ###-##-##</code>.',
     'admin_settings_allowed_formats' => 'Дозволені формати: JPG, PNG, WEBP. Максимум: 1 МБ.',
     'admin_settings_current_logo_alt' => 'Поточний логотип',

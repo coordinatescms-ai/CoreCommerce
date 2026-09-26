@@ -85,9 +85,7 @@ class SecurityHeadersService
         }
 
         // Якщо вже HTTPS — нічого не робимо
-        $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-            || (int) ($_SERVER['SERVER_PORT'] ?? 80) === 443
-            || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
+        $isHttps = self::isHttpsRequest();
 
         if (!$isHttps) {
             $host = $_SERVER['HTTP_HOST'] ?? '';
@@ -111,9 +109,7 @@ class SecurityHeadersService
         }
 
         // Переконуємось що з'єднання HTTPS
-        $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-            || (int) ($_SERVER['SERVER_PORT'] ?? 80) === 443
-            || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
+        $isHttps = self::isHttpsRequest();
 
         if (!$isHttps) {
             return;
@@ -134,6 +130,49 @@ class SecurityHeadersService
         }
 
         header("Strict-Transport-Security: $hsts");
+    }
+
+    // ── Визначення HTTPS з урахуванням довірених проксі ─────────────────────
+
+    /**
+     * X-Forwarded-Proto — заголовок, який клієнт може підробити як завгодно,
+     * якщо запит не проходить через довірений проксі (при порожньому
+     * trusted_proxies це означало, що будь-хто міг видати себе за HTTPS-
+     * з'єднання і зірвати примусовий редирект на HTTPS). Тут довіряємо
+     * цьому заголовку лише якщо реальне TCP-з'єднання (REMOTE_ADDR) прийшло
+     * від довіреного проксі з config/security.php -> trusted_proxies —
+     * той самий підхід, що й у App\Services\LoginRateLimiter::resolveIp().
+     */
+    private static function isHttpsRequest(): bool
+    {
+        // Прямі сигнали від самого веб-сервера (не з заголовків запиту) —
+        // клієнт їх підмінити не може, довіряємо завжди.
+        if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+            return true;
+        }
+        if ((int) ($_SERVER['SERVER_PORT'] ?? 80) === 443) {
+            return true;
+        }
+
+        return self::isTrustedProxyRequest()
+            && ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
+    }
+
+    private static function isTrustedProxyRequest(): bool
+    {
+        $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? '';
+        if ($remoteAddr === '') {
+            return false;
+        }
+
+        $trustedProxies = [];
+        $securityConfigPath = __DIR__ . '/../../config/security.php';
+        if (is_file($securityConfigPath)) {
+            $securityConfig = require $securityConfigPath;
+            $trustedProxies = (array) ($securityConfig['trusted_proxies'] ?? []);
+        }
+
+        return in_array($remoteAddr, $trustedProxies, true);
     }
 
     // ── Хелпери для view ──────────────────────────────────────────────────

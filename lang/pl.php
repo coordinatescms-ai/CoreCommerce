@@ -652,7 +652,7 @@ return [
     'product_show_in_store'   => 'Pokaż produkt w sklepie',
     'product_gallery'         => 'Bieżąca galeria',
     'product_gallery_add'     => 'Dodaj zdjęcie do galerii',
-    'product_gallery_hint'    => 'Dozwolone formaty: JPG, PNG, WEBP. Maksymalnie 5MB na plik.',
+    'product_gallery_hint'    => 'Dozwolone formaty: JPG, PNG, WEBP. Maksymalnie 5MB na plik. Możesz wybierać zdjęcia pojedynczo lub kilka naraz — wybór można powtarzać, każde nowe zdjęcie zostanie dodane do listy.',
     'product_preview'         => 'Podgląd produktu',
     'product_view'            => 'Produkt',
     'product_import_csv'      => 'Import produktów z CSV',
@@ -889,6 +889,11 @@ return [
 
     // ── Admin: ustawienia ───────────────────────────────────────────────────
     'settings_general'        => 'Ogólne',
+    'settings_appearance'     => 'Wygląd',
+    'settings_appearance_compare_toggle' => 'Pokazuj porównanie produktów na stronach publicznych',
+    'settings_appearance_compare_hint'   => 'Jeśli wyłączone, link "Porównaj" w nagłówku oraz przyciski "Porównaj" na kartach produktów są ukryte na stronie sklepu. Produkty już dodane do porównania nie są usuwane.',
+    'settings_appearance_language_toggle' => 'Zezwól klientom na zmianę języka witryny',
+    'settings_appearance_language_hint'   => 'Jeśli wyłączone, rozwijana lista wyboru języka jest ukryta w nagłówku witryny. Witryna nadal wyświetla się w bieżącym języku.',
     'settings_media'          => 'Multimedia',
     'settings_shipping'       => 'Ustawienia dostawy',
     'settings_payment'        => 'Metody płatności',
@@ -1229,6 +1234,7 @@ return [
     'plugin_db_select_only' => 'Wtyczka «%s»: metoda select() akceptuje tylko zapytania SELECT.',
     'plugin_db_use_select' => 'Wtyczka «%s»: użyj select() do odczytu danych.',
     'plugin_db_write_only_prefix' => 'Wtyczka «%s»: zapis dozwolony tylko w tabelach z prefiksem «%s». Próba zapisu do «%s».',
+    'plugin_db_select_forbidden_table' => 'Wtyczka «%s»: odczyt tabeli «%s» jest niedozwolony. SELECT jest dozwolony tylko dla własnych tabel wtyczki i publicznej listy tabel rdzenia.',
     'admin_settings_phone_mask_format' => 'Użyj symbolu <code>#</code> dla cyfr. Przykład: <code>+48 (###) ###-##-##</code>.',
     'admin_settings_allowed_formats' => 'Dozwolone formaty: JPG, PNG, WEBP. Maksymalnie: 1 MB.',
     'admin_settings_current_logo_alt' => 'Bieżące logo',

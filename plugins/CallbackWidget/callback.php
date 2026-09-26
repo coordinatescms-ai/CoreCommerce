@@ -108,14 +108,18 @@ if (mb_strlen($name) < 2) {
     exit;
 }
 
-// Підключення до бази даних для отримання email для відправки
-require_once dirname(__DIR__, 2) . '/app/Core/Database/DB.php';
+// Отримання email для відправки — через обмежений проксі PluginDB
+// (settings у списку READABLE_CORE_TABLES, доступний лише на читання).
+require_once dirname(__DIR__, 2) . '/app/Core/Plugin/PluginDB.php';
+require_once dirname(__DIR__, 2) . '/app/Core/Plugin/PluginSecurityException.php';
 require_once dirname(__DIR__, 2) . '/app/Core/Mail/MailService.php';
 
 try {
-    $contactEmail = \App\Core\Database\DB::query(
+    $pluginDb = new \App\Core\Plugin\PluginDB('CallbackWidget');
+    $rows = $pluginDb->select(
         "SELECT value FROM settings WHERE `key` = 'contact_email' LIMIT 1"
-    )->fetch(\PDO::FETCH_ASSOC);
+    );
+    $contactEmail = $rows[0] ?? null;
     
     $toEmail = $contactEmail['value'] ?? '';
     

@@ -9,11 +9,18 @@ use App\Core\Database\DB;
  *
  * Пісочниця рівня БД:
  *  — Плагін працює лише зі своїми таблицями (префікс plugin_{slug}_)
- *  — SELECT дозволено на публічних таблицях (products, categories, orders)
+ *  — SELECT дозволено лише на таблицях з READABLE_CORE_TABLES або з власним
+ *    префіксом плагіна — перевіряється по іменах таблиць у самому запиті
  *  — INSERT/UPDATE/DELETE — тільки у власних таблицях плагіна
- *  — Прямий доступ до DB::$pdo заборонений (він private)
  *  — Транзакції дозволені
  *  — Логування всіх запитів плагіна
+ *
+ * ВАЖЛИВО: private $pdo у App\Core\Database\DB сам по собі НЕ є межею
+ * безпеки — DB::query()/execute()/exec() публічні (потрібні ядру) і
+ * теоретично доступні звідки завгодно. Реальна межа — це перевірка
+ * викликача в App\Core\Database\DB::assertCallerAllowed(): будь-який
+ * прямий виклик DB::query()/execute()/exec() з файлу під /plugins/
+ * (в обхід цього класу) блокується там, на рівні DB.
  */
 class PluginDB
 {
@@ -21,7 +28,7 @@ class PluginDB
     private const READABLE_CORE_TABLES = [
         'products', 'categories', 'orders', 'order_items',
         'users', 'settings', 'currencies', 'attributes',
-        'product_attributes', 'product_stocks',
+        'product_attributes', 'product_stocks', 'shop_methods',
     ];
 
     // Таблиці ядра, заборонені для будь-яких змін плагіном
@@ -52,6 +59,17 @@ class PluginDB
             throw new PluginSecurityException(
                 sprintf(__('plugin_db_select_only'), $this->slug)
             );
+        }
+
+        foreach ($this->extractSelectTableNames($sql) as $table) {
+            $isOwnTable     = str_starts_with($table, $this->tablePrefix);
+            $isReadableCore = in_array($table, self::READABLE_CORE_TABLES, true);
+
+            if (!$isOwnTable && !$isReadableCore) {
+                throw new PluginSecurityException(
+                    sprintf(__('plugin_db_select_forbidden_table'), $this->slug, $table)
+                );
+            }
         }
 
         $this->logQuery('SELECT', $sql, $params);
@@ -166,6 +184,36 @@ class PluginDB
         // CREATE TABLE / DROP TABLE
         if (preg_match('/^(?:create|drop)\s+table\s+(?:if\s+(?:not\s+)?exists\s+)?[`"]?(\w+)[`"]?/i', $sql, $m)) {
             $tables[] = $m[1];
+        }
+
+        return array_unique($tables);
+    }
+
+    /**
+     * Витягує назви таблиць з FROM/JOIN у SELECT-запиті (включно зі старим
+     * стилем "FROM a, b" через кому). Не є повноцінним SQL-парсером — цього
+     * достатньо, щоб перевірити whitelist для звичайних SELECT-запитів
+     * плагінів; підзапити в дужках `FROM (SELECT ...) x` тут не зачіпають
+     * реальних таблиць і просто не потраплять у результат.
+     */
+    private function extractSelectTableNames(string $sql): array
+    {
+        $tables     = [];
+        $normalized = preg_replace('/\s+/', ' ', strtolower(trim($sql)));
+
+        // FROM `table` / JOIN `table` (включно з подальшими JOIN)
+        if (preg_match_all('/\b(?:from|join)\s+[`"]?(\w+)[`"]?/', $normalized, $m)) {
+            $tables = array_merge($tables, $m[1]);
+        }
+
+        // FROM a, b, c — старий стиль неявного JOIN через кому
+        if (preg_match('/\bfrom\s+[`"]?\w+[`"]?\s*((?:,\s*[`"]?\w+[`"]?)+)/', $normalized, $m)) {
+            foreach (explode(',', $m[1]) as $part) {
+                $part = trim($part, " `\"");
+                if ($part !== '') {
+                    $tables[] = $part;
+                }
+            }
         }
 
         return array_unique($tables);

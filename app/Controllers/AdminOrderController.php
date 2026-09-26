@@ -52,6 +52,25 @@ class AdminOrderController
         return is_array($payload) ? $payload : $_POST;
     }
 
+    /**
+     * Перевірка CSRF-токена для POST-дій цього контролера. Токен приймається
+     * як 'csrf' у тілі запиту (JSON-payload або $_POST — обидва покриває
+     * getJsonPayload()), бо фронтенд цієї сторінки шле AJAX-запити з
+     * Content-Type: application/json, а не звичайні form-submit.
+     *
+     * Завершує запит через respondJson() (яка робить exit), якщо токен
+     * відсутній або не збігається із сесійним.
+     */
+    private function requireCsrfToken(array $payload): void
+    {
+        $sessionToken = (string) ($_SESSION['csrf'] ?? '');
+        $requestToken = is_string($payload['csrf'] ?? null) ? $payload['csrf'] : '';
+
+        if ($sessionToken === '' || $requestToken === '' || !hash_equals($sessionToken, $requestToken)) {
+            $this->respondJson(['success' => false, 'message' => __('csrf_token_invalid')], 419);
+        }
+    }
+
     private const PER_PAGE = 24;
 
     public function index(): void
@@ -140,6 +159,8 @@ class AdminOrderController
         }
 
         $payload = $this->getJsonPayload();
+        $this->requireCsrfToken($payload);
+
         $orderId = (int) ($payload['order_id'] ?? 0);
         $newStatus = trim((string) ($payload['status'] ?? ''));
         $ttnCode = trim((string) ($payload['ttn_code'] ?? ''));
@@ -375,6 +396,7 @@ class AdminOrderController
         }
 
         $payload = $this->getJsonPayload();
+        $this->requireCsrfToken($payload);
 
         try {
             $normalized = $this->normalizeOrderInput($payload);
@@ -485,6 +507,8 @@ class AdminOrderController
             return;
         }
 
+        $this->requireCsrfToken($this->getJsonPayload());
+
         if (!$this->hasTtnCodeColumn()) {
             $this->respondJson(['success' => true, 'updated' => [], 'message' => __('admin_order_ttn_column_missing')]);
             return;
@@ -553,6 +577,8 @@ class AdminOrderController
             $this->respondJson(['success' => false, 'message' => __('admin_order_method_not_supported')], 405);
             return;
         }
+
+        $this->requireCsrfToken($this->getJsonPayload());
 
         $orderId = (int) $id;
         if ($orderId <= 0) {

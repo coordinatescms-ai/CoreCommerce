@@ -116,10 +116,10 @@ class UpdateController
             exit;
         }
 
-        View::render('admin/settings/tabs/update_page', [
+        View::render('admin/settings/tabs/update', [
+            'updaterConfig'   => $this->config,
             'current_version' => $this->config['current_version'],
-            'allow_updates'   => $this->config['allow_updates'],
-            'source'          => $this->config['source'] ?? 'local',
+            'phpVersion'      => PHP_VERSION,
         ], 'admin');
     }
 

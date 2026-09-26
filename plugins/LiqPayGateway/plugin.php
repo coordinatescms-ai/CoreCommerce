@@ -6,7 +6,6 @@ use App\Core\Payment\PaymentManager;
 use App\Core\Payment\PaymentGatewayInterface;
 use App\Core\Payment\PaymentResult;
 use App\Core\Payment\WebhookResult;
-use App\Core\Database\DB;
 
 /**
  * Платіжний плагін LiqPay.
@@ -25,7 +24,11 @@ return new class implements PluginInterface {
     public function register(PluginManager $pluginManager): void
     {
         // Реєструємо шлюз у PaymentManager ядра
-        PaymentManager::register(new class implements PaymentGatewayInterface {
+        PaymentManager::register(new class($pluginManager->getPluginDB('LiqPayGateway')) implements PaymentGatewayInterface {
+
+            public function __construct(private \App\Core\Plugin\PluginDB $pluginDb)
+            {
+            }
 
             public function getName(): string  { return 'liqpay'; }
             public function getLabel(): string { return $this->t('label_liqpay', 'LiqPay — оплата карткою'); }
@@ -138,11 +141,14 @@ return new class implements PluginInterface {
 
             private function loadKeys(): array
             {
-                // Читаємо з shop_methods (зворотна сумісність зі старим UI)
-                $row = DB::query(
+                // Читаємо з shop_methods через обмежений проксі PluginDB
+                // (зворотна сумісність зі старим UI; shop_methods — у списку
+                // READABLE_CORE_TABLES, доступна лише на читання).
+                $rows = $this->pluginDb->select(
                     "SELECT settings, is_test_mode FROM shop_methods
                      WHERE code = 'liqpay' AND type = 'payment' LIMIT 1"
-                )->fetch(\PDO::FETCH_ASSOC);
+                );
+                $row = $rows[0] ?? null;
 
                 if (!$row) {
                     return ['', '', false];

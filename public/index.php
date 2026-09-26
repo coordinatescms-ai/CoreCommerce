@@ -18,7 +18,16 @@ use App\Models\Setting;
 
 // 2. Перевірка режиму обслуговування (Maintenance Mode) - тільки файл flag
 // Перевірка налаштувань з БД буде пізніше, після підключення БД
-if (file_exists(__DIR__ . '/../storage/maintenance.flag') && strpos($_SERVER['REQUEST_URI'], '/admin') === false) {
+//
+// ВАЖЛИВО: перевіряємо саме ПРЕФІКС шляху запиту (/admin або /admin/...),
+// а не підрядок будь-де в REQUEST_URI. strpos($_SERVER['REQUEST_URI'], '/admin')
+// хибно спрацьовував би на будь-якому URL, що містить "/admin" де завгодно —
+// наприклад у query-рядку (?next=/admin) чи в частині шляху товару — і давав
+// звичайним відвідувачам обходити режим обслуговування.
+$requestPath = (string) (parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/');
+$isAdminRequest = $requestPath === '/admin' || str_starts_with($requestPath, '/admin/');
+
+if (file_exists(__DIR__ . '/../storage/maintenance.flag') && !$isAdminRequest) {
     http_response_code(503);
     die("<h1>Сайт на оновленні</h1><p>Будь ласка, зачекайте кілька хвилин. Ми оновлюємо систему для вашої зручності.</p>");
 }
@@ -33,7 +42,7 @@ DB::connect($config['dsn'], $config['user'], $config['pass']);
 \App\Services\SecurityHeadersService::apply();
 
 // 3.2 Перевірка статусу магазину з бази даних (після підключення БД)
-if (strpos($_SERVER['REQUEST_URI'], '/admin') === false) {
+if (!$isAdminRequest) {
     try {
         $storeStatus = Setting::get('store_status', 'open');
         error_log('Maintenance check: store_status = ' . var_export($storeStatus, true));

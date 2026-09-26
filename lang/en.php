@@ -441,6 +441,7 @@ return [
     'plugin_db_select_only' => 'Plugin «%s»: select() method accepts only SELECT queries.',
     'plugin_db_use_select' => 'Plugin «%s»: use select() for reading data.',
     'plugin_db_write_only_prefix' => 'Plugin «%s»: write allowed only in tables with prefix «%s». Attempt to write to «%s».',
+    'plugin_db_select_forbidden_table' => 'Plugin «%s»: reading table «%s» is not allowed. SELECT is only allowed for the plugin\'s own tables and the public core table whitelist.',
     'admin_themes'            => 'Themes',
     'admin_stocks'            => 'Stock',
     'admin_settings'          => 'Settings',
@@ -666,7 +667,7 @@ return [
     'product_show_in_store'   => 'Show product in storefront',
     'product_gallery'         => 'Current gallery',
     'product_gallery_add'     => 'Add photo to gallery',
-    'product_gallery_hint'    => 'Allowed formats: JPG, PNG, WEBP. Max 5MB per file.',
+    'product_gallery_hint'    => 'Allowed formats: JPG, PNG, WEBP. Max 5MB per file. You can pick one photo at a time or several at once — repeat the selection and each new photo will be added to the list.',
     'product_preview'         => 'Preview product',
     'product_view'            => 'Product',
     'product_import_csv'      => 'Import products from CSV',
@@ -903,6 +904,11 @@ return [
 
     // ── Admin: settings ───────────────────────────────────────────────────────
     'settings_general'        => 'General',
+    'settings_appearance'     => 'Appearance',
+    'settings_appearance_compare_toggle' => 'Show product comparison on public pages',
+    'settings_appearance_compare_hint'   => 'If disabled, the "Compare" link in the header and the "Compare" buttons on product cards are hidden on the storefront. Products already added to comparison are not removed.',
+    'settings_appearance_language_toggle' => 'Allow customers to change the site language',
+    'settings_appearance_language_hint'   => 'If disabled, the language selector dropdown is hidden from the site header. The site keeps displaying in the current language.',
     'settings_media'          => 'Media',
     'settings_shipping'       => 'Shipping settings',
     'settings_payment'        => 'Payment methods',
