@@ -409,3 +409,6 @@ For support, issues, or contributions, please refer to the project repository or
 - Enhanced reporting and analytics
 
 <img width="1388" height="886" alt="logo" src="https://github.com/user-attachments/assets/3efc6c39-d092-4e2c-8f02-8559e8abb8bc" />
+
+## Disclaimer
+CoreCommerce is an independent, community-driven open-source project. It is not affiliated, sponsored, or legally related to any commercial companies or third-party products using the "CoreCommerce" brand name.
