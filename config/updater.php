@@ -20,8 +20,8 @@ return [
     'source' => 'remote',
 
     // ── Поточна версія рушія ──────────────────────────────────────────────
-    'current_version' => '1.1.5',
-    'version_id'      => 2,
+    'current_version' => '1.0.0',
+    'version_id'      => 1,
 
     // ── Remote-сервер (використовується лише при source = 'remote') ───────
     'update_server' => 'https://corecommerce.website/v1/update',
