@@ -1,0 +1,18 @@
+{
+    "label_stripe": "Stripe — оплата карткою",
+
+    "error_not_configured": "Stripe не налаштовано: відсутній Secret Key. Заповніть його в Адмінка → Налаштування → Оплата.",
+    "error_invalid_amount": "Некоректна сума замовлення для оплати Stripe.",
+    "error_session_failed": "Не вдалося створити сесію оплати Stripe. Спробуйте ще раз або оберіть інший спосіб оплати.",
+    "order_fallback_name": "Замовлення #",
+
+    "hint_plugin_note": "Ці поля читає плагін %s.",
+    "hint_enable_link": "Увімкніть плагін у розділі Керування плагінами",
+    "hint_publishable_key": "Публічний ключ, безпечно показувати на фронтенді.",
+    "hint_secret_key": "Секретний ключ — нікому не показуйте, не логуйте.",
+    "hint_webhook_secret": "З розділу Webhooks у Stripe Dashboard (signing secret).",
+    "hint_webhook_url": "вкажіть цей URL у Stripe Dashboard → Developers → Webhooks (потрібні події нижче):",
+
+    "default_method_name": "Оплата карткою (Stripe)",
+    "default_method_description": "Visa / Mastercard через Stripe Checkout"
+}

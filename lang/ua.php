@@ -315,6 +315,9 @@ return [
     'free' => 'Безкоштовно',
     'shipping_varies_by_method' => 'Залежно від служби доставки',
     'checkout_delivery_extra_cost' => 'Додатково за доставку від :amount',
+    'shipping_method_self_pickup' => 'Самовивіз',
+    'settings_shipping_include_in_total' => 'Враховувати вартість доставки в сумі замовлення та оплаті',
+    'settings_shipping_include_in_total_hint' => 'Якщо вимкнути, покупець побачить тариф доставки, але його не буде додано до суми оплати.',
     'proceed_to_checkout' => 'Перейти до оформлення',
     'in_stock' => 'В наявності',
 

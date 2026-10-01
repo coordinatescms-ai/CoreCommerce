@@ -768,3 +768,14 @@ add_filter('hook.name', $callback, $priority, $args)
 ---
 
 *Документ актуальний для CoreCommerce v1.0. З питань — відкривай issue або звертайся до автора рушія.*
+# Checkout integration contract (CoreCommerce 1.1.5)
+
+Checkout extensions receive active methods and a shared context, and all server-side decisions are repeated for direct POST requests:
+
+- `checkout.delivery_methods` and `checkout.payment_methods`: filter `(array $methods, array $context)` to apply availability rules such as delivery zones, COD limits, cart weight, or customer eligibility.
+- `checkout.delivery_fields` and `checkout.payment_fields`: actions receive the currently allowed methods array. Render fields only when the method your plugin owns is present.
+- `checkout.validate`: filter `(array $errors, array $payload, array $context)` to validate plugin-owned input. Plugin fields should be named `custom_fields[plugin_code][field]`; the sanitized values are exposed at `$payload['custom_fields'][plugin_code]` and saved to `orders.meta`.
+- `checkout.shipping_cost`: filter `(float $cost, array $context)` to return a non-negative delivery amount in the store currency. The server recalculates it during order placement; never trust a browser-submitted price.
+- `checkout.before_order`: final blocking filter `(array $errors, array $payload, array $context)` called after inventory is locked and the final total is calculated, immediately before the order insert. Return one or more errors to veto the order, for example after a fraud check.
+
+The context contains `items`, `subtotal`, `user`, `customer`, `custom_fields`, `delivery_method`, and `payment_method`. At `checkout.before_order`, it also includes `total` and `shipping_cost`. These hooks run on the server and are not a substitute for browser-side field behavior; checkout fields should also be namespaced and validated server-side.

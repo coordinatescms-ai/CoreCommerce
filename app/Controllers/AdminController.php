@@ -909,6 +909,10 @@ class AdminController
             View::renderPartial('admin/settings/tabs/media', ['settings' => $settings]);
             break;
 
+        case 'appearance':
+            View::renderPartial('admin/settings/tabs/appearance', []);
+            break;
+
         case 'shipping':
             // Отримуємо всі методи з типом shipping
             $methods = Setting::getShopMethods('shipping');
@@ -1218,6 +1222,9 @@ class AdminController
         }
         $settings['media_auto_webp'] = !empty($settings['media_auto_webp']) ? '1' : '0';
         $settings['media_apply_watermark'] = !empty($settings['media_apply_watermark']) ? '1' : '0';
+        if (array_key_exists('shipping_include_in_total', $settings)) {
+            $settings['shipping_include_in_total'] = !empty($settings['shipping_include_in_total']) ? '1' : '0';
+        }
 
         $allowedWatermarkPositions = ['top-left', 'top-right', 'center', 'bottom-left', 'bottom-right'];
         $position = (string) ($settings['media_watermark_position'] ?? 'bottom-right');
@@ -1286,6 +1293,9 @@ class AdminController
             'default_language' => ['group' => 'localization', 'type' => 'select'],
             'default_currency' => ['group' => 'localization', 'type' => 'select'],
             'active_theme' => ['group' => 'appearance', 'type' => 'select'],
+            'show_compare_on_frontend' => ['group' => 'appearance', 'type' => 'checkbox'],
+            'show_language_switcher' => ['group' => 'appearance', 'type' => 'checkbox'],
+            'shipping_include_in_total' => ['group' => 'shipping', 'type' => 'checkbox'],
             'contact_email' => ['group' => 'contact', 'type' => 'text'],
             'contact_phone' => ['group' => 'contact', 'type' => 'text'],
             'contact_address' => ['group' => 'contact', 'type' => 'text'],

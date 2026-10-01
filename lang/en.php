@@ -315,6 +315,9 @@ return [
     'free' => 'Free',
     'shipping_varies_by_method' => 'Depends on delivery method',
     'checkout_delivery_extra_cost' => 'Extra delivery fee from :amount',
+    'shipping_method_self_pickup' => 'Self-pickup',
+    'settings_shipping_include_in_total' => 'Include shipping cost in the order total and payment',
+    'settings_shipping_include_in_total_hint' => 'When disabled, customers still see the shipping price, but it is not added to the amount charged.',
     'proceed_to_checkout' => 'Proceed to Checkout',
     'in_stock' => 'In Stock',
 

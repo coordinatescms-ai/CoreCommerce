@@ -71,6 +71,16 @@ function format_price($amount, int $decimals = 2): string
     return number_format((float)$amount, $decimals, ',', ' ') . ' ' . $symbol;
 }
 
+/** Return a localized display name for built-in shipping methods. */
+function shipping_method_display_name(array $method): string
+{
+    if (($method['code'] ?? '') === 'self_pickup') {
+        return __('shipping_method_self_pickup');
+    }
+
+    return (string) ($method['name'] ?? '');
+}
+
 function product_image_variant_path(?string $path, string $variant = 'original'): string
 {
     $path = trim((string) $path);
@@ -294,15 +304,45 @@ function sanitize_action_return_url(string $uri): string
 }
 
 /**
+ * Чи увімкнено показ функціоналу порівняння товарів на публічних сторінках.
+ * Керується налаштуванням "Вигляд" в адмін-панелі (settings[show_compare_on_frontend]).
+ * За замовчуванням увімкнено (щоб не ламати поведінку на існуючих сайтах,
+ * де це налаштування ще не збережене в БД).
+ */
+function is_compare_enabled(): bool
+{
+    return (string) get_setting('show_compare_on_frontend', '1') === '1';
+}
+
+/**
+ * Чи увімкнено показ випадаючого списку вибору мови на публічних сторінках.
+ * Керується налаштуванням "Вигляд" в адмін-панелі (settings[show_language_switcher]).
+ * За замовчуванням увімкнено (щоб не ламати поведінку на існуючих сайтах,
+ * де це налаштування ще не збережене в БД).
+ */
+function is_language_switcher_enabled(): bool
+{
+    return (string) get_setting('show_language_switcher', '1') === '1';
+}
+
+/**
  * Кнопка "Порівняти" / стан "У порівнянні" для картки товару.
  * $compareProductIds — масив ID товарів у поточному списку порівняння
  * (App\Models\CompareList::getProductIds(), автоматично додається в
  * App\Core\View\View::render() як $compareProductIds).
  *
+ * Повертає порожній рядок, якщо показ порівняння вимкнено в налаштуваннях
+ * (вкладка "Вигляд" в адмін-панелі) — кнопка ніде на публічних сторінках
+ * тоді не рендериться.
+ *
  * @param array<int> $compareProductIds
  */
 function render_compare_button(int $productId, array $compareProductIds): string
 {
+    if (!is_compare_enabled()) {
+        return '';
+    }
+
     $csrf = htmlspecialchars((string) ($_SESSION['csrf'] ?? ''));
     $returnUrl = htmlspecialchars(sanitize_action_return_url((string) ($_SERVER['REQUEST_URI'] ?? '/products')));
 

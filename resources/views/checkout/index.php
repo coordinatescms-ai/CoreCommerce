@@ -37,11 +37,14 @@
                             value="<?= (int) $method['id'] ?>"
                             data-code="<?= htmlspecialchars((string) ($method['code'] ?? '')) ?>"
                             data-pickup-address="<?= htmlspecialchars((string) ($method['settings']['address'] ?? '')) ?>"
+                            data-cost="<?= htmlspecialchars(number_format($deliveryCost, 2, '.', '')) ?>"
+                            data-summary-cost="<?= htmlspecialchars($deliveryCost > 0 ? format_price($deliveryCost) : __('free')) ?>"
+                            data-summary-total="<?= htmlspecialchars(format_price($total + (!empty($shippingIncludeInTotal) ? $deliveryCost : 0))) ?>"
                             <?= $idx === 0 ? 'checked' : '' ?>
                         >
-                        <?= htmlspecialchars((string) $method['name']) ?>
+                        <?= htmlspecialchars(shipping_method_display_name($method)) ?>
                         <?php if ($deliveryCost > 0): ?>
-                            <small style="display:block; color:#999; font-weight:400;"><?= __('checkout_delivery_extra_cost', ['amount' => format_price($deliveryCost)]) ?></small>
+                            <small style="display:block; color:#999; font-weight:400;"><?= htmlspecialchars(__('checkout_delivery_extra_cost', ['amount' => format_price($deliveryCost)])) ?></small>
                         <?php endif; ?>
                     </label>
                 <?php endforeach; ?>
@@ -51,7 +54,8 @@
             <div id="delivery-np-fields" class="delivery-block">
                 <label class="field-label" for="delivery_city"><?= __('checkout_city') ?></label>
                 <input id="delivery_city" name="delivery_city" type="text" list="np-city-list" autocomplete="off" placeholder="<?= __('checkout_city_placeholder') ?>">
-                <input id="delivery_city_ref" type="hidden" name="delivery_city_ref">
+                <input id="delivery_city_ref" type="hidden" name="custom_fields[nova_poshta][city_ref]">
+                <input id="delivery_warehouse_ref" type="hidden" name="custom_fields[nova_poshta][warehouse_ref]">
                 <datalist id="np-city-list"></datalist>
                 <small class="field-error" data-error-for="delivery_city"></small>
 
@@ -93,6 +97,8 @@
             </div>
             <small class="field-error" data-error-for="payment_id"></small>
 
+            <?php do_action('checkout.payment_fields', $paymentMethods); ?>
+
             <label class="field-label" for="comment"><?= __('checkout_comment') ?></label>
             <textarea id="comment" name="comment" rows="4" placeholder="<?= __('checkout_comment_placeholder') ?>"></textarea>
         </section>
@@ -119,9 +125,23 @@
 
             <?php do_action('checkout.summary.before_total', $total); ?>
 
+            <?php
+            // Вартість доставки першого (передвибраного) методу — те саме
+            // значення, яке сервер нарахує у POST /place-order, якщо покупець
+            // не змінить вибір. JS (public/js/checkout.js) оновлює ці два
+            // рядки при зміні способу доставки, беручи готові тексти
+            // з data-summary-cost / data-summary-total радіо.
+            $initialShippingCost = (float) ($deliveryMethods[0]['settings']['cost'] ?? 0);
+            ?>
+
+            <div class="summary-row" id="checkout-shipping-row">
+                <span><?= __('shipping') ?></span>
+                <strong id="checkout-shipping-cost"><?= $initialShippingCost > 0 ? format_price($initialShippingCost) : __('free') ?></strong>
+            </div>
+
             <div class="summary-total">
                 <span><?= __('checkout_total') ?></span>
-                <strong><?= format_price($total) ?></strong>
+            <strong id="checkout-total-amount"><?= format_price($total + (!empty($shippingIncludeInTotal) ? $initialShippingCost : 0)) ?></strong>
             </div>
 
             <button type="submit" id="checkout-submit" class="checkout-submit"><?= __('checkout_submit') ?></button>
@@ -139,6 +159,7 @@ input, select, textarea { width: 100%; padding: 0.6rem; border: 1px solid #ccd3d
 .delivery-block { margin-top: 0.7rem; }
 .summary-list { list-style: none; padding: 0; margin: 0; }
 .summary-list li { display: flex; justify-content: space-between; border-bottom: 1px dashed #e5e7eb; padding: 0.55rem 0; }
+.summary-row { display: flex; justify-content: space-between; border-bottom: 1px dashed #e5e7eb; padding: 0.55rem 0; }
 .summary-total { display: flex; justify-content: space-between; padding-top: 0.8rem; font-size: 1.2rem; }
 .checkout-submit { margin-top: 1rem; width: 100%; border: 0; border-radius: 6px; padding: 0.8rem; background: #2563eb; color: #fff; font-weight: 700; cursor: pointer; }
 .checkout-status { margin-bottom: 1rem; padding: 0.7rem 0.9rem; border-radius: 6px; }

@@ -213,8 +213,10 @@
                     <a href="/login"><?= __('login') ?></a> |
                     <a href="/register"><?= __('register') ?></a>
                 <?php endif; ?>
+                <?php if (function_exists('is_compare_enabled') ? is_compare_enabled() : true): ?>
                 <span class="nav-separator">|</span>
                 <a href="/compare" class="nav-cart-link" data-compare-link><?= __('compare') ?><span class="cart-counter" data-compare-count>0</span></a>
+                <?php endif; ?>
                 <span class="nav-separator">|</span>
                 <a href="/cart" class="nav-cart-link" data-cart-link><?= __('cart') ?><span class="cart-counter" data-cart-count>0</span></a>
             </div>

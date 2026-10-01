@@ -298,6 +298,7 @@ $cartCount = isset($_SESSION['cart']) ? count($_SESSION['cart']) : 0;
                         <div id="premium-search-dropdown" style="display:none; position:absolute; top:100%; left:0; right:0; background:white; border:1px solid #eee; box-shadow: var(--shadow); z-index: 1002; border-radius: 10px; margin-top: 5px; overflow: hidden;"></div>
                     </div>
 
+                    <?php if (function_exists('is_language_switcher_enabled') ? is_language_switcher_enabled() : true): ?>
                     <div class="dropdown" style="position: relative;">
                         <a href="#" class="action-link" id="langSwitcher">
                             <i class="fas fa-globe"></i>
@@ -310,15 +311,18 @@ $cartCount = isset($_SESSION['cart']) ? count($_SESSION['cart']) : 0;
                             <?php endforeach; ?>
                         </div>
                     </div>
+                    <?php endif; ?>
 
                     <a href="/profile" class="action-link">
                         <i class="far fa-user"></i>
                     </a>
 
+                    <?php if (function_exists('is_compare_enabled') ? is_compare_enabled() : true): ?>
                     <a href="/compare" class="action-link">
                         <i class="fas fa-code-compare"></i>
                         <span class="cart-count" data-compare-count>0</span>
                     </a>
+                    <?php endif; ?>
 
                     <a href="/cart" class="action-link">
                         <i class="fas fa-shopping-bag"></i>

@@ -282,17 +282,7 @@ CREATE TABLE `chat_sessions` (
 -- Дамп даних таблиці `chat_sessions`
 --
 
-INSERT INTO `chat_sessions` (`id`, `visitor_id`, `operator_id`, `channel_token`, `status`, `source_url`, `source_title`, `started_at`, `accepted_at`, `closed_at`, `last_message_at`, `last_message_preview`, `created_at`, `updated_at`) VALUES
-(17, 7, NULL, 'fc5f1f098439bf6393a5aa9889614608879f7eeb38727b7b6ed8da145b2eb617', 'offline_form', 'https://mysite.test/', 'MySite', '2026-09-10 17:59:29', NULL, NULL, NULL, NULL, '2026-09-10 17:59:29', '2026-09-10 17:59:29'),
-(18, 7, NULL, '03691b44254246473b11fe20f00e3bd036c48c19a495ef3e59b92bbb3fa812e9', 'offline_form', 'https://mysite.test/', 'MySite', '2026-09-10 17:59:42', NULL, NULL, NULL, NULL, '2026-09-10 17:59:42', '2026-09-10 17:59:42'),
-(19, 7, NULL, '0ab19c767e5ea3809db08694d010af01cfc6684ab176cacb940662823f2d803e', 'offline_form', 'https://mysite.test/', 'MySite', '2026-09-10 17:59:55', NULL, NULL, NULL, NULL, '2026-09-10 17:59:55', '2026-09-10 17:59:55'),
-(20, 7, NULL, '3d42fd83453ae99a57da9d00ccf22b8e0e134b4f2957214f4d205d18636cb8d8', 'offline_form', 'https://mysite.test/', 'MySite', '2026-09-10 18:00:23', NULL, NULL, NULL, NULL, '2026-09-10 18:00:23', '2026-09-10 18:00:23'),
-(21, 7, NULL, 'e7cf70507783c47229f4b3fe725874cf1b50ce84900a1048c30abdbea1a12c50', 'offline_form', 'https://mysite.test/', 'MySite', '2026-09-10 18:23:43', NULL, NULL, NULL, NULL, '2026-09-10 18:23:43', '2026-09-10 18:23:43'),
-(22, 7, NULL, 'be849f888dbd953d152a504fdc2658582409c1a09d9dfd6fe31f186b7fe14d99', 'offline_form', 'https://mysite.test/', 'MySite', '2026-09-10 18:23:58', NULL, NULL, NULL, NULL, '2026-09-10 18:23:58', '2026-09-10 18:23:58'),
-(23, 7, NULL, '867689c1a7b8ab4ca8e70c34cfa14d77649a362c2377cde117d9cd14d64a3143', 'offline_form', 'https://mysite.test/', 'MySite', '2026-09-10 18:24:14', NULL, NULL, NULL, NULL, '2026-09-10 18:24:14', '2026-09-10 18:24:14'),
-(24, 8, NULL, '1aa26098683e3d5aef5698890f92be63cbb09f7ac5e54aeba79af5b186e482cf', 'offline_form', 'https://mysite.test/', 'MySite', '2026-09-11 20:39:01', NULL, NULL, NULL, NULL, '2026-09-11 20:39:01', '2026-09-11 20:39:01'),
-(25, 8, NULL, 'e1c968f0a2209b8e2c2dcb4d92a9c8a19430ceb89d48463b7d331f2d2dde26b8', 'offline_form', 'https://mysite.test/', 'MySite', '2026-09-11 20:39:13', NULL, NULL, NULL, NULL, '2026-09-11 20:39:13', '2026-09-11 20:39:13'),
-(26, 7, NULL, '56f0f252debc91111031e626759c8922cb5efe61d1ef5df1bcc84573d41d3b5d', 'offline_form', 'https://mysite.test/', 'MySite', '2026-09-11 20:59:18', NULL, NULL, NULL, NULL, '2026-09-11 20:59:18', '2026-09-11 20:59:18');
+-- Chat sessions data removed for security
 
 -- --------------------------------------------------------
 
@@ -317,9 +307,7 @@ CREATE TABLE `chat_visitors` (
 -- Дамп даних таблиці `chat_visitors`
 --
 
-INSERT INTO `chat_visitors` (`id`, `visitor_uuid`, `user_id`, `name`, `email`, `phone`, `ip_address`, `user_agent`, `first_seen_at`, `last_seen_at`) VALUES
-(7, 'ad3317d9-471d-45a3-a4c4-96e129049291', NULL, NULL, NULL, NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36', '2026-09-10 17:59:29', '2026-09-11 20:59:18'),
-(8, 'cb51ab2b-50b7-40c4-b190-025a5abaf67e', NULL, NULL, NULL, NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36 Edg/151.0.0.0', '2026-09-11 20:39:01', '2026-09-11 20:39:13');
+-- Chat visitors data removed for security
 
 -- --------------------------------------------------------
 
@@ -480,20 +468,7 @@ CREATE TABLE `inventory_log` (
 -- Дамп даних таблиці `inventory_log`
 --
 
-INSERT INTO `inventory_log` (`id`, `sku`, `event_type`, `qty`, `comment`, `created_at`) VALUES
-(1, 'ID-1', 'add', 4, '', '2026-05-09 17:46:52'),
-(2, 'ID-2', 'add', 10, '', '2026-05-16 13:14:11'),
-(3, 'ID-2', 'reserve', 1, 'Автоматичне резервування', '2026-06-26 17:14:58'),
-(4, 'ID-1', 'reserve', 1, 'Автоматичне резервування', '2026-06-26 18:09:03'),
-(5, 'ID-2', 'reserve', 1, 'Автоматичне резервування', '2026-06-26 22:18:44'),
-(6, 'BRAVIS-24K5000H', 'reserve', 1, 'Автоматичне резервування', '2026-07-10 09:04:27'),
-(7, 'ugreen-lp152', 'reserve', 1, 'Автоматичне резервування', '2026-07-10 11:36:27'),
-(8, 'Grunhelm-24H300-T2', 'reserve', 1, 'Автоматичне резервування', '2026-07-11 16:05:33'),
-(9, 'ugreen-lp152', 'reserve', 1, 'Автоматичне резервування', '2026-08-04 18:05:55'),
-(10, 'Grunhelm-24H300-T2', 'reserve', 1, 'Автоматичне резервування', '2026-08-04 18:05:55'),
-(11, 'Grunhelm-24H300-T2', 'reserve', 1, 'Автоматичне резервування', '2026-08-24 18:21:19'),
-(12, 'Grunhelm-24H300-T2', 'reserve', 1, 'Автоматичне резервування', '2026-09-24 11:27:28'),
-(13, 'ugreen-lp152', 'reserve', 1, 'Автоматичне резервування', '2026-09-24 11:27:28');
+-- Inventory log data removed for security
 
 -- --------------------------------------------------------
 
@@ -513,29 +488,7 @@ CREATE TABLE `login_attempts` (
 -- Дамп даних таблиці `login_attempts`
 --
 
-INSERT INTO `login_attempts` (`id`, `ip`, `email`, `success`, `created_at`) VALUES
-(1, '127.0.0.1', 'admin@mysite.test', 0, '2026-06-21 18:39:02'),
-(2, '127.0.0.1', 'admin@example.com', 1, '2026-06-21 18:39:57'),
-(3, '127.0.0.1', 'admin@example.com', 1, '2026-07-02 10:27:30'),
-(4, '127.0.0.1', 'admin@example.com', 1, '2026-07-03 00:00:34'),
-(5, '127.0.0.1', 'admin@example.com', 1, '2026-07-08 13:16:56'),
-(6, '127.0.0.1', 'admin@example.com', 1, '2026-07-11 18:47:36'),
-(7, '127.0.0.1', 'admin@example.com', 1, '2026-07-11 18:48:11'),
-(8, '127.0.0.1', 'admin@example.com', 1, '2026-08-15 18:50:26'),
-(9, '127.0.0.1', 'admin@example.com', 1, '2026-08-23 23:52:58'),
-(11, '127.0.0.1', 'admin@example.com', 1, '2026-08-26 19:16:28'),
-(13, '127.0.0.1', 'admin@example.com', 1, '2026-08-30 14:53:35'),
-(14, '127.0.0.1', 'admin@example.com', 1, '2026-09-08 19:28:43'),
-(15, '127.0.0.1', 'admin@example.com', 1, '2026-09-09 11:39:02'),
-(16, '127.0.0.1', 'admin@example.com', 1, '2026-09-09 16:51:54'),
-(17, '127.0.0.1', 'admin@example.com', 1, '2026-09-09 22:22:13'),
-(18, '127.0.0.1', 'admin@example.com', 1, '2026-09-10 17:58:56'),
-(19, '127.0.0.1', 'admin@example.com', 1, '2026-09-11 20:39:59'),
-(20, '127.0.0.1', 'admin@example.com', 1, '2026-09-12 10:46:09'),
-(21, '127.0.0.1', 'admin@example.com', 1, '2026-09-12 13:33:53'),
-(22, '127.0.0.1', 'admin@example.com', 1, '2026-09-12 18:13:30'),
-(23, '127.0.0.1', 'admin@example.com', 1, '2026-09-13 12:12:56'),
-(24, '127.0.0.1', 'admin@example.com', 1, '2026-09-16 12:31:27');
+-- Login attempts data removed for security
 
 -- --------------------------------------------------------
 
@@ -574,6 +527,7 @@ CREATE TABLE `orders` (
   `id` int NOT NULL,
   `user_id` int DEFAULT NULL,
   `total` decimal(10,2) DEFAULT NULL,
+  `shipping_cost` decimal(10,2) NOT NULL DEFAULT 0.00,
   `customer_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `customer_phone` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `customer_email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
@@ -587,6 +541,7 @@ CREATE TABLE `orders` (
   `payment_id` int DEFAULT NULL,
   `delivery_id` int DEFAULT NULL,
   `comment` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `meta` json DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `prom_order_id` bigint UNSIGNED DEFAULT NULL COMMENT 'ID замовлення на Prom.ua',
   `prom_source` tinyint(1) NOT NULL DEFAULT '0' COMMENT '1 = прийшло з Prom webhook'
@@ -672,9 +627,9 @@ CREATE TABLE `plugins` (
 --
 
 INSERT INTO `plugins` (`id`, `name`, `slug`, `main_file`, `is_active`, `version`, `created_at`, `updated_at`) VALUES
-(1, 'Test Plugin', 'TestPlugin', 'D:\\OSPanel\\home\\mysite.test/plugins/TestPlugin/plugin.php', 0, '1.0.0', '2026-04-30 19:25:51', '2026-09-25 09:38:38'),
-(2, 'LiqPay — Online payment', 'LiqPayGateway', 'D:\\OSPanel\\home\\mysite.test/plugins/LiqPayGateway/plugin.php', 1, '1.0.0', '2026-06-10 13:42:15', '2026-09-25 09:38:38'),
-(4, 'Request a call', 'CallbackWidget', 'D:\\OSPanel\\home\\mysite.test/plugins/CallbackWidget/plugin.php', 1, '1.0.0', '2026-07-29 20:32:45', '2026-09-25 09:38:38');
+(1, 'Test Plugin', 'TestPlugin', '/plugins/TestPlugin/plugin.php', 0, '1.0.0', '2026-04-30 19:25:51', '2026-09-25 09:38:38'),
+(2, 'LiqPay — Online payment', 'LiqPayGateway', '/plugins/LiqPayGateway/plugin.php', 1, '1.0.0', '2026-06-10 13:42:15', '2026-09-25 09:38:38'),
+(4, 'Request a call', 'CallbackWidget', '/plugins/CallbackWidget/plugin.php', 1, '1.0.0', '2026-07-29 20:32:45', '2026-09-25 09:38:38');
 
 -- --------------------------------------------------------
 
@@ -1026,18 +981,7 @@ CREATE TABLE `search_cache` (
 -- Дамп даних таблиці `search_cache`
 --
 
-INSERT INTO `search_cache` (`id`, `query_hash`, `query_text`, `results`, `hits`, `created_at`, `expires_at`) VALUES
-(1, '6425bdfc130e5368454444b1efecdc46a9d9beb1e698a3cb1b95920e685f81bc', 'сіомі', '{\"results\":[{\"id\":2,\"sku\":\"ID-2\",\"is_visible\":1,\"category_id\":3,\"name\":\"Сіомі\",\"description\":\"Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі!\",\"image\":\"\\/uploads\\/products\\/gallery\\/original\\/product_69e608b6ddae3707094810.webp\",\"slug\":\"siomi\",\"meta_title\":\"Сіомі крутий продукт\",\"meta_description\":\"\",\"meta_keywords\":null,\"price\":\"2050.00\",\"created_at\":\"2026-04-05 10:11:57\",\"updated_at\":\"2026-06-20 19:37:18\",\"views_count\":48,\"prom_product_id\":null,\"category_name\":\"Телевізори\",\"stock_qty\":10,\"relevance\":3.5384288351535798}],\"total\":1,\"page\":1,\"pages\":1,\"query\":\"сіомі\",\"tokens\":[\"сіомі\"],\"suggestion\":null,\"strategy\":\"fulltext\",\"from_cache\":false}', 16, '2026-06-20 19:03:01', '2026-06-20 17:51:12'),
-(3, 'f43e648ddbdf7b3384f6181760945ab2a111fd84a88c3ff606c24c22d8f9537f', 'сіомі', '{\"results\":[{\"id\":2,\"sku\":\"ID-2\",\"is_visible\":1,\"category_id\":3,\"name\":\"Сіомі\",\"description\":\"Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі! Сіомі Сіомі Сіомі Сіомі Сіомі!\",\"image\":\"\\/uploads\\/products\\/gallery\\/original\\/product_69e608b6ddae3707094810.webp\",\"slug\":\"siom\",\"meta_title\":\"Сіомі крутий продукт\",\"meta_description\":\"\",\"meta_keywords\":null,\"price\":\"2050.08\",\"created_at\":\"2026-04-05 10:11:57\",\"updated_at\":\"2026-07-08 13:17:35\",\"views_count\":51,\"prom_product_id\":null,\"category_name\":\"Телевізори\",\"stock_qty\":10,\"relevance\":24.11929237937927}],\"total\":1,\"page\":1,\"pages\":1,\"query\":\"сіомі\",\"tokens\":[\"сіомі\"],\"suggestion\":null,\"strategy\":\"fulltext\",\"from_cache\":false}', 38, '2026-06-20 19:03:33', '2026-07-11 11:36:09'),
-(51, 'cee603f301ba871344dd4e01073284462f13af5d9656b8e75b8ea38580a08c23', 'ас', '{\"results\":[],\"total\":0,\"page\":1,\"pages\":1,\"query\":\"ас\",\"tokens\":[\"ас\"],\"suggestion\":null,\"strategy\":\"fuzzy\",\"from_cache\":false}', 1, '2026-06-20 19:41:37', '2026-06-20 17:51:37'),
-(52, '2de405c6892a11f3a5d31e1daa67acf4bef1b6338624b282cbd8d8191cbdc34f', 'асу', '{\"results\":[],\"total\":0,\"page\":1,\"pages\":1,\"query\":\"асу\",\"tokens\":[\"асу\"],\"suggestion\":null,\"strategy\":\"fuzzy\",\"from_cache\":false}', 1, '2026-06-20 19:41:37', '2026-06-20 17:51:37'),
-(53, 'dd3f5734e5e28f20f5d75a9274a1af7b393c7404dc4e0e4b2f9995115506f46e', 'асус', '{\"results\":[],\"total\":0,\"page\":1,\"pages\":1,\"query\":\"асус\",\"tokens\":[\"асус\"],\"suggestion\":null,\"strategy\":\"fuzzy\",\"from_cache\":false}', 1, '2026-06-20 19:41:38', '2026-06-20 17:51:38'),
-(54, '0b5ec06d8d2a36d4465e462182cd196b59448c03d42effba3802f541176b988b', 'асус', '{\"results\":[],\"total\":0,\"page\":1,\"pages\":1,\"query\":\"асус\",\"tokens\":[\"асус\"],\"suggestion\":null,\"strategy\":\"fuzzy\",\"from_cache\":false}', 1, '2026-06-20 19:41:40', '2026-06-20 17:51:40'),
-(55, '367c7b591c5e7e474fd5ce754031a735ed52f76913a4e654e232ef748ce07297', 'test', '{\"results\":[],\"total\":0,\"page\":1,\"pages\":1,\"query\":\"test\",\"tokens\":[\"test\"],\"suggestion\":null,\"strategy\":\"fuzzy\",\"from_cache\":false}', 1, '2026-06-23 11:03:59', '2026-06-23 09:13:59'),
-(57, 'dbce177f0d78cb0970569cf5e666606072ae9f8869fa69183061cef9b30e139e', 'klklklkl', '{\"results\":[],\"total\":0,\"page\":1,\"pages\":1,\"query\":\"klklklkl\",\"tokens\":[\"klklklkl\"],\"suggestion\":null,\"strategy\":\"fuzzy\",\"from_cache\":false}', 2, '2026-06-26 19:28:10', '2026-06-26 17:38:15'),
-(62, 'c4473488202d13ee17e0539576c5f5bc2f5a9e1740a018942b0672da327d20d6', 'iphone', '{\"results\":[{\"id\":6,\"sku\":\"ID-3\",\"vendor\":null,\"is_visible\":1,\"category_id\":2,\"name\":\"iPhone 15 128GB Black\",\"description\":\"iPhone 15 — this is a smartphone that embodies innovation in every aspect, from design to performance. Unrivaled from its exterior to its internal components, this device will become your reliable partner in daily life, ensuring maximum convenience and productivity. With its refreshed look, powerful A16 Bionic chip, and 48MP camera, the iPhone 15 opens up a boundless world of new possibilities.\",\"image\":\"\\/uploads\\/products\\/gallery\\/original\\/product_6a48edeb1719a274349597.jpg\",\"slug\":\"iphone-15-128gv-black\",\"meta_title\":\"\",\"meta_description\":\"\",\"meta_keywords\":null,\"price\":\"29199.00\",\"created_at\":\"2026-07-04 13:24:17\",\"updated_at\":\"2026-08-25 12:46:23\",\"views_count\":0,\"prom_product_id\":null,\"category_name\":\"iPhone\",\"stock_qty\":0,\"relevance\":3.570953607559204}],\"total\":1,\"page\":1,\"pages\":1,\"query\":\"iphone\",\"tokens\":[\"iphone\"],\"suggestion\":null,\"strategy\":\"fulltext\",\"from_cache\":false}', 2, '2026-08-29 13:47:46', '2026-08-29 11:58:03'),
-(64, '7f1d383120eaa9ac2a5e65eff0a24852c294b5d82d6ae0251f373ba841e92ece', 'television grunhelm 24h300-t2', '{\"results\":[{\"id\":5,\"sku\":\"Grunhelm-24H300-T2\",\"vendor\":null,\"is_visible\":1,\"category_id\":3,\"name\":\"Television Grunhelm 24H300-T2\",\"description\":\"GRUNHELM 24H300‑T2 - the TV features a 24-inch screen with a resolution of 1366×768 (HD Ready), providing acceptable image quality for small rooms or kitchens. It is equipped with LED backlighting (Direct LED type) and a VA panel, offering wide viewing angles of up to 170° both horizontally and vertically.\",\"image\":\"\\/uploads\\/products\\/gallery\\/original\\/product_6a482b3f04178722104981.jpg\",\"slug\":\"grunhelm-24H300-T2\",\"meta_title\":\"\",\"meta_description\":\"\",\"meta_keywords\":null,\"price\":\"5299.00\",\"created_at\":\"2026-07-03 23:27:12\",\"updated_at\":\"2026-08-25 12:49:41\",\"views_count\":0,\"prom_product_id\":null,\"category_name\":\"Televisions\",\"stock_qty\":18,\"relevance\":5.1913652420043945}],\"total\":1,\"page\":1,\"pages\":1,\"query\":\"television grunhelm 24h300-t2\",\"tokens\":[\"television\",\"grunhelm\",\"24h300-t2\"],\"suggestion\":null,\"strategy\":\"fulltext\",\"from_cache\":false}', 2, '2026-08-29 13:48:42', '2026-08-29 11:58:52'),
-(66, '7a399dd2a58096468f9b9333a2e0e5ff675e4b0e6329dc31130f23b4677b45b2', 'television bravis 24k5000h', '{\"results\":[{\"id\":3,\"sku\":\"BRAVIS-24K5000H\",\"vendor\":null,\"hotline_excluded\":0,\"is_visible\":1,\"category_id\":3,\"name\":\"Television BRAVIS 24K5000H\",\"description\":\"BRAVIS 24K5000H — an ideal choice for small rooms, kitchens, or as a second TV in the bedroom. It features a stylish, slim 24-inch design with a black bezel that complements any interior. (Design details confirmed by multiple sources, for example.)\",\"image\":\"\\/uploads\\/products\\/gallery\\/original\\/product_6a48eefff07ba546360331.jpg\",\"slug\":\"bravis-24k5000h\",\"meta_title\":\"\",\"meta_description\":\"\",\"meta_keywords\":null,\"price\":\"5186.00\",\"created_at\":\"2026-07-03 23:27:11\",\"updated_at\":\"2026-09-21 19:37:05\",\"views_count\":0,\"prom_product_id\":null,\"category_name\":\"Televisions\",\"stock_qty\":25,\"relevance\":5.1913652420043945}],\"total\":1,\"page\":1,\"pages\":1,\"query\":\"television bravis 24k5000h\",\"tokens\":[\"television\",\"bravis\",\"24k5000h\"],\"suggestion\":null,\"strategy\":\"fulltext\",\"from_cache\":false}', 5, '2026-09-24 18:17:06', '2026-09-24 16:37:09');
+-- Search cache data removed for security
 
 -- --------------------------------------------------------
 
@@ -1057,16 +1001,7 @@ CREATE TABLE `search_queries` (
 -- Дамп даних таблиці `search_queries`
 --
 
-INSERT INTO `search_queries` (`id`, `query`, `results_count`, `search_count`, `last_searched`) VALUES
-(1, 'сіомі', 1, 54, '2026-07-11 13:26:09'),
-(51, 'ас', 0, 1, '2026-06-20 19:41:37'),
-(52, 'асу', 0, 1, '2026-06-20 19:41:37'),
-(53, 'асус', 0, 2, '2026-06-20 19:41:40'),
-(55, 'test', 0, 1, '2026-06-23 11:03:59'),
-(57, 'klklklkl', 0, 2, '2026-06-26 19:28:15'),
-(62, 'iphone', 1, 2, '2026-08-29 13:48:03'),
-(64, 'television grunhelm 24h300-t2', 1, 2, '2026-08-29 13:48:52'),
-(66, 'television bravis 24k5000h', 1, 5, '2026-09-24 18:27:09');
+-- Search queries data removed for security
 
 -- --------------------------------------------------------
 
@@ -1123,7 +1058,7 @@ INSERT INTO `settings` (`key`, `value`, `group`, `type`, `created_at`, `updated_
 ('active_logotype', '/uploads/logotypes/logotype_6a8099021b98c144124377.png', 'general', 'text', '2026-04-27 16:44:28', '2026-08-15 16:51:16'),
 ('active_theme', 'modern', 'appearance', 'select', '2026-04-03 08:17:13', '2026-09-07 17:16:53'),
 ('contact_address', 'Kyiv, Ukraine', 'contact', 'text', '2026-08-22 17:39:29', '2026-09-07 17:16:54'),
-('contact_email', 'admin@mysite.test', 'contact', 'text', '2026-04-03 08:17:13', '2026-09-07 17:16:53'),
+('contact_email', 'admin@example.com', 'contact', 'text', '2026-04-03 08:17:13', '2026-09-07 17:16:53'),
 ('contact_phone', '+380 00 000 00 00', 'contact', 'text', '2026-04-03 08:17:13', '2026-09-07 17:16:53'),
 ('csp_mode', 'off', 'security', 'select', '2026-07-02 18:09:14', '2026-09-25 07:33:22'),
 ('currency_source', 'manual', 'currency', 'select', '2026-06-05 10:00:00', '2026-06-27 10:03:31'),
@@ -1131,18 +1066,18 @@ INSERT INTO `settings` (`key`, `value`, `group`, `type`, `created_at`, `updated_
 ('default_currency', 'UAH', 'localization', 'select', '2026-04-03 08:17:13', '2026-09-17 16:37:40'),
 ('default_language', 'en', 'localization', 'select', '2026-04-03 08:17:13', '2026-09-07 17:16:52'),
 ('display_errors', '0', 'system', 'checkbox', '2026-09-06 17:36:21', '2026-09-06 17:36:21'),
-('email', 'admin@localhost.local', 'general', 'text', '2026-04-12 16:35:40', '2026-06-13 18:37:31'),
+('email', 'admin@example.com', 'general', 'text', '2026-04-12 16:35:40', '2026-06-13 18:37:31'),
 ('engine_version', '1.0.0', 'system', 'text', '2026-07-01 09:41:28', '2026-09-16 10:38:31'),
 ('facebook_auth_enabled', '0', 'social_auth', 'checkbox', '2026-05-09 12:03:51', '2026-09-07 17:16:54'),
 ('facebook_client_id', '', 'social_auth', 'text', '2026-05-09 12:01:55', '2026-09-07 17:16:54'),
 ('facebook_client_secret', '', 'social_auth', 'text', '2026-05-09 12:01:55', '2026-09-07 17:16:54'),
-('facebook_redirect_url', 'http://mysite.test/auth/google/callback', 'social_auth', 'text', '2026-05-09 12:02:18', '2026-09-07 17:16:54'),
+('facebook_redirect_url', '/auth/facebook/callback', 'social_auth', 'text', '2026-05-09 12:02:18', '2026-09-07 17:16:54'),
 ('footer_about_text', 'Your text about the store goes here', 'general', 'text', '2026-08-15 09:31:15', '2026-09-07 17:24:46'),
 ('force_https', '0', 'general', 'checkbox', '2026-05-01 17:21:57', '2026-05-01 17:21:57'),
 ('google_auth_enabled', '0', 'social_auth', 'checkbox', '2026-05-09 12:03:51', '2026-09-07 17:16:54'),
 ('google_client_id', '', 'social_auth', 'text', '2026-05-09 12:01:55', '2026-09-07 17:16:54'),
 ('google_client_secret', '', 'social_auth', 'text', '2026-05-09 12:01:55', '2026-09-07 17:16:54'),
-('google_redirect_url', 'http://mysite.test/auth/google/callback', 'social_auth', 'text', '2026-05-09 12:02:18', '2026-09-07 17:16:54'),
+('google_redirect_url', '/auth/google/callback', 'social_auth', 'text', '2026-05-09 12:02:18', '2026-09-07 17:16:54'),
 ('hsts_enabled', '0', 'security', 'checkbox', '2026-07-02 18:09:14', '2026-09-25 07:33:22'),
 ('hsts_max_age', '300', 'security', 'number', '2026-07-02 18:09:14', '2026-07-02 18:09:14'),
 ('hsts_preload', '0', 'security', 'checkbox', '2026-07-02 18:09:14', '2026-07-02 18:09:14'),
@@ -1170,7 +1105,7 @@ INSERT INTO `settings` (`key`, `value`, `group`, `type`, `created_at`, `updated_
 ('site_description', 'The best online store built with PHP', 'general', 'textarea', '2026-04-03 08:17:13', '2026-09-07 17:16:52'),
 ('site_name', 'MySite', 'general', 'text', '2026-04-03 08:17:13', '2026-09-07 17:16:52'),
 ('site_timezone', 'Europe/Kiev', 'general', 'text', '2026-04-12 16:52:37', '2026-09-07 17:16:52'),
-('site_url', 'https://mysite.test', 'general', 'text', '2026-06-26 12:05:23', '2026-09-07 17:16:52'),
+('site_url', 'https://example.com', 'general', 'text', '2026-06-26 12:05:23', '2026-09-07 17:16:52'),
 ('sitemap_last_generated', '2026-07-01 07:12:44', 'system', 'text', '2026-07-01 07:12:44', '2026-07-01 07:12:44'),
 ('smtp_encryption', '', 'general', 'text', '2026-06-14 14:55:14', '2026-09-07 17:16:52'),
 ('smtp_from_email', '', 'general', 'text', '2026-06-14 14:55:14', '2026-09-07 17:16:53'),
@@ -1210,7 +1145,7 @@ CREATE TABLE `shop_methods` (
 --
 
 INSERT INTO `shop_methods` (`id`, `type`, `code`, `name`, `icon`, `description`, `is_active`, `is_test_mode`, `settings`, `sort_order`, `created_at`, `updated_at`) VALUES
-(1, 'shipping', 'nova_poshta', 'Нова Пошта', NULL, '', 0, 0, '{\"cost\": \"70\", \"api_key\": \"d175da6cdfcd3f2121c9ec459cc7abe5\"}', 0, '2026-04-20 16:09:35', '2026-09-07 17:19:01'),
+(1, 'shipping', 'nova_poshta', 'Нова Пошта', NULL, '', 0, 0, '{\"cost\": \"70\", \"api_key\": \"\"}', 0, '2026-04-20 16:09:35', '2026-09-07 17:19:01'),
 (2, 'shipping', 'self_pickup', 'Self-pickup', NULL, '', 1, 0, '{\"address\": \"1 Tsentralna St., Kyiv\"}', 0, '2026-04-20 16:09:35', '2026-09-07 17:19:01'),
 (3, 'payment', 'cash', 'Payment upon receipt', NULL, '', 1, 0, '{\"gateway_name\": \"cash\"}', 0, '2026-04-20 16:09:35', '2026-09-08 17:30:37'),
 (4, 'payment', 'liqpay', 'Онлайн-оплата (LiqPay)', NULL, '', 0, 1, '{\"public_key\": \"\", \"private_key\": \"\", \"gateway_name\": \"liqpay\"}', 0, '2026-04-20 16:09:35', '2026-09-08 17:30:37');

@@ -315,6 +315,9 @@ return [
     'free' => 'Darmowa',
     'shipping_varies_by_method' => 'Zależy od usługi dostawy',
     'checkout_delivery_extra_cost' => 'Dodatkowo za dostawę od :amount',
+    'shipping_method_self_pickup' => 'Odbiór osobisty',
+    'settings_shipping_include_in_total' => 'Uwzględniaj koszt dostawy w sumie zamówienia i płatności',
+    'settings_shipping_include_in_total_hint' => 'Po wyłączeniu klient nadal zobaczy cenę dostawy, ale nie zostanie ona doliczona do kwoty płatności.',
     'proceed_to_checkout' => 'Przejdź do zamówienia',
     'in_stock' => 'W magazynie',
 

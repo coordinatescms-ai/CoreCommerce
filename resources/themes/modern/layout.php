@@ -1021,7 +1021,7 @@
 
                     <div class="nav-actions">
                         <!-- Мова -->
-                        <?php if (function_exists('get_language_names')): ?>
+                        <?php if (function_exists('get_language_names') && (function_exists('is_language_switcher_enabled') ? is_language_switcher_enabled() : true)): ?>
                         <div class="lang-dropdown">
                             <?php
                             $current = get_current_language();
@@ -1044,12 +1044,14 @@
                         <?php endif; ?>
 
                         <!-- Порівняння -->
+                        <?php if (function_exists('is_compare_enabled') ? is_compare_enabled() : true): ?>
                         <a href="/compare" class="nav-cart-link" data-compare-link title="<?php echo function_exists('__') ? __('compare') : 'Compare'; ?>">
                             <svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 512 512" fill="white">
                                 <path d="M470.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-96 96c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L370.7 288 192 288c-17.7 0-32-14.3-32-32s14.3-32 32-32l178.7 0-41.4-41.4c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l96 96zm-429.3 45.3c-12.5-12.5-12.5-32.8 0-45.3l96-96c12.5-12.5 32.8-12.5 45.3 0s12.5 32.8 0 45.3L141.3 224 320 224c17.7 0 32 14.3 32 32s-14.3 32-32 32l-178.7 0 41.4 41.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0l-96-96z"/>
                             </svg>
                             <span class="cart-counter" data-compare-count>0</span>
                         </a>
+                        <?php endif; ?>
 
                         <!-- Кошик -->
                         <a href="/cart" class="nav-cart-link" data-cart-link>

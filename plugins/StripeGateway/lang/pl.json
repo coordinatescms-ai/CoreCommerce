@@ -1,0 +1,18 @@
+{
+    "label_stripe": "Stripe — płatność kartą",
+
+    "error_not_configured": "Stripe nie jest skonfigurowany: brak klucza tajnego. Ustaw go w Admin → Ustawienia → Płatność.",
+    "error_invalid_amount": "Nieprawidłowa kwota zamówienia dla płatności Stripe.",
+    "error_session_failed": "Nie udało się utworzyć sesji płatności Stripe. Spróbuj ponownie lub wybierz inną metodę płatności.",
+    "order_fallback_name": "Zamówienie #",
+
+    "hint_plugin_note": "Te pola są odczytywane przez wtyczkę %s.",
+    "hint_enable_link": "Włącz wtyczkę w Zarządzaniu wtyczkami",
+    "hint_publishable_key": "Klucz publiczny, bezpieczny do ujawnienia na froncie.",
+    "hint_secret_key": "Klucz tajny — nigdy nie pokazuj ani nie loguj go nikomu.",
+    "hint_webhook_secret": "Z sekcji Webhooks w panelu Stripe (signing secret).",
+    "hint_webhook_url": "ustaw ten URL w panelu Stripe → Developers → Webhooks (wymagane zdarzenia poniżej):",
+
+    "default_method_name": "Płatność kartą (Stripe)",
+    "default_method_description": "Visa / Mastercard przez Stripe Checkout"
+}

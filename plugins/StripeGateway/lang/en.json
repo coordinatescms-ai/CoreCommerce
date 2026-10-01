@@ -1,0 +1,18 @@
+{
+    "label_stripe": "Stripe — card payment",
+
+    "error_not_configured": "Stripe is not configured: Secret Key is missing. Set it in Admin → Settings → Payment.",
+    "error_invalid_amount": "Invalid order amount for Stripe payment.",
+    "error_session_failed": "Could not create a Stripe payment session. Please try again or choose another payment method.",
+    "order_fallback_name": "Order #",
+
+    "hint_plugin_note": "These fields are read by the %s plugin.",
+    "hint_enable_link": "Enable the plugin under Plugin Management",
+    "hint_publishable_key": "Public key, safe to expose on the frontend.",
+    "hint_secret_key": "Secret key — never show or log this to anyone.",
+    "hint_webhook_secret": "From the Webhooks section in the Stripe Dashboard (signing secret).",
+    "hint_webhook_url": "set this URL in the Stripe Dashboard → Developers → Webhooks (required events below):",
+
+    "default_method_name": "Card payment (Stripe)",
+    "default_method_description": "Visa / Mastercard via Stripe Checkout"
+}

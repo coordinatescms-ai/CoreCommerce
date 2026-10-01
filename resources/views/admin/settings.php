@@ -7,6 +7,7 @@
         <div id="settings-tabs" style="display:flex; gap:0.5rem; flex-wrap:wrap;">
             <button type="button" class="btn btn-outline settings-tab-btn active" data-tab="general"><?= __('settings_general') ?></button>
             <button type="button" class="btn btn-outline settings-tab-btn" data-tab="media"><?= __('settings_media') ?></button>
+            <button type="button" class="btn btn-outline settings-tab-btn" data-tab="appearance"><?= __('settings_appearance') ?></button>
             <button type="button" class="btn btn-outline settings-tab-btn" data-tab="shipping"><?= __('order_delivery') ?></button>
             <button type="button" class="btn btn-outline settings-tab-btn" data-tab="payment"><?= __('settings_payment') ?></button>
             <button type="button" class="btn btn-outline settings-tab-btn" data-tab="reviews"><?= __('admin_reviews') ?></button>

@@ -15,6 +15,7 @@
     const pickupAddressText = document.getElementById('pickup-address-text');
     const cityInput = document.getElementById('delivery_city');
     const cityRefInput = document.getElementById('delivery_city_ref');
+    const warehouseRefInput = document.getElementById('delivery_warehouse_ref');
     const cityList = document.getElementById('np-city-list');
     const warehouseSelect = document.getElementById('delivery_warehouse');
 
@@ -246,6 +247,7 @@
             warehouses.forEach((wh) => {
                 const option = document.createElement('option');
                 option.value = wh.Description;
+                option.dataset.ref = wh.Ref || '';
                 option.textContent = wh.Description;
                 warehouseSelect.appendChild(option);
             });
@@ -258,6 +260,7 @@
     let cityDebounce;
     cityInput.addEventListener('input', () => {
         cityRefInput.value = '';
+        warehouseRefInput.value = '';
         warehouseSelect.innerHTML = '<option value="">' + (t.select_city_first || 'Оберіть місто спочатку') + '</option>';
 
         const value = cityInput.value.trim();
@@ -284,6 +287,10 @@
                 showStatus('error', error.message);
             }
         }, 350);
+    });
+
+    warehouseSelect.addEventListener('change', () => {
+        warehouseRefInput.value = warehouseSelect.options[warehouseSelect.selectedIndex]?.dataset.ref || '';
     });
 
     // 'change' спрацьовує при blur після вибору — страховка для Firefox та Edge
@@ -386,6 +393,37 @@
             submitButton.textContent = t.submit_button || 'Підтвердити замовлення';
         }
     });
+
+    // ── Підсумок: вартість доставки + «Разом» ────────────────────────────────
+    // Показуємо не обчислене в браузері число, а готові рядки, які сервер
+    // відрендерив тим самим format_price() у data-summary-cost /
+    // data-summary-total кожного радіо доставки. Завдяки цьому сума на екрані
+    // ніколи не розходиться з тим, що нарахує POST /place-order (валюта,
+    // розділювачі, вартість від плагіна через фільтр checkout.shipping_cost).
+    //
+    // Плагін, який рахує доставку динамічно (живий тариф перевізника), має
+    // оновити ці два data-атрибути на своєму радіо і викликати
+    // window.CheckoutSummary.refresh().
+    const shippingCostEl = document.getElementById('checkout-shipping-cost');
+    const totalAmountEl = document.getElementById('checkout-total-amount');
+
+    const refreshSummary = () => {
+        const checked = form.querySelector('input[name="delivery_id"]:checked');
+        if (!checked) {
+            return;
+        }
+        if (shippingCostEl && checked.dataset.summaryCost !== undefined) {
+            shippingCostEl.textContent = checked.dataset.summaryCost;
+        }
+        if (totalAmountEl && checked.dataset.summaryTotal !== undefined) {
+            totalAmountEl.textContent = checked.dataset.summaryTotal;
+        }
+    };
+
+    window.CheckoutSummary = { refresh: refreshSummary };
+
+    deliveryRadios.forEach((radio) => radio.addEventListener('change', refreshSummary));
+    refreshSummary();
 
     toggleDeliveryFields();
 })();

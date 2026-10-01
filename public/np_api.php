@@ -116,11 +116,12 @@ function npApiRequest(string $apiKey, string $modelName, string $calledMethod, a
     $cacert = __DIR__ . '/../config/cacert.pem';
     if (file_exists($cacert)) {
         $curlOpts[CURLOPT_CAINFO]         = $cacert;
-        $curlOpts[CURLOPT_SSL_VERIFYPEER] = true;
-    } else {
-        $curlOpts[CURLOPT_SSL_VERIFYPEER] = false;
-        $curlOpts[CURLOPT_SSL_VERIFYHOST] = 0;
     }
+    // Keep certificate verification enabled. If this PHP build has no trusted CA
+    // bundle configured, fail closed instead of sending the API key over an
+    // unverified TLS connection.
+    $curlOpts[CURLOPT_SSL_VERIFYPEER] = true;
+    $curlOpts[CURLOPT_SSL_VERIFYHOST] = 2;
 
     curl_setopt_array($ch, $curlOpts);
 

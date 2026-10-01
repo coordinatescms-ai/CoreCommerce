@@ -457,17 +457,35 @@ $attributeRows = $attributeRows ?? [];
 
         categorySelect.addEventListener('change', fetchAllowedAttributes);
         
-        function updateGalleryPreview(files) {
+        // Накопичувальний вибір фото: дозволяє додавати файли декількома окремими
+        // відкриттями системного діалогу вибору файлів, без втрати вже обраних.
+        let selectedGalleryFiles = [];
+
+        function syncGalleryFileInput() {
+            if (!imagesInput) return;
+            const dataTransfer = new DataTransfer();
+            selectedGalleryFiles.forEach(function (file) {
+                dataTransfer.items.add(file);
+            });
+            imagesInput.files = dataTransfer.files;
+        }
+
+        function renderGalleryPreview() {
             if (!galleryPreview) return;
             galleryPreview.innerHTML = '';
-            Array.from(files || []).forEach(function (file) {
+            selectedGalleryFiles.forEach(function (file, index) {
                 const reader = new FileReader();
                 reader.onload = function (e) {
                     const card = document.createElement('div');
-                    card.style.border = '1px solid #e2e8f0';
-                    card.style.borderRadius = '8px';
-                    card.style.overflow = 'hidden';
-                    card.innerHTML = '<img src="' + e.target.result + '" style="width:100%;height:90px;object-fit:cover;display:block;"><div style="padding:0.35rem;font-size:0.75rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + file.name + '</div>';
+                    card.style.cssText = 'position:relative;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;background:#fff;';
+                    card.innerHTML = '<img src="' + e.target.result + '" style="width:100%;height:90px;object-fit:cover;display:block;">' +
+                        '<div style="padding:0.35rem;font-size:0.75rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(file.name) + '</div>' +
+                        '<button type="button" class="gallery-new-remove-btn" title="<?= __('remove') ?>" aria-label="<?= __('remove') ?>" style="position:absolute;top:4px;right:4px;width:22px;height:22px;line-height:1;border:none;border-radius:50%;background:rgba(239,68,68,0.92);color:#fff;cursor:pointer;font-size:0.9rem;">&times;</button>';
+                    card.querySelector('.gallery-new-remove-btn').addEventListener('click', function () {
+                        selectedGalleryFiles.splice(index, 1);
+                        syncGalleryFileInput();
+                        renderGalleryPreview();
+                    });
                     galleryPreview.appendChild(card);
                 };
                 reader.readAsDataURL(file);
@@ -476,13 +494,23 @@ $attributeRows = $attributeRows ?? [];
 
         if (imagesInput) {
             imagesInput.addEventListener('change', function () {
-                if (imagesInput.files.length > galleryLimit) {
-                    alert('Максимум ' + galleryLimit + ' фото.');
-                    imagesInput.value = '';
-                    updateGalleryPreview([]);
-                    return;
+                const newFiles = Array.from(imagesInput.files || []);
+                let limitReached = false;
+
+                newFiles.forEach(function (file) {
+                    if (selectedGalleryFiles.length >= galleryLimit) {
+                        limitReached = true;
+                        return;
+                    }
+                    selectedGalleryFiles.push(file);
+                });
+
+                if (limitReached) {
+                    alert('<?= __('gallery_limit_reached') ?> ' + galleryLimit + ' <?= __('product_gallery_photo') ?>.');
                 }
-                updateGalleryPreview(imagesInput.files);
+
+                syncGalleryFileInput();
+                renderGalleryPreview();
             });
         }
 

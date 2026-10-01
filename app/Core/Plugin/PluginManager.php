@@ -421,6 +421,32 @@ class PluginManager
         return new PluginDB($slug);
     }
 
+    /** Register a shipping method through the trusted core boundary. */
+    public function ensureShippingMethod(string $code, string $name, string $description, array $settings, int $sortOrder, bool $testMode = false): void
+    {
+        $code = strtolower(trim($code));
+        if (!preg_match('/^[a-z0-9_]{2,64}$/', $code)) {
+            throw new \InvalidArgumentException('Invalid shipping method code.');
+        }
+        $existing = DB::query("SELECT id FROM shop_methods WHERE type = 'shipping' AND code = ? LIMIT 1", [$code])->fetch(\PDO::FETCH_ASSOC);
+        if ($existing) { return; }
+        DB::query(
+            'INSERT INTO shop_methods (type, code, name, description, is_active, is_test_mode, settings, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, 0, ?, ?, ?, NOW(), NOW())',
+            ['shipping', $code, $name, $description, $testMode ? 1 : 0, json_encode($settings, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), $sortOrder]
+        );
+    }
+
+    /** Update a shipment tracking number without granting plugins general order-write access. */
+    public function setOrderTrackingCode(int $orderId, string $trackingCode): bool
+    {
+        $trackingCode = trim($trackingCode);
+        if ($orderId <= 0 || $trackingCode === '' || strlen($trackingCode) > 128) { return false; }
+        $column = DB::query("SELECT COUNT(*) AS c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'orders' AND COLUMN_NAME = 'ttn_code'")->fetch(\PDO::FETCH_ASSOC);
+        if ((int) ($column['c'] ?? 0) === 0) { return false; }
+        DB::query('UPDATE orders SET ttn_code = ? WHERE id = ?', [$trackingCode, $orderId]);
+        return true;
+    }
+
     /**
      * Чи активний плагін зі вказаним slug.
      * Використовується Router-ом, щоб виконувати PHP-ендпоінти

@@ -11,15 +11,24 @@
 <form action="/admin/settings/save" method="POST">
     <input type="hidden" name="csrf" value="<?= \App\Core\Http\Csrf::token(); ?>">
     <input type="hidden" name="current_tab" value="shipping">
+    <input type="hidden" name="settings[shipping_include_in_total]" value="0">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="h4 mb-0"><?= __("admin_settings_delivery_title") ?></h2>
     </div>
 
+    <div class="form-check form-switch mb-4">
+        <input class="form-check-input" type="checkbox" role="switch" id="shipping-include-in-total"
+               name="settings[shipping_include_in_total]" value="1"
+               <?= (string) get_setting('shipping_include_in_total', '1') === '1' ? 'checked' : '' ?>>
+        <label class="form-check-label" for="shipping-include-in-total"><?= __('settings_shipping_include_in_total') ?></label>
+        <div class="form-text"><?= __('settings_shipping_include_in_total_hint') ?></div>
+    </div>
+
     <?php foreach ($methods as $method): ?>
         <div class="card mb-4 shadow-sm border-0">
             <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-                <h5 class="mb-0 text-primary"><?= htmlspecialchars($method['name']) ?></h5>
+                <h5 class="mb-0 text-primary"><?= htmlspecialchars(shipping_method_display_name($method)) ?></h5>
 
                 <button type="submit" form="delete-form-<?= $method['id'] ?>"
                     onclick="return confirm(window.LANG.confirm_delete_method)"
@@ -38,7 +47,7 @@
                     <div class="col-md-6 mb-3">
                         <label class="form-label fw-bold"><?= __('settings_payment_name') ?></label>
                         <input type="text" name="methods[<?= $method['id'] ?>][name]" 
-                               value="<?= htmlspecialchars($method['name']) ?>" class="form-control">
+                               value="<?= htmlspecialchars(shipping_method_display_name($method)) ?>" class="form-control">
                     </div>
 
                     <!-- Поле для зміни ОПИСУ -->
