@@ -1,6 +1,6 @@
 # CoreCommerce
 
-![Type](https://shields.io)
+![E-Commerce](https://shields.io)
 ![PHP](https://shields.io)
 ![MySQL](https://shields.io)
 ![JavaScript](https://shields.io)
