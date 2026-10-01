@@ -2,6 +2,8 @@
 
 **CoreCommerce** - a fast, secure, and flexible e-commerce platform built on pure PHP and MySQL, designed as a lightweight alternative to bulky CMS systems.
 
+🔗 **Live Demo:** [CoreCommerce](https://demo.corecommerce.website)
+
 ## Project Overview
 
 CoreCommerce is a full-featured online store platform built on a custom minimalist PHP framework. It provides maximum security and flexibility out of the box, with modular architecture for easy customization and extension.
