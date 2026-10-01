@@ -1,5 +1,12 @@
 # CoreCommerce
 
+![Type](https://shields.io)
+![PHP](https://shields.io)
+![MySQL](https://shields.io)
+![JavaScript](https://shields.io)
+![HTML5](https://shields.io)
+![CSS3](https://shields.io)
+
 **CoreCommerce** - a fast, secure, and flexible e-commerce platform built on pure PHP and MySQL, designed as a lightweight alternative to bulky CMS systems.
 
 ## Project Overview
