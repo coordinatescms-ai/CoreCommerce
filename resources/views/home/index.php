@@ -24,7 +24,7 @@
     <?php if (empty($popularCategories)): ?>
         <p style="color: var(--text-muted);"><?= __('categories_not_found') ?></p>
     <?php else: ?>
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; justify-content: center;">
             <?php foreach ($popularCategories as $category): ?>
                 <a
                     href="/category/<?= htmlspecialchars(ltrim($category['path'] ?? $category['slug'], '/')) ?>"
